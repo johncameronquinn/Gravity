@@ -1,0 +1,33 @@
+<resources>
+
+    <!-- Base application theme. -->
+    <style name="AppTheme" parent="@android:style/Theme.Holo">
+       <item name="android:windowActionBar">false</item>
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:windowBackground">@drawable/jesterhat</item>
+        <item name="android:windowActionBarOverlay">true</item>
+        <item name="colorAccent">@color/wpallete_accent_blue_alpha</item>
+    </style>
+
+    <style name="leftArrowStyle">
+        <item name="android:alpha">.6</item>
+        <item name="android:layout_marginBottom">50dp</item>
+        <item name="android:layout_marginLeft">30dp</item>
+        <item name="android:layout_width">20dp</item>
+        <item name="android:layout_height">50dp</item>
+        <item name="android:background">@drawable/leftarrow</item>
+        <item name="android:layout_gravity">left|bottom</item>
+    </style>
+
+    <style name="rightArrowStyle">
+        <item name="android:alpha">.6</item>
+        <item name="android:layout_marginBottom">50dp</item>
+        <item name="android:layout_marginRight">30dp</item>
+        <item name="android:layout_width">20dp</item>
+        <item name="android:layout_height">50dp</item>
+        <item name="android:background">@drawable/rightarrow</item>
+        <item name="android:layout_gravity">right|bottom</item>
+
+    </style>
+
+</resources>

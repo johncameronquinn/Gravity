@@ -1,0 +1,22 @@
+<resources>
+    <string name="app_name">Jokr</string>
+    <string name="camera">Camera</string>
+    <string name="live">Live</string>
+    <string name="local">Local</string>
+    <string name="message">Message</string>
+    <string name="action_settings">Settings</string>
+    <string name="title_activity_live">LiveActivity</string>
+    <string name="gps_network_not_enabled">Location Services must be enabled in order to use Proxi, please
+        enable them now. Information as to how we use your location is available online at our website www.proxi.com</string>
+    <string name="open_location_settings">Open Settings</string>
+    <string name="Cancel">Close</string>
+
+
+    <string name="capture_button_desc">Press this button to capture a picture</string>
+
+    <string name="no_replies">No replies.</string>
+
+<!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+
+</resources>

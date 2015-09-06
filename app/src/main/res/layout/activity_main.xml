@@ -1,0 +1,40 @@
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:id="@+id/rootlayout"
+    tools:context=".MainActivity"
+    android:background="#c9ccaf">
+
+    <com.jokrapp.android.CustomViewPager
+        android:id="@+id/pager"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_gravity="center_horizontal|bottom">
+
+
+      <android.support.v4.view.PagerTabStrip
+            android:id="@+id/pager_title_strip"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="top"
+            android:background="@color/wpallete_accent_blue"
+            android:textColor="@color/wpallete_neutral_gray"
+            android:paddingTop="4dp"
+            android:paddingBottom="4dp"/>
+
+    </com.jokrapp.android.CustomViewPager>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:text="Connecting.."
+        android:id="@+id/statusTextView"
+        android:layout_gravity="center"
+        android:enabled="false"
+        android:visibility="invisible" />
+
+
+
+
+</FrameLayout>

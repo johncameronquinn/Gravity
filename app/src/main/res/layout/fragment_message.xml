@@ -1,0 +1,13 @@
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/pallete_accent_gray">
+
+        <com.jokrapp.android.ImageCursorAdapterView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:id="@+id/imageMessageAdapter"
+            android:background="@color/pallete_accent_gray">
+        </com.jokrapp.android.ImageCursorAdapterView>
+
+</FrameLayout>

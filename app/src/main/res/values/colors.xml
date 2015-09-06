@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="button_background">#5b5f5d40</color>
+    <color name="image_bg">#7bebc791</color>
+    <color name="adapter_bg">#ffcc9b66</color>
+    <color name="image_outer_bg">#ffffc69e</color>
+    <color name="image_outline">#D0D0CE</color>
+    <color name="clear_background">#00ffffff</color>
+
+
+    <color name="pallete_main_orange">#ff7400</color>
+    <color name="pallete_main_blue">#0FAAE8</color>
+    <color name="pallete_accent_orange">#F7941E</color>
+    <color name="pallete_accent_blue">#6DCFF6</color>
+    <color name="pallete_accent_blue_alpha">#786dcff6</color>
+    <color name="pallete_accent_gray">#424242</color>
+
+
+
+    <color name="wpallete_main_purple">#7F11A3</color>
+    <color name="wpallete_accent_purple">#CD90E1</color>
+    <color name="wpallete_neutral_gray">#5B555D</color>
+    <color name="wpallete_accent_blue">#A8C5E0</color>
+    <color name="wpallete_main_blue">#348ADB</color>
+    <color name="wpallete_accent_blue_alpha">#786dcff6</color>
+    <color name="wpallete_complementary_green">#9AEF5B</color>
+</resources>

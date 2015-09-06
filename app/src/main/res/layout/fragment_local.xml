@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <com.jokrapp.android.ImageCursorAdapterView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:id="@+id/imageAdapter"
+        android:background="@color/pallete_accent_gray">
+    </com.jokrapp.android.ImageCursorAdapterView>
+
+    <!--   <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Request"
+        android:id="@+id/button2"
+        android:background="@color/pallete_accent_blue_alpha"
+        android:onClick="requestImages"
+        android:layout_gravity="center|top" />-->
+
+</FrameLayout>
