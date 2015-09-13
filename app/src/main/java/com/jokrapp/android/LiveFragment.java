@@ -5,22 +5,29 @@ import android.app.Activity;
 import android.app.FragmentManager;
 import android.app.LoaderManager;
 import android.content.CursorLoader;
+import android.content.Intent;
 import android.content.Loader;
 import android.database.Cursor;
 import android.database.MatrixCursor;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.net.Uri;
 import android.os.Bundle;
 import android.app.Fragment;
 import android.os.Handler;
+import android.provider.MediaStore;
 import android.support.v13.app.FragmentStatePagerAdapter;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.AccelerateInterpolator;
+import android.widget.ImageView;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.io.FileNotFoundException;
 import java.lang.ref.WeakReference;
 
 import fr.castorflex.android.verticalviewpager.VerticalViewPager;
@@ -38,7 +45,7 @@ import com.jokrapp.android.SQLiteDbContract.LiveThreadInfoEntry;
  */
 public class LiveFragment extends Fragment implements
         LoaderManager.LoaderCallbacks<Cursor> {
-    private static final boolean VERBOSE = true;
+    private static final boolean VERBOSE = false;
     private static final String TAG = "LiveFragment";
 
     // TODO: Rename parameter arguments, choose names that match
@@ -54,6 +61,7 @@ public class LiveFragment extends Fragment implements
 
     private VerticalViewPager threadPager;
     private FragmentStatePagerAdapter mAdapter;
+    private WeakReference<ReplyFragment> mReplyFragmentReference;
 
   //  private Cursor data;
 
@@ -74,6 +82,12 @@ public class LiveFragment extends Fragment implements
         fragment.setArguments(args);
         return fragment;
     }
+
+    public void setReplyFragment(ReplyFragment fragment) {
+        mReplyFragmentReference = new WeakReference<ReplyFragment>(fragment);
+    }
+
+    public ReplyFragment getReplyFragment() {return  mReplyFragmentReference.get();}
 
 
     /**
@@ -200,14 +214,41 @@ public class LiveFragment extends Fragment implements
         super.onDetach();
     }
 
+    public int getCurrentThread() {
+        return currentThread;
+    }
 /***************************************************************************************************
  * USER INTERACTION
  */
     /**
-     * class 'livePostButtonListener'
+     * method 'onActivityResult'
      *
-     * special class that listens to the live_write_post buttons, and gets data
+     * called when the user selects an image to be loaded into live, or cancels
+     *
+     * @param requestCode code supplied to the activity
+     * @param resultCode result be it cancel or otherwise
+     * @param data the uri returned
      */
+    private final int SELECT_PICTURE = 1;
+
+    @Override
+     public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (resultCode == Activity.RESULT_OK) {
+            if (requestCode == SELECT_PICTURE) {
+                Uri selectedImageUri = data.getData();
+                Bitmap b = null;
+                try {
+                    b = BitmapFactory.decodeStream(getActivity().getContentResolver().openInputStream(selectedImageUri));
+                } catch (FileNotFoundException e) {
+                    Log.e(TAG, "error decoding stream from returned URI...");
+                }
+
+            } else {
+
+            }
+        }
+    }
+
     /**
      * class 'liveButtonListener
      *
@@ -251,7 +292,11 @@ public class LiveFragment extends Fragment implements
                     break;
 
                 case OPEN_STASH_VALUE:
-                    Toast.makeText(getActivity(),"Opening stash...",Toast.LENGTH_SHORT).show();
+                    Log.i(TAG, "opening gallery");
+                    Intent intent = new Intent();
+                    intent.setAction(Intent.ACTION_GET_CONTENT);
+                    intent.setType("image/*");
+                    startActivityForResult(Intent.createChooser(intent,"Select Picture"), SELECT_PICTURE);
                     break;
                 case STARTING_VALUE:
                     //do nothing. possibly hide the seekbar?
@@ -383,6 +428,12 @@ public class LiveFragment extends Fragment implements
             if (getView() != null) {
             ((TextView)getView().findViewById(R.id.live_thread_number)).setText(String.valueOf(i));
             }
+
+            ReplyFragment rf = getReplyFragment();
+            if (rf != null ) {
+                rf.setCurrentThread(i);
+            }
+
 
             LiveThreadFragment f =  LiveThreadFragment.newInstance(i, name, title, fileName);
             f.setProgressHandler(liveThreadAdapterHandler);

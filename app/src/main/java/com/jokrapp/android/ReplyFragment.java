@@ -39,6 +39,15 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
 
     SimpleCursorAdapter mAdapter;
 
+    public static ReplyFragment newInstance(int currentThread) {
+        Bundle args = new Bundle();
+        args.putInt("currentThread", currentThread);
+
+        ReplyFragment fragment = new ReplyFragment();
+        fragment.setArguments(args);
+        return fragment;
+    }
+
     /**
      * Use this factory method to create a new instance of
      * this fragment using the provided parameters.
@@ -48,6 +57,11 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Bundle b = getArguments();
+
+        if (b != null) {
+            currentThread = b.getInt("currentThread");
+        }
     }
 
     /**
@@ -126,6 +140,11 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
         super.onStop();
     }
 
+    public void setCurrentThread(int thread) {
+        currentThread = thread;
+    }
+
+    public int getCurrentThread() { return currentThread;}
 
     private static WeakReference<ReplyButtonListener> buttonListenerReference;
 
@@ -306,7 +325,7 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
                 case R.id.button_camera_live_mode_confirm:
                     FrameLayout layout = (FrameLayout) v.getParent().getParent();
                     String description = ((EditText)layout.findViewById(R.id.editText_reply_mode_comment)).getText().toString();
-                    activity.setLiveCreateReplyInfo("unset", description);//todo load name from sharedpreferences
+                    activity.setLiveCreateReplyInfo("unset", description, getCurrentThread());//todo load name from sharedpreferences
                     layout.removeView((View) v.getParent());
                     imm.hideSoftInputFromWindow(createReplyView.getWindowToken(), 0);
 

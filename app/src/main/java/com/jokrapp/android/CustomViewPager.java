@@ -3,7 +3,9 @@ package com.jokrapp.android;
 import android.content.Context;
 import android.support.v4.view.ViewPager;
 import android.util.AttributeSet;
+import android.view.GestureDetector;
 import android.view.MotionEvent;
+import android.view.View;
 
 /**
  * Author/Copyright John C. Quinn All Rights Reserved
@@ -13,14 +15,13 @@ import android.view.MotionEvent;
  *
  * a custom implementation of the viewpager to allow the ability to disable paging on command
  */
-public class CustomViewPager extends ViewPager {
+public class CustomViewPager extends ViewPager  {
 
     private boolean isPagingEnabled = true;
 
 
     public CustomViewPager(Context context) {
         super(context);
-
     }
 
     public CustomViewPager(Context context, AttributeSet attrs) {
@@ -32,7 +33,6 @@ public class CustomViewPager extends ViewPager {
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         return this.isPagingEnabled &&  super.onTouchEvent(event);
-
         //boolean out
        // Log.d("ViewPager","onTouchEvent:  " + out);
                 //return out;
@@ -49,8 +49,6 @@ public class CustomViewPager extends ViewPager {
      //   Log.d("ViewPager","onInterceptTouchEvent:  " + out);
                // return out;
     }
-
-
 
     public void setPagingEnabled(boolean b) {
         this.isPagingEnabled = b;

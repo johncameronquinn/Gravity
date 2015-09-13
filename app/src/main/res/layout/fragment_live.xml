@@ -18,7 +18,7 @@
         android:layout_width="70dp"
         android:layout_height="wrap_content"
         android:id="@+id/button_new_thread"
-        android:src="@drawable/new_post50"
+        android:src="@drawable/new_post"
         android:background="#00ffffff"
         android:layout_alignParentBottom="true"
         android:layout_marginBottom="5dp"

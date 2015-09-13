@@ -1,9 +1,14 @@
 package com.jokrapp.android;
 
 import android.app.Activity;
+import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Bundle;
 import android.app.Fragment;
+import android.os.Looper;
+import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import android.view.GestureDetector;
 import android.view.LayoutInflater;
@@ -42,9 +47,10 @@ public class CameraFragment extends Fragment {
     private static boolean isComment = false;
 
     private EditText commentText = null;
-    private static UUID messageTarget = null; //todo this isn't the most efficient
+    private static String messageTarget = null; //todo this isn't the most efficient
 
     private int currentCameraMode;
+    private CameraReceiver cameraReceiver;
 
     private final int CAMERA_DEFAULT_MODE = 0;
     private final int CAMERA_MESSAGE_MODE = 1;
@@ -78,6 +84,11 @@ n  */
     @Override
     public void onAttach(Activity activity) {
         super.onAttach(activity);
+
+        cameraReceiver = new CameraReceiver();
+        LocalBroadcastManager.getInstance(activity).registerReceiver(
+                cameraReceiver,
+                new IntentFilter(ACTION_PICTURE_TAKEN));
         try {
             mListener = (OnCameraFragmentInteractionListener) activity;
         } catch (ClassCastException e) {
@@ -89,8 +100,10 @@ n  */
     @Override
     public void onDetach() {
         super.onDetach();
+        LocalBroadcastManager.getInstance(getActivity()).unregisterReceiver(cameraReceiver);
         mListener = null;
         gestureDetector = null;
+        cameraReceiver = null;
 
     }
 
@@ -316,8 +329,6 @@ n  */
         if (VERBOSE) {
             Log.v(TAG, "enter onViewCreated...");
         }
-
-
         if (savedInstanceState != null) {
             if (VERBOSE) {
                 Log.v(TAG, "onViewCreated had a saved instance.");
@@ -676,7 +687,6 @@ n  */
              Log.v(TAG, "enter onPictureTaken... ");
          }
          getButtonListener(this).setCameraUI(currentCameraMode);
-
          if (VERBOSE) {
              Log.v(TAG, "exit onPictureTaken...");
          }
@@ -686,7 +696,7 @@ n  */
  * MESSAGING
  *
  */
-   public void startMessageMode(UUID id) {
+   public void startMessageMode(String id) {
 
        //final int dp = 60;
        //calculates density pixels
@@ -714,11 +724,11 @@ n  */
        currentCameraMode = CAMERA_MESSAGE_MODE;
    }
 
-   public UUID getMessageTarget() {
+   public String getMessageTarget() {
        return messageTarget;
    }
 
-   public static void setMessageTarget(UUID target) {
+   public static void setMessageTarget(String target) {
        messageTarget = target;
    }
 
@@ -783,8 +793,8 @@ n  */
                     break;
                 case R.id.button_camera_live_mode_confirm:
                     FrameLayout layout = (FrameLayout) v.getParent().getParent();
-                    String title = ((EditText)layout.findViewById(R.id.live_write_thread_title)).getText().toString();
-                    String description = ((EditText)layout.findViewById(R.id.live_post_text)).getText().toString();
+                    String title = ((EditText)layout.findViewById(R.id.editText_live_mode_title)).getText().toString();
+                    String description = ((EditText)layout.findViewById(R.id.editText_live_mode_description)).getText().toString();
                     activity.setLiveCreateThreadInfo("unset", title, description);//todo load name from sharedpreferences
                     layout.removeView((View) v.getParent());
                     imm.hideSoftInputFromWindow(createThreadView.getWindowToken(), 0);
@@ -878,7 +888,7 @@ n  */
                 case R.id.button_camera_live_mode_confirm:
                     FrameLayout layout = (FrameLayout) v.getParent().getParent();
                     String description = ((EditText)layout.findViewById(R.id.editText_reply_mode_comment)).getText().toString();
-                    activity.setLiveCreateReplyInfo("unset", description);//todo load name from sharedpreferences
+                    activity.setLiveCreateReplyInfo("unset", description,0);//todo load name from sharedpreferences
                     layout.removeView((View) v.getParent());
                     imm.hideSoftInputFromWindow(createReplyView.getWindowToken(), 0);
 
@@ -946,4 +956,24 @@ n  */
         void sendMsgSwitchCamera();
     }
 
+    static final String ACTION_PICTURE_TAKEN = "com.jokrapp.android.picturetaken";
+    static final String ACTION_PICTURE_SAVED = "com.jokrapp.android.picturesaved";
+    public class CameraReceiver extends BroadcastReceiver implements Runnable {
+        private int success;
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            switch (intent.getAction()) {
+                case ACTION_PICTURE_TAKEN:
+                    success = intent.getIntExtra("success",0);
+                    getActivity().runOnUiThread(this);
+                    break;
+            }
+        }
+
+
+        @Override
+        public void run() {
+            onPictureTaken(success);
+        }
+    }
 }

@@ -30,11 +30,15 @@ import android.preference.PreferenceManager;
 import android.provider.Settings;
 import android.app.Fragment;
 import android.support.v13.app.FragmentStatePagerAdapter;
+import android.support.v4.content.LocalBroadcastManager;
 import android.util.AttributeSet;
 import android.util.Log;
+import android.view.GestureDetector;
 import android.view.Gravity;
+import android.view.MotionEvent;
 import android.view.TextureView;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.TextView;
@@ -60,9 +64,9 @@ import java.util.UUID;
  * there is only one activity, and all the other features are managed as fragments
  */
 public class MainActivity extends Activity implements CameraFragment.OnCameraFragmentInteractionListener,
-LocalFragment.onLocalFragmentInteractionListener{
+LocalFragment.onLocalFragmentInteractionListener, View.OnLongClickListener{
     private static String TAG = "MainActivity";
-    private static final boolean VERBOSE = false;
+    private static final boolean VERBOSE = true;
     private static final boolean SAVE_LOCALLY = false;
 
     //private static String imageDir;
@@ -316,16 +320,23 @@ LocalFragment.onLocalFragmentInteractionListener{
      */
     private void createUI() {
         setContentView(R.layout.activity_main);
+        findViewById(R.id.rootlayout).setOnLongClickListener(this);
         mAdapter = new MainAdapter(getFragmentManager());
         mPager = (CustomViewPager) findViewById(R.id.pager);
         mPager.setAdapter(mAdapter);
         mPager.setCurrentItem(CAMERA_LIST_POSITION);
+        mPager.setOnLongClickListener(this);
     }
 
     @Override
     public View onCreateView(String name, Context context, AttributeSet attrs) {
+        return super.onCreateView(name,context,attrs);
+    }
 
-        return super.onCreateView(name, context, attrs);
+    public boolean onLongClick(View v) {
+        if (VERBOSE) Log.v(TAG,"onLongClick registered..." + v.toString());
+        Toast.makeText(this,"Longclick",Toast.LENGTH_SHORT).show();
+        return true;
     }
 
     public void onLocalMessagePressed(View view) {
@@ -333,9 +344,14 @@ LocalFragment.onLocalFragmentInteractionListener{
             Toast.makeText(this,"Message pressed: " + view.getTag(),Toast.LENGTH_LONG).show();
         }
 
-        CameraFragReference.get().startMessageMode(UUID.fromString((String)view.getTag()));
+        CameraFragReference.get().startMessageMode((String)view.getTag());
         mPager.setCurrentItem(CAMERA_LIST_POSITION);
         mPager.setPagingEnabled(false);
+    }
+
+    @Override
+    public boolean dispatchTouchEvent(MotionEvent ev) {
+        return super.dispatchTouchEvent(ev);
     }
 
     public void onLocalReplyPressed(View view) {
@@ -343,7 +359,7 @@ LocalFragment.onLocalFragmentInteractionListener{
             Toast.makeText(this,"Message pressed: " + view.getTag(),Toast.LENGTH_LONG).show();
         }
 
-        CameraFragment.setMessageTarget(UUID.fromString((String) view.getTag()));
+        CameraFragment.setMessageTarget((String) view.getTag());
         /*
         if (CameraFragReference.get() != null) {
             CameraFragReference.get().startMessageMode(UUID.fromString((String)view.getTag()));
@@ -352,6 +368,7 @@ LocalFragment.onLocalFragmentInteractionListener{
         }*/
         mPager.setCurrentItem(CAMERA_LIST_POSITION);
         mPager.setPagingEnabled(false);
+
     }
 
     /**
@@ -444,7 +461,7 @@ LocalFragment.onLocalFragmentInteractionListener{
             Log.d(TAG, "sending message containing filepath to load...");
             Message msg = Message.obtain(null, DataHandlingService.MSG_SEND_IMAGE,currentCamera,0);
 
-            UUID target = CameraFragReference.get().getMessageTarget();
+            String target = CameraFragReference.get().getMessageTarget();
 
             Bundle b = new Bundle();
             b.putString(Constants.IMAGE_FILEPATH, filePath);
@@ -523,7 +540,7 @@ LocalFragment.onLocalFragmentInteractionListener{
                 }
                 return CameraFragReference.get();
             } else if (position == REPLY_LIST_POSITION) {
-                return new ReplyFragment();
+                return ReplyFragment.newInstance(LiveFragReference.get().getCurrentThread());
             } else {
                 Log.e(TAG, "Invalid fragment position loaded");
                 return null;
@@ -556,47 +573,8 @@ LocalFragment.onLocalFragmentInteractionListener{
 
                 return null;
             }
-
     }
 
-    /**
-     * methods "load Local, Live, and Message'
-     * <p>
-     * callback methods from the three fragment xml files ala android::onClick
-     * merely sets the current fragment in the pager
-     *
-     * @param buttonView the view of the button being pressed
-     */
-    /*
-    public void loadLocal(View buttonView) {
-        mPager.setCurrentItem(LOCAL_LIST_POSITION);
-    }
-
-    public void loadLive(View buttonView) {
-        mPager.setCurrentItem(LIVE_LIST_POSITION);
-    }
-
-    public void loadMessage(View buttonView) {
-        mPager.setCurrentItem(MESSAGE_LIST_POSITION);
-    }
-
-    public void loadLiveDetail(View buttonView) { mPager.setCurrentItem(REPLY_LIST_POSITION); }
-
-    public void loadCamera(View buttonView) { mPager.setCurrentItem(CAMERA_LIST_POSITION); }
-*/
-    /**
-     * method 'cancelCamera'
-     * <p>uhh.
-     * hides the camera fragment, does not remove it
-     * <p>
-     * called by various lifecycle methods, as well as by the camera Listener
-     */
-    /*public void cancelCamera() {
-        FragmentTransaction transaction = getFragmentManager().beginTransaction();
-        transaction.hide(camera);
-        transaction.commit();
-        isCamera = false;
-    }*/
 
 
     /***********************************************************************************************
@@ -771,6 +749,8 @@ I*/
         if (VERBOSE) Log.v(TAG,"entering sendMsgCreateReply");
         if (isBound) {
             Message msg = Message.obtain(null, DataHandlingService.MSG_REPLY_TO_THREAD);
+            msg.arg1 = replyData.getInt("threadID");
+            replyData.remove("threadID");
             msg.setData(replyData);
             try {
                 mService.send(msg);
@@ -810,15 +790,16 @@ I*/
 
 
 
-    public void setLiveCreateReplyInfo(String name, String Comment) {
+    public void setLiveCreateReplyInfo(String name, String Comment, int threadID) {
         if (replyData == null) {
-            replyData = new Bundle(2);
+            replyData = new Bundle(3);
         }
 
         replyData.putString("name",name);
         replyData.putString("description",Comment);
+        replyData.putInt("threadID",threadID);
 
-        if (replyData.size() == 3) {
+        if (replyData.size() == 4) {
             sendMsgCreateReply(replyData);
             replyData = null;
         }
@@ -867,7 +848,7 @@ I*/
             replyData = new Bundle(1);
         }
         replyData.putString("filePath",filePath);
-        if (replyData.size() == 3) {
+        if (replyData.size() == 4) {
             sendMsgCreateThread(replyData);
             replyData = null;
         }
@@ -992,7 +973,7 @@ I*/
      *
      * It is possible that a SurfaceView would be a more effective implementation //todo look into this
      */
-    class CameraHandler extends Handler implements TextureView.SurfaceTextureListener {
+    class CameraHandler extends Handler implements TextureView.SurfaceTextureListener, Camera.PictureCallback, Camera.ShutterCallback {
         private static final String TAG = "MainCameraHandler";
         private boolean isConnected = false;
 
@@ -1229,7 +1210,7 @@ I*/
                     break;
 
                 case MSG_TAKE_PICTURE: //5
-                    mCamera.takePicture(null,null,mPicture);
+                    mCamera.takePicture(this, null, this);
                     break;
                 case MSG_SAVE_PICTURE: //6
                     saveImage(theData,
@@ -1263,8 +1244,6 @@ I*/
                     } else {
                         Log.e(TAG,"mCamera is not connected...");
                     }
-
-
 
                     if (cameraInfo.facing == Camera.CameraInfo.CAMERA_FACING_FRONT) {
                         mCamera.setDisplayOrientation(cameraInfo.orientation-180);
@@ -1423,6 +1402,34 @@ I*/
             c.release();
         }
 
+        @Override
+        public void onShutter() {
+            if (VERBOSE) Log.v(TAG,"entering onShutter");
+
+            Intent intent = new Intent(CameraFragment.ACTION_PICTURE_TAKEN);
+            LocalBroadcastManager.getInstance(getApplicationContext()).sendBroadcastSync(intent);
+
+            if (VERBOSE) Log.v(TAG,"exiting onShutter");
+        }
+
+        public void onPictureTaken(final byte[] data, android.hardware.Camera camera) {
+            if (VERBOSE) {
+                Log.v(TAG, "enter onPictureTaken... ");
+            }
+
+            theData = data;
+//                        try {
+            //                          mWeakActivity.get().messageHandler.
+            //                                send(Message.obtain(null, MSG_PICTURE_TAKEN));
+            //                  } catch (RemoteException e) {
+            //                    Log.e(TAG,"error notifying that picture was taken...",e);
+            //              }
+            if (VERBOSE) {
+                Log.v(TAG, "exit onPictureTaken... ");
+            }
+
+
+        }
 
 
         /**
@@ -1430,7 +1437,7 @@ I*/
          *
          * sets a new click listener for the confirm button, which saves the file
          */
-        private final android.hardware.Camera.PictureCallback mPicture =
+/*        private final android.hardware.Camera.PictureCallback mPicture =
                 new android.hardware.Camera.PictureCallback() {
 
                     /**
@@ -1441,27 +1448,33 @@ I*/
                      * @param data the byte array data of the image that was taken
                      * @param camera the camera from which the picture was taken
                      */
-                    @Override
+          /*          @Override
                     public void onPictureTaken(final byte[] data, android.hardware.Camera camera) {
                         if (VERBOSE) {
                             Log.v(TAG, "enter onPictureTaken... ");
                         }
-                        theData = data;
-                        Log.d(TAG,"taking picture...");
-
-                        try {
-                            mWeakActivity.get().messageHandler.
-                                    send(Message.obtain(null, MSG_PICTURE_TAKEN));
-                        } catch (RemoteException e) {
-                            Log.e(TAG,"error notifying that picture was taken...",e);
+                        if (Looper.myLooper() == Looper.getMainLooper()) {
+                            Log.i(TAG,"callback is in the main thread");
                         }
+
+                        theData = data;
+
+                        Intent intent = new Intent(CameraFragment.ACTION_PICTURE_TAKEN);
+                        LocalBroadcastManager.getInstance(getApplicationContext()).sendBroadcastSync(intent);
+
+//                        try {
+  //                          mWeakActivity.get().messageHandler.
+    //                                send(Message.obtain(null, MSG_PICTURE_TAKEN));
+      //                  } catch (RemoteException e) {
+        //                    Log.e(TAG,"error notifying that picture was taken...",e);
+          //              }
                         if (VERBOSE) {
                             Log.v(TAG, "exit onPictureTaken... ");
                         }
                     }
 
 
-                };
+                };*/
 
         /**
          * method 'saveImage'
