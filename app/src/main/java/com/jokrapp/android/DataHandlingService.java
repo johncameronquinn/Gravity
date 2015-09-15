@@ -12,6 +12,7 @@ import android.os.*;
 import android.util.Base64;
 import android.util.Base64InputStream;
 import android.util.Log;
+import android.util.Pair;
 import android.widget.Toast;
 
 import com.fasterxml.jackson.databind.JsonMappingException;
@@ -61,6 +62,7 @@ import java.nio.channels.FileChannel;
 import java.nio.channels.NotYetConnectedException;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -85,7 +87,7 @@ import java.util.UUID;
 public class DataHandlingService extends Service implements GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener, LocationListener {
     private static final String TAG = "DataHandlingService";
-    private static final boolean VERBOSE = true;
+    private static final boolean VERBOSE = false;
     private static final boolean ALLOW_DUPLICATES = false;
 
     private boolean isLocalRequesting = false;
@@ -108,6 +110,8 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
     private final String REPLY_LIVE_THREAD_PATH = "/ReplyToLiveThread/"; //does not change
     private final String GET_LIVE_THREAD_LIST = "/GetLiveThreadList/"; //does not change
     private final String GET_LIVE_THREAD_INFO = "/GetLiveThreadInfo/"; //does not change
+    private final String GET_LIVE_THREAD_REPLIES = "/GetLiveThreadReplies/"; //does not change
+
 
 
     private static String serverAddress = "130.211.113.250"; //changes when resolved
@@ -584,7 +588,7 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
             JsonGenerator jGen = jsonFactory.createGenerator(conn.getOutputStream());
 
             jGen.writeStartObject();
-            jGen.writeStringField("from",userID.toString());
+            jGen.writeStringField("from", userID.toString());
             jGen.writeNumberField("latitude", lat);
             jGen.writeNumberField("longitude", lon);
             jGen.writeNumberField("count", numberOfImages);
@@ -1162,7 +1166,9 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
         if (responseCode == HttpURLConnection.HTTP_OK) {
             Log.d(TAG, "server returned successful response" + responseCode);
             Log.d(TAG, "now deleting image from internal storage...");
-            deleteFile(filePath.substring(filePath.lastIndexOf("/")+1,filePath.length()));
+            if (filePath != null ) {
+                deleteFile(filePath.substring(filePath.lastIndexOf("/") + 1, filePath.length()));
+            }
         } else {
             Log.e(TAG, "Sending failed for " + url.toString() +
                     " response code: " + responseCode);
@@ -1309,8 +1315,8 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
         try {
             JsonParser jParser = new JsonFactory().createParser(conn.getInputStream());
 
-            ObjectMapper objectMapper = new ObjectMapper();
-            Map<String, Object> asMap = objectMapper.readValue(jParser, Map.class);
+     //       ObjectMapper objectMapper = new ObjectMapper();
+//            Map<String, Object> asMap = objectMapper.readValue(jParser, Map.class);
 
             /**
              * title - thread title (can be empty)
@@ -1321,7 +1327,7 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
              unique - number of unique posters who have posted in this thread
              image - the thread image
              */
-/*            String title;
+            String title;
             String name;
             String text;
             int time;
@@ -1346,18 +1352,18 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
                 jParser.nextValue();
                 unique = jParser.getValueAsInt(0);
                 jParser.nextValue();
-                image = jParser.getValueAsString();*/
+                image = jParser.getValueAsString();
 
 
             //save image data to disk
             if (VERBOSE) {
 
-                Log.v(TAG, "printing from objectmapper");
-                for (Map.Entry<String, Object> entry : asMap.entrySet()) {
-                    Log.v(TAG, "entry: " + entry.getKey() + " value: " + String.valueOf(entry.getValue()));
-                }
+  //              Log.v(TAG, "printing from objectmapper");
+                //for (Map.Entry<String, Object> entry : asMap.entrySet()) {
+//                    Log.v(TAG, "entry: " + entry.getKey() + " value: " + String.valueOf(entry.getValue()));
+//                }
 
-               /* Log.v(TAG,"printing from variables...");
+                Log.v(TAG,"printing from variables...");
                 Log.v(TAG, "title: " + title);
                 Log.v(TAG, "thread id: " + threadID);
                 Log.v(TAG, "time: " + time);
@@ -1366,12 +1372,12 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
                 Log.v(TAG, "number of replies: " + replies);
                 Log.v(TAG, "number of unique posters: " + unique);
                 Log.v(TAG, "filepath saved to: " + "not implemented!");
-                Log.v(TAG," image string is : " + image);*/
+                Log.v(TAG," image string is : " + image);
             }
 
             // String filePath = getFilesDir() + "/" + "IMG_" + threadID + ".jpg";
             boolean isValid = true;
-            /*if (image != null) {
+            if (image != null) {
                 isValid = saveLiveImage(position, image);
             } else {
                 Log.d(TAG, "incoming image was null...");
@@ -1390,7 +1396,7 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
                 values.put(SQLiteDbContract.LiveThreadInfoEntry.COLUMN_NAME_FILEPATH, "Not implemented!");
 
                 getContentResolver().insert(FireFlyContentProvider.CONTENT_URI_LIVE_THREAD_INFO, values);
-            }*/
+            }
 
         } catch (JsonMappingException e) {
             Log.e(TAG,"Error mapping data",e);
@@ -1410,6 +1416,134 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
             @Override
             public void run() {
                 requestThreadInfo(threadID, position);
+            }
+        }).start();
+    }
+
+
+    /**
+     * method 'requestLocalMessages'
+     *
+     * requests the current thread list from the server
+     */
+    private void requestLiveReplies(int threadID) {
+        if (VERBOSE) {
+            Log.v(TAG,"enter requestLiveReplies...");
+        }
+
+        URL url = null;
+        try {
+            url = createURLtoServer(GET_LIVE_THREAD_REPLIES);
+        } catch (MalformedURLException e) {
+            Log.e(TAG,"MalformedURL",e);
+            return;
+        }
+
+        HttpURLConnection conn = openConnectionToURL(url);
+
+
+        try {
+            if (VERBOSE) Log.v(TAG,"opening outputStream to send JSON...");
+            JsonFactory jsonFactory = new JsonFactory();
+            JsonGenerator jGen = jsonFactory.
+                    createGenerator(conn.getOutputStream());
+            if (VERBOSE) {
+                Log.v(TAG, "from : " + userID.toString());
+                Log.v(TAG, "thread id: " + threadID);
+            }
+
+            jGen.writeStartObject();
+            jGen.writeStringField("from", userID.toString());
+            jGen.writeStringField(THREAD_ID,String.valueOf(threadID));
+            jGen.writeEndObject();
+            jGen.flush();
+            jGen.close();
+
+        } catch (IOException e) {
+            Log.e(TAG,"error handling JSON",e);
+        }
+
+        try {
+            JsonParser jParser = new JsonFactory().createParser(conn.getInputStream());
+
+            String name;
+            String text;
+            int time;
+            int id;
+            String image;
+
+            /*ObjectMapper objectMapper = new ObjectMapper();
+            ArrayList<LinkedHashMap<String,Object>> listmap = objectMapper.readValue(jParser,ArrayList.class);
+
+            if (!listmap.isEmpty()) {
+                LinkedHashMap<String, Object> map;
+                Log.v(TAG, "printing from objectmapper");
+                for (int i = 0; i < listmap.size(); i++) {
+                    map = listmap.get(i);
+                    for (Map.Entry<String, Object> entry : map.entrySet()) {
+                        Log.v(TAG, ":  " + entry.getKey() + ":  " + String.valueOf(entry.getValue()));
+                    }
+                }
+            }*/
+            if (jParser.nextValue() == JsonToken.START_ARRAY) {
+                while (jParser.nextValue() != JsonToken.END_ARRAY) {
+                    Log.d(TAG, "incoming thread.");
+
+                    ContentValues values = new ContentValues();
+                    jParser.nextValue();
+                    name = jParser.getValueAsString();
+                    jParser.nextValue();
+                    text = jParser.getValueAsString();
+                    jParser.nextValue();
+                    time = jParser.getValueAsInt();
+                    jParser.nextValue();
+                    id = jParser.getValueAsInt();
+                    jParser.nextValue();
+                    image = jParser.getValueAsString();
+                    //save image data to disk
+
+                    if (image != null) {
+                        saveLiveImage(id, image);
+                    }
+
+                    values.put(SQLiteDbContract.LiveReplies.COLUMN_NAME_NAME,name);
+                    values.put(SQLiteDbContract.LiveReplies.COLUMN_NAME_DESCRIPTION,text);
+                    values.put(SQLiteDbContract.LiveReplies.COLUMN_NAME_TIME,time);
+                    values.put(SQLiteDbContract.LiveReplies.COLUMN_ID,id);
+                    values.put(SQLiteDbContract.LiveReplies.COLUMN_NAME_THREAD_ID,threadID);
+                    values.put(SQLiteDbContract.LiveReplies.COLUMN_NAME_FILEPATH,"not implemented");
+                    if (VERBOSE) {
+                        Log.v(TAG, "name" + name);
+                        Log.v(TAG, "text: " + text);
+                        Log.v(TAG, "time: " + time);
+                        Log.v(TAG, "image id: " + id);
+                        Log.v(TAG, "image: " + image);
+                        Log.v(TAG, "threadID: " + threadID);
+                    }
+                    for (Object obj : values.valueSet()){
+
+                    }
+
+                    getContentResolver().insert(FireFlyContentProvider.CONTENT_URI_REPLY_THREAD_LIST, values);
+
+                    jParser.nextValue();
+                }
+
+            } else {
+                if (VERBOSE) Log.v(TAG,"no replies found...");
+            }
+        } catch (IOException e) {
+            Log.d(TAG, "error receiving and storing messages...", e);
+        }
+
+        if (VERBOSE) Log.v(TAG,"exiting requestLiveReplies...");
+    }
+
+    private void requestLiveRepliesAsync(final int threadID) {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                requestLiveReplies(threadID);
             }
         }).start();
     }
@@ -1463,6 +1597,8 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
     static final int MSG_REQUEST_THREAD_LIST = 13;
 
     static final int MSG_REQUEST_THREAD_INFO = 14;
+
+    static final int MSG_REQUEST_REPLIES = 15;
     /**
      * class 'IncomingHandler'
      *
@@ -1604,6 +1740,12 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
 
                 case MSG_REQUEST_THREAD_INFO:
                     Log.d(TAG, "received a message to request thread info");
+
+                    break;
+
+                case MSG_REQUEST_REPLIES:
+                    Log.d(TAG, "received a message to request replies.");
+                    requestLiveRepliesAsync(msg.arg1);
 
                     break;
 

@@ -39,7 +39,7 @@ import java.util.UUID;
  *
  */
 public class CameraFragment extends Fragment {
-    private static final boolean VERBOSE = true;
+    private static final boolean VERBOSE = false;
     private static final String TAG = "CameraFragment";
 
     private GestureDetector gestureDetector;
@@ -715,7 +715,6 @@ n  */
 
        //FrameLayout layout = (FrameLayout)getView().findViewById(R.id.camera_root);
        //layout.addView(cancel);
-
        Button cancel;
        cancel = (Button)getView().findViewById(R.id.button_cancel_message);
        cancel.setVisibility(View.VISIBLE);

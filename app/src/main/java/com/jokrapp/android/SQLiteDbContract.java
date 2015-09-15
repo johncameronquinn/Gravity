@@ -57,6 +57,7 @@ public final class SQLiteDbContract {
     public static abstract class LiveReplies implements BaseColumns {
         public static final String TABLE_NAME = "live_replies";
         public static final String COLUMN_ID = "_ID";
+        public static final String COLUMN_NAME_THREAD_ID = "threadID";
         public static final String COLUMN_NAME_TIME = "time";
         public static final String COLUMN_NAME_NAME = "name";
         public static final String COLUMN_NAME_DESCRIPTION = "desc";

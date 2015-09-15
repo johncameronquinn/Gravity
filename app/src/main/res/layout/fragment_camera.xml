@@ -93,12 +93,12 @@
     <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="SendMessage"
         android:id="@+id/button_send_message"
         android:layout_gravity="center_horizontal|bottom"
         android:visibility="invisible"
-        android:layout_marginBottom="15dp"
-        android:alpha=".7" />
+        android:layout_marginBottom="40dp"
+        android:alpha=".7"
+        android:background="@drawable/capturebutton_sendmessage" />
 
     <CheckBox
         android:layout_width="wrap_content"

@@ -11,12 +11,14 @@ import android.database.Cursor;
 import android.database.MatrixCursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Matrix;
 import android.net.Uri;
 import android.os.Bundle;
 import android.app.Fragment;
 import android.os.Handler;
 import android.provider.MediaStore;
 import android.support.v13.app.FragmentStatePagerAdapter;
+import android.support.v4.view.ViewPager;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -44,7 +46,7 @@ import com.jokrapp.android.SQLiteDbContract.LiveThreadInfoEntry;
  * //todo use a disk cache for storing thread topics
  */
 public class LiveFragment extends Fragment implements
-        LoaderManager.LoaderCallbacks<Cursor> {
+        LoaderManager.LoaderCallbacks<Cursor>, ViewPager.OnPageChangeListener {
     private static final boolean VERBOSE = false;
     private static final String TAG = "LiveFragment";
 
@@ -196,6 +198,8 @@ public class LiveFragment extends Fragment implements
         //  downArrow.setOnClickListener(getButtonListener(this));
 
         threadPager = (VerticalViewPager)view.findViewById(R.id.live_thread_pager);
+        threadPager.setOnPageChangeListener(this);
+
        // if (mAdapter != null) {
 //            threadPager.setAdapter(mAdapter);
   //      }
@@ -393,7 +397,9 @@ public class LiveFragment extends Fragment implements
         return buttonListenerReference.get();
     }
 
-
+    /***************************************************************************************************
+     * THREAD MANAGEMENT
+      */
 
     private class LiveAdapter extends FragmentStatePagerAdapter {
         private MatrixCursor data;
@@ -419,23 +425,16 @@ public class LiveFragment extends Fragment implements
         @Override
         public Fragment getItem(int i) {
             Log.d(TAG, "getting fragment at position " + i);
-            String name,title,fileName;
+            String name,title, text, fileName, threadID, unique, replies;
             data.moveToPosition(i);
             name = data.getString(data.getColumnIndexOrThrow(LiveThreadInfoEntry.COLUMN_NAME_NAME));
             title = data.getString(data.getColumnIndexOrThrow(LiveThreadInfoEntry.COLUMN_NAME_TITLE));
+            text = data.getString(data.getColumnIndexOrThrow(LiveThreadInfoEntry.COLUMN_NAME_DESCRIPTION));
             fileName = data.getString(data.getColumnIndexOrThrow(LiveThreadInfoEntry.COLUMN_NAME_FILEPATH));
-
-            if (getView() != null) {
-            ((TextView)getView().findViewById(R.id.live_thread_number)).setText(String.valueOf(i));
-            }
-
-            ReplyFragment rf = getReplyFragment();
-            if (rf != null ) {
-                rf.setCurrentThread(i);
-            }
-
-
-            LiveThreadFragment f =  LiveThreadFragment.newInstance(i, name, title, fileName);
+            threadID = data.getString(data.getColumnIndexOrThrow(LiveThreadInfoEntry.COLUMN_NAME_THREAD_ID));
+            unique = data.getString(data.getColumnIndexOrThrow(LiveThreadInfoEntry.COLUMN_NAME_UNIQUE));
+            replies = data.getString(data.getColumnIndexOrThrow(LiveThreadInfoEntry.COLUMN_NAME_REPLIES));
+            LiveThreadFragment f =  LiveThreadFragment.newInstance(i, name, title, text, fileName,threadID,unique,replies);
             f.setProgressHandler(liveThreadAdapterHandler);
             return f;
         }
@@ -491,6 +490,33 @@ public class LiveFragment extends Fragment implements
             return newCursor;
         }
 
+        public MatrixCursor getData() {
+            return data;
+        }
+
+    }
+
+    @Override
+    public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
+
+    }
+
+    @Override
+    public void onPageSelected(int position) {
+        Log.v(TAG, "Page " + position + " selected.");
+        //Toast.makeText(getActivity(),"page " + position + " selected.",Toast.LENGTH_SHORT).show();
+        ((TextView) getActivity().findViewById(R.id.live_thread_number)).setText(String.valueOf(position));
+
+        Cursor data = ((LiveAdapter)mAdapter).getData();
+        data.moveToPosition(position);
+
+        String threadID = data.getString(data.getColumnIndexOrThrow(LiveThreadInfoEntry.COLUMN_NAME_THREAD_ID));
+        getReplyFragment().setCurrentThread(threadID);
+    }
+
+    @Override
+    public void onPageScrollStateChanged(int state) {
+
     }
 
     /**************************************************************************************************
@@ -502,10 +528,14 @@ public class LiveFragment extends Fragment implements
         if (VERBOSE) Log.v(TAG,"enter onCreateLoader...");
         
         String[] projection = {
-                SQLiteDbContract.LiveThreadInfoEntry.COLUMN_ID,
-                SQLiteDbContract.LiveThreadInfoEntry.COLUMN_NAME_NAME,
-                SQLiteDbContract.LiveThreadInfoEntry.COLUMN_NAME_TITLE,
-                SQLiteDbContract.LiveThreadInfoEntry.COLUMN_NAME_FILEPATH
+                LiveThreadInfoEntry.COLUMN_ID,
+                LiveThreadInfoEntry.COLUMN_NAME_NAME,
+                LiveThreadInfoEntry.COLUMN_NAME_TITLE,
+                LiveThreadInfoEntry.COLUMN_NAME_DESCRIPTION,
+                LiveThreadInfoEntry.COLUMN_NAME_FILEPATH,
+                LiveThreadInfoEntry.COLUMN_NAME_THREAD_ID,
+                LiveThreadInfoEntry.COLUMN_NAME_REPLIES,
+                LiveThreadInfoEntry.COLUMN_NAME_UNIQUE
         };
 
         if (VERBOSE) Log.v(TAG,"loader created.");

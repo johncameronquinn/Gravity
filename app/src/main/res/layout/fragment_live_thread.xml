@@ -8,12 +8,11 @@
         android:id="@+id/live_thread_imageView"
         android:layout_gravity="center"
         android:scaleType="fitXY"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true" />
+        android:layout_alignParentTop="false" />
 
-    <LinearLayout
+    <RelativeLayout
         android:orientation="vertical"
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal|bottom"
         android:layout_alignParentBottom="true"
@@ -26,23 +25,70 @@
         android:layout_marginRight="70dp">
 
         <TextView
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             android:paddingLeft="5dp"
             android:textAppearance="?android:attr/textAppearanceLarge"
             android:text="name"
-            android:id="@+id/live_thread_name"
-            android:layout_weight=".25" />
+            android:id="@+id/live_thread_name"/>
 
         <TextView
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_height="wrap_content"
             android:textAppearance="?android:attr/textAppearanceLarge"
             android:paddingLeft="5dp"
             android:text="title"
             android:id="@+id/live_thread_title"
-            android:layout_weight=".2" />
+            android:layout_alignParentTop="false"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentStart="true"
+            android:layout_below="@+id/live_thread_name"
+            android:layout_alignParentBottom="false" />
 
-    </LinearLayout>
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceMedium"
+            android:id="@+id/live_thread_unique"
+            android:layout_alignParentTop="true"
+            android:layout_alignParentRight="true"
+            android:layout_alignParentEnd="true"
+            android:password="false"
+            android:phoneNumber="false"
+            android:singleLine="false"
+            android:padding="5dp"
+            android:text="00" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceMedium"
+            android:id="@+id/live_thread_replies"
+            android:password="false"
+            android:phoneNumber="false"
+            android:singleLine="false"
+            android:padding="5dp"
+            android:text="00"
+            android:layout_alignParentTop="true"
+            android:layout_alignParentRight="false"
+            android:layout_alignParentEnd="false"
+            android:layout_toLeftOf="@+id/live_thread_unique" />
+
+    </RelativeLayout>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/live_thread_text"
+        android:gravity="left|top"
+        android:layout_alignParentBottom="true"
+        android:layout_alignWithParentIfMissing="false"
+        android:autoLink="all"
+        android:autoText="false"
+        android:textSize="20dp"
+        android:background="@drawable/greybox"
+        android:padding="5dp"
+        android:layout_margin="5dp"
+        android:visibility="invisible" />
 
 </RelativeLayout>

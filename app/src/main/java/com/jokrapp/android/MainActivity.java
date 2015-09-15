@@ -31,6 +31,7 @@ import android.provider.Settings;
 import android.app.Fragment;
 import android.support.v13.app.FragmentStatePagerAdapter;
 import android.support.v4.content.LocalBroadcastManager;
+import android.support.v4.view.ViewPager;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.GestureDetector;
@@ -52,7 +53,6 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
-import java.util.UUID;
 
 /**
  * Author/Copyright John C. Quinn All Rights Reserved.
@@ -64,9 +64,9 @@ import java.util.UUID;
  * there is only one activity, and all the other features are managed as fragments
  */
 public class MainActivity extends Activity implements CameraFragment.OnCameraFragmentInteractionListener,
-LocalFragment.onLocalFragmentInteractionListener, View.OnLongClickListener{
+LocalFragment.onLocalFragmentInteractionListener, View.OnLongClickListener, ViewPager.OnPageChangeListener{
     private static String TAG = "MainActivity";
-    private static final boolean VERBOSE = true;
+    private static final boolean VERBOSE = false;
     private static final boolean SAVE_LOCALLY = false;
 
     //private static String imageDir;
@@ -108,8 +108,7 @@ LocalFragment.onLocalFragmentInteractionListener, View.OnLongClickListener{
      */
     private boolean isBound = false;
 
-    private Messenger mService = null;
-
+    private Messenger mService;
     final Messenger messageHandler = new Messenger(new replyHandler().setParent(this));
 
 
@@ -326,6 +325,7 @@ LocalFragment.onLocalFragmentInteractionListener, View.OnLongClickListener{
         mPager.setAdapter(mAdapter);
         mPager.setCurrentItem(CAMERA_LIST_POSITION);
         mPager.setOnLongClickListener(this);
+        mPager.setOnPageChangeListener(this);
     }
 
     @Override
@@ -413,8 +413,15 @@ LocalFragment.onLocalFragmentInteractionListener, View.OnLongClickListener{
         CameraFragReference.get().startReplyMode();
     }
 
-    public void sendMsgRequestReplies() {
-        Toast.makeText(this, "Not Yet Implemented", Toast.LENGTH_SHORT).show();
+    public void sendMsgRequestReplies(int a) {
+        Toast.makeText(this, "refreshing replies", Toast.LENGTH_SHORT).show();
+        if (isBound) {
+            try {
+                mService.send(Message.obtain(null,DataHandlingService.MSG_REQUEST_REPLIES, a, 0));
+            } catch (RemoteException e) {
+                Log.e(TAG,"error sending message to background service...",e);
+            }
+        }
     }
 
     /* class UIReceiver extends BroadcastReceiver {
@@ -466,12 +473,12 @@ LocalFragment.onLocalFragmentInteractionListener, View.OnLongClickListener{
             Bundle b = new Bundle();
             b.putString(Constants.IMAGE_FILEPATH, filePath);
             if (target != null) {
-                if (VERBOSE) {
-                    Log.v(TAG,"Sending message to user : " + CameraFragReference.get()
-                            .getMessageTarget());
-                }
+                Log.d(TAG,"Sending message to user : " + CameraFragReference.get()
+                            .getMessageTarget()) ;
                 b.putString(Constants.MESSAGE_TARGET, CameraFragReference.get()
                         .getMessageTarget().toString());
+            } else {
+                Log.d(TAG,"Sending local broadcast...");
             }
             msg.setData(b);
 
@@ -540,7 +547,9 @@ LocalFragment.onLocalFragmentInteractionListener, View.OnLongClickListener{
                 }
                 return CameraFragReference.get();
             } else if (position == REPLY_LIST_POSITION) {
-                return ReplyFragment.newInstance(LiveFragReference.get().getCurrentThread());
+                ReplyFragment f  = ReplyFragment.newInstance(LiveFragReference.get().getCurrentThread());
+                LiveFragReference.get().setReplyFragment(f);
+                return f;
             } else {
                 Log.e(TAG, "Invalid fragment position loaded");
                 return null;
@@ -575,7 +584,33 @@ LocalFragment.onLocalFragmentInteractionListener, View.OnLongClickListener{
             }
     }
 
+    @Override
+    public void onPageScrollStateChanged(int state) {
 
+    }
+
+    @Override
+    public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
+
+    }
+
+    boolean wasOnReply = false;
+
+    @Override
+    public void onPageSelected(int position) {
+        switch (position) {
+            case LIVE_LIST_POSITION:
+                if (wasOnReply) {
+                    LiveFragReference.get().getReplyFragment().deleteLoader();
+                }
+                wasOnReply = false;
+                break;
+            case REPLY_LIST_POSITION:
+                wasOnReply = true;
+                LiveFragReference.get().getReplyFragment().resetDisplay();
+                break;
+        }
+    }
 
     /***********************************************************************************************
      * INITIALIZE
@@ -748,6 +783,7 @@ I*/
     private void sendMsgCreateReply(Bundle replyData) {
         if (VERBOSE) Log.v(TAG,"entering sendMsgCreateReply");
         if (isBound) {
+            Toast.makeText(this,"posting a reply to the server.",Toast.LENGTH_SHORT).show();
             Message msg = Message.obtain(null, DataHandlingService.MSG_REPLY_TO_THREAD);
             msg.arg1 = replyData.getInt("threadID");
             replyData.remove("threadID");
@@ -799,11 +835,8 @@ I*/
         replyData.putString("description",Comment);
         replyData.putInt("threadID",threadID);
 
-        if (replyData.size() == 4) {
-            sendMsgCreateReply(replyData);
-            replyData = null;
-        }
-
+        sendMsgCreateReply(replyData);
+        replyData = null;
     }
 
 

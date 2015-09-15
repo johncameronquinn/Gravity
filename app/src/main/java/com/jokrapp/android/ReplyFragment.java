@@ -7,6 +7,7 @@ import android.app.LoaderManager;
 import android.content.Context;
 import android.content.CursorLoader;
 import android.content.Loader;
+import android.database.Cursor;
 import android.os.Bundle;
 import android.app.Fragment;
 import android.util.Log;
@@ -15,6 +16,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.AccelerateInterpolator;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.ListView;
@@ -32,8 +34,10 @@ import java.lang.ref.WeakReference;
  * A simple {@link Fragment} subclass. factory method to
  * create an instance of this fragment.
  */
-public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallbacks{
-    private int currentThread;
+public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor>{
+    private static int currentThread = 1;
+    private final int REPLY_LOADER_ID = 3;
+
     private final boolean VERBOSE = true;
     private final String TAG = "ReplyFragment";
 
@@ -59,9 +63,15 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
         super.onCreate(savedInstanceState);
         Bundle b = getArguments();
 
+
         if (b != null) {
-            currentThread = b.getInt("currentThread");
+            currentThread = b.getInt("currentThread") +1;
         }
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
     }
 
     /**
@@ -73,6 +83,14 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
     @Override
     public void onAttach(Activity activity) {
         super.onAttach(activity);
+        if (VERBOSE) Log.v(TAG,"initializing loader at id " + REPLY_LOADER_ID);
+        getLoaderManager().initLoader(REPLY_LOADER_ID, null, this);
+    }
+
+    @Override
+    public void onDetach() {
+        super.onDetach();
+        getLoaderManager().destroyLoader(REPLY_LOADER_ID);
     }
 
     /**
@@ -88,22 +106,23 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+        if (VERBOSE) {Log.v(TAG,"entering onCreateView...");}
+
         // Inflate the layout for this fragment
         View v = inflater.inflate(R.layout.fragment_reply, container, false);
 
         ListView listView = (ListView)v.findViewById(R.id.reply_list_view);
 
-        String[] fromColumns = {SQLiteDbContract.LiveReplies.COLUMN_NAME_DESCRIPTION};
-        int[] toViews = {android.R.id.text1};
+        String[] fromColumns = {SQLiteDbContract.LiveReplies.COLUMN_NAME_DESCRIPTION,
+                SQLiteDbContract.LiveReplies.COLUMN_NAME_TIME};
+        int[] toViews = {R.id.reply_detail_row_text, R.id.reply_detail_row_time};
 
         mAdapter = new SimpleCursorAdapter(getActivity(),
-                android.R.layout.simple_list_item_1, null,
-                null, toViews, 0);
+                R.layout.fragment_reply_detail_row, null,fromColumns, toViews, 0);
         listView.setAdapter(mAdapter);
 
 
-        v.findViewById(R.id.button_new_reply).setOnClickListener(getButtonListener(this));
-
+        if (VERBOSE) {Log.v(TAG,"exiting onCreateView...");}
         return v;
     }
 
@@ -116,8 +135,14 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
     @Override
     public void onViewCreated(View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+        if (VERBOSE) Log.v(TAG,"entering onViewCreated...");
+
+        view.findViewById(R.id.button_new_reply).setOnClickListener(getButtonListener(this));
+        view.findViewById(R.id.button_reply_refresh).setOnClickListener(getButtonListener(this));
 
         //anything that requires the UI to already exist goes here
+
+        if (VERBOSE) Log.v(TAG,"exiting onViewCreated...");
     }
 
     @Override
@@ -140,8 +165,15 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
         super.onStop();
     }
 
-    public void setCurrentThread(int thread) {
-        currentThread = thread;
+    public void setCurrentThread(String thread) {
+        Log.i(TAG, "setting current thread to : " + thread + ".");
+        ((Button)getActivity().findViewById(R.id.button_reply_refresh)).setText(thread);
+        currentThread = Integer.valueOf(thread);
+    }
+
+    public void resetDisplay() {
+        Log.d(TAG, "restarting loader...");
+        getLoaderManager().restartLoader(REPLY_LOADER_ID,null,this);
     }
 
     public int getCurrentThread() { return currentThread;}
@@ -171,12 +203,15 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
             switch (v.getId()) {
 
                 case R.id.button_reply_refresh:
-                    ((MainActivity)getActivity()).sendMsgRequestReplies();
+                    if (isAdded()) {
+                        ((MainActivity) getActivity()).sendMsgRequestReplies(currentThread);
+                    }
+                    resetDisplay();
                     break;
 
 
                 case R.id.button_new_reply:
-                    startNewReplyInputMode((MainActivity)getActivity());
+                    startNewReplyInputMode((MainActivity)getActivity(), v);
                     break;
             }
         }
@@ -294,6 +329,7 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
     public class ReplyModeButtonListener implements View.OnClickListener {
 
         View createReplyView;
+        View plusButtonView;
 
         private ReplyFragment parent;
 
@@ -303,6 +339,10 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
 
         public void setCreateView(View view) {
             createReplyView = view;
+        }
+
+        public void setCreateReplyView(View v) {
+            plusButtonView = v;
         }
 
         @Override
@@ -320,48 +360,51 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
                     activity.removePendingLiveImage();
                     imm.hideSoftInputFromWindow(createReplyView.getWindowToken(), 0);
                     activity.enableScrolling();
-                    buttonReplyListenerReference = null;
+                    plusButtonView.setVisibility(View.VISIBLE);
                     break;
-                case R.id.button_camera_live_mode_confirm:
-                    FrameLayout layout = (FrameLayout) v.getParent().getParent();
+                case R.id.button_camera_reply_mode_confirm:
+                    RelativeLayout layout = (RelativeLayout) v.getParent().getParent();
                     String description = ((EditText)layout.findViewById(R.id.editText_reply_mode_comment)).getText().toString();
                     activity.setLiveCreateReplyInfo("unset", description, getCurrentThread());//todo load name from sharedpreferences
                     layout.removeView((View) v.getParent());
                     imm.hideSoftInputFromWindow(createReplyView.getWindowToken(), 0);
-
                     activity.enableScrolling();
-                    buttonReplyListenerReference = null;
+                    plusButtonView.setVisibility(View.VISIBLE);
                     break;
 
                 case R.id.button_camera_reply_mode_add_image:
                     getButtonListener(parent).setSeekMode(v);
-                    ((ViewGroup)v.getParent().getParent()).removeView((View) v.getParent());
+                    ((ViewGroup) v.getParent().getParent()).removeView((View) v.getParent());
                     imm.hideSoftInputFromWindow(createReplyView.getWindowToken(), 0);
-
+                    plusButtonView.setVisibility(View.VISIBLE);
                     activity.enableScrolling();
-                    buttonReplyListenerReference = null;
                     break;
             }
+            plusButtonView = null;
+            buttonReplyListenerReference = null;
         }
 
     }
 
-    public void startNewReplyInputMode(MainActivity activity) {
+    public void startNewReplyInputMode(MainActivity activity, View plusButtonView) {
         if (VERBOSE) {
             Log.v(TAG,"entering startNewReplyInputMode...");
         }
         activity.disableScrolling();
         LayoutInflater inflater = (LayoutInflater)activity.getSystemService
                 (Context.LAYOUT_INFLATER_SERVICE);
-        RelativeLayout root = (RelativeLayout)activity.findViewById(R.id.layout_reply_root);
+        RelativeLayout root = (RelativeLayout) activity.findViewById(R.id.layout_reply_root);
         View v = inflater.inflate(R.layout.camera_reply_mode,
                 root,
                 false);
 
-        getReplyModeButtonListener(this).setCreateView(v);
-        v.findViewById(R.id.button_camera_reply_mode_cancel).setOnClickListener(getReplyModeButtonListener(this));
-        v.findViewById(R.id.button_camera_reply_mode_confirm).setOnClickListener(getReplyModeButtonListener(this));
-        v.findViewById(R.id.button_camera_reply_mode_add_image).setOnClickListener(getReplyModeButtonListener(this));
+        ReplyModeButtonListener rListener = getReplyModeButtonListener(this);
+        plusButtonView.setVisibility(View.INVISIBLE);
+        rListener.setCreateView(v);
+        rListener.setCreateReplyView(plusButtonView);
+        v.findViewById(R.id.button_camera_reply_mode_cancel).setOnClickListener(rListener);
+        v.findViewById(R.id.button_camera_reply_mode_confirm).setOnClickListener(rListener);
+        v.findViewById(R.id.button_camera_reply_mode_add_image).setOnClickListener(rListener);
         root.addView(v,root.getChildCount());
 
         if (VERBOSE) {
@@ -371,24 +414,39 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
 
 
     @Override
-    public Loader onCreateLoader(int id, Bundle args) {
+    public CursorLoader onCreateLoader(int id, Bundle args) {
+        if (VERBOSE) Log.v(TAG,"entering onCreateLoader...");
+
+        String threadID = String.valueOf(currentThread);
+        String[] selectionArgs = {threadID};
+
             CursorLoader loader = new CursorLoader(
                     this.getActivity(),
-                    FireFlyContentProvider.CONTENT_URI_REPLY_THREAD_INFO,
+                    FireFlyContentProvider.CONTENT_URI_REPLY_THREAD_LIST,
                     null,
-                    null,
-                    null,
+                    SQLiteDbContract.LiveReplies.COLUMN_NAME_THREAD_ID + "= ?" ,
+                    selectionArgs,
                     SQLiteDbContract.LiveReplies.COLUMN_ID);
+
+        if (VERBOSE) Log.v(TAG,"exiting onCreateLoader...");
             return loader;
     }
 
     @Override
-    public void onLoadFinished(Loader loader, Object data) {
-
+    public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
+        if (VERBOSE) Log.v(TAG,"entering onLoadFinished...");
+        mAdapter.swapCursor(data);
+        if (VERBOSE) Log.v(TAG,"exiting onLoadFinished...");
     }
 
     @Override
-    public void onLoaderReset(Loader loader) {
+    public void onLoaderReset(Loader<Cursor> loader) {
+        if (VERBOSE) Log.v(TAG,"entering onLoaderReset...");
+        mAdapter.swapCursor(null);
+        if (VERBOSE) Log.v(TAG,"exiting onLoaderReset...");
+    }
 
+    public void deleteLoader() {
+        getLoaderManager().destroyLoader(REPLY_LOADER_ID);
     }
 }

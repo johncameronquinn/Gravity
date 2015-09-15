@@ -4,7 +4,8 @@
     android:layout_gravity="center|bottom"
     android:id="@+id/layout_live_new_post"
     android:layout_margin="5dp"
-    android:gravity="bottom">
+    android:gravity="bottom"
+    android:background="@drawable/greybox">
 
 
     <EditText
