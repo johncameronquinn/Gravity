@@ -81,14 +81,16 @@
         android:layout_height="wrap_content"
         android:id="@+id/live_thread_text"
         android:gravity="left|top"
-        android:layout_alignParentBottom="true"
         android:layout_alignWithParentIfMissing="false"
         android:autoLink="all"
         android:autoText="false"
         android:textSize="20dp"
         android:background="@drawable/greybox"
         android:padding="5dp"
-        android:layout_margin="5dp"
-        android:visibility="invisible" />
+        android:visibility="invisible"
+        android:textColor="#ffffff"
+        android:layout_above="@+id/live_thread_infoLayout"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true" />
 
 </RelativeLayout>

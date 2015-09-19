@@ -399,15 +399,16 @@ public class FireFlyContentProvider extends ContentProvider {
                   //      "_id" + "=?",
                     //   new String[]{values.getAsString(SQLiteDbContract.LiveThreadEntry.COLUMN_ID)});
 
-                String table = SQLiteDbContract.LiveThreadEntry.TABLE_NAME;
-                String whereClause = "1";
-                String[] whereArgs = new String[] { String.valueOf(values.getAsString(SQLiteDbContract.LiveThreadEntry.COLUMN_ID)) };
+           //     String table = SQLiteDbContract.LiveThreadEntry.TABLE_NAME;
+             //   String whereClause = "1";
+         //       String[] whereArgs = new String[] { String.valueOf(values.getAsString(SQLiteDbContract.LiveThreadEntry.COLUMN_ID)) };
                 //Log.d(TAG, "num returned..." + sqlDB.delete(table, whereClause, whereArgs));
                // sqlDB.execSQL("DELETE FROM live_entries WHERE _id = ?" + values.getAsString(SQLiteDbContract.LiveThreadEntry.COLUMN_ID));
                 //Log.d(TAG,"Running delete for " + values.getAsString(SQLiteDbContract.LiveThreadEntry.COLUMN_ID));
 
-                Log.d(TAG,"deleting" + sqlDB.delete(table,whereClause,null) + " rows...");
-                id = sqlDB.insert(SQLiteDbContract.LiveThreadEntry.TABLE_NAME,null,values);
+       //         Log.d(TAG,"deleting" + sqlDB.delete(table,whereClause,null) + " rows...");
+                id = sqlDB.replace(SQLiteDbContract.LiveThreadEntry.TABLE_NAME,null,values);
+
 
        //         String sql = "INSERT OR REPLACE INTO " + table + " (";
          //       for (String i : whereArgs) {

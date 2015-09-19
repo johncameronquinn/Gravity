@@ -120,7 +120,7 @@ public class LiveThreadFragment extends Fragment implements View.OnClickListener
         ((TextView)view.findViewById(R.id.live_thread_unique)).setText(unique);
         ((TextView)view.findViewById(R.id.live_thread_replies)).setText(replies);
         view.findViewById(R.id.live_thread_infoLayout).setOnClickListener(this);
-    //    view.findViewById(R.id.live_thread_text).setOnClickListener(this);
+        view.findViewById(R.id.live_thread_text).setOnClickListener(this);
 
 
         displayView = ((ImageView) view.findViewById(R.id.live_thread_imageView));

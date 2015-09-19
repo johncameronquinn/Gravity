@@ -64,7 +64,7 @@ import java.util.Locale;
  * there is only one activity, and all the other features are managed as fragments
  */
 public class MainActivity extends Activity implements CameraFragment.OnCameraFragmentInteractionListener,
-LocalFragment.onLocalFragmentInteractionListener, View.OnLongClickListener, ViewPager.OnPageChangeListener{
+LocalFragment.onLocalFragmentInteractionListener, ViewPager.OnPageChangeListener{
     private static String TAG = "MainActivity";
     private static final boolean VERBOSE = false;
     private static final boolean SAVE_LOCALLY = false;
@@ -103,13 +103,16 @@ LocalFragment.onLocalFragmentInteractionListener, View.OnLongClickListener, View
     private static final int CAMERA_POSITION_FRONT = 1;
     private static int currentCamera = CAMERA_POSITION_BACK;
 
+    private String messageTarget;
 
     /** SERVICE MANAGEMENT
      */
     private boolean isBound = false;
 
     private Messenger mService;
-    final Messenger messageHandler = new Messenger(new replyHandler().setParent(this));
+
+    private final UIHandler uiHandler = new UIHandler();
+    final Messenger messageHandler = new Messenger(uiHandler);
 
 
     /**
@@ -130,6 +133,7 @@ LocalFragment.onLocalFragmentInteractionListener, View.OnLongClickListener, View
 
         }
         super.onCreate(savedInstanceState);
+        uiHandler.setParent(this);
 
         checkForLocationEnabled(this);
 
@@ -319,12 +323,10 @@ LocalFragment.onLocalFragmentInteractionListener, View.OnLongClickListener, View
      */
     private void createUI() {
         setContentView(R.layout.activity_main);
-        findViewById(R.id.rootlayout).setOnLongClickListener(this);
         mAdapter = new MainAdapter(getFragmentManager());
         mPager = (CustomViewPager) findViewById(R.id.pager);
         mPager.setAdapter(mAdapter);
         mPager.setCurrentItem(CAMERA_LIST_POSITION);
-        mPager.setOnLongClickListener(this);
         mPager.setOnPageChangeListener(this);
     }
 
@@ -333,9 +335,45 @@ LocalFragment.onLocalFragmentInteractionListener, View.OnLongClickListener, View
         return super.onCreateView(name,context,attrs);
     }
 
+
+    /**
+     * method 'onLongClick'
+     *
+     * callback from each respective fragment
+     *
+     * StashActivity is started onLongPress at any point in the app, with which page it loads
+     * correlating to the fragment which it was launched from
+     *
+     * @param v the view that was clicked
+     * @return whether or not the clickEvent was consumed
+     */
     public boolean onLongClick(View v) {
-        if (VERBOSE) Log.v(TAG,"onLongClick registered..." + v.toString());
-        Toast.makeText(this,"Longclick",Toast.LENGTH_SHORT).show();
+
+        final int LOCAL_SETTINGS = 0;
+        final int GALLERY = 1;
+        final int LIVE_SETTINGS = 2;
+
+        int startPage = GALLERY;
+        switch (mPager.getCurrentItem()) {
+
+            case MESSAGE_LIST_POSITION:
+            case LOCAL_LIST_POSITION:
+                startPage = LOCAL_SETTINGS;
+                break;
+
+            case CAMERA_LIST_POSITION:
+                startPage = GALLERY;
+                break;
+
+            case LIVE_LIST_POSITION:
+            case REPLY_LIST_POSITION:
+                startPage = LIVE_SETTINGS;
+                break;
+        }
+        Intent stashActivtyIntent = new Intent(this,StashActivity.class);
+        stashActivtyIntent.putExtra(StashActivity.STARTING_PAGE_POSITION_KEY, startPage);
+        startActivity(stashActivtyIntent);
+
         return true;
     }
 
@@ -349,17 +387,114 @@ LocalFragment.onLocalFragmentInteractionListener, View.OnLongClickListener, View
         mPager.setPagingEnabled(false);
     }
 
+    private Runnable mLongPressed = new Runnable() {
+        public void run() {
+            final int LOCAL_SETTINGS = 0;
+            final int GALLERY = 1;
+            final int LIVE_SETTINGS = 2;
+
+            int startPage = GALLERY;
+            switch (mPager.getCurrentItem()) {
+
+                case MESSAGE_LIST_POSITION:
+                case LOCAL_LIST_POSITION:
+                    Toast.makeText(getApplicationContext(),"Opening Local Settings...",Toast.LENGTH_SHORT).show();
+                    startPage = LOCAL_SETTINGS;
+                    break;
+
+                case CAMERA_LIST_POSITION:
+                    Toast.makeText(getApplicationContext(),"Opening Stash Gallery...",Toast.LENGTH_SHORT).show();
+                    startPage = GALLERY;
+                    break;
+
+                case LIVE_LIST_POSITION:
+                case REPLY_LIST_POSITION:
+                    Toast.makeText(getApplicationContext(),"Opening Live Settings...",Toast.LENGTH_SHORT).show();
+                    startPage = LIVE_SETTINGS;
+                    break;
+            }
+            Intent stashActivtyIntent = new Intent(getApplicationContext(),StashActivity.class);
+            stashActivtyIntent.putExtra(StashActivity.STARTING_PAGE_POSITION_KEY, startPage);
+            startActivity(stashActivtyIntent);
+        }
+    };
+
+
+    private float xpos = 0;
+    private float ypos = 0;
+
+    /**
+     * method 'dispatchTouchEvent'
+     *
+     * all incoming touchEvents from the window are first checked here before being dispatched
+     * to their respective view's.
+     *
+     * in this method, we test for a long click and handle it accordingly.
+     *
+     * @param event
+     * @return
+     */
     @Override
-    public boolean dispatchTouchEvent(MotionEvent ev) {
-        return super.dispatchTouchEvent(ev);
+    public boolean dispatchTouchEvent(MotionEvent event) {
+       Log.i(TAG,"event: " + event.toString());
+  /*      final GestureDetector gestureDetector = new GestureDetector(new GestureDetector.SimpleOnGestureListener() {
+            public void onLongPress(MotionEvent e) {
+
+                final int LOCAL_SETTINGS = 0;
+                final int GALLERY = 1;
+                final int LIVE_SETTINGS = 2;
+
+                int startPage = GALLERY;
+                switch (mPager.getCurrentItem()) {
+
+                    case MESSAGE_LIST_POSITION:
+                    case LOCAL_LIST_POSITION:
+                        startPage = LOCAL_SETTINGS;
+                        break;
+
+                    case CAMERA_LIST_POSITION:
+                        startPage = GALLERY;
+                        break;
+
+                    case LIVE_LIST_POSITION:
+                    case REPLY_LIST_POSITION:
+                        startPage = LIVE_SETTINGS;
+                        break;
+                }
+                Intent stashActivtyIntent = new Intent(getApplicationContext(),StashActivity.class);
+                stashActivtyIntent.putExtra(StashActivity.STARTING_PAGE_POSITION_KEY, startPage);
+                startActivity(stashActivtyIntent);
+            }
+        });*/
+
+      /*  if (gestureDetector.onTouchEvent(ev)) {
+            return true;
+        }*/
+
+
+        if(event.getAction() == MotionEvent.ACTION_DOWN) {
+            uiHandler.postDelayed(mLongPressed, 1500);
+            xpos = event.getX();
+            ypos = event.getY();
+        }
+        if(event.getAction() == MotionEvent.ACTION_MOVE) {
+            if (xpos != event.getX() || ypos != event.getY()) {
+                uiHandler.removeCallbacks(mLongPressed);
+            }
+        }
+        if (event.getAction() == MotionEvent.ACTION_UP) {
+            uiHandler.removeCallbacks(mLongPressed);
+        }
+
+
+        return super.dispatchTouchEvent(event);
     }
 
     public void onLocalReplyPressed(View view) {
         if (VERBOSE) {
             Toast.makeText(this,"Message pressed: " + view.getTag(),Toast.LENGTH_LONG).show();
         }
-
-        CameraFragment.setMessageTarget((String) view.getTag());
+        CameraFragReference.get().setMessageTarget((String) view.getTag());
         /*
         if (CameraFragReference.get() != null) {
             CameraFragReference.get().startMessageMode(UUID.fromString((String)view.getTag()));
@@ -419,7 +554,7 @@ LocalFragment.onLocalFragmentInteractionListener, View.OnLongClickListener, View
             try {
                 mService.send(Message.obtain(null,DataHandlingService.MSG_REQUEST_REPLIES, a, 0));
             } catch (RemoteException e) {
-                Log.e(TAG,"error sending message to background service...",e);
+                Log.e(TAG, "error sending message to background service...", e);
             }
         }
     }
@@ -463,20 +598,18 @@ LocalFragment.onLocalFragmentInteractionListener, View.OnLongClickListener, View
      * @param currentCamera the camera that the image was taken with
      */
     public void sendImageToLocal(String filePath, int currentCamera) {
-        Log.d(TAG, "sending message to send Image");
+        if (VERBOSE) Log.v(TAG,"entering sendImageToLocal...");
+
         if (isBound) {
-            Log.d(TAG, "sending message containing filepath to load...");
+            Log.d(TAG, "sending message to server containing filepath to load...");
+
             Message msg = Message.obtain(null, DataHandlingService.MSG_SEND_IMAGE,currentCamera,0);
-
-            String target = CameraFragReference.get().getMessageTarget();
-
             Bundle b = new Bundle();
             b.putString(Constants.IMAGE_FILEPATH, filePath);
-            if (target != null) {
-                Log.d(TAG,"Sending message to user : " + CameraFragReference.get()
-                            .getMessageTarget()) ;
-                b.putString(Constants.MESSAGE_TARGET, CameraFragReference.get()
-                        .getMessageTarget().toString());
+
+            if (messageTarget != null) {
+                Log.d(TAG,"Sending message to user : " + messageTarget);
+                b.putString(Constants.MESSAGE_TARGET, messageTarget);
             } else {
                 Log.d(TAG,"Sending local broadcast...");
             }
@@ -488,8 +621,10 @@ LocalFragment.onLocalFragmentInteractionListener, View.OnLongClickListener, View
             } catch (RemoteException e) {
                 e.printStackTrace();
             }
-
         }
+
+        messageTarget = null;
+        if (VERBOSE) Log.v(TAG,"exiting sendImageToLocal...");
     }
 
 
@@ -543,7 +678,7 @@ LocalFragment.onLocalFragmentInteractionListener, View.OnLongClickListener, View
                 return LiveFragReference.get();
             } else if (position == CAMERA_LIST_POSITION) {
                 if (CameraFragReference.get() == null){
-                    CameraFragReference = new WeakReference<>(CameraFragment.newInstance());
+                    CameraFragReference = new WeakReference<>(CameraFragment.newInstance(0));
                 }
                 return CameraFragReference.get();
             } else if (position == REPLY_LIST_POSITION) {
@@ -822,6 +957,20 @@ I*/
             sendMsgCreateThread(liveData);
             liveData = null;
         }
+    }
+
+    /**
+     * method 'setLiveCreateInfo'
+     *
+     * overload, this version loads name from sharedPreferences and passes to main version
+     *
+     * @param title title of thread
+     * @param description description for thread
+     */
+    public void setLiveCreateThreadInfo(String title, String description) {
+        String name = getSharedPreferences("Settings",MODE_PRIVATE).
+                getString(StashLiveSettingsFragment.LIVE_NAME_KEY,"jester");
+        setLiveCreateThreadInfo(name,title,description);
     }
 
 
@@ -1136,8 +1285,10 @@ I*/
                     mCamera.setPreviewCallbackWithBuffer(null);
                 }
 
-                mSurface.release();
-                mSurface = null;
+                if (mSurface != null) {
+                    mSurface.release();
+                    mSurface = null;
+                }
 
             } else {
                 Log.d(TAG, "mCamera was null, no action taken");
@@ -1885,7 +2036,7 @@ I*/
 
     public void sendMsgTakePicture() {
         if (VERBOSE) {
-            Log.v(TAG,"entering sendMsgTakePicture...");
+            Log.v(TAG, "entering sendMsgTakePicture...");
         }
 
         try {
@@ -1942,6 +2093,27 @@ I*/
         }
     }
 
+    /**
+     * method 'sendMsgSaveImage'
+     *
+     * send message to the camera event thread to save the current image
+     *
+     * @param comment if there is a comment, it is passed here
+     */
+    public void sendMsgSaveImage(EditText comment, boolean postToLive, String messageTarget) {
+        if (VERBOSE) {
+            Log.v(TAG, "entering sendMsgSaveImageWrapper...");
+            Log.v(TAG, "printing arguments: ");
+            Log.v(TAG, "comment " + comment.getText().toString());
+            Log.v(TAG, "postToLive " + postToLive);
+            Log.v(TAG, "messageTarget " + messageTarget);
+        }
+
+
+        this.messageTarget = messageTarget;
+        sendMsgSaveImage(comment,postToLive);
+        if (VERBOSE) Log.v(TAG, "exiting sendMsgSaveImageWrapper...");
+    }
 
     public void sendMsgSwitchCamera() {
         if (VERBOSE) {
@@ -2267,13 +2439,12 @@ I*/
      *
      * handles responses from the service
      */
-    static class replyHandler extends Handler {
+    class UIHandler extends Handler {
 
         WeakReference<MainActivity> activity;
 
         public Handler setParent(MainActivity parent) {
             activity = new WeakReference<>(parent);
-
             return this;
         }
 
@@ -2335,7 +2506,7 @@ I*/
             isBound = true;
 
             //resolve DNS
-            resolveDns("http://android.ddns.net/");
+            resolveDns("jokrbackend.ddns.net");
         }
 
         public void onServiceDisconnected(ComponentName className) {

@@ -136,7 +136,6 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
     public void onViewCreated(View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         if (VERBOSE) Log.v(TAG,"entering onViewCreated...");
-
         view.findViewById(R.id.button_new_reply).setOnClickListener(getButtonListener(this));
         view.findViewById(R.id.button_reply_refresh).setOnClickListener(getButtonListener(this));
 

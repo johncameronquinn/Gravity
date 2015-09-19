@@ -109,7 +109,6 @@ public class LocalFragment extends Fragment implements
             Log.v(TAG,"enter onViewCreated...");
         }
 
-
         imageAdapterView = (ImageCursorAdapterView)cat.findViewById(R.id.imageAdapter);
         imageAdapterView.setAdapter(adapter);
 

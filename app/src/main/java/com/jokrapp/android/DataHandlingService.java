@@ -87,7 +87,7 @@ import java.util.UUID;
 public class DataHandlingService extends Service implements GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener, LocationListener {
     private static final String TAG = "DataHandlingService";
-    private static final boolean VERBOSE = false;
+    private static final boolean VERBOSE = true;
     private static final boolean ALLOW_DUPLICATES = false;
 
     private boolean isLocalRequesting = false;
@@ -114,10 +114,10 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
 
 
 
-    private static String serverAddress = "130.211.113.250"; //changes when resolved
+    private static String serverAddress = "jokrbackend.ddns.net"; //changes when resolved
     private static UUID userID;
 
-    /** JSON TAGSnnnnnnn
+    /** JSON TAGS
      */
     private final String FROM_USER = "from";
     private final String ROTATION = "rotation";
@@ -327,8 +327,10 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
                 editor.putString(UUID_KEY, userID.toString());
                 editor.putBoolean(ISFIRSTRUN_KEY, false);
                 editor.apply();
+                //Toast.makeText(getApplicationContext(),"new user successfully initialized with server :)",Toast.LENGTH_SHORT).show();
             } catch (Exception e) {
-                Log.d(TAG,"Error executing initialize user...",e);
+                Log.d(TAG, "Error executing initialize user...", e);
+                //Toast.makeText(getApplicationContext(),"Error initializing new user with the server...",Toast.LENGTH_SHORT).show();
             }
 
             if (VERBOSE) {
@@ -343,7 +345,7 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
         try {
             HttpClient client = new DefaultHttpClient();
             HttpGet request = new HttpGet();
-            request.setURI(new URI("http://130.211.113.250/InitializeUser/"));
+            request.setURI(new URI("http://jokrbackend.ddns.net/InitializeUser/"));
             HttpResponse response = client.execute(request);
             in = new BufferedReader
                     (new InputStreamReader(response.getEntity().getContent()));
@@ -707,6 +709,17 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
         } catch (IOException e) {
             Log.d(TAG, "IOException");
             Log.d(TAG, "response code " + responseCode);
+            InputStream errorStream = conn.getErrorStream();
+
+            ByteArrayOutputStream byos = new ByteArrayOutputStream();
+
+            try {
+                IOUtils.copy(errorStream, byos);
+            } catch (Exception was) {
+                Log.wtf(TAG,"we're done...",was);
+            }
+            String errorString = byos.toString();
+            Log.i(TAG,"errorString is: " + errorString);
             //Toast.makeText(getApplicationContext(),"IOException! response code: " + responseCode,Toast.LENGTH_LONG).show();
             Log.e(TAG, "error requesting images", e);
         } catch (Exception e) {
@@ -1688,7 +1701,8 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
 
                     try {
                         InetAddress addr = InetAddress.getByName(address);
-                        serverAddress = addr.getHostAddress();
+                        serverAddress = address;
+                        Log.i(TAG,"Resolved address is: " + addr.getHostAddress());
                     } catch (UnknownHostException e) {
                         Log.e(TAG,"DNS resolution failed",e);
                     }

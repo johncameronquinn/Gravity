@@ -413,10 +413,12 @@ public class LiveFragment extends Fragment implements
 
             liveThreadAdapterHandler = new Handler();
 
+            if (VERBOSE) {
             if (data == null) {
                 Log.v(TAG,"incoming cursor was null");
             } else {
                 Log.v(TAG, "Live table contains " + data.getCount() + " threads...");
+            }
             }
 
 
@@ -424,7 +426,7 @@ public class LiveFragment extends Fragment implements
 
         @Override
         public Fragment getItem(int i) {
-            Log.d(TAG, "getting fragment at position " + i);
+            if (VERBOSE) Log.v(TAG, "entering getItem... position: " + i);
             String name,title, text, fileName, threadID, unique, replies;
             data.moveToPosition(i);
             name = data.getString(data.getColumnIndexOrThrow(LiveThreadInfoEntry.COLUMN_NAME_NAME));
@@ -436,6 +438,8 @@ public class LiveFragment extends Fragment implements
             replies = data.getString(data.getColumnIndexOrThrow(LiveThreadInfoEntry.COLUMN_NAME_REPLIES));
             LiveThreadFragment f =  LiveThreadFragment.newInstance(i, name, title, text, fileName,threadID,unique,replies);
             f.setProgressHandler(liveThreadAdapterHandler);
+
+            if (VERBOSE) Log.v(TAG, "exiting getItem...");
             return f;
         }
 
@@ -483,7 +487,7 @@ public class LiveFragment extends Fragment implements
                     }
                 }
                 // invoke your listener here with newCursor
-                Log.d(TAG, "row added: " + newCursor.toString());
+                if (VERBOSE) Log.v(TAG, "row added: " + newCursor.toString());
             }
 
             if (VERBOSE) Log.v(TAG,"exiting createMatrixCursorFromCursor...");
@@ -503,7 +507,7 @@ public class LiveFragment extends Fragment implements
 
     @Override
     public void onPageSelected(int position) {
-        Log.v(TAG, "Page " + position + " selected.");
+        if (VERBOSE) Log.v(TAG, "entering onPageSelected... page " + position + " selected.");
         //Toast.makeText(getActivity(),"page " + position + " selected.",Toast.LENGTH_SHORT).show();
         ((TextView) getActivity().findViewById(R.id.live_thread_number)).setText(String.valueOf(position));
 
@@ -512,6 +516,8 @@ public class LiveFragment extends Fragment implements
 
         String threadID = data.getString(data.getColumnIndexOrThrow(LiveThreadInfoEntry.COLUMN_NAME_THREAD_ID));
         getReplyFragment().setCurrentThread(threadID);
+
+        if (VERBOSE) Log.v(TAG, "exiting onPageSelected...");
     }
 
     @Override
@@ -553,6 +559,8 @@ public class LiveFragment extends Fragment implements
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
         if (VERBOSE) Log.v(TAG,"enter onLoadFinished...");
+
+        Log.i(TAG,"Live cursor finished loading data");
         refreshThreadPager(data);
 
         if (VERBOSE) Log.v(TAG,"exit onLoadFinished...");
@@ -569,11 +577,15 @@ public class LiveFragment extends Fragment implements
      * @param data the new data to be loaded
      */
     public void refreshThreadPager(Cursor data) {
+        if (VERBOSE) Log.v(TAG,"entering refreshThreadPager...");
+
             threadPager.setAdapter(null);
             if (VERBOSE) Log.v(TAG,"mAdapter was null...");
             mAdapter = new LiveAdapter(getFragmentManager(), data);
             threadPager.setAdapter(mAdapter);
-        Log.d(TAG, "Cursor returned has " + data.getCount() + " rows");
+        if (VERBOSE ) Log.d(TAG, "Cursor returned has " + data.getCount() + " rows");
+
+        if (VERBOSE) Log.v(TAG,"exiting refreshThreadPager...");
     }
 
     /**

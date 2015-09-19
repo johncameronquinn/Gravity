@@ -47,7 +47,7 @@ public class CameraFragment extends Fragment {
     private static boolean isComment = false;
 
     private EditText commentText = null;
-    private static String messageTarget = null; //todo this isn't the most efficient
+    private String messageTarget = null;
 
     private int currentCameraMode;
     private CameraReceiver cameraReceiver;
@@ -56,6 +56,8 @@ public class CameraFragment extends Fragment {
     private final int CAMERA_MESSAGE_MODE = 1;
     private final int CAMERA_LIVE_MODE = 2;
     private final int CAMERA_REPLY_MODE = 3;
+
+    private static final String CAMERA_MODE_KEY = "ckey";
 
 
     private OnCameraFragmentInteractionListener mListener;
@@ -70,9 +72,10 @@ public class CameraFragment extends Fragment {
   * @return A new instance of fragment CameraFragment.
 n  */
   // TODO: Rename and change types and number of parameters
- public static CameraFragment newInstance() {
+ public static CameraFragment newInstance(int cameraMode) {
       CameraFragment fragment = new CameraFragment();
       Bundle args = new Bundle();
+      args.putInt(CAMERA_MODE_KEY,cameraMode);
       fragment.setArguments(args);
       return fragment;
     }
@@ -112,6 +115,11 @@ n  */
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        if (VERBOSE)  Log.v(TAG,"onCreate");
+        Bundle b = getArguments();
+        if (b != null) {
+            if (VERBOSE)  Log.v(TAG,"Arguments were supplied to create CameraFragment...");
+        }
 
         if (savedInstanceState != null) {
             Log.d(TAG, "restoring state...");
@@ -335,6 +343,7 @@ n  */
             }
         }
 
+
         Log.d(TAG, "created view is: " + view.toString());
 
 
@@ -502,7 +511,7 @@ n  */
                 break;
 
                 case R.id.button_send_message:
-                    mListener.sendMsgSaveImage(commentText, false);
+                    mListener.sendMsgSaveImage(commentText, false, messageTarget);
                     resetCameraUI();
                     stopMessageMode();
 
@@ -697,6 +706,7 @@ n  */
  *
  */
    public void startMessageMode(String id) {
+       Log.i(TAG,"preparing to send message to user: " + id);
 
        //final int dp = 60;
        //calculates density pixels
@@ -727,7 +737,7 @@ n  */
        return messageTarget;
    }
 
-   public static void setMessageTarget(String target) {
+   public void setMessageTarget(String target) {
        messageTarget = target;
    }
 
@@ -794,7 +804,7 @@ n  */
                     FrameLayout layout = (FrameLayout) v.getParent().getParent();
                     String title = ((EditText)layout.findViewById(R.id.editText_live_mode_title)).getText().toString();
                     String description = ((EditText)layout.findViewById(R.id.editText_live_mode_description)).getText().toString();
-                    activity.setLiveCreateThreadInfo("unset", title, description);//todo load name from sharedpreferences
+                    activity.setLiveCreateThreadInfo(title, description);
                     layout.removeView((View) v.getParent());
                     imm.hideSoftInputFromWindow(createThreadView.getWindowToken(), 0);
 
@@ -952,6 +962,7 @@ n  */
         void sendMsgTakePicture();
         void createLiveThread();
         void sendMsgSaveImage(EditText comment, boolean postToLive);
+        void sendMsgSaveImage(EditText comment, boolean postToLive, String messageTarget);
         void sendMsgSwitchCamera();
     }
 
