@@ -63,11 +63,29 @@
         <activity
             android:name=".StashActivity"
             android:label="@string/title_activity_stash"
+            android:theme="@style/StashTheme"
             android:parentActivityName=".MainActivity" >
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="com.jokrapp.android.MainActivity" />
         </activity>
+
+        <!--
+            No intent filters are specified, so android:exported defaults to "false". The
+            service is only available to this app.
+        -->
+        <service
+            android:name=".RSSPullService"
+            android:exported="false"/>
+
+        <!--
+            The attribute "android:exported" must be set to "false" to restrict this content
+            provider to its own app. Otherwise, all apps could access it.
+         -->
+        <provider
+            android:name=".DataProvider"
+            android:exported="false"
+            android:authorities="@string/authority"/>
     </application>
 
 </manifest>

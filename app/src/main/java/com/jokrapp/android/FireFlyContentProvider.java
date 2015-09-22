@@ -462,6 +462,7 @@ public class FireFlyContentProvider extends ContentProvider {
                         selection,
                         selectionArgs);
                 break;
+
             case LOCAL_ID:
                 String id = uri.getLastPathSegment();
                 if (TextUtils.isEmpty(selection)) {

@@ -37,7 +37,7 @@ public class SQLiteDbHelper extends SQLiteOpenHelper {
 
 
     // If you change the database schema, you must increment the database version.
-    public static final int DATABASE_VERSION = 2;
+    public static final int DATABASE_VERSION = 1;
     public static final String DATABASE_NAME = "ImagesStore.db";
     private static final String TEXT_TYPE = " TEXT";
     private static final String INT_TYPE = " INTEGER";
@@ -99,6 +99,26 @@ public class SQLiteDbHelper extends SQLiteOpenHelper {
                     LiveReplies.COLUMN_NAME_DESCRIPTION + TEXT_TYPE + COMMA_SEP +
                     LiveReplies.COLUMN_NAME_FILEPATH + TEXT_TYPE +
                     " )";
+
+    // Defines an SQLite statement that builds the Picasa picture URL table
+    private static final String CREATE_PICTUREURL_TABLE_SQL = "CREATE TABLE" + " " +
+            DataProviderContract.PICTUREURL_TABLE_NAME + " " +
+            "(" + " " +
+            DataProviderContract.ROW_ID + " " + PRIMARY_KEY + " ," +
+            DataProviderContract.IMAGE_THUMBURL_COLUMN + " " + TEXT_TYPE + " ," +
+            DataProviderContract.IMAGE_URL_COLUMN + " " + TEXT_TYPE + " ," +
+            DataProviderContract.IMAGE_THUMBNAME_COLUMN + " " + TEXT_TYPE + " ," +
+            DataProviderContract.IMAGE_PICTURENAME_COLUMN + " " + TEXT_TYPE +
+            ")";
+
+    // Defines an SQLite statement that builds the URL modification date table
+    private static final String CREATE_DATE_TABLE_SQL = "CREATE TABLE" + " " +
+            DataProviderContract.DATE_TABLE_NAME + " " +
+            "(" + " " +
+            DataProviderContract.ROW_ID + " " + PRIMARY_KEY + " ," +
+            DataProviderContract.DATA_DATE_COLUMN + " " + INT_TYPE +
+            ")";
+
 
 
     private final String SQL_DELETE_LOCAL =

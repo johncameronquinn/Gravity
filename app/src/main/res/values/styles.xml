@@ -9,6 +9,10 @@
         <item name="colorAccent">@color/wpallete_accent_blue_alpha</item>
     </style>
 
+    <style name="StashTheme" parent="@android:style/Theme.Holo">
+        <item name="colorAccent">@color/wpallete_accent_blue_alpha</item>
+    </style>
+
     <style name="leftArrowStyle">
         <item name="android:alpha">.6</item>
         <item name="android:layout_marginBottom">50dp</item>

@@ -87,7 +87,7 @@ import java.util.UUID;
 public class DataHandlingService extends Service implements GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener, LocationListener {
     private static final String TAG = "DataHandlingService";
-    private static final boolean VERBOSE = true;
+    private static final boolean VERBOSE = false;
     private static final boolean ALLOW_DUPLICATES = false;
 
     private boolean isLocalRequesting = false;
@@ -1385,7 +1385,7 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
                 Log.v(TAG, "number of replies: " + replies);
                 Log.v(TAG, "number of unique posters: " + unique);
                 Log.v(TAG, "filepath saved to: " + "not implemented!");
-                Log.v(TAG," image string is : " + image);
+              //  Log.v(TAG," image string is : " + image);
             }
 
             // String filePath = getFilesDir() + "/" + "IMG_" + threadID + ".jpg";

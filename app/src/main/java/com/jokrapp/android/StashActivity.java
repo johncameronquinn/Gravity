@@ -7,13 +7,22 @@ package com.jokrapp.android;
 import android.app.Activity;
 import android.app.Fragment;
 import android.app.FragmentManager;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.v13.app.FragmentPagerAdapter;
+import android.app.FragmentTransaction;
+import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.view.WindowManager;
 import android.widget.Toast;
 
 import java.util.Map;
@@ -28,6 +37,7 @@ public class StashActivity extends Activity implements StashGalleryFragment.OnFr
     private  StashAdapter adapter;
     private final String TAG = "StashActivity";
     static final boolean VERBOSE = true;
+
 
 
     SharedPreferences preferences;
@@ -48,9 +58,17 @@ public class StashActivity extends Activity implements StashGalleryFragment.OnFr
 
         preferences = getSharedPreferences("Settings",MODE_PRIVATE);
         editor = preferences.edit();
+
+
+
+
         if (VERBOSE) Log.v(TAG,"exiting onCreate...");
     }
 
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -142,7 +160,7 @@ public class StashActivity extends Activity implements StashGalleryFragment.OnFr
                 case LOCAL_SETTINGS_POSTION:
                     return "Local Settings";
                 case GALLERY_POSTION:
-                    return "Stash";
+                    return "Gallery";
                 case LIVE_SETTINGS_POSTION:
                     return "Live Settings";
                 default:
@@ -152,5 +170,7 @@ public class StashActivity extends Activity implements StashGalleryFragment.OnFr
     }
 
 
-    }
+
+
+}
 

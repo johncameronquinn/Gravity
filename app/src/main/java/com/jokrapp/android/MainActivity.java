@@ -473,7 +473,7 @@ LocalFragment.onLocalFragmentInteractionListener, ViewPager.OnPageChangeListener
 
 
         if(event.getAction() == MotionEvent.ACTION_DOWN) {
-            uiHandler.postDelayed(mLongPressed, 1500);
+            uiHandler.postDelayed(mLongPressed, 1000);
             xpos = event.getX();
             ypos = event.getY();
         }

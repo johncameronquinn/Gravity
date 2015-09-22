@@ -18,8 +18,19 @@
 
 <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
-    <string name="title_activity_stash">StashActivity</string>
+    <string name="title_activity_stash">Stash</string>
 
     <string name="hello_world">Hello world!</string>
+
+
+    <string name="authority">com.jokrapp.android</string>
+    <string name="activity_title">Picasa Images</string>
+    <string name="progress_starting_update">Starting Update</string>
+    <string name="progress_connecting">Connecting</string>
+    <string name="progress_parsing">Parsing</string>
+    <string name="progress_writing">Writing to Database</string>
+    <string name="no_connection">In offline mode, and no stored data is available.</string>
+    <string name="alert_description">Alert!</string>
+    <string name="offline_mode">In offline mode. Stored data is shown.</string>
 
 </resources>
