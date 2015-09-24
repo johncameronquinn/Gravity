@@ -466,22 +466,21 @@ LocalFragment.onLocalFragmentInteractionListener, ViewPager.OnPageChangeListener
                 startActivity(stashActivtyIntent);
             }
         });*/
-
       /*  if (gestureDetector.onTouchEvent(ev)) {
             return true;
         }*/
 
 
         if(event.getAction() == MotionEvent.ACTION_DOWN) {
-            uiHandler.postDelayed(mLongPressed, 1000);
+            uiHandler.postDelayed(mLongPressed, 2000);
             xpos = event.getX();
             ypos = event.getY();
         }
-        if(event.getAction() == MotionEvent.ACTION_MOVE) {
+        /*if(event.getAction() == MotionEvent.ACTION_MOVE) {
             if (xpos != event.getX() || ypos != event.getY()) {
                 uiHandler.removeCallbacks(mLongPressed);
             }
-        }
+        }*/
         if (event.getAction() == MotionEvent.ACTION_UP) {
             uiHandler.removeCallbacks(mLongPressed);
         }
@@ -559,6 +558,7 @@ LocalFragment.onLocalFragmentInteractionListener, ViewPager.OnPageChangeListener
         }
     }
 
+
     /* class UIReceiver extends BroadcastReceiver {
         static final String RMSG_BUTTON_PRESSED = "com.jokrapp.android.MSG";
         static final String RBLOCK_BUTTON_PRESSED = "com.jokrapp.android.BLOCK";
@@ -587,7 +587,7 @@ LocalFragment.onLocalFragmentInteractionListener, ViewPager.OnPageChangeListener
 
 
     /**
-     * method 'onImageSaved'
+     * method 'sendImageToLocal'
      *
      * {@link com.jokrapp.android.CameraFragment.OnCameraFragmentInteractionListener}
      *
@@ -682,7 +682,9 @@ LocalFragment.onLocalFragmentInteractionListener, ViewPager.OnPageChangeListener
                 }
                 return CameraFragReference.get();
             } else if (position == REPLY_LIST_POSITION) {
-                ReplyFragment f  = ReplyFragment.newInstance(LiveFragReference.get().getCurrentThread());
+                ReplyFragment f  = ReplyFragment.newInstance(LiveFragReference.get()
+                        .getCurrentThread());
+
                 LiveFragReference.get().setReplyFragment(f);
                 return f;
             } else {

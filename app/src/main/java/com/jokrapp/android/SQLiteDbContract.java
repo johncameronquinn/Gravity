@@ -1,5 +1,6 @@
 package com.jokrapp.android;
 
+import android.net.Uri;
 import android.provider.BaseColumns;
 
 /**
@@ -64,6 +65,19 @@ public final class SQLiteDbContract {
         public static final String COLUMN_NAME_FILEPATH = "filepath";
     }
 
+    public static abstract class StashEntry implements BaseColumns {
+        public static final String ROW_ID = BaseColumns._ID;
+
+        public static final String PICTUREURL_TABLE_NAME = "PictureUrlData";
+        public static final String IMAGE_THUMBURL_COLUMN = "ThumbUrl";
+        public static final String IMAGE_THUMBNAME_COLUMN = "ThumbUrlName";
+
+        public static final String IMAGE_URL_COLUMN = "ImageUrl";
+        public static final String IMAGE_PICTURENAME_COLUMN = "ImageName";
+
+        public static final String DATE_TABLE_NAME = "DateMetadataData";
+        public static final String DATA_DATE_COLUMN = "DownloadDate";
+    }
+
 
 }
-

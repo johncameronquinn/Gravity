@@ -32,7 +32,6 @@ import java.util.concurrent.TimeUnit;
  * Finally, this class defines a handler that communicates back to the UI
  * thread to change the bitmap to reflect the state.
  */
-@SuppressWarnings("unused")
 public class PhotoManager {
     /*
      * Status indicators

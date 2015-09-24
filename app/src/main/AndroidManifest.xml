@@ -82,10 +82,6 @@
             The attribute "android:exported" must be set to "false" to restrict this content
             provider to its own app. Otherwise, all apps could access it.
          -->
-        <provider
-            android:name=".DataProvider"
-            android:exported="false"
-            android:authorities="@string/authority"/>
     </application>
 
 </manifest>

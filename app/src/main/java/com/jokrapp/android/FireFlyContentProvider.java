@@ -1,17 +1,18 @@
 package com.jokrapp.android;
 
 import android.content.ContentProvider;
-import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.UriMatcher;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteException;
 import android.database.sqlite.SQLiteQueryBuilder;
 import android.net.Uri;
 import android.os.CancellationSignal;
 import android.os.ParcelFileDescriptor;
 import android.text.TextUtils;
 import android.util.Log;
+import android.util.SparseArray;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -25,8 +26,13 @@ import java.nio.channels.NotYetConnectedException;
  */
 public class FireFlyContentProvider extends ContentProvider {
 
-    private static String AUTHORITY = "com.jokrapp.android.provider";
+    private final static String AUTHORITY = "com.jokrapp.android.provider";
     private static String TAG = "FireFlyContentProvider";
+
+
+    // Stores the MIME types served by this provider
+    private static final SparseArray<String> sMimeTypes;
+
 
 
     private static final String LOCAL_BASE_PATH = "local";
@@ -41,6 +47,15 @@ public class FireFlyContentProvider extends ContentProvider {
 
     private static final String REPLY_INFO_BASE_PATH = "replyinfo";
 
+    // Indicates that the incoming query is for a picture URL
+    public static final int IMAGE_URL_QUERY = 1;
+
+    // Indicates that the incoming query is for a URL modification date
+    public static final int URL_DATE_QUERY = 2;
+
+
+    // Indicates an invalid content URI
+    public static final int INVALID_URI = -1;
 
 
     public static final Uri CONTENT_URI_LOCAL = Uri.parse("content://" + AUTHORITY
@@ -62,10 +77,14 @@ public class FireFlyContentProvider extends ContentProvider {
             + "/" + REPLY_INFO_BASE_PATH);
 
 
-    public static final String CONTENT_TYPE = ContentResolver.CURSOR_DIR_BASE_TYPE
-            + "/images";
-    public static final String CONTENT_ITEM_TYPE = ContentResolver.CURSOR_ITEM_BASE_TYPE
-            + "/image";
+    /**
+     * Picture table content URI
+     */
+    public static final Uri PICTUREURL_TABLE_CONTENTURI =
+            Uri.parse("content://" + AUTHORITY + "/" + SQLiteDbContract.StashEntry.PICTUREURL_TABLE_NAME);
+
+    public static final Uri DATE_TABLE_CONTENTURI =
+    Uri.parse("content://" + AUTHORITY + "/" + SQLiteDbContract.StashEntry.DATE_TABLE_NAME);
 
 
     SQLiteDbHelper database;
@@ -86,7 +105,14 @@ public class FireFlyContentProvider extends ContentProvider {
 
 
     private static final UriMatcher sURIMatcher = new UriMatcher(UriMatcher.NO_MATCH);
+
     static {
+
+        sMimeTypes = new SparseArray<String>();
+
+        // Creates an object that associates content URIs with numeric codes
+
+
         sURIMatcher.addURI(AUTHORITY, LOCAL_BASE_PATH, LOCAL);
         sURIMatcher.addURI(AUTHORITY, LOCAL_BASE_PATH + "/#", LOCAL_ID);
 
@@ -102,6 +128,32 @@ public class FireFlyContentProvider extends ContentProvider {
         sURIMatcher.addURI(AUTHORITY, REPLY_BASE_PATH, REPLIES);
         sURIMatcher.addURI(AUTHORITY, REPLY_INFO_BASE_PATH + "/#", REPLIES_ID);
 
+
+        // Adds a URI "match" entry that maps picture URL content URIs to a numeric code
+        sURIMatcher.addURI(
+                AUTHORITY,
+                SQLiteDbContract.StashEntry.PICTUREURL_TABLE_NAME,
+                IMAGE_URL_QUERY);
+
+        // Adds a URI "match" entry that maps modification date content URIs to a numeric code
+        sURIMatcher.addURI(
+                AUTHORITY,
+                SQLiteDbContract.StashEntry.DATE_TABLE_NAME,
+                URL_DATE_QUERY);
+
+        // Specifies a custom MIME type for the picture URL table
+        sMimeTypes.put(
+                IMAGE_URL_QUERY,
+                "vnd.android.cursor.dir/vnd." +
+                        AUTHORITY + "." +
+                        SQLiteDbContract.StashEntry.PICTUREURL_TABLE_NAME);
+
+        // Specifies the custom MIME type for a single modification date row
+        sMimeTypes.put(
+                URL_DATE_QUERY,
+                "vnd.android.cursor.item/vnd."+
+                        AUTHORITY + "." +
+                        SQLiteDbContract.StashEntry.DATE_TABLE_NAME);
     }
 
 
@@ -139,6 +191,8 @@ public class FireFlyContentProvider extends ContentProvider {
                 Log.d(TAG,"REPLY_ID called");
                 directory = REPLY_INFO_BASE_PATH;
                 break;
+
+
 
             default:
                 Log.d(TAG,"uriType is " + uritype);
@@ -190,6 +244,10 @@ public class FireFlyContentProvider extends ContentProvider {
 
         SQLiteQueryBuilder queryBuilder = new SQLiteQueryBuilder();
         int uriType = sURIMatcher.match(uri);
+
+
+
+        SQLiteDatabase db =database.getReadableDatabase();//todo remove this
 
         switch (uriType) {
             case LOCAL:
@@ -244,12 +302,42 @@ public class FireFlyContentProvider extends ContentProvider {
                         + uri.getLastPathSegment());
                 break;
 
+                        // If the query is for a picture URL
+            case IMAGE_URL_QUERY:
+
+                // Does the query against a read-only version of the database
+                Cursor returnCursor = db.query(
+                        SQLiteDbContract.StashEntry.PICTUREURL_TABLE_NAME,
+                        projection,
+                        null, null, null, null, null);
+
+                // Sets the ContentResolver to watch this content URI for data changes
+                returnCursor.setNotificationUri(getContext().getContentResolver(), uri);
+                return returnCursor;
+
+
+            // If the query is for a modification date URL
+            case URL_DATE_QUERY:
+
+                returnCursor = db.query(
+                        SQLiteDbContract.StashEntry.DATE_TABLE_NAME,
+                        projection,
+                        selection,
+                        selectionArgs,
+                        null,
+                        null,
+                        sortOrder);
+
+                // No notification Uri is set, because the data doesn't have to be watched.
+                return returnCursor;
+
+
             default:
                 throw new IllegalArgumentException("Unknown URI: " + uri);
         }
 
-        SQLiteDatabase db = database.getWritableDatabase();
-        Cursor cursor = queryBuilder.query(db, projection, selection,
+        SQLiteDatabase dba = database.getWritableDatabase();
+        Cursor cursor = queryBuilder.query(dba, projection, selection,
                 selectionArgs, null, null, sortOrder);
         // make sure that potential listeners are getting notified
         cursor.setNotificationUri(getContext().getContentResolver(), uri);
@@ -437,12 +525,115 @@ public class FireFlyContentProvider extends ContentProvider {
                 id = sqlDB.insert(SQLiteDbContract.LiveReplies.TABLE_NAME, null, values);
                 break;
 
+            // For the modification date table
+            case URL_DATE_QUERY: //todo better melding required
+
+                // Creates a writeable database or gets one from cache
+                SQLiteDatabase localSQLiteDatabase = database.getWritableDatabase();
+
+                // Inserts the row into the table and returns the new row's _id value
+                id = localSQLiteDatabase.insert(
+                        SQLiteDbContract.StashEntry.DATE_TABLE_NAME,
+                        SQLiteDbContract.StashEntry.DATA_DATE_COLUMN,
+                        values
+                );
+
+                // If the insert succeeded, notify a change and return the new row's content URI.
+                if (-1 != id) {
+                    getContext().getContentResolver().notifyChange(uri, null);
+                    return Uri.withAppendedPath(uri, Long.toString(id));
+                } else {
+
+                    throw new SQLiteException("Insert error:" + uri);
+                }
+            case IMAGE_URL_QUERY:
+
+                throw new IllegalArgumentException("Insert: Invalid URI" + uri);
+
             default:
                 throw new IllegalArgumentException("Unknown URI: " + uri);
         }
         getContext().getContentResolver().notifyChange(uri, null);
         return Uri.parse(uriType + "/" + id);
     }
+
+    /**
+     * Implements bulk row insertion using
+     * {@link SQLiteDatabase#insert(String, String, ContentValues) SQLiteDatabase.insert()}
+     * and SQLite transactions. The method also notifies the current
+     * {@link android.content.ContentResolver} that the {@link android.content.ContentProvider} has
+     * been changed.
+     * @see android.content.ContentProvider#bulkInsert(Uri, ContentValues[])
+     * @param uri The content URI for the insertion
+     * @param insertValuesArray A {@link android.content.ContentValues} array containing the row to
+     * insert
+     * @return The number of rows inserted.
+     */
+    @Override
+    public int bulkInsert(Uri uri, ContentValues[] insertValuesArray) {
+
+        // Decodes the content URI and choose which insert to use
+        switch (sURIMatcher.match(uri)) {
+
+            // picture URLs table
+            case IMAGE_URL_QUERY:
+
+                // Gets a writeable database instance if one is not already cached
+                SQLiteDatabase localSQLiteDatabase = database.getWritableDatabase();
+
+                /*
+                 * Begins a transaction in "exclusive" mode. No other mutations can occur on the
+                 * db until this transaction finishes.
+                 */
+                localSQLiteDatabase.beginTransaction();
+
+                // Deletes all the existing rows in the table
+                localSQLiteDatabase.delete(SQLiteDbContract.StashEntry.PICTUREURL_TABLE_NAME, null, null);
+
+                // Gets the size of the bulk insert
+                int numImages = insertValuesArray.length;
+
+                // Inserts each ContentValues entry in the array as a row in the database
+                for (int i = 0; i < numImages; i++) {
+
+                    localSQLiteDatabase.insert(SQLiteDbContract.StashEntry.PICTUREURL_TABLE_NAME,
+                            SQLiteDbContract.StashEntry.IMAGE_URL_COLUMN, insertValuesArray[i]);
+                }
+
+                // Reports that the transaction was successful and should not be backed out.
+                localSQLiteDatabase.setTransactionSuccessful();
+
+                // Ends the transaction and closes the current db instances
+                localSQLiteDatabase.endTransaction();
+                localSQLiteDatabase.close();
+
+                /*
+                 * Notifies the current ContentResolver that the data associated with "uri" has
+                 * changed.
+                 */
+
+                getContext().getContentResolver().notifyChange(uri, null);
+
+                // The semantics of bulkInsert is to return the number of rows inserted.
+                return numImages;
+
+            // modification date table
+            case URL_DATE_QUERY:
+
+                // Do inserts by calling SQLiteDatabase.insert on each row in insertValuesArray
+                return super.bulkInsert(uri, insertValuesArray);
+
+            case INVALID_URI:
+
+                // An invalid URI was passed. Throw an exception
+                throw new IllegalArgumentException("Bulk insert -- Invalid URI:" + uri);
+
+        }
+
+        return -1;
+
+    }
+
 
     @Override
     public boolean onCreate() {
@@ -480,9 +671,38 @@ public class FireFlyContentProvider extends ContentProvider {
                 }
                 break;
 
+
+            // A picture URL content URI
+            case URL_DATE_QUERY:
+
+                // Creats a new writeable database or retrieves a cached one
+                SQLiteDatabase localSQLiteDatabase = database.getWritableDatabase();
+
+                // Updates the table
+                int rows = localSQLiteDatabase.update(
+                        SQLiteDbContract.StashEntry.DATE_TABLE_NAME,
+                        values,
+                        selection,
+                        selectionArgs);
+
+                // If the update succeeded, notify a change and return the number of updated rows.
+                if (0 != rows) {
+                    getContext().getContentResolver().notifyChange(uri, null);
+                    return rows;
+                } else {
+
+                    throw new SQLiteException("Update error:" + uri);
+                }
+
+            case IMAGE_URL_QUERY:
+
+                throw new IllegalArgumentException("Update: Invalid URI: " + uri);
+
+
             default:
                 throw new IllegalArgumentException("Unknown URI: " + uri);
         }
+
         getContext().getContentResolver().notifyChange(uri, null);
         return rowsUpdated;
     }

@@ -436,7 +436,8 @@ public class LiveFragment extends Fragment implements
             threadID = data.getString(data.getColumnIndexOrThrow(LiveThreadInfoEntry.COLUMN_NAME_THREAD_ID));
             unique = data.getString(data.getColumnIndexOrThrow(LiveThreadInfoEntry.COLUMN_NAME_UNIQUE));
             replies = data.getString(data.getColumnIndexOrThrow(LiveThreadInfoEntry.COLUMN_NAME_REPLIES));
-            LiveThreadFragment f =  LiveThreadFragment.newInstance(i, name, title, text, fileName,threadID,unique,replies);
+            LiveThreadFragment f =  LiveThreadFragment.newInstance(i, name, title, text, fileName,
+                    threadID,unique,replies);
             f.setProgressHandler(liveThreadAdapterHandler);
 
             if (VERBOSE) Log.v(TAG, "exiting getItem...");

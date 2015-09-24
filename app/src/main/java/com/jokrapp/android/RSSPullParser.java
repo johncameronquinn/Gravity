@@ -156,15 +156,15 @@ public class RSSPullParser extends DefaultHandler {
                     if (eventName.equalsIgnoreCase(CONTENT)) {
 
                         // Stores the image URL and image name column names as keys
-                        imageUrlKey = DataProviderContract.IMAGE_URL_COLUMN;
-                        imageNameKey = DataProviderContract.IMAGE_PICTURENAME_COLUMN;
+                        imageUrlKey = SQLiteDbContract.StashEntry.IMAGE_URL_COLUMN;
+                        imageNameKey = SQLiteDbContract.StashEntry.IMAGE_PICTURENAME_COLUMN;
 
                         // If it's a THUMBNAIL
                     } else if (eventName.equalsIgnoreCase(THUMBNAIL)) {
 
                         // Stores the thumbnail URL and thumbnail name column names as keys
-                        imageUrlKey = DataProviderContract.IMAGE_THUMBURL_COLUMN;
-                        imageNameKey = DataProviderContract.IMAGE_THUMBNAME_COLUMN;
+                        imageUrlKey = SQLiteDbContract.StashEntry.IMAGE_THUMBURL_COLUMN;
+                        imageNameKey = SQLiteDbContract.StashEntry.IMAGE_THUMBNAME_COLUMN;
 
                         // Otherwise it's some other event that isn't important
                     } else {
@@ -199,7 +199,7 @@ public class RSSPullParser extends DefaultHandler {
 
                 // Logs progress
                 progressNotifier.notifyProgress("Parsed Image[" + imageCount + "]:"
-                        + mImage.getAsString(DataProviderContract.IMAGE_URL_COLUMN));
+                        + mImage.getAsString(SQLiteDbContract.StashEntry.IMAGE_URL_COLUMN));
 
                 // Clears out the current ContentValues
                 mImage = null;

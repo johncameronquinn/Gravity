@@ -45,6 +45,8 @@ package com.jokrapp.android;
         import android.widget.AdapterView;
         import android.widget.GridView;
 
+
+        import com.jokrapp.android.SQLiteDbContract.StashEntry;
         import java.net.MalformedURLException;
         import java.net.URL;
         import java.util.concurrent.RejectedExecutionException;
@@ -83,9 +85,9 @@ public class PhotoThumbnailFragment extends Fragment implements
 
     private static final String[] PROJECTION =
             {
-                    DataProviderContract._ID,
-                    DataProviderContract.IMAGE_THUMBURL_COLUMN,
-                    DataProviderContract.IMAGE_URL_COLUMN
+                    StashEntry._ID,
+                    StashEntry.IMAGE_THUMBURL_COLUMN,
+                    StashEntry.IMAGE_URL_COLUMN
             };
 
     // Constants that define the order of columns in the returned cursor
@@ -110,7 +112,7 @@ public class PhotoThumbnailFragment extends Fragment implements
                 // Returns a new CursorLoader
                 return new CursorLoader(
                         getActivity(),                                     // Context
-                        DataProviderContract.PICTUREURL_TABLE_CONTENTURI,  // Table to query
+                        FireFlyContentProvider.PICTUREURL_TABLE_CONTENTURI,  // Table to query
                         PROJECTION,                                        // Projection to return
                         null,                                              // No selection clause
                         null,                                              // No selection arguments

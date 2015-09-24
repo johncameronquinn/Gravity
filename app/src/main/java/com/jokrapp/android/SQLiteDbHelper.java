@@ -15,6 +15,8 @@ import com.jokrapp.android.SQLiteDbContract.LiveThreadInfoEntry;
 
 import com.jokrapp.android.SQLiteDbContract.LiveReplies;
 
+import com.jokrapp.android.SQLiteDbContract.StashEntry;
+
 
 /**
  * Author/Copyright John C. Quinn All Rights Reserved.
@@ -102,21 +104,21 @@ public class SQLiteDbHelper extends SQLiteOpenHelper {
 
     // Defines an SQLite statement that builds the Picasa picture URL table
     private static final String CREATE_PICTUREURL_TABLE_SQL = "CREATE TABLE" + " " +
-            DataProviderContract.PICTUREURL_TABLE_NAME + " " +
+            StashEntry.PICTUREURL_TABLE_NAME + " " +
             "(" + " " +
-            DataProviderContract.ROW_ID + " " + PRIMARY_KEY + " ," +
-            DataProviderContract.IMAGE_THUMBURL_COLUMN + " " + TEXT_TYPE + " ," +
-            DataProviderContract.IMAGE_URL_COLUMN + " " + TEXT_TYPE + " ," +
-            DataProviderContract.IMAGE_THUMBNAME_COLUMN + " " + TEXT_TYPE + " ," +
-            DataProviderContract.IMAGE_PICTURENAME_COLUMN + " " + TEXT_TYPE +
+            StashEntry.ROW_ID + " " + PRIMARY_KEY + " ," +
+            StashEntry.IMAGE_THUMBURL_COLUMN + " " + TEXT_TYPE + " ," +
+            StashEntry.IMAGE_URL_COLUMN + " " + TEXT_TYPE + " ," +
+            StashEntry.IMAGE_THUMBNAME_COLUMN + " " + TEXT_TYPE + " ," +
+            StashEntry.IMAGE_PICTURENAME_COLUMN + " " + TEXT_TYPE +
             ")";
 
     // Defines an SQLite statement that builds the URL modification date table
     private static final String CREATE_DATE_TABLE_SQL = "CREATE TABLE" + " " +
-            DataProviderContract.DATE_TABLE_NAME + " " +
+            StashEntry.DATE_TABLE_NAME + " " +
             "(" + " " +
-            DataProviderContract.ROW_ID + " " + PRIMARY_KEY + " ," +
-            DataProviderContract.DATA_DATE_COLUMN + " " + INT_TYPE +
+            StashEntry.ROW_ID + " " + PRIMARY_KEY + " ," +
+            StashEntry.DATA_DATE_COLUMN + " " + INT_TYPE +
             ")";
 
 
@@ -131,6 +133,11 @@ public class SQLiteDbHelper extends SQLiteOpenHelper {
             "DROP TABLE IF EXISTS " + LiveThreadInfoEntry.TABLE_NAME;
     private final String SQL_DELETE_REPLIES =
             "DROP TABLE IF EXISTS " + LiveReplies.TABLE_NAME;
+    private final String SQL_DELETE_STASH_PICTUREURL =
+            "DROP TABLE IF EXISTS " + StashEntry.PICTUREURL_TABLE_NAME;
+    private final String SQL_DELETE_STASH_DATETABLE =
+            "DROP TABLE IF EXISTS " + StashEntry.DATE_TABLE_NAME;
+
 
 
     public SQLiteDbHelper(Context context) {
@@ -144,22 +151,37 @@ public class SQLiteDbHelper extends SQLiteOpenHelper {
         db.execSQL(SQL_CREATE_LIVE_INFO);
         db.execSQL(SQL_CREATE_REPLIES);
 
+        db.execSQL(CREATE_PICTUREURL_TABLE_SQL);
+        db.execSQL(CREATE_DATE_TABLE_SQL);
+
         Log.d(TAG, "database created...");
     }
 
-    public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-        // This database is only a cache for online data, so its upgrade policy is
-        // to simply to discard the data and start over
+    public void dropTables(SQLiteDatabase db) {
+
         db.execSQL(SQL_DELETE_LOCAL);
         db.execSQL(SQL_DELETE_MESSAGE);
         db.execSQL(SQL_DELETE_LIVE);
         db.execSQL(SQL_DELETE_LIVE_INFO);
         db.execSQL(SQL_DELETE_REPLIES);
+        db.execSQL(SQL_DELETE_STASH_DATETABLE);
+        db.execSQL(SQL_DELETE_STASH_PICTUREURL);
 
+    }
+
+    public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+        // This database is only a cache for online data, so its upgrade policy is
+        // to simply to discard the data and start over
+        dropTables(db);
         onCreate(db);
     }
     public void onDowngrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-        onUpgrade(db, oldVersion, newVersion);
+        Log.w(SQLiteDbHelper.class.getName(),
+                "Downgrading database from version " + oldVersion + " to "
+                        + newVersion + ", which will destroy all the existing data");
+
+       dropTables(db);
+        onCreate(db);
     }
 
     public static double distanceFormula(double x1, double y1, double x2, double y2) {

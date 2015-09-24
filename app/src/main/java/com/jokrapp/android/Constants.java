@@ -24,7 +24,7 @@ public final class Constants {
     /** threadSample
      */
     // Set to true to turn on verbose logging
-    public static final boolean LOGV = false;
+    public static final boolean LOGV = true;
 
     // Set to true to turn on debug logging
     public static final boolean LOGD = true;

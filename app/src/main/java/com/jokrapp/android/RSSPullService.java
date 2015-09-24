@@ -25,6 +25,8 @@ package com.jokrapp.android;
         import android.content.ContentValues;
         import android.content.Intent;
         import android.database.Cursor;
+        import android.nfc.Tag;
+        import android.util.Log;
 
         import org.apache.http.HttpStatus;
         import org.xmlpull.v1.XmlPullParserException;
@@ -76,12 +78,16 @@ public class RSSPullService extends IntentService {
         // Creates a projection to use in querying the modification date table in the provider.
         final String[] dateProjection = new String[]
                 {
-                        DataProviderContract.ROW_ID,
-                        DataProviderContract.DATA_DATE_COLUMN
+                        SQLiteDbContract.StashEntry.ROW_ID,
+                        SQLiteDbContract.StashEntry.DATA_DATE_COLUMN
                 };
 
         // A URL that's local to this method
         URL localURL;
+
+        if (Constants.LOGV) {
+            Log.v(LOG_TAG, "URL String: " + localUrlString);
+        }
 
         // A cursor that's local to this method.
         Cursor cursor = null;
@@ -118,7 +124,7 @@ public class RSSPullService extends IntentService {
                  * The content provider throws an exception if the URI is invalid.
                  */
                 cursor = getContentResolver().query(
-                        DataProviderContract.DATE_TABLE_CONTENTURI,
+                        FireFlyContentProvider.DATE_TABLE_CONTENTURI,
                         dateProjection,
                         null,
                         null,
@@ -135,7 +141,7 @@ public class RSSPullService extends IntentService {
                     // Find the URL's last modified date in the content provider
                     long storedModifiedDate =
                             cursor.getLong(cursor.getColumnIndex(
-                                            DataProviderContract.DATA_DATE_COLUMN)
+                                            SQLiteDbContract.StashEntry.DATA_DATE_COLUMN)
                             )
                             ;
 
@@ -207,24 +213,31 @@ public class RSSPullService extends IntentService {
 
                         imageValuesArray = imageValues.toArray(imageValuesArray);
 
+                        if (Constants.LOGV) {
+                            ContentValues values = imageValuesArray[0];
+                            for (Object obj : values.valueSet()) {
+                                Log.v(LOG_TAG, obj.toString());
+                            }
+                        }
+
                         /*
                          * Stores the image data in the content provider. The content provider
                          * throws an exception if the URI is invalid.
                          */
                         getContentResolver().bulkInsert(
-                                DataProviderContract.PICTUREURL_TABLE_CONTENTURI, imageValuesArray);
+                                FireFlyContentProvider.PICTUREURL_TABLE_CONTENTURI, imageValuesArray);
 
                         // Creates another ContentValues for storing date information
                         ContentValues dateValues = new ContentValues();
 
                         // Adds the URL's last modified date to the ContentValues
-                        dateValues.put(DataProviderContract.DATA_DATE_COLUMN, lastModifiedDate);
+                        dateValues.put(SQLiteDbContract.StashEntry.DATA_DATE_COLUMN, lastModifiedDate);
 
                         if (newMetadataRetrieved) {
 
                             // No previous metadata existed, so insert the data
                             getContentResolver().insert(
-                                    DataProviderContract.DATE_TABLE_CONTENTURI,
+                                    FireFlyContentProvider.DATE_TABLE_CONTENTURI,
                                     dateValues
                             );
 
@@ -232,11 +245,11 @@ public class RSSPullService extends IntentService {
 
                             // Previous metadata existed, so update it.
                             getContentResolver().update(
-                                    DataProviderContract.DATE_TABLE_CONTENTURI,
+                                    FireFlyContentProvider.DATE_TABLE_CONTENTURI,
                                     dateValues,
-                                    DataProviderContract.ROW_ID + "=" +
+                                    SQLiteDbContract.StashEntry.ROW_ID + "=" +
                                             cursor.getString(cursor.getColumnIndex(
-                                                    DataProviderContract.ROW_ID)), null);
+                                                   SQLiteDbContract.StashEntry.ROW_ID)), null);
                         }
                         break;
 
