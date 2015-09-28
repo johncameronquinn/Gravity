@@ -173,9 +173,9 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
 
         if (VERBOSE) {
             Log.v(TAG,"Listing stored image files...");
-            File[] files = getFilesDir().listFiles(new DataHandlingService.ImageFileFilter());
+          //  File[] files = getFilesDir().listFiles(new DataHandlingService.ImageFileFilter());
 
-            File root = Environment.getExternalStorageDirectory();
+            /*File root = Environment.getExternalStorageDirectory();
             File outDirectory = new File(root.getAbsolutePath(),"JokrSavedImages");
             outDirectory.mkdirs();
 
@@ -190,7 +190,7 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
                 } catch (IOException e) {
                     Log.e(TAG,"Error copying file from " + i.toString() + " to " + outDirectory.toString(),e);
                 }
-            }
+            }*/
             Log.v(TAG,"done listing files...");
         }
 

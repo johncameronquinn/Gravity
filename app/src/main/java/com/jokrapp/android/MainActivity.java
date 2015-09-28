@@ -436,7 +436,7 @@ LocalFragment.onLocalFragmentInteractionListener, ViewPager.OnPageChangeListener
      */
     @Override
     public boolean dispatchTouchEvent(MotionEvent event) {
-       Log.i(TAG,"event: " + event.toString());
+      // Log.i(TAG,"event: " + event.toString());
   /*      final GestureDetector gestureDetector = new GestureDetector(new GestureDetector.SimpleOnGestureListener() {
             public void onLongPress(MotionEvent e) {
 
@@ -547,11 +547,12 @@ LocalFragment.onLocalFragmentInteractionListener, ViewPager.OnPageChangeListener
         CameraFragReference.get().startReplyMode();
     }
 
-    public void sendMsgRequestReplies(int a) {
-        Toast.makeText(this, "refreshing replies", Toast.LENGTH_SHORT).show();
+    public void sendMsgRequestReplies(int threadNumber) {
+        if (VERBOSE) Log.v(TAG, "refreshing replies for thread: " + threadNumber);
+
         if (isBound) {
             try {
-                mService.send(Message.obtain(null,DataHandlingService.MSG_REQUEST_REPLIES, a, 0));
+                mService.send(Message.obtain(null,DataHandlingService.MSG_REQUEST_REPLIES, threadNumber, 0));
             } catch (RemoteException e) {
                 Log.e(TAG, "error sending message to background service...", e);
             }
@@ -682,11 +683,14 @@ LocalFragment.onLocalFragmentInteractionListener, ViewPager.OnPageChangeListener
                 }
                 return CameraFragReference.get();
             } else if (position == REPLY_LIST_POSITION) {
-                ReplyFragment f  = ReplyFragment.newInstance(LiveFragReference.get()
-                        .getCurrentThread());
-
-                LiveFragReference.get().setReplyFragment(f);
-                return f;
+                if (LiveFragReference.get().getReplyFragment() == null) {
+                    ReplyFragment f = ReplyFragment.newInstance(LiveFragReference.get()
+                            .getCurrentThread());
+                    LiveFragReference.get().setReplyFragment(f);
+                    return f;
+                } else {
+                    return LiveFragReference.get().getReplyFragment();
+                }
             } else {
                 Log.e(TAG, "Invalid fragment position loaded");
                 return null;
@@ -731,22 +735,26 @@ LocalFragment.onLocalFragmentInteractionListener, ViewPager.OnPageChangeListener
 
     }
 
-    boolean wasOnReply = false;
+    int previousPosition=CAMERA_LIST_POSITION;
 
     @Override
     public void onPageSelected(int position) {
         switch (position) {
+
             case LIVE_LIST_POSITION:
-                if (wasOnReply) {
+                if (previousPosition == REPLY_LIST_POSITION) {
                     LiveFragReference.get().getReplyFragment().deleteLoader();
                 }
-                wasOnReply = false;
+
                 break;
             case REPLY_LIST_POSITION:
-                wasOnReply = true;
                 LiveFragReference.get().getReplyFragment().resetDisplay();
+                Integer currentThread = LiveFragReference.get().getCurrentThread();
+                LiveFragReference.get().getReplyFragment().setCurrentThread(String.valueOf(currentThread));
                 break;
         }
+
+        previousPosition = position;
     }
 
     /***********************************************************************************************

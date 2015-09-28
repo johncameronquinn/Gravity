@@ -3,6 +3,7 @@ package com.jokrapp.android;
 
 import android.app.Activity;
 import android.app.LoaderManager;
+import android.content.Context;
 import android.content.CursorLoader;
 import android.content.Loader;
 import android.database.Cursor;
@@ -48,9 +49,9 @@ public class LocalFragment extends Fragment implements
     }
 
     @Override
-    public void onAttach(Activity activity) {
+    public void onAttach(Context activity) {
         super.onAttach(activity);
-
+/*
         String[] projection = new String[1];
         projection[0] = SQLiteDbContract.LocalEntry.COLUMN_ID;
 
@@ -62,7 +63,7 @@ public class LocalFragment extends Fragment implements
 
         if (a < Constants.MAX_STORED) {
             ((MainActivity)activity).requestImages(Constants.MAX_STORED-a);
-        }
+        }*/
 
 
         try {

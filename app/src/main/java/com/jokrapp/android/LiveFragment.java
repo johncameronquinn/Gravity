@@ -47,7 +47,7 @@ import com.jokrapp.android.SQLiteDbContract.LiveThreadInfoEntry;
  */
 public class LiveFragment extends Fragment implements
         LoaderManager.LoaderCallbacks<Cursor>, ViewPager.OnPageChangeListener {
-    private static final boolean VERBOSE = false;
+    private static final boolean VERBOSE = true;
     private static final String TAG = "LiveFragment";
 
     // TODO: Rename parameter arguments, choose names that match
@@ -63,7 +63,7 @@ public class LiveFragment extends Fragment implements
 
     private VerticalViewPager threadPager;
     private FragmentStatePagerAdapter mAdapter;
-    private WeakReference<ReplyFragment> mReplyFragmentReference;
+    private WeakReference<ReplyFragment> mReplyFragmentReference = new WeakReference<>(null);
 
   //  private Cursor data;
 
@@ -440,6 +440,8 @@ public class LiveFragment extends Fragment implements
                     threadID,unique,replies);
             f.setProgressHandler(liveThreadAdapterHandler);
 
+            ((MainActivity)getActivity()).sendMsgRequestReplies(Integer.valueOf(threadID));
+
             if (VERBOSE) Log.v(TAG, "exiting getItem...");
             return f;
         }
@@ -516,14 +518,13 @@ public class LiveFragment extends Fragment implements
         data.moveToPosition(position);
 
         String threadID = data.getString(data.getColumnIndexOrThrow(LiveThreadInfoEntry.COLUMN_NAME_THREAD_ID));
-        getReplyFragment().setCurrentThread(threadID);
+        currentThread = Integer.valueOf(threadID);
 
         if (VERBOSE) Log.v(TAG, "exiting onPageSelected...");
     }
 
     @Override
     public void onPageScrollStateChanged(int state) {
-
     }
 
     /**************************************************************************************************
@@ -563,6 +564,11 @@ public class LiveFragment extends Fragment implements
 
         Log.i(TAG,"Live cursor finished loading data");
         refreshThreadPager(data);
+        data.moveToPosition(0);
+        int thread = data.getInt(data.getColumnIndexOrThrow(LiveThreadInfoEntry.COLUMN_NAME_THREAD_ID));
+        if (VERBOSE) Log.v(TAG,"liveFragment thread at position 0 has thread id " + thread);
+        currentThread = thread;
+
 
         if (VERBOSE) Log.v(TAG,"exit onLoadFinished...");
     }
