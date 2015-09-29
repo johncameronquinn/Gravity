@@ -41,6 +41,7 @@ public class PhotoFragment extends Fragment implements View.OnClickListener {
     // Constants
     private static final String LOG_TAG = "ImageDownloaderThread";
     private static final String PHOTO_URL_KEY = "com.jokrapp.android.PHOTO_URL_KEY";
+    private static final String TAG = "PhotoFragment";
 
     PhotoView mPhotoView;
 
@@ -53,6 +54,8 @@ public class PhotoFragment extends Fragment implements View.OnClickListener {
      * URL.
      */
     public void loadPhoto() {
+        if (Constants.LOGV) Log.v(TAG,"entering loadPhoto...");
+
         // If setPhoto() was called to store a URL, proceed
         if (mURLString != null) {
 
@@ -74,6 +77,8 @@ public class PhotoFragment extends Fragment implements View.OnClickListener {
                 localMalformedURLException.printStackTrace();
             }
         }
+
+        if (Constants.LOGV) Log.v(TAG,"exiting loadPhoto...");
     }
     /**
      * Returns the stored URL string
@@ -89,10 +94,13 @@ public class PhotoFragment extends Fragment implements View.OnClickListener {
      */
     @Override
     public void onClick(View view) {
-
+        if (Constants.LOGV) Log.v(TAG,"entering onClick with view: " + view.toString());
         // Sends a broadcast intent to zoom the image
+        if (Constants.LOGV) Log.v(TAG,"sending broadcast to zoom the image");
         Intent localIntent = new Intent(Constants.ACTION_ZOOM_IMAGE);
         LocalBroadcastManager.getInstance(getActivity()).sendBroadcast(localIntent);
+
+        if (Constants.LOGV) Log.v(TAG,"exiting onClick...");
     }
 
     /*
@@ -109,7 +117,7 @@ public class PhotoFragment extends Fragment implements View.OnClickListener {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup viewGroup, Bundle bundle) {
         super.onCreateView(inflater, viewGroup, bundle);
-
+        if (Constants.LOGV) Log.v(TAG,"entering onCreateView...");
         /*
          * Creates a View from the specified layout file. The layout uses the parameters specified
          * in viewGroup, but is not attached to any parent
@@ -134,6 +142,8 @@ public class PhotoFragment extends Fragment implements View.OnClickListener {
             loadPhoto();
 
         // Returns the resulting View
+
+        if (Constants.LOGV) Log.v(TAG,"exiting onCreateView...");
         return localView;
     }
 
@@ -180,9 +190,11 @@ public class PhotoFragment extends Fragment implements View.OnClickListener {
     public void onSaveInstanceState(Bundle bundle) {
         // Always call the super method first
         super.onSaveInstanceState(bundle);
-
+        if (Constants.LOGV) Log.v(TAG,"entering onSaveInstanceState...");
         // Puts the current URL for the picture being shown into the saved state
         bundle.putString(PHOTO_URL_KEY, mURLString);
+
+        if (Constants.LOGV) Log.v(TAG,"exiting onSaveInstanceState...");
     }
 
     /**

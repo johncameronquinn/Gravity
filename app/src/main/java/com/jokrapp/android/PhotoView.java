@@ -10,6 +10,7 @@ import android.graphics.Canvas;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
 
@@ -276,6 +277,10 @@ public class PhotoView extends ImageView {
      */
     public void setImageURL(URL pictureURL, boolean cacheFlag, Drawable imageDrawable) {
         // If the picture URL for this ImageView is already set
+        if (Constants.LOGV) {
+            Log.v(VIEW_LOG_TAG,"entering setImageURL with URL " + pictureURL);
+        }
+
         if (mImageURL != null) {
 
             // If the stored URL doesn't match the incoming URL, then the picture has changed.
@@ -308,6 +313,8 @@ public class PhotoView extends ImageView {
              */
             mDownloadThread = PhotoManager.startDownload(this, cacheFlag);
         }
+
+        if (Constants.LOGV) Log.v(VIEW_LOG_TAG,"exiting setImageURL...");
     }
 
     /**

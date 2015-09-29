@@ -43,7 +43,6 @@
         android:layout_height="wrap_content"
         android:layout_marginBottom="40dp"
         android:layout_gravity="center|bottom"
-        style="@style/Base.Widget.AppCompat.Button.Borderless"
         android:alpha=".5"
         android:visibility="visible" />
 

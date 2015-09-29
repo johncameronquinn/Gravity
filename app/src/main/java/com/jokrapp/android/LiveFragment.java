@@ -562,6 +562,10 @@ public class LiveFragment extends Fragment implements
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
         if (VERBOSE) Log.v(TAG,"enter onLoadFinished...");
 
+        if (data == null) {
+            Log.i(TAG,"Live CursorLoader returned a null cursor... nothing to load- quitting.");
+            return;
+        }
         Log.i(TAG,"Live cursor finished loading data");
         refreshThreadPager(data);
         data.moveToPosition(0);

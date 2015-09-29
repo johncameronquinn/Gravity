@@ -32,6 +32,7 @@ package com.jokrapp.android;
         import org.xmlpull.v1.XmlPullParserException;
 
         import java.io.IOException;
+        import java.net.HttpCookie;
         import java.net.HttpURLConnection;
         import java.net.MalformedURLException;
         import java.net.URL;
@@ -153,6 +154,7 @@ public class RSSPullService extends IntentService {
                     if (0 != storedModifiedDate) {
                         localHttpURLConnection.setRequestProperty(
                                 "If-Modified-Since",
+
                                 org.apache.http.impl.cookie.DateUtils.formatDate(
                                         new Date(storedModifiedDate),
                                         org.apache.http.impl.cookie.DateUtils.PATTERN_RFC1123));
@@ -180,7 +182,7 @@ public class RSSPullService extends IntentService {
                 switch (responseCode) {
 
                     // If the response is OK
-                    case HttpStatus.SC_OK:
+                    case HttpURLConnection.HTTP_OK:
 
                         // Gets the last modified data for the URL
                         long lastModifiedDate = localHttpURLConnection.getLastModified();

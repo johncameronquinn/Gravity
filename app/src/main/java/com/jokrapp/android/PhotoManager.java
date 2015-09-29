@@ -5,6 +5,7 @@ import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
 import android.support.v4.util.LruCache;
+import android.util.Log;
 
 import java.net.URL;
 import java.util.Queue;
@@ -42,6 +43,8 @@ public class PhotoManager {
     static final int DECODE_STARTED = 3;
     static final int TASK_COMPLETE = 4;
 
+
+    private static final String TAG = "PhotoManager";
     // Sets the size of the storage that's used to cache images
     private static final int IMAGE_CACHE_SIZE = 1024 * 1024 * 4;
 
@@ -105,6 +108,7 @@ public class PhotoManager {
      * Constructs the work queues and thread pools used to download and decode images.
      */
     private PhotoManager() {
+        if (Constants.LOGV) Log.v(TAG,"entering PhotoManager constructor...");
 
         /*
          * Creates a work queue for the pool of Thread objects used for downloading, using a linked
@@ -149,6 +153,8 @@ public class PhotoManager {
                 return paramArrayOfByte.length;
             }
         };
+
+        if (Constants.LOGV) Log.v(TAG,"creating anonymous handler to function on UI thread...");
         /*
          * Instantiates a new anonymous Handler object and defines its
          * handleMessage() method. The Handler *must* run on the UI thread, because it moves photo
@@ -236,6 +242,8 @@ public class PhotoManager {
                 }
             }
         };
+
+        if (Constants.LOGV) Log.v(TAG,"exiting PhotoManager constructor...");
     }
 
     /**
@@ -292,6 +300,7 @@ public class PhotoManager {
      * Cancels all Threads in the ThreadPool
      */
     public static void cancelAll() {
+        if (Constants.LOGV) Log.v(TAG,"entering... cancelAll");
 
         /*
          * Creates an array of tasks that's the same size as the task work queue
@@ -322,6 +331,8 @@ public class PhotoManager {
                 }
             }
         }
+
+        if (Constants.LOGV) Log.v(TAG,"exiting... cancelAll");
     }
 
     /**
@@ -331,10 +342,10 @@ public class PhotoManager {
      * @param pictureURL The URL being downloaded
      */
     static public void removeDownload(PhotoTask downloaderTask, URL pictureURL) {
-
+        if (Constants.LOGV) Log.v(TAG,"entering removeDownload...");
         // If the Thread object still exists and the download matches the specified URL
         if (downloaderTask != null && downloaderTask.getImageURL().equals(pictureURL)) {
-
+            if (Constants.LOGV) Log.v(TAG,"removing task for url " + pictureURL);
             /*
              * Locks on this class to ensure that other processes aren't mutating Threads.
              */
@@ -353,6 +364,8 @@ public class PhotoManager {
              */
             sInstance.mDownloadThreadPool.remove(downloaderTask.getHTTPDownloadRunnable());
         }
+
+        if (Constants.LOGV) Log.v(TAG,"exiting removeDownload...");
     }
 
     /**
@@ -365,6 +378,8 @@ public class PhotoManager {
     static public PhotoTask startDownload(
             PhotoView imageView,
             boolean cacheFlag) {
+        if (Constants.LOGV)  Log.v(TAG,"entering startDownload...");
+
 
         /*
          * Gets a task from the pool of tasks, returning null if the pool is empty
@@ -409,6 +424,8 @@ public class PhotoManager {
         }
 
         // Returns a task object, either newly-created or one from the task pool
+
+        if (Constants.LOGV)  Log.v(TAG,"exiting startDownload...");
         return downloadTask;
     }
 
@@ -418,11 +435,13 @@ public class PhotoManager {
      * @param downloadTask The task to recycle
      */
     void recycleTask(PhotoTask downloadTask) {
-
+        if (Constants.LOGV)  Log.v(TAG,"entering recycleTask...");
         // Frees up memory in the task
         downloadTask.recycle();
 
         // Puts the task object back into the queue for re-use.
         mPhotoTaskWorkQueue.offer(downloadTask);
+
+        if (Constants.LOGV)  Log.v(TAG,"exiting recycleTask...");
     }
 }

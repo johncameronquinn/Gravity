@@ -120,7 +120,6 @@ public class PhotoTask implements
         // Gets the width and height of the provided ImageView
         mTargetWidth = photoView.getWidth();
         mTargetHeight = photoView.getHeight();
-
     }
 
     // Implements HTTPDownloaderRunnable.getByteBuffer

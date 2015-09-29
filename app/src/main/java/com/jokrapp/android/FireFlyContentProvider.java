@@ -686,12 +686,17 @@ public class FireFlyContentProvider extends ContentProvider {
                         selectionArgs);
 
                 // If the update succeeded, notify a change and return the number of updated rows.
-                if (0 != rows) {
+                if (true) {
+                // 0 != rows) {
                     getContext().getContentResolver().notifyChange(uri, null);
                     return rows;
                 } else {
 
-                    throw new SQLiteException("Update error:" + uri);
+                    // FIXME: 9/24/15
+                    Log.e(TAG,"no rows were updated. What the flock is going on.");
+
+                    break;
+                    //throw new SQLiteException("Update error:" + uri);
                 }
 
             case IMAGE_URL_QUERY:

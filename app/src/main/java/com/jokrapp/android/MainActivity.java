@@ -188,7 +188,6 @@ LocalFragment.onLocalFragmentInteractionListener, ViewPager.OnPageChangeListener
             }
         }
 
-
         Log.d(TAG, "exit onStart...");
     }
 
@@ -196,7 +195,6 @@ LocalFragment.onLocalFragmentInteractionListener, ViewPager.OnPageChangeListener
     protected void onResume() {
         super.onResume();
         Log.d(TAG, "enter onResume...");
-
 
 
         Log.d(TAG, "exit onResume...");
@@ -207,8 +205,6 @@ LocalFragment.onLocalFragmentInteractionListener, ViewPager.OnPageChangeListener
     protected void onPause() {
         super.onPause();
         Log.d(TAG, "enter onPause...");
-
-
 
 
 
