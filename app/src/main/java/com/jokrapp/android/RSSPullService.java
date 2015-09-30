@@ -26,9 +26,8 @@ package com.jokrapp.android;
         import android.content.Intent;
         import android.database.Cursor;
         import android.nfc.Tag;
+        import android.text.format.DateUtils;
         import android.util.Log;
-
-        import org.apache.http.HttpStatus;
         import org.xmlpull.v1.XmlPullParserException;
 
         import java.io.IOException;
@@ -37,6 +36,8 @@ package com.jokrapp.android;
         import java.net.MalformedURLException;
         import java.net.URL;
         import java.net.URLConnection;
+        import java.text.DateFormat;
+        import java.text.SimpleDateFormat;
         import java.util.Date;
         import java.util.Vector;
 
@@ -154,10 +155,7 @@ public class RSSPullService extends IntentService {
                     if (0 != storedModifiedDate) {
                         localHttpURLConnection.setRequestProperty(
                                 "If-Modified-Since",
-
-                                org.apache.http.impl.cookie.DateUtils.formatDate(
-                                        new Date(storedModifiedDate),
-                                        org.apache.http.impl.cookie.DateUtils.PATTERN_RFC1123));
+                                new SimpleDateFormat().format(new Date(storedModifiedDate)));
                     }
 
                     // Marks that new metadata does not need to be retrieved

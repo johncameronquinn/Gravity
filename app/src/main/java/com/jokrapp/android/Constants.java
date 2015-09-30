@@ -87,4 +87,13 @@ public final class Constants {
     public static final int STATE_LOG = -1;
 
     public static final CharSequence BLANK = " ";
+
+
+    /**
+     * ANALYTICS
+     */
+    public static final int LOCAL_BLOCK_EVENT= 0;
+    public static final int LOCAL_MESSAGE_EVENT= 1;
+    public static final int LIVE_THREADVIEW_EVENT = 2;
+    public static final int REPLY_VIEW_EVENT = 3;
 }

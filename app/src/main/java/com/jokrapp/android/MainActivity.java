@@ -44,6 +44,10 @@ import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.google.android.gms.analytics.HitBuilders;
+import com.google.android.gms.analytics.Tracker;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -64,7 +68,7 @@ import java.util.Locale;
  * there is only one activity, and all the other features are managed as fragments
  */
 public class MainActivity extends Activity implements CameraFragment.OnCameraFragmentInteractionListener,
-LocalFragment.onLocalFragmentInteractionListener, ViewPager.OnPageChangeListener{
+LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInteractionListener, ViewPager.OnPageChangeListener{
     private static String TAG = "MainActivity";
     private static final boolean VERBOSE = false;
     private static final boolean SAVE_LOCALLY = false;
@@ -83,6 +87,12 @@ LocalFragment.onLocalFragmentInteractionListener, ViewPager.OnPageChangeListener
     private static final int CAMERA_LIST_POSITION = 2;
     private static final int LIVE_LIST_POSITION = 3;
     private static final int REPLY_LIST_POSITION = 4;
+
+    private static final String MESSAGE_PAGER_TITLE = "Message";
+    private static final String LOCAL_PAGER_TITLE = "Local";
+    private static final String LIVE_PAGER_TITLE = "Live";
+    private static final String CAMERA_PAGER_TITLE = "Camera";
+    private static final String REPLY_PAGER_TITLE = "Reply";
 
     private static final int NUMBER_OF_FRAGMENTS = 5;
 
@@ -114,6 +124,10 @@ LocalFragment.onLocalFragmentInteractionListener, ViewPager.OnPageChangeListener
     private final UIHandler uiHandler = new UIHandler();
     final Messenger messageHandler = new Messenger(uiHandler);
 
+    /** ANALYTICS
+     */
+    private Tracker mTracker;
+
 
     /**
      * ********************************************************************************************
@@ -140,12 +154,11 @@ LocalFragment.onLocalFragmentInteractionListener, ViewPager.OnPageChangeListener
         //loads blank fragments
         createUI();
 
-        //grabs stored images and loads
-        findImages();
-
-        final ActionBar actionBar = getActionBar();
-
-        //request images
+        // [START shared_tracker]
+        //obtain the shared Tracker instance
+        AnalyticsApplication application = (AnalyticsApplication)getApplication();
+        mTracker = application.getDefaultTracker();
+        // [END shared_tracker]
 
         Log.d(TAG,"exit onCreate...");
     }
@@ -706,15 +719,15 @@ LocalFragment.onLocalFragmentInteractionListener, ViewPager.OnPageChangeListener
         public CharSequence getPageTitle(int position) {
                     switch (position) {
                     case MESSAGE_LIST_POSITION:
-                        return "Message";
+                        return MESSAGE_PAGER_TITLE;
                     case LOCAL_LIST_POSITION:
-                        return "Local";
+                        return LOCAL_PAGER_TITLE;
                     case CAMERA_LIST_POSITION:
-                        return "Camera";
+                        return CAMERA_PAGER_TITLE;
                     case LIVE_LIST_POSITION:
-                        return "Live";
+                        return LIVE_PAGER_TITLE;
                     case REPLY_LIST_POSITION:
-                        return "Reply";
+                        return REPLY_PAGER_TITLE;
                 }
 
                 return null;
@@ -736,17 +749,33 @@ LocalFragment.onLocalFragmentInteractionListener, ViewPager.OnPageChangeListener
     @Override
     public void onPageSelected(int position) {
         switch (position) {
+            case CAMERA_LIST_POSITION:
+                sendScreenImageName("Fragment~" + CAMERA_PAGER_TITLE);
+            break;
+
+            case LOCAL_LIST_POSITION:
+                sendScreenImageName("Fragment~" + LOCAL_PAGER_TITLE);
+                break;
+
+            case MESSAGE_LIST_POSITION:
+                sendScreenImageName("Fragment~" + MESSAGE_PAGER_TITLE);
+                break;
 
             case LIVE_LIST_POSITION:
-                if (previousPosition == REPLY_LIST_POSITION) {
+                sendScreenImageName("Fragment~" + LIVE_PAGER_TITLE);
+            if (previousPosition == REPLY_LIST_POSITION) {
                     LiveFragReference.get().getReplyFragment().deleteLoader();
                 }
-
+                sendScreenImageName(LIVE_PAGER_TITLE);
                 break;
+
             case REPLY_LIST_POSITION:
+                sendScreenImageName("Fragment~" + REPLY_PAGER_TITLE);
                 LiveFragReference.get().getReplyFragment().resetDisplay();
                 Integer currentThread = LiveFragReference.get().getCurrentThread();
                 LiveFragReference.get().getReplyFragment().setCurrentThread(String.valueOf(currentThread));
+
+                sendScreenImageName(REPLY_PAGER_TITLE);
                 break;
         }
 
@@ -2168,262 +2197,6 @@ I*/
         }
     }
 
-    /***********************************************************************************************
-     * IMAGE MANAGEMENT
-     *
-     *
-     *  loading from gallery for now ~~
-     */
-    /**
-     * method 'loadImages'
-     *
-     * context-> onCreate()
-     *
-     * places all of the image filenames into a Map for access at any time
-     */
-    public void findImages(){
-        //mediaStorageDir = new File(Environment.getExternalStoragePublicDirectory(
-        //        Environment.DIRECTORY_PICTURES), "Boomerang");
-        //Log.d(TAG,"listing files from internal storage...");
-        //File[] files = getFilesDir().listFiles();
-
-        //for(int i = 0; i < files.length; i++) {
-        //    theImages.put(i,files[i].getAbsolutePath());
-       // }
-
-        //if (theImages.size() == 0) {
-            //DataHandlingService.startActionRequestImages(this, 10, null);
-       // } else {
-        //    TextView textView = (TextView) findViewById(R.id.statusTextView);
-        //    textView.setVisibility(View.INVISIBLE);
-       // }
-
-
-    }
-
-    /**
-     * static method 'decodeSampledBitmapFromFile'
-     *
-     * @param filePath the filePath of the image to be converted
-     * @return bitmap that has successfully decoded and sized
-     *
-     *
-     * decodes the bitmap given the filePath. This method is executed during an
-     * asynchronous method, in order to properly run in the background
-     * ideally, the image should already be scaled and sized properly by the server
-     *
-     */
-    /*public Bitmap decodeSampledBitmapFromFile(String filePath) {
-        Log.d(TAG,"entering decodeSampledBitmapFromFile...");
-
-
-        // First decode with inJustDecodeBounds=true to check dimensions
-        final BitmapFactory.Options options = new BitmapFactory.Options();
-        //only decode boundaries, then check
-        //options.inJustDecodeBounds = true;
-        //BitmapFactory.decodeFile(filePath, options);
-        //options.inSampleSize = resizeImage(options, reqWidth, reqHeight);
-
-        //now decode for real
-        ///options.inJustDecodeBounds = false;
-        /**
-         * A switching mechanism, assumes we load the first bitmap first, SWITCH
-         */
-        /*
-       if (currentBitmapToLoad) {
-            options.inBitmap = localCachedFirst.get(); //send the first bitmap out
-            localCachedFirst = new WeakReference<>(localCachedSecond.get()); //the second now is the first
-            currentBitmapToLoad = false;
-        } else {
-            options.inBitmap = localCachedSecond.get();  //the send the second out
-            currentBitmapToLoad = true;
-        }*/
-
-      /*  Log.d(TAG, "bitmap dimensons: height= " + options.outHeight + "width = " + options.outWidth); //todo remove this
-        return BitmapFactory.decodeFile(imageDir + filePath, options);
-    }
-
-    /**
-     * static method 'resizeImage'
-     *
-     * @param options options object for the bitmap
-     * @param reqHeight height to be scaled to
-     * @param reqWidth width to be scaled to
-     * @return the size of the bitmap scaled
-     *
-     * scales the bitmap to the proper size based on the required width and height provided
-     */
-
-    /*public int resizeImage(BitmapFactory.Options options, int reqWidth, int reqHeight) {
-        final String TAG = "resizeImage";
-
-
-        // Raw height and width of image
-        final int height = options.outHeight;
-        final int width = options.outWidth;
-        int inSampleSize = 0;
-
-        Log.d(TAG,"current width is + " + width + " and height is " + height);
-        Log.d(TAG,"reqWidth is " + reqWidth + " and height is " + reqHeight);
-
-
-        if (height > reqHeight || width > reqWidth) {
-            if (inSampleSize == 0) {
-                inSampleSize = 2;
-            }
-
-            final int halfHeight = height / 2;
-            final int halfWidth = width / 2;
-
-            // Calculate the largest inSampleSize value that is a power of 2 and keeps both
-            // height and width larger than the requested height and width.
-            while ((halfHeight / inSampleSize) > reqHeight
-                    && (halfWidth / inSampleSize) > reqWidth) {
-                inSampleSize *= 2;
-            }
-        }
-
-        Log.d(TAG, "resizeImage sample size is: " + inSampleSize);
-
-        return inSampleSize;
-    }
-
-    /***
-     * static method 'cancelPotentialWork'
-     *
-     * @param data file name of the image to be compared
-     * @param imageView imageView in question
-     * @return the status of the task
-     *
-     * checks to see if the imageView is currently involved with any other process
-     * and if so, cancels
-     *
-     * *ripped from google*
-     */
-    /*public static boolean cancelPotentialWork(String data, ImageView imageView) {
-        final BitmapWorkerTask bitmapWorkerTask = getBitmapWorkerTask(imageView); //todo learn this
-
-        if (bitmapWorkerTask != null) {
-            final String bitmapData = bitmapWorkerTask.data;
-            Log.d(TAG, bitmapData + "compared to " + data);
-
-            // If bitmapData is not yet set or it differs from the new data
-            if (bitmapData == null || !bitmapData.equals(data)) {
-                // Cancel previous task
-                bitmapWorkerTask.cancel(true);
-            } else {
-                // The same work is already in progress
-                return false;
-            }
-        }
-
-        Log.d(TAG, "cancelPotentialWork found that the imageView is missing or busy");
-
-        // No task associated with the ImageView, or an existing task was cancelled
-        return true;
-    }
-
-    /**
-     * static class 'getBitmapWorkerTask'
-     *
-     * @param imageView imageView in question
-     * @return null
-     *
-     * gets the drawable
-     *
-     * *ripped from google*
-     */
-    /*private static BitmapWorkerTask getBitmapWorkerTask(ImageView imageView) {
-        if (imageView != null) {
-            final Drawable drawable = imageView.getDrawable();
-              if (drawable instanceof AsyncDrawable) {
-                Log.d(TAG, "getBitmapWorkerTask found an AsyncDrawable");
-
-                final AsyncDrawable asyncDrawable = (AsyncDrawable) drawable;
-                return asyncDrawable.getBitmapWorkerTask();
-              }
-        }
-
-        Log.d(TAG, "getBitmapWorkerTask> AsyncDrawable was NOT found");
-
-        return null;
-    }
-
-    /**
-     * class 'AsyncDrawable'
-     *
-     * creates an AsyncDrawable
-     * *ripped from google*
-     */
-    /*static class AsyncDrawable extends BitmapDrawable {
-        private final WeakReference<BitmapWorkerTask> bitmapWorkerTaskReference;
-
-        public AsyncDrawable(Resources res, Bitmap bitmap,
-                             BitmapWorkerTask bitmapWorkerTask) {
-            super(res, bitmap);
-            bitmapWorkerTaskReference =
-                    new WeakReference<BitmapWorkerTask>(bitmapWorkerTask);
-        }
-
-        public BitmapWorkerTask getBitmapWorkerTask() {
-            return bitmapWorkerTaskReference.get();
-        }
-    }
-
-
-
-    /**
-     * class 'BitmapWorkerTask'
-     *
-     * passed a String and returns a Bitmap
-     *
-     * decodes Bitmap from a filename in a separate thread for performance
-     *
-     */
-    /*static class BitmapWorkerTask extends AsyncTask<String, Void, Bitmap> {
-        private final WeakReference<ImageView> imageViewReference;
-        private String data = null;
-        private final String TAG = "BitMapWorkerTask: ";
-
-
-        //data pulled in from loadImages
-        public BitmapWorkerTask(ImageView imageView) {
-            // Use a WeakReference to ensure the ImageView can be garbage collected
-            imageViewReference = new WeakReference<>(imageView);
-
-            Log.d(TAG,"Pre-Execute started");
-        }
-
-        // Decode image in background.
-        @Override
-        protected Bitmap doInBackground(String[] params) {
-            data = params[0];
-            Log.d(TAG, "image loaded, file name is: " + data);
-            return decodeSampledBitmapFromFile(data);
-        }
-
-        // Once complete, see if ImageView is still around and set bitmap.
-        @Override
-        protected void onPostExecute(Bitmap bitmap) {
-
-            if (isCancelled()) {
-                bitmap = null;
-            }
-
-            if (imageViewReference != null && bitmap != null) {
-                final ImageView imageView = imageViewReference.get();
-                if (imageView != null) {
-                    imageView.setImageBitmap(bitmap);
-                }
-                else
-                {
-                    Log.d(TAG,"ImageView was null");
-                }
-            }
-        }
-    }*/
-
-
     /**
      * tags for replyHandler's various tasks
      */
@@ -2438,6 +2211,10 @@ I*/
     static final int MSG_SUCCESS_LOCAL = 15;
 
     static final int MSG_SUCCESS_LIVE = 16;
+
+    static final int MSG_SUCCESS = 50;
+
+    static final int MSG_TOO_MANY_REQUESTS = 51;
 
 
     /**
@@ -2491,6 +2268,18 @@ I*/
                 case MSG_SUCCESS_LIVE:
                     Toast.makeText(activity.get(),"Live post not implemented...",Toast.LENGTH_SHORT).show();
                     break;
+
+                case MSG_SUCCESS:
+                    Toast.makeText(activity.get(),"Post successful!",Toast.LENGTH_SHORT).show();
+                    break;
+
+                case MSG_TOO_MANY_REQUESTS:
+                    new AlertDialog.Builder(activity.get())
+                            .setTitle("Alert")
+                            .setMessage("You have posted too many times, in a small period, and now we're worried you're not human.")
+                            .setIcon(android.R.drawable.ic_dialog_alert)
+                            .show();
+                    break;
             }
 
             Log.d(TAG,"exit handleMessage");
@@ -2513,6 +2302,14 @@ I*/
 
             //resolve DNS
             resolveDns("jokrbackend.ddns.net");
+            Message msg = Message.obtain(null, DataHandlingService.MSG_SET_CALLBACK_MESSENGER);
+            msg.replyTo = messageHandler;
+            try {
+                mService.send(msg);
+            } catch (RemoteException e) {
+                Log.e(TAG,"error sending message to set messageHandler. This is a fatal error.",e);
+                System.exit(1);
+            }
         }
 
         public void onServiceDisconnected(ComponentName className) {
@@ -2541,4 +2338,30 @@ I*/
     public void disableScrolling() {
         mPager.setPagingEnabled(false);
     }
+
+/***************************************************************************************************
+ * ANALYTICS
+ **/
+    private void sendScreenImageName(String name) {
+     //   Toast.makeText(this,name,Toast.LENGTH_SHORT).show();
+        mTracker.setScreenName(name);
+        mTracker.send(new HitBuilders.ScreenViewBuilder().build());
+    }
+
+
+    public void reportAnalyticsEvent(int event,String name) {
+        switch (event) {
+            case Constants.LIVE_THREADVIEW_EVENT:
+                sendScreenImageName(name);
+                break;
+            case Constants.LOCAL_BLOCK_EVENT:
+
+                break;
+
+            case Constants.LOCAL_MESSAGE_EVENT:
+
+                break;
+        }
+    }
+
 }

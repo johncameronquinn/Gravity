@@ -4,6 +4,7 @@ import android.animation.ValueAnimator;
 import android.app.Activity;
 import android.app.FragmentManager;
 import android.app.LoaderManager;
+import android.content.Context;
 import android.content.CursorLoader;
 import android.content.Intent;
 import android.content.Loader;
@@ -65,7 +66,10 @@ public class LiveFragment extends Fragment implements
     private FragmentStatePagerAdapter mAdapter;
     private WeakReference<ReplyFragment> mReplyFragmentReference = new WeakReference<>(null);
 
-  //  private Cursor data;
+
+    private onLiveFragmentInteractionListener mListener;
+
+
 
 
     /**
@@ -141,14 +145,6 @@ public class LiveFragment extends Fragment implements
     }
 
     @Override
-    public void onSaveInstanceState(Bundle outState) {
-        super.onSaveInstanceState(outState);
-        if (VERBOSE) Log.v(TAG,"entering onSaveInstanceState...");
-
-        if (VERBOSE) Log.v(TAG,"exiting onSaveInstanceState...");
-    }
-
-    @Override
     public void onDestroy() {
         super.onDestroy();
         if (VERBOSE) Log.v(TAG,"entering onDestroy...");
@@ -159,6 +155,32 @@ public class LiveFragment extends Fragment implements
 
         if (VERBOSE) Log.v(TAG,"exiting onDestroy...");
     }
+
+    @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
+        mListener = (onLiveFragmentInteractionListener)context;
+        mListener.sendMsgRequestLiveThreads();
+    }
+
+    //todo, this is a workaround for a bug and can be removed in the future
+    public void onAttach(Activity context) {
+        super.onAttach(context);
+        mListener = (onLiveFragmentInteractionListener)context;
+        mListener.sendMsgRequestLiveThreads();
+    }
+
+
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        if (VERBOSE) Log.v(TAG,"entering onSaveInstanceState...");
+
+        if (VERBOSE) Log.v(TAG,"exiting onSaveInstanceState...");
+    }
+
+
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -206,12 +228,12 @@ public class LiveFragment extends Fragment implements
 
         if (VERBOSE) Log.v(TAG,"exiting onViewCreated...");
     }
-
+/*
     @Override
     public void onAttach(Activity activity) {
         super.onAttach(activity);
         ((MainActivity)activity).sendMsgRequestLiveThreads();
-    }
+    }*/
 
     @Override
     public void onDetach() {
@@ -520,6 +542,11 @@ public class LiveFragment extends Fragment implements
         String threadID = data.getString(data.getColumnIndexOrThrow(LiveThreadInfoEntry.COLUMN_NAME_THREAD_ID));
         currentThread = Integer.valueOf(threadID);
 
+        //report thread view to analytics service
+        if (mListener != null) {
+            mListener.reportAnalyticsEvent(Constants.LIVE_THREADVIEW_EVENT, "Thread~ID: " + threadID + "," +
+                    " Position: " + position );
+        }
         if (VERBOSE) Log.v(TAG, "exiting onPageSelected...");
     }
 
@@ -566,12 +593,17 @@ public class LiveFragment extends Fragment implements
             Log.i(TAG,"Live CursorLoader returned a null cursor... nothing to load- quitting.");
             return;
         }
-        Log.i(TAG,"Live cursor finished loading data");
+
+
+        Log.i(TAG, "Live cursor finished loading data");
         refreshThreadPager(data);
         data.moveToPosition(0);
-        int thread = data.getInt(data.getColumnIndexOrThrow(LiveThreadInfoEntry.COLUMN_NAME_THREAD_ID));
-        if (VERBOSE) Log.v(TAG,"liveFragment thread at position 0 has thread id " + thread);
-        currentThread = thread;
+
+        if (data.getCount() > 0) { //this is messy but I am lazy
+            int thread = data.getInt(data.getColumnIndexOrThrow(LiveThreadInfoEntry.COLUMN_NAME_THREAD_ID));
+            if (VERBOSE) Log.v(TAG,"liveFragment thread at position 0 has thread id " + thread);
+            currentThread = thread;
+        }
 
 
         if (VERBOSE) Log.v(TAG,"exit onLoadFinished...");
@@ -615,4 +647,10 @@ public class LiveFragment extends Fragment implements
 
         if (VERBOSE) Log.v(TAG,"exit onLoaderReset...");
     }
+
+    public interface onLiveFragmentInteractionListener {
+        public void reportAnalyticsEvent(int event, String name);
+        public void sendMsgRequestLiveThreads();
+    }
+
 }

@@ -17,6 +17,8 @@ import android.widget.Toast;
 
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.android.gms.analytics.HitBuilders;
+import com.google.android.gms.analytics.Tracker;
 import com.jokrapp.android.SQLiteDbContract.LocalEntry;
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
@@ -33,11 +35,11 @@ import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream;
 
 import org.apache.commons.compress.utils.IOUtils;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.ClientProtocolException;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.DefaultHttpClient;
+//import org.apache.http.HttpResponse;
+//import org.apache.http.client.ClientProtocolException;
+//import org.apache.http.client.HttpClient;
+//import org.apache.http.client.methods.HttpGet;
+//import org.apache.http.impl.client.DefaultHttpClient;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
@@ -49,6 +51,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.StringReader;
 import java.lang.ref.WeakReference;
 import java.net.HttpURLConnection;
 import java.net.InetAddress;
@@ -61,7 +64,11 @@ import java.net.URLConnection;
 import java.net.UnknownHostException;
 import java.nio.channels.FileChannel;
 import java.nio.channels.NotYetConnectedException;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -113,10 +120,17 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
     private final String GET_LIVE_THREAD_INFO = "/GetLiveThreadInfo/"; //does not change
     private final String GET_LIVE_THREAD_REPLIES = "/GetLiveThreadReplies/"; //does not change
 
-
+    private Tracker mTracker;
 
     private static String serverAddress = "jokrbackend.ddns.net"; //changes when resolved
     private static UUID userID;
+
+    /** RESPONSE CODES
+     */
+    private final int RESPONSE_SUCCESS = 200;
+    private final int RESPONSE_UNPROCESSABLE_ENTITY = 422;
+    private final int RESPONSE_TOO_MANY_REQUESTS = 429;
+    private final int RESPONSE_BLOCK_CONFLICT = 409;
 
     /** JSON TAGS
      */
@@ -170,11 +184,21 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
         } else {
             Log.d(TAG,"loading userID from storage...");
             userID = UUID.fromString(settings.getString(UUID_KEY,null));
+
+            Log.i(TAG,"sending login event for user: " + userID.toString());
+            mTracker = ((AnalyticsApplication)getApplication()).getDefaultTracker();
+            mTracker.set("&uid", userID.toString());
+            mTracker.send(new HitBuilders.EventBuilder().setCategory("UX").setAction("User Sign In").build());
         }
 
+        //load analytics tracker and set user ID
+        /**
+         * Logging a user sign-in
+         */
+
         if (VERBOSE) {
-            Log.v(TAG,"Listing stored image files...");
-          //  File[] files = getFilesDir().listFiles(new DataHandlingService.ImageFileFilter());
+            Log.v(TAG, "Listing stored image files...");
+            //  File[] files = getFilesDir().listFiles(new DataHandlingService.ImageFileFilter());
 
             /*File root = Environment.getExternalStorageDirectory();
             File outDirectory = new File(root.getAbsolutePath(),"JokrSavedImages");
@@ -263,76 +287,40 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
             android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_BACKGROUND);
             currentThread = Thread.currentThread();
 
-            Log.d(TAG,"Initializing user " + userID);
-
-           /* URL url = null;
-            try {
-                url = createURLtoServer(INITIALIZE_USER_PATH);
-            } catch (MalformedURLException e) {
-                Log.e(TAG,"MalformedURL",e);
-                return;
-            }
-            URLConnection urlconn;
-            try {
-                urlconn = url.openConnection();
-            } catch (IOException e) {
-                Log.e(TAG,"error opening connection to url... exiting....");
-                //todo readd to message queue
-                return;
-            }
-
-            if (VERBOSE) Log.v(TAG,"connection opened to " + urlconn.toString());
-
-            HttpURLConnection conn = (HttpURLConnection) urlconn;
-            conn.setReadTimeout(READ_TIMEOUT);
-            conn.setConnectTimeout(CONNECT_TIMEOUT);
+            Log.d(TAG, "Initializing user " + userID);
 
             try {
-                conn.setRequestMethod("GET");
-            } catch (ProtocolException e) {
-                Log.e(TAG,"failed to set protocol ot post... exiting...");
-                //todo readd to message quere
-                return;
-            }
-            conn.setUseCaches(false);
-            Log.d(TAG,"Opening connection to url" + url);
-            if (conn == null) {
-                return;
-            }
 
-            /*
-            try {
-                if (VERBOSE) Log.v(TAG,"opening outputStream to send JSON...");
-                JsonFactory jsonFactory = new JsonFactory();
-                JsonGenerator jGen = jsonFactory.
-                        createGenerator(conn.getOutputStream());
-                if (VERBOSE) {
-                    Log.v(TAG, "id: " + userID.toString());
+
+                URL url = new URL(CONNECTION_PROTOCOL,serverAddress,SERVER_SOCKET,INITIALIZE_USER_PATH);
+                InputStream responseStream = url.openStream();
+                BufferedReader r = new BufferedReader(new InputStreamReader(responseStream));
+                StringBuilder total = new StringBuilder();
+                String line;
+                while ((line = r.readLine()) != null) {
+                    total.append(line);
                 }
-                jGen.writeStartObject();
-                jGen.writeStringField(USER_ID, userID.toString());
-                jGen.writeEndObject();
-                jGen.flush();
-                jGen.close();
 
-                Log.d(TAG,"response message: " + conn.getResponseMessage());
-            } catch (IOException e) {
-                Log.e(TAG,"error handling JSON",e);
-            }*/
+                Log.i(TAG,"initialize user returned " + total.toString());
 
-            try {
-                userID =UUID.fromString(executeHttpGet());
+                ObjectMapper objectMapper = new ObjectMapper();
+                Map<String,String> asMap = objectMapper.readValue(total.toString(), Map.class);
+                userID =UUID.fromString(String.valueOf(asMap.get("id")));
 
                 SharedPreferences settings = getSharedPreferences(TAG, MODE_PRIVATE);
                 SharedPreferences.Editor editor = settings.edit();
                 editor.putString(UUID_KEY, userID.toString());
                 editor.putBoolean(ISFIRSTRUN_KEY, false);
                 editor.apply();
-                //Toast.makeText(getApplicationContext(),"new user successfully initialized with server :)",Toast.LENGTH_SHORT).show();
             } catch (Exception e) {
                 Log.d(TAG, "Error executing initialize user...", e);
                 //Toast.makeText(getApplicationContext(),"Error initializing new user with the server...",Toast.LENGTH_SHORT).show();
             }
+
+            Log.i(TAG,"sending login event for new user...");
+            mTracker = ((AnalyticsApplication)getApplication()).getDefaultTracker();
+            mTracker.set("&uid", userID.toString());
+            mTracker.send(new HitBuilders.EventBuilder().setCategory("UX").setAction("User Sign In").build());
 
             if (VERBOSE) {
                 Log.v(TAG,"exiting InitializeUser...");
@@ -341,38 +329,7 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
 
     }
 
-    public String executeHttpGet() throws Exception {
-        BufferedReader in = null;
-        try {
-            HttpClient client = new DefaultHttpClient();
-            HttpGet request = new HttpGet();
-            request.setURI(new URI("http://jokrbackend.ddns.net/InitializeUser/"));
-            HttpResponse response = client.execute(request);
-            in = new BufferedReader
-                    (new InputStreamReader(response.getEntity().getContent()));
-            StringBuffer sb = new StringBuffer("");
-            String line = "";
-            String NL = System.getProperty("line.separator");
-            while ((line = in.readLine()) != null) {
-                sb.append(line + NL);
-            }
-            in.close();
-            String page = sb.toString();
-            System.out.println(page);
-            Log.d(TAG,"Page returned" + page);
-            ObjectMapper objectMapper = new ObjectMapper();
-            Map<String,String> asMap = objectMapper.readValue(page, Map.class);
-            return String.valueOf(asMap.get("id"));
-        } finally {
-            if (in != null) {
-                try {
-                    in.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-    }
+
     /***********************************************************************************************
      *
      *   IMAGE SENDING
@@ -394,7 +351,6 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
      */
     private void postImageToLocal(final String imageData,
                                         final Location location,
-                                        final Messenger rMessenger,
                                         final int orientation) {
         Log.d(TAG, "entering handleActionSendImages...");
 
@@ -499,14 +455,14 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
             jGen.flush();
             jGen.close();
 
-            responseCode = conn.getResponseCode();
-
-            if (responseCode == HttpURLConnection.HTTP_OK) {
+            handleResponseCode(conn.getResponseCode(),replyMessenger);
+            deleteFile(imageData.substring(imageData.lastIndexOf("/") + 1, imageData.length()));
+            /*if (responseCode == HttpURLConnection.HTTP_OK) {
                 Log.d(TAG, "server returned successful response" + responseCode);
                 Log.d(TAG, "now deleting image from internal storage...");
-                    rMessenger.send(Message.obtain(null, MainActivity.MSG_SUCCESS_LOCAL));
-                deleteFile(imageData.substring(imageData.lastIndexOf("/") + 1, imageData.length()));
-            }
+                rMessenger.send(Message.obtain(null, MainActivity.MSG_SUCCESS_LOCAL));
+
+            }*/
 
         } catch (IOException e) {
             Log.d(TAG, "IOException");
@@ -550,7 +506,7 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
      * @param numberOfImages image count to request
      * @param location current location of the client
      */
-    private void requestLocalPosts(int numberOfImages, Location location, Messenger rMessenger) {
+    private void requestLocalPosts(int numberOfImages, Location location) {
         Log.d(TAG,"entering requestImages...");
 
         if (mLocation == null) {
@@ -684,7 +640,7 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
                                     values);
                         } catch (Exception e) {
                             Log.e(TAG,"error inserting data to database, requesting another...");
-                            requestLocalPosts(1,location,rMessenger);
+                            requestLocalPosts(1,location);
                         }
                     } else {
                         Log.e(TAG,"incoming image was not saved properly...");
@@ -732,7 +688,7 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
         Log.d(TAG, "exiting requestImages...");
     }
 
-    private void requestLocalPostsAsync(final int numberOfImages,final Location location,final Messenger rMessenger) {
+    private void requestLocalPostsAsync(final int numberOfImages,final Location location) {
         if (isLocalRequesting) {
             if (VERBOSE) Log.v(TAG,"requestLocal is already currently requesting from the server, canceling...");
             return;
@@ -744,7 +700,7 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
             @Override
             public void run() {
                 android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_BACKGROUND);
-                requestLocalPosts(numberOfImages, location, rMessenger);
+                requestLocalPosts(numberOfImages, location);
                 isLocalRequesting = false;
             }
         }).start();
@@ -1068,32 +1024,16 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
             jGen.writeStringField(TITLE,title);
             jGen.writeStringField(NAME,name);
             jGen.writeStringField(TEXT,description);
-            jGen.writeStringField(IMAGE,image);
+            jGen.writeStringField(IMAGE, image);
             jGen.writeEndObject();
             jGen.flush();
             jGen.close();
 
-            responseCode = conn.getResponseCode();
+            handleResponseCode(conn.getResponseCode(),replyMessenger);
         } catch (IOException e) {
             Log.e(TAG, "IOException", e);
         }
-
-
-        try {
-            String content = conn.getContent().toString();
-            Log.d(TAG,"Content returned is : " + content);
-        } catch (IOException e) {
-            Log.e(TAG,"error getting connection content",e);
-        }
-        if (responseCode == HttpURLConnection.HTTP_OK) {
-            Log.d(TAG, "server returned successful response" + responseCode);
-            Log.d(TAG, "now deleting image from internal storage...");
-
-            deleteFile(filePath.substring(filePath.lastIndexOf("/")+1,filePath.length()));
-        } else {
-            Log.e(TAG, "Sending failed for " + url.toString() +
-                    " response code: " + responseCode);
-        }
+        deleteFile(filePath.substring(filePath.lastIndexOf("/")+1,filePath.length()));
     }
 
 
@@ -1164,29 +1104,32 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
             jGen.writeStartObject();
             jGen.writeStringField(FROM_USER, userID.toString());
             jGen.writeNumberField(THREAD_ID, threadID);
-            jGen.writeStringField(NAME,name);
+            jGen.writeStringField(NAME, name);
             jGen.writeStringField(TEXT,description);
             jGen.writeStringField(IMAGE,image);
             jGen.writeEndObject();
             jGen.flush();
             jGen.close();
 
-            responseCode = conn.getResponseCode();
+            handleResponseCode(conn.getResponseCode(),replyMessenger);
         } catch (IOException e) {
             Log.e(TAG,"IOException",e);
         }
 
+        if (filePath != null ) {
+            deleteFile(filePath.substring(filePath.lastIndexOf("/") + 1, filePath.length()));
+        }
 
-        if (responseCode == HttpURLConnection.HTTP_OK) {
+
+
+/*        if (responseCode == HttpURLConnection.HTTP_OK) {
             Log.d(TAG, "server returned successful response" + responseCode);
             Log.d(TAG, "now deleting image from internal storage...");
-            if (filePath != null ) {
-                deleteFile(filePath.substring(filePath.lastIndexOf("/") + 1, filePath.length()));
-            }
+
         } else {
             Log.e(TAG, "Sending failed for " + url.toString() +
                     " response code: " + responseCode);
-        }
+        }*/
     }
 
 
@@ -1263,7 +1206,11 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
                         Log.v(" ", "order" + order);
                         Log.v(" ", "thread number: " + threadID);
                     }
-                    getContentResolver().insert(FireFlyContentProvider.CONTENT_URI_LIVE_THREAD_LIST, values);
+                    try {
+                        getContentResolver().insert(FireFlyContentProvider.CONTENT_URI_LIVE_THREAD_LIST, values);
+                    } catch (Exception e) {
+                        Log.e(TAG,"caught error when inserting live thread...",e);
+                    }
 
                     //todo will remove this
                     requestThreadInfo(threadID,order);
@@ -1436,9 +1383,9 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
 
 
     /**
-     * method 'requestLocalMessages'
+     * method 'requestLiveReplies'
      *
-     * requests the current thread list from the server
+     * requests the current reply list from the server
      */
     private void requestLiveReplies(int threadID) {
         if (VERBOSE) {
@@ -1480,40 +1427,55 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
         try {
             JsonParser jParser = new JsonFactory().createParser(conn.getInputStream());
 
-            String name;
+/*            String name;
             String text;
             int time;
             int id;
-            String image;
+            String image;*/
 
-            /*ObjectMapper objectMapper = new ObjectMapper();
-            ArrayList<LinkedHashMap<String,Object>> listmap = objectMapper.readValue(jParser,ArrayList.class);
+            ObjectMapper objectMapper = new ObjectMapper();
+            ArrayList<HashMap<String,Object>> listmap = objectMapper.readValue(jParser, ArrayList.class);
 
             if (!listmap.isEmpty()) {
-                LinkedHashMap<String, Object> map;
+                Map<String, Object> map;
                 Log.v(TAG, "printing from objectmapper");
                 for (int i = 0; i < listmap.size(); i++) {
                     map = listmap.get(i);
+                    Log.w(TAG, "removing 'image' tag, for now. These should be saved in the future.");
+                    //saveIncomingImage(FireFlyContentProvider.CONTENT_URI_LIVE_THREAD_INFO)map.remove("image");
+                    map.remove("image");
+                    map.put(SQLiteDbContract.LiveReplies.COLUMN_ID,map.remove("id"));
+                    map.put(SQLiteDbContract.LiveReplies.COLUMN_NAME_THREAD_ID,threadID);
                     for (Map.Entry<String, Object> entry : map.entrySet()) {
                         Log.v(TAG, ":  " + entry.getKey() + ":  " + String.valueOf(entry.getValue()));
                     }
+
+                    //parcels map and reads as contentValues set
+                    android.os.Parcel myParcel = android.os.Parcel.obtain();
+                    myParcel.writeMap(map);
+                    myParcel.setDataPosition(0);
+                    android.content.ContentValues values =  android.content.ContentValues.CREATOR.createFromParcel(myParcel);
+                    getContentResolver().insert(FireFlyContentProvider.CONTENT_URI_REPLY_THREAD_LIST, values);
                 }
-            }*/
-            if (jParser.nextValue() == JsonToken.START_ARRAY) {
+            }
+
+
+           /* if (jParser.nextValue() == JsonToken.START_ARRAY) {
                 while (jParser.nextValue() != JsonToken.END_ARRAY) {
-                    Log.d(TAG, "incoming thread.");
+                    Log.i(TAG, "incoming reply.");
 
                     ContentValues values = new ContentValues();
+                    jParser.nextValue();
+                    id = jParser.getValueAsInt();
+                    jParser.nextValue();
+                    image = jParser.getValueAsString();
                     jParser.nextValue();
                     name = jParser.getValueAsString();
                     jParser.nextValue();
                     text = jParser.getValueAsString();
                     jParser.nextValue();
                     time = jParser.getValueAsInt();
-                    jParser.nextValue();
-                    id = jParser.getValueAsInt();
-                    jParser.nextValue();
-                    image = jParser.getValueAsString();
+
                     //save image data to disk
 
                     if (image != null) {
@@ -1545,7 +1507,7 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
 
             } else {
                 if (VERBOSE) Log.v(TAG,"no replies found...");
-            }
+            }*/
         } catch (IOException e) {
             Log.d(TAG, "error receiving and storing messages...", e);
         }
@@ -1584,6 +1546,12 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
         }
     }
 
+    private Messenger replyMessenger;
+
+    public void setReplyMessenger(Messenger messenger) {
+        replyMessenger = messenger;
+    }
+
     static final int MSG_BUILD_CLIENT = 1;
 
     static final int MSG_CONNECT_CLIENT = 2;
@@ -1613,6 +1581,8 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
     static final int MSG_REQUEST_THREAD_INFO = 14;
 
     static final int MSG_REQUEST_REPLIES = 15;
+
+    static final int MSG_SET_CALLBACK_MESSENGER = 16;
     /**
      * class 'IncomingHandler'
      *
@@ -1637,7 +1607,6 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
         @Override
         public void handleMessage(Message msg) {
             Log.d(TAG,"enter handleMessage");
-            Messenger replyMessenger = msg.replyTo;
             Bundle data;
 
             if (getLooper() == getMainLooper()) {
@@ -1676,7 +1645,7 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
                     Log.d(TAG, "image is stored at " + filePath);
                     if (messageTarget == null) {
                         Log.d(TAG,"posting to local...");
-                        irs.get().postImageToLocal(filePath, mLocation, replyMessenger, msg.arg1);
+                        irs.get().postImageToLocal(filePath, mLocation, msg.arg1);
                     } else {
                         Log.d(TAG,"sending Message to user: " + messageTarget);
                         irs.get().sendImageMessageAsync(filePath, messageTarget, msg.arg1);
@@ -1688,7 +1657,7 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
                     Log.d(TAG, "received a message to request images.");
 
                     int count = msg.getData().getInt(Constants.IMAGE_COUNT);
-                    irs.get().requestLocalPostsAsync(count, mLocation, replyMessenger);
+                    irs.get().requestLocalPostsAsync(count, mLocation);
 
                     break;
 
@@ -1764,6 +1733,11 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
 
                     break;
 
+                case MSG_SET_CALLBACK_MESSENGER:
+                    Log.d(TAG, "setting callback messenger...");
+                    irs.get().setReplyMessenger(msg.replyTo);
+                    break;
+
                 default:
                     super.handleMessage(msg);
             }
@@ -1783,7 +1757,7 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
 
 
     /**********************************************************************************************
-     * Convenience methods
+     * Helper Methods
      *
      * these methods are created to perform common tasks throughout the service
      */
@@ -1875,6 +1849,7 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
                 .CONTENT_URI_LIVE_THREAD_INFO, String.valueOf(imageID)), theImage);
     }
 
+
     /**
      * method 'saveIncomingImage'
      *
@@ -1964,6 +1939,45 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
     private URL createURLtoServer(String path) throws MalformedURLException{
         if (VERBOSE) Log.v(TAG,"creating to " + path);
                 return new URL(CONNECTION_PROTOCOL,serverAddress,SERVER_SOCKET,path);
+    }
+
+    /**
+     * method "handleResponseCode"
+     *
+     * @param responseCode
+     * @param replyMessenger
+     * @return success - whether or not to retry to request
+     */
+    private boolean handleResponseCode(int responseCode, Messenger replyMessenger) {
+        boolean success = true;
+        try {
+
+            switch (responseCode) {
+                case RESPONSE_SUCCESS:
+                    //let the user know
+                    replyMessenger.send(Message.obtain(null, MainActivity.MSG_SUCCESS));
+                    break;
+
+                case RESPONSE_BLOCK_CONFLICT:
+                    //Why did this happen?
+                    Log.i(TAG, "Block already existed in the database... quitting...");
+                    break;
+
+                case RESPONSE_TOO_MANY_REQUESTS:
+                    replyMessenger.send(Message.obtain(null, MainActivity.MSG_TOO_MANY_REQUESTS));
+                    break;
+
+                case RESPONSE_UNPROCESSABLE_ENTITY:
+                    Log.i(TAG,"something bad happened.... fix this...");
+                    break;
+
+            }
+        } catch (RemoteException e) {
+            Log.e(TAG,"error sending message to Mainactivity...",e);
+            success = false;
+        }
+
+    return success;
     }
 
     /***********************************************************************************************

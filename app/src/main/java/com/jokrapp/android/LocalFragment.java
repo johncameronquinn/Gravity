@@ -214,6 +214,7 @@ public class LocalFragment extends Fragment implements
      *
      */
     public interface onLocalFragmentInteractionListener {
+        public void reportAnalyticsEvent(int event, String action);
 
     }
 }

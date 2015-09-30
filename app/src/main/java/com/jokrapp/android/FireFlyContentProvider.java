@@ -4,6 +4,7 @@ import android.content.ContentProvider;
 import android.content.ContentValues;
 import android.content.UriMatcher;
 import android.database.Cursor;
+import android.database.sqlite.SQLiteConstraintException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
 import android.database.sqlite.SQLiteQueryBuilder;
@@ -495,7 +496,7 @@ public class FireFlyContentProvider extends ContentProvider {
                 //Log.d(TAG,"Running delete for " + values.getAsString(SQLiteDbContract.LiveThreadEntry.COLUMN_ID));
 
        //         Log.d(TAG,"deleting" + sqlDB.delete(table,whereClause,null) + " rows...");
-                id = sqlDB.replace(SQLiteDbContract.LiveThreadEntry.TABLE_NAME,null,values);
+                id = sqlDB.insertWithOnConflict(SQLiteDbContract.LiveThreadEntry.TABLE_NAME,null,values,SQLiteDatabase.CONFLICT_REPLACE);
 
 
        //         String sql = "INSERT OR REPLACE INTO " + table + " (";
@@ -511,18 +512,19 @@ public class FireFlyContentProvider extends ContentProvider {
 
             case LIVE_INFO:
                 //delete all threads with the specified thread ID prior to insertion
-                sqlDB.delete(SQLiteDbContract.LiveThreadInfoEntry.TABLE_NAME,
+/*                sqlDB.delete(SQLiteDbContract.LiveThreadInfoEntry.TABLE_NAME,
                         SQLiteDbContract.LiveThreadInfoEntry.COLUMN_NAME_THREAD_ID + "=?",
                         new String[]{
                                 values.getAsString(SQLiteDbContract.LiveThreadInfoEntry.COLUMN_NAME_THREAD_ID)
-                        });
+                        });*/
 
                 //now insert
-                id = sqlDB.insert(SQLiteDbContract.LiveThreadInfoEntry.TABLE_NAME, null, values);
+                id = sqlDB.insertWithOnConflict(SQLiteDbContract.LiveThreadInfoEntry.TABLE_NAME, null, values,SQLiteDatabase.CONFLICT_REPLACE);
                 break;
 
             case REPLIES:
-                id = sqlDB.insert(SQLiteDbContract.LiveReplies.TABLE_NAME, null, values);
+
+                id = sqlDB.insertWithOnConflict(SQLiteDbContract.LiveReplies.TABLE_NAME, null, values,SQLiteDatabase.CONFLICT_IGNORE);
                 break;
 
             // For the modification date table

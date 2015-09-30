@@ -44,6 +44,7 @@ public class SQLiteDbHelper extends SQLiteOpenHelper {
     private static final String TEXT_TYPE = " TEXT";
     private static final String INT_TYPE = " INTEGER";
     private static final String PRIMARY_KEY = " PRIMARY KEY";
+    private static final String UNIQUE_KEY = " UNIQUE";
     private static final String COMMA_SEP = ",";
 
     private static final String SQL_CREATE_LOCAL =
@@ -81,7 +82,7 @@ public class SQLiteDbHelper extends SQLiteOpenHelper {
 
             "CREATE TABLE " + LiveThreadInfoEntry.TABLE_NAME + " (" +
                     LiveThreadInfoEntry._ID + PRIMARY_KEY + COMMA_SEP +
-                    LiveThreadInfoEntry.COLUMN_NAME_THREAD_ID + INT_TYPE + COMMA_SEP +
+                    LiveThreadInfoEntry.COLUMN_NAME_THREAD_ID  + INT_TYPE + UNIQUE_KEY + COMMA_SEP +
                     LiveThreadInfoEntry.COLUMN_NAME_TIME + INT_TYPE + COMMA_SEP +
                     LiveThreadInfoEntry.COLUMN_NAME_TITLE + TEXT_TYPE + COMMA_SEP +
                     LiveThreadInfoEntry.COLUMN_NAME_NAME + TEXT_TYPE + COMMA_SEP +
@@ -95,11 +96,11 @@ public class SQLiteDbHelper extends SQLiteOpenHelper {
 
             "CREATE TABLE " + LiveReplies.TABLE_NAME + " (" +
                     LiveReplies._ID+ PRIMARY_KEY + COMMA_SEP +
-                    LiveReplies.COLUMN_NAME_THREAD_ID + TEXT_TYPE + COMMA_SEP +
+                    LiveReplies.COLUMN_NAME_THREAD_ID +  TEXT_TYPE + COMMA_SEP +
                     LiveReplies.COLUMN_NAME_TIME + INT_TYPE + COMMA_SEP +
                     LiveReplies.COLUMN_NAME_NAME + TEXT_TYPE + COMMA_SEP +
-                    LiveReplies.COLUMN_NAME_DESCRIPTION + TEXT_TYPE + COMMA_SEP +
-                    LiveReplies.COLUMN_NAME_FILEPATH + TEXT_TYPE +
+                    LiveReplies.COLUMN_NAME_DESCRIPTION + TEXT_TYPE + //COMMA_SEP +
+     //               LiveReplies.COLUMN_NAME_FILEPATH + TEXT_TYPE +
                     " )";
 
     // Defines an SQLite statement that builds the Picasa picture URL table
