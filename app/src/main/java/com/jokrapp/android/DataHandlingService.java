@@ -95,7 +95,7 @@ import java.util.UUID;
 public class DataHandlingService extends Service implements GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener, LocationListener {
     private static final String TAG = "DataHandlingService";
-    private static final boolean VERBOSE = false;
+    private static final boolean VERBOSE = true;
     private static final boolean ALLOW_DUPLICATES = false;
 
     private boolean isLocalRequesting = false;
@@ -131,6 +131,7 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
     private final int RESPONSE_UNPROCESSABLE_ENTITY = 422;
     private final int RESPONSE_TOO_MANY_REQUESTS = 429;
     private final int RESPONSE_BLOCK_CONFLICT = 409;
+    private final int RESPONSE_UNAUTHORIZED = 401;
 
     /** JSON TAGS
      */
@@ -179,16 +180,17 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
             editor.putString(UUID_KEY, userID.toString());
             editor.putBoolean(ISFIRSTRUN_KEY, false);
             editor.apply();*/
-            new Thread(new initializeUserWithServer()).start();
+
+            try {
+                mMessenger.send(Message.obtain(null, new initializeUserWithServer()));
+            } catch (RemoteException e) {
+                Log.e(TAG, "initializing user with server failed...", e);
+            }
 
         } else {
-            Log.d(TAG,"loading userID from storage...");
-            userID = UUID.fromString(settings.getString(UUID_KEY,null));
-
-            Log.i(TAG,"sending login event for user: " + userID.toString());
-            mTracker = ((AnalyticsApplication)getApplication()).getDefaultTracker();
-            mTracker.set("&uid", userID.toString());
-            mTracker.send(new HitBuilders.EventBuilder().setCategory("UX").setAction("User Sign In").build());
+            Log.d(TAG, "loading userID from storage...");
+            userID = UUID.fromString(settings.getString(UUID_KEY, null));
+            sendSignOnEvent(userID.toString());
         }
 
         //load analytics tracker and set user ID
@@ -198,9 +200,9 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
 
         if (VERBOSE) {
             Log.v(TAG, "Listing stored image files...");
-            //  File[] files = getFilesDir().listFiles(new DataHandlingService.ImageFileFilter());
+              File[] files = getFilesDir().listFiles(new DataHandlingService.ImageFileFilter());
 
-            /*File root = Environment.getExternalStorageDirectory();
+            File root = Environment.getExternalStorageDirectory();
             File outDirectory = new File(root.getAbsolutePath(),"JokrSavedImages");
             outDirectory.mkdirs();
 
@@ -215,7 +217,7 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
                 } catch (IOException e) {
                     Log.e(TAG,"Error copying file from " + i.toString() + " to " + outDirectory.toString(),e);
                 }
-            }*/
+            }
             Log.v(TAG,"done listing files...");
         }
 
@@ -236,7 +238,7 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
             imagesSeen = new ArrayList<>(loaded);
             if (VERBOSE) {
                 Log.v(TAG, "imagesSeen array loaded from SharedPreferences, printing...");
-                for (String i : imagesSeen) { //print all sharedpreverences entry
+                for (String i : imagesSeen) { //print all sharedpreferences entry
                     Log.v(TAG, i);
                 }
             }
@@ -317,10 +319,7 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
                 //Toast.makeText(getApplicationContext(),"Error initializing new user with the server...",Toast.LENGTH_SHORT).show();
             }
 
-            Log.i(TAG,"sending login event for new user...");
-            mTracker = ((AnalyticsApplication)getApplication()).getDefaultTracker();
-            mTracker.set("&uid", userID.toString());
-            mTracker.send(new HitBuilders.EventBuilder().setCategory("UX").setAction("User Sign In").build());
+            sendSignOnEvent(userID.toString());
 
             if (VERBOSE) {
                 Log.v(TAG,"exiting InitializeUser...");
@@ -649,6 +648,8 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
 
                     jParser.nextValue();
                 }
+            } else {
+                if (VERBOSE) Log.v(TAG,"No local posts received...");
             }
 
             //awesome, now get the final respnose
@@ -1225,6 +1226,14 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
             Log.d(TAG, "error receiving and storing messages...", e);
         }
 
+        if (Constants.LOGD) Log.d(TAG,"Notifying client that thread list has been requested loading...");
+        try {
+            replyMessenger.send(Message.obtain(null, MainActivity.MSG_LIVE_REFRESH_DONE));
+        } catch (RemoteException e) {
+            Log.e(TAG,"error notifying client...",e);
+        }
+
+
         if (VERBOSE) Log.v(TAG,"exiting requestLiveThreads...");
     }
 
@@ -1339,7 +1348,7 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
             // String filePath = getFilesDir() + "/" + "IMG_" + threadID + ".jpg";
             boolean isValid = true;
             if (image != null) {
-                isValid = saveLiveImage(position, image);
+                isValid = saveLiveImage(threadID, image);
             } else {
                 Log.d(TAG, "incoming image was null...");
                 isValid = false;
@@ -1368,7 +1377,7 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
         }
 
 
-        if (VERBOSE) Log.v(TAG,"exiting requestLiveThreads...");
+        if (VERBOSE) Log.v(TAG,"exiting requestLiveThreadInfo...");
     }
 
 
@@ -1446,8 +1455,11 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
                     map.remove("image");
                     map.put(SQLiteDbContract.LiveReplies.COLUMN_ID,map.remove("id"));
                     map.put(SQLiteDbContract.LiveReplies.COLUMN_NAME_THREAD_ID,threadID);
-                    for (Map.Entry<String, Object> entry : map.entrySet()) {
-                        Log.v(TAG, ":  " + entry.getKey() + ":  " + String.valueOf(entry.getValue()));
+
+                    if (VERBOSE) {
+                        for (Map.Entry<String, Object> entry : map.entrySet()) {
+                            Log.v(TAG, ":  " + entry.getKey() + ":  " + String.valueOf(entry.getValue()));
+                        }
                     }
 
                     //parcels map and reads as contentValues set
@@ -1609,11 +1621,16 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
             Log.d(TAG,"enter handleMessage");
             Bundle data;
 
-            if (getLooper() == getMainLooper()) {
-                Log.i(TAG, "this handler is on the main thread...");
-            } else {
-                Log.i(TAG, "this handler is in its own thread...");
+
+            /**
+             * ANALYTICS REPORTING SWITCH, if message is greater than analytics switch, pass and exit
+             */
+            if (msg.what >= Constants.ANALYTICS) {
+                if (Constants.LOGD) Log.d(TAG,"Received analytics event, passing...");
+                reportAnalyticsEvent(msg.what,msg.getData().getString("name"));
+                return;
             }
+
 
             switch (msg.what) {
                 case MSG_BUILD_CLIENT:
@@ -1752,9 +1769,16 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
     final Messenger mMessenger = new Messenger(new ServiceHandlerThread(this).getIncomingHandler());
     @Override
     public IBinder onBind(Intent intent) {
+        Log.i(TAG,"client is binding to the Service");
             return mMessenger.getBinder();
     }
 
+    @Override
+    public boolean onUnbind(Intent intent) {
+        Log.i(TAG,"client is unbinding from the Service");
+        replyMessenger = null;
+        return super.onUnbind(intent);
+    }
 
     /**********************************************************************************************
      * Helper Methods
@@ -1950,6 +1974,8 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
      */
     private boolean handleResponseCode(int responseCode, Messenger replyMessenger) {
         boolean success = true;
+        if (VERBOSE) Log.v(TAG,"handling responseCode: " + responseCode);
+
         try {
 
             switch (responseCode) {
@@ -1971,6 +1997,13 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
                     Log.i(TAG,"something bad happened.... fix this...");
                     break;
 
+                case RESPONSE_UNAUTHORIZED:
+                    Log.i(TAG,"Unauthorized...");
+
+                    mMessenger.send(Message.obtain(null, new initializeUserWithServer()));
+                    replyMessenger.send(Message.obtain(null, MainActivity.MSG_UNAUTHORIZED));
+
+                    break;
             }
         } catch (RemoteException e) {
             Log.e(TAG,"error sending message to Mainactivity...",e);
@@ -2139,8 +2172,64 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
         }
 
     }
+/***************************************************************************************************
+ * ANALYTICS
+ */
+    private void sendSignOnEvent(String userID){
+        Log.i(TAG, "sending login event for user: " + userID.toString());
 
+        mTracker = ((AnalyticsApplication)getApplication()).getDefaultTracker();
+        mTracker.set("&uid", userID.toString());
+        mTracker.send(new HitBuilders.EventBuilder().setCategory("UX").setAction("User Sign In").build());
+    }
 
+    /**
+     * method 'sendScreenName'
+     *
+     * reports a screen view event to Google Analytics
+     *
+     * @param name name of the screen to be sent
+     */
+    private void sendScreenImageName(String name) {
+        if (VERBOSE) Log.v(TAG,"Sending screen event for screen name: " + name);
+        //   Toast.makeText(this,name,Toast.LENGTH_SHORT).show();
+        mTracker.setScreenName(name);
+        mTracker.send(new HitBuilders.ScreenViewBuilder().build());
+    }
+
+    /**
+     * method 'reportAnalyticsEvent'
+     *
+     * reports an event to Google analytics.
+     *
+     * {@link com.jokrapp.android.LiveFragment.onLiveFragmentInteractionListener}
+     * {@link com.jokrapp.android.LocalFragment.onLocalFragmentInteractionListener}
+     * Called by these linked interface callbacks.
+     *
+     * @param event which kind of even to report
+     * @param name additional info to be reported (this will maybe be a Bundle)
+     */
+    public void reportAnalyticsEvent(int event,String name) {
+        if (VERBOSE) Log.v(TAG,"entering reportAnalyticsEvent with event: " + event + " and name " + name);
+
+        switch (event) {
+            case Constants.LIVE_THREADVIEW_EVENT:
+                sendScreenImageName(name);
+                break;
+            case Constants.LOCAL_BLOCK_EVENT:
+
+                break;
+
+            case Constants.LOCAL_MESSAGE_EVENT:
+
+                break;
+
+            case Constants.FRAGMENT_VIEW_EVENT:
+                mTracker.setScreenName(name);
+                mTracker.send(new HitBuilders.ScreenViewBuilder().build());
+                break;
+        }
+    }
 }
 
 

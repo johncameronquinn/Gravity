@@ -33,16 +33,14 @@ public class LiveThreadFragment extends Fragment implements View.OnClickListener
 
     private static final String TAG = "LiveThreadFragment";
 
-    private static final String ARG_THREAD_ORDER = "tn";
-    private static final String ARG_THREAD_NAME = "tna";
-    private static final String ARG_THREAD_TITLE = "tt";
-    private static final String ARG_THREAD_TEXT = "te";
-    private static final String ARG_THREAD_FILEPATH = "fp";
-    private static final String ARG_THREAD_ID = "fi";
-    private static final String ARG_THREAD_UNIQUE = "fu";
-    private static final String ARG_THREAD_REPLIES = "rp";
+    private static final String ARG_THREAD_NAME = "name";
+    private static final String ARG_THREAD_TITLE = "title";
+    private static final String ARG_THREAD_TEXT = "desc";
+    private static final String ARG_THREAD_FILEPATH = "filepath";
+    private static final String ARG_THREAD_ID = "threadID";
+    private static final String ARG_THREAD_UNIQUE = "posters";
+    private static final String ARG_THREAD_REPLIES = "replies";
 
-    private int threadOrder;
     private String threadName;
     private String threadTitle;
     private String threadText;
@@ -57,8 +55,7 @@ public class LiveThreadFragment extends Fragment implements View.OnClickListener
 
     Handler imageLoadHandler = new Handler();
 
-    static LiveThreadFragment newInstance(int threadOrder,
-                                          String name,
+    static LiveThreadFragment newInstance(String name,
                                           String title,
                                           String text,
                                           String filePath,
@@ -70,7 +67,6 @@ public class LiveThreadFragment extends Fragment implements View.OnClickListener
 
         // Supply num input as an argument.
         Bundle args = new Bundle();
-        args.putInt(ARG_THREAD_ORDER, threadOrder);
         args.putString(ARG_THREAD_NAME, name);
         args.putString(ARG_THREAD_TITLE,title);
         args.putString(ARG_THREAD_TEXT,text);
@@ -83,16 +79,25 @@ public class LiveThreadFragment extends Fragment implements View.OnClickListener
         return f;
     }
 
+    static LiveThreadFragment newInstance() {
+        LiveThreadFragment f = new LiveThreadFragment();
+        return f;
+    }
+
     public LiveThreadFragment() {
+    }
+
+    public String getThreadID(){
+        return threadID;
     }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+
         if (getArguments() != null) {
             Bundle args = getArguments();
-            threadOrder = args.getInt(ARG_THREAD_ORDER);
             threadName = args.getString(ARG_THREAD_NAME);
             threadTitle = args.getString(ARG_THREAD_TITLE);
             threadText = args.getString(ARG_THREAD_TEXT);
@@ -105,15 +110,58 @@ public class LiveThreadFragment extends Fragment implements View.OnClickListener
     }
 
     @Override
+    public void setArguments(Bundle args) {
+
+        if (args != null) {
+            threadName = args.getString(ARG_THREAD_NAME);
+            threadTitle = args.getString(ARG_THREAD_TITLE);
+            threadText = args.getString(ARG_THREAD_TEXT);
+            threadFilePath = args.getString(ARG_THREAD_FILEPATH);
+            threadID = args.getString(ARG_THREAD_ID);
+            unique = args.getString(ARG_THREAD_UNIQUE);
+            replies = args.getString(ARG_THREAD_REPLIES);
+        }
+
+        super.setArguments(args);
+    }
+
+    @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         return inflater.inflate(R.layout.fragment_live_thread,container,false);
     }
 
     @Override
+    public void onActivityCreated(Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        if (LiveFragment.VERBOSE) Log.v(TAG, "entering onSaveInstanceState...");
+
+
+        if (LiveFragment.VERBOSE) Log.v(TAG, "exiting onSaveInstanceState...");
+    }
+
+    @Override
+    public void onViewStateRestored(Bundle savedInstanceState) {
+        super.onViewStateRestored(savedInstanceState);
+        if (LiveFragment.VERBOSE) Log.v(TAG, "entering onViewStateRestored...");
+
+
+
+        if (LiveFragment.VERBOSE) Log.v(TAG,"exiting onViewStateRestored...");
+    }
+
+    @Override
     public void onViewCreated(View view, Bundle savedInstanceState) {
+        if (LiveFragment.VERBOSE) Log.v(TAG,"entering onViewCreated...");
         super.onViewCreated(view, savedInstanceState);
-     //   ((TextView)view.findViewById(R.id.live_thread_number)).setText(String.valueOf(threadNum));
+
+
+        //   ((TextView)view.findViewById(R.id.live_thread_number)).setText(String.valueOf(threadNum));
         ((TextView)view.findViewById(R.id.live_thread_name)).setText(threadName);
         ((TextView)view.findViewById(R.id.live_thread_title)).setText(threadTitle);
         ((TextView)view.findViewById(R.id.live_thread_text)).setText(threadText);
@@ -133,24 +181,28 @@ public class LiveThreadFragment extends Fragment implements View.OnClickListener
             public void run() {
 
                 Uri uri = Uri.withAppendedPath(FireFlyContentProvider
-                        .CONTENT_URI_LIVE_THREAD_INFO,String.valueOf(threadOrder));
+                        .CONTENT_URI_LIVE_THREAD_INFO,String.valueOf(threadID));
                 try {
-                    image = BitmapFactory.decodeStream(getActivity()
-                            .getContentResolver()
-                            .openInputStream(uri));
-                    imageLoadHandler.post(new Runnable() {
+                    if (isAdded()) {
+                        image = BitmapFactory.decodeStream(getActivity()
+                                .getContentResolver()
+                                .openInputStream(uri));
+                        imageLoadHandler.post(new Runnable() {
 
-                        public void run() {
-                            displayView.setImageBitmap(image);
+                            public void run() {
+                                displayView.setImageBitmap(image);
 
-                        }
-                    });
+                            }
+                        });
+                    }
                 } catch (IOException e) {
                     Log.e(TAG, "file returned from content provider was not found - Uri: " + uri.toString(), e);
                 }
             }
 
         }).start();
+
+        if (LiveFragment.VERBOSE) Log.v(TAG,"exiting onViewCreated...");
     }
 
     @Override

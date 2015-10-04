@@ -10,7 +10,10 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:id="@+id/reply_list_view"
-        android:dividerHeight="2dp" />
+        android:dividerHeight="2dp"
+        android:layout_alignParentTop="true"
+        android:layout_alignRight="@+id/button_new_reply"
+        android:layout_alignEnd="@+id/button_new_reply" />
 
     <ImageButton
         android:layout_width="70dp"
@@ -38,12 +41,16 @@
         android:layout_alignEnd="@+id/button_new_reply" />
 
     <Button
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="45dp"
+        android:layout_height="45dp"
         android:id="@+id/button_reply_refresh"
         android:text="a"
-        android:layout_alignParentTop="true"
-        android:layout_alignParentRight="true"
-        android:layout_alignParentEnd="true" />
+        android:layout_alignParentTop="false"
+        android:background="@drawable/androidrefresh64px"
+        android:layout_alignParentRight="false"
+        android:layout_centerHorizontal="true"
+        android:layout_margin="10dp"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentLeft="true" />
 
 </RelativeLayout>

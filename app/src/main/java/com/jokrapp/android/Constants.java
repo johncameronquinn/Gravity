@@ -19,6 +19,8 @@ public final class Constants {
     public static final int IDEAL_WIDTH = 1280;
     public static final int IDEAL_HEIGHT = 720;
 
+    public static final String SHARED_PREFERENCES_NAME = "settings";
+
 
 
     /** threadSample
@@ -38,7 +40,8 @@ public final class Constants {
             "com.jokrapp.android.ACTION_ZOOM_IMAGE";
 
     // Defines a custom Intent action
-    public static final String BROADCAST_ACTION = "com.jokrapp.android.BROADCAST";
+    public static final String BROADCAST_ACTION =
+            "com.jokrapp.android.BROADCAST";
 
     // Fragment tags
     public static final String PHOTO_FRAGMENT_TAG =
@@ -92,8 +95,10 @@ public final class Constants {
     /**
      * ANALYTICS
      */
-    public static final int LOCAL_BLOCK_EVENT= 0;
-    public static final int LOCAL_MESSAGE_EVENT= 1;
-    public static final int LIVE_THREADVIEW_EVENT = 2;
-    public static final int REPLY_VIEW_EVENT = 3;
+    public static final int ANALYTICS = 100;
+    public static final int LOCAL_BLOCK_EVENT= 101;
+    public static final int LOCAL_MESSAGE_EVENT= 102;
+    public static final int LIVE_THREADVIEW_EVENT = 103;
+    public static final int REPLY_VIEW_EVENT = 104;
+    public static final int FRAGMENT_VIEW_EVENT = 105;
 }

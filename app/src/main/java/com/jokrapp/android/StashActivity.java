@@ -41,8 +41,6 @@ public class StashActivity extends Activity implements StashGalleryFragment.OnFr
 
 
     SharedPreferences preferences;
-    SharedPreferences.Editor editor;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -56,10 +54,7 @@ public class StashActivity extends Activity implements StashGalleryFragment.OnFr
         pager.setAdapter(adapter);
         pager.setCurrentItem(startingPosition);
 
-        preferences = getSharedPreferences("Settings",MODE_PRIVATE);
-        editor = preferences.edit();
-
-
+        preferences = getSharedPreferences(Constants.SHARED_PREFERENCES_NAME,MODE_PRIVATE);
 
 
         if (VERBOSE) Log.v(TAG,"exiting onCreate...");
@@ -103,7 +98,7 @@ public class StashActivity extends Activity implements StashGalleryFragment.OnFr
             Log.v(TAG, "printing setting: " + key + ", " + value);
             Toast.makeText(this,"Saving setting: " + key,Toast.LENGTH_SHORT).show();
         }
-        editor.putString(key,value).apply();
+        preferences.edit().putString(key,value).apply();
         if (VERBOSE) Log.v(TAG,"exiting saveSettings...");
     }
 

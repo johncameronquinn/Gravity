@@ -1,6 +1,5 @@
 package com.jokrapp.android;
 
-import android.net.Uri;
 import android.provider.BaseColumns;
 
 /**

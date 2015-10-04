@@ -49,22 +49,13 @@ public class LocalFragment extends Fragment implements
     }
 
     @Override
-    public void onAttach(Context activity) {
+    public void onAttach(Activity activity) {
         super.onAttach(activity);
-/*
+
         String[] projection = new String[1];
         projection[0] = SQLiteDbContract.LocalEntry.COLUMN_ID;
 
-        Cursor c =  activity.getContentResolver().query(FireFlyContentProvider.CONTENT_URI_LOCAL,
-                projection,
-                "1",null,null);
-        int a = c.getCount();
-        c.close();
-
-        if (a < Constants.MAX_STORED) {
-            ((MainActivity)activity).requestImages(Constants.MAX_STORED-a);
-        }*/
-
+        ((MainActivity)activity).requestImages(3);
 
         try {
             mListener = (onLocalFragmentInteractionListener) activity;
@@ -214,7 +205,7 @@ public class LocalFragment extends Fragment implements
      *
      */
     public interface onLocalFragmentInteractionListener {
-        public void reportAnalyticsEvent(int event, String action);
+        public void sendMsgReportAnalyticsEvent(int event, String action);
 
     }
 }

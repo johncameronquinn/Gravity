@@ -35,17 +35,19 @@ import java.lang.ref.WeakReference;
  * create an instance of this fragment.
  */
 public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor>{
-    private static int currentThread = 1;
-    private final int REPLY_LOADER_ID = 3;
+    private static int currentThread = LiveFragment.NO_LIVE_THREADS_ID;
+    public static final int REPLY_LOADER_ID = 3;
 
-    private final boolean VERBOSE = true;
+    private final boolean VERBOSE = false;
     private final String TAG = "ReplyFragment";
+
+    private static final String CURRENT_THREAD_KEY = "threadkey";
 
     SimpleCursorAdapter mAdapter;
 
     public static ReplyFragment newInstance(int currentThread) {
         Bundle args = new Bundle();
-        args.putInt("currentThread", currentThread);
+        args.putInt(CURRENT_THREAD_KEY, currentThread);
 
         ReplyFragment fragment = new ReplyFragment();
         fragment.setArguments(args);
@@ -65,7 +67,18 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
 
 
         if (b != null) {
-            currentThread = b.getInt("currentThread") +1;
+
+            if (VERBOSE) Log.v(TAG,"initializing loader at id " + ReplyFragment.REPLY_LOADER_ID);
+
+            if (currentThread == LiveFragment.NO_LIVE_THREADS_ID) {
+                currentThread = b.getInt(CURRENT_THREAD_KEY);
+                Bundle args = new Bundle();
+                args.putString(CURRENT_THREAD_KEY, String.valueOf(currentThread));
+                getLoaderManager().restartLoader(ReplyFragment.REPLY_LOADER_ID, args, this);
+            } else {
+                currentThread = b.getInt(CURRENT_THREAD_KEY);
+            }
+
         }
     }
 
@@ -83,8 +96,6 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
     @Override
     public void onAttach(Activity activity) {
         super.onAttach(activity);
-        if (VERBOSE) Log.v(TAG,"initializing loader at id " + REPLY_LOADER_ID);
-        getLoaderManager().initLoader(REPLY_LOADER_ID, null, this);
     }
 
     @Override
@@ -113,14 +124,18 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
 
         ListView listView = (ListView)v.findViewById(R.id.reply_list_view);
 
-        String[] fromColumns = {SQLiteDbContract.LiveReplies.COLUMN_NAME_DESCRIPTION,
+        String[] fromColumns = {
+                SQLiteDbContract.LiveReplies.COLUMN_NAME_NAME,
+                SQLiteDbContract.LiveReplies.COLUMN_NAME_DESCRIPTION,
                 SQLiteDbContract.LiveReplies.COLUMN_NAME_TIME};
-        int[] toViews = {R.id.reply_detail_row_text, R.id.reply_detail_row_time};
 
-        mAdapter = new SimpleCursorAdapter(getActivity(),
-                R.layout.fragment_reply_detail_row, null,fromColumns, toViews, 0);
-        listView.setAdapter(mAdapter);
+        int[] toViews = {R.id.reply_detail_row_name, R.id.reply_detail_row_text, R.id.reply_detail_row_time};
 
+        if (currentThread!=LiveFragment.NO_LIVE_THREADS_ID) {
+            mAdapter = new SimpleCursorAdapter(getActivity(),
+                    R.layout.fragment_reply_detail_row, null, fromColumns, toViews, 0);
+            listView.setAdapter(mAdapter);
+        }
 
         if (VERBOSE) {Log.v(TAG,"exiting onCreateView...");}
         return v;
@@ -172,7 +187,10 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
 
     public void resetDisplay() {
         Log.d(TAG, "restarting loader...");
-        getLoaderManager().restartLoader(REPLY_LOADER_ID,null,this);
+
+        Bundle b = new Bundle();
+        b.putString(CURRENT_THREAD_KEY,String.valueOf(currentThread));
+        getLoaderManager().restartLoader(REPLY_LOADER_ID,b,this);
     }
 
     public int getCurrentThread() { return currentThread;}
@@ -364,7 +382,7 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
                 case R.id.button_camera_reply_mode_confirm:
                     RelativeLayout layout = (RelativeLayout) v.getParent().getParent();
                     String description = ((EditText)layout.findViewById(R.id.editText_reply_mode_comment)).getText().toString();
-                    activity.setLiveCreateReplyInfo("unset", description, getCurrentThread());//todo load name from sharedpreferences
+                    activity.setLiveCreateReplyInfo(description, getCurrentThread());//todo load name from sharedpreferences
                     layout.removeView((View) v.getParent());
                     imm.hideSoftInputFromWindow(createReplyView.getWindowToken(), 0);
                     activity.enableScrolling();
@@ -416,8 +434,7 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
     public CursorLoader onCreateLoader(int id, Bundle args) {
         if (VERBOSE) Log.v(TAG,"entering onCreateLoader...");
 
-        String threadID = String.valueOf(currentThread);
-        String[] selectionArgs = {threadID};
+        String[] selectionArgs = {args.getString(CURRENT_THREAD_KEY)};
 
             CursorLoader loader = new CursorLoader(
                     this.getActivity(),
@@ -440,12 +457,8 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
 
     @Override
     public void onLoaderReset(Loader<Cursor> loader) {
-        if (VERBOSE) Log.v(TAG,"entering onLoaderReset...");
+        if (VERBOSE) Log.v(TAG, "entering onLoaderReset...");
         mAdapter.swapCursor(null);
         if (VERBOSE) Log.v(TAG,"exiting onLoaderReset...");
-    }
-
-    public void deleteLoader() {
-        getLoaderManager().destroyLoader(REPLY_LOADER_ID);
     }
 }

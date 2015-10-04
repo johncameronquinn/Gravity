@@ -48,7 +48,7 @@ import com.jokrapp.android.SQLiteDbContract.LiveThreadInfoEntry;
  */
 public class LiveFragment extends Fragment implements
         LoaderManager.LoaderCallbacks<Cursor>, ViewPager.OnPageChangeListener {
-    private static final boolean VERBOSE = true;
+    public static final boolean VERBOSE = false;
     private static final String TAG = "LiveFragment";
 
     // TODO: Rename parameter arguments, choose names that match
@@ -56,14 +56,19 @@ public class LiveFragment extends Fragment implements
     private static final String ARG_PARAM1 = "param1";
     private static final String ARG_ADAPTER = "ada";
 
+    private final String CURRENT_THREAD_KEY = "threadkey";
+    private final String THREAD_PAGER_KEY = "pagerkey";
+
     private final int LIVE_LOADER_ID = 1;
     private int numberOfThreads;
 
     // TODO: Rename and change types of parameters
     private int currentThread;
 
+    public static final int NO_LIVE_THREADS_ID = -1;
+
     private VerticalViewPager threadPager;
-    private FragmentStatePagerAdapter mAdapter;
+    private CursorPagerAdapter mAdapter;
     private WeakReference<ReplyFragment> mReplyFragmentReference = new WeakReference<>(null);
 
 
@@ -129,6 +134,13 @@ public class LiveFragment extends Fragment implements
         super.onCreate(savedInstanceState);
         if (VERBOSE) Log.v(TAG,"entering onCreate...");
 
+        if (savedInstanceState != null) {
+            Log.d(TAG,"restoring live state...");
+            currentThread = savedInstanceState.getInt(CURRENT_THREAD_KEY);
+        } else {
+            currentThread = NO_LIVE_THREADS_ID;
+        }
+
         if (getArguments() != null) {
             //mParam1 = getArguments().getString(ARG_PARAM1);
             //mParam2 = getArguments().getString(ARG_PARAM2);
@@ -136,11 +148,23 @@ public class LiveFragment extends Fragment implements
         if (savedInstanceState != null) {
         } else {
             }
-       // mAdapter = new LiveAdapter(getFragmentManager());
 
-        currentThread = 0;
+        String[] projection = {
+                LiveThreadInfoEntry.COLUMN_ID,
+                LiveThreadInfoEntry.COLUMN_NAME_NAME,
+                LiveThreadInfoEntry.COLUMN_NAME_TITLE,
+                LiveThreadInfoEntry.COLUMN_NAME_DESCRIPTION,
+                LiveThreadInfoEntry.COLUMN_NAME_FILEPATH,
+                LiveThreadInfoEntry.COLUMN_NAME_THREAD_ID,
+                LiveThreadInfoEntry.COLUMN_NAME_REPLIES,
+                LiveThreadInfoEntry.COLUMN_NAME_UNIQUE
+        };
+
+        mAdapter = new CursorPagerAdapter<>(getFragmentManager(),LiveThreadFragment.class,projection,null);
+
+
         if (VERBOSE) Log.v(TAG,"initializing loader at id " + LIVE_LOADER_ID);
-        getLoaderManager().initLoader(LIVE_LOADER_ID, null, this);
+        getLoaderManager().restartLoader(LIVE_LOADER_ID, null, this);
         if (VERBOSE) Log.v(TAG,"exiting onCreate...");
     }
 
@@ -176,6 +200,7 @@ public class LiveFragment extends Fragment implements
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
         if (VERBOSE) Log.v(TAG,"entering onSaveInstanceState...");
+        outState.putInt(CURRENT_THREAD_KEY, currentThread);
 
         if (VERBOSE) Log.v(TAG,"exiting onSaveInstanceState...");
     }
@@ -214,21 +239,20 @@ public class LiveFragment extends Fragment implements
         super.onViewCreated(view, savedInstanceState);
         if (VERBOSE) Log.v(TAG,"entering onViewCreated...");
 
-        //    ImageButton upArrow = (ImageButton)view.findViewById(R.id.upArrow);
-        //   ImageButton downArrow = (ImageButton)view.findViewById(R.id.downArrow);
-        //  upArrow.setOnClickListener(getButtonListener(this));
-        //  downArrow.setOnClickListener(getButtonListener(this));
-
         threadPager = (VerticalViewPager)view.findViewById(R.id.live_thread_pager);
         threadPager.setOnPageChangeListener(this);
+        threadPager.setAdapter(mAdapter);
 
-       // if (mAdapter != null) {
-//            threadPager.setAdapter(mAdapter);
-  //      }
 
         if (VERBOSE) Log.v(TAG,"exiting onViewCreated...");
     }
-/*
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+    }
+
+    /*
     @Override
     public void onAttach(Activity activity) {
         super.onAttach(activity);
@@ -419,112 +443,6 @@ public class LiveFragment extends Fragment implements
         return buttonListenerReference.get();
     }
 
-    /***************************************************************************************************
-     * THREAD MANAGEMENT
-      */
-
-    private class LiveAdapter extends FragmentStatePagerAdapter {
-        private MatrixCursor data;
-        private Handler liveThreadAdapterHandler;
-        public LiveAdapter(FragmentManager fm, Cursor data) {
-            super(fm);
-            this.data = createMatrixCursorFromCursor(data);
-            if (VERBOSE) {
-                Log.v(TAG, "LiveAdapter created...");
-            }
-
-            liveThreadAdapterHandler = new Handler();
-
-            if (VERBOSE) {
-            if (data == null) {
-                Log.v(TAG,"incoming cursor was null");
-            } else {
-                Log.v(TAG, "Live table contains " + data.getCount() + " threads...");
-            }
-            }
-
-
-        }
-
-        @Override
-        public Fragment getItem(int i) {
-            if (VERBOSE) Log.v(TAG, "entering getItem... position: " + i);
-            String name,title, text, fileName, threadID, unique, replies;
-            data.moveToPosition(i);
-            name = data.getString(data.getColumnIndexOrThrow(LiveThreadInfoEntry.COLUMN_NAME_NAME));
-            title = data.getString(data.getColumnIndexOrThrow(LiveThreadInfoEntry.COLUMN_NAME_TITLE));
-            text = data.getString(data.getColumnIndexOrThrow(LiveThreadInfoEntry.COLUMN_NAME_DESCRIPTION));
-            fileName = data.getString(data.getColumnIndexOrThrow(LiveThreadInfoEntry.COLUMN_NAME_FILEPATH));
-            threadID = data.getString(data.getColumnIndexOrThrow(LiveThreadInfoEntry.COLUMN_NAME_THREAD_ID));
-            unique = data.getString(data.getColumnIndexOrThrow(LiveThreadInfoEntry.COLUMN_NAME_UNIQUE));
-            replies = data.getString(data.getColumnIndexOrThrow(LiveThreadInfoEntry.COLUMN_NAME_REPLIES));
-            LiveThreadFragment f =  LiveThreadFragment.newInstance(i, name, title, text, fileName,
-                    threadID,unique,replies);
-            f.setProgressHandler(liveThreadAdapterHandler);
-
-            ((MainActivity)getActivity()).sendMsgRequestReplies(Integer.valueOf(threadID));
-
-            if (VERBOSE) Log.v(TAG, "exiting getItem...");
-            return f;
-        }
-
-        @Override
-        public void startUpdate(ViewGroup container) {
-            super.startUpdate(container);
-        }
-
-        @Override
-        public int getCount() {
-            if (data == null) {
-                return 0;
-            } else {
-                return data.getCount();
-            }
-        }
-
-        private MatrixCursor createMatrixCursorFromCursor(Cursor c) {
-            if (VERBOSE) Log.v(TAG,"enter createMatrixCursorFromCursor...");
-            MatrixCursor newCursor = null;
-            String[] columns = c.getColumnNames();
-            MatrixCursor.RowBuilder b;
-            newCursor = new MatrixCursor(columns, 1);
-            while(c.moveToNext()) {
-                b = newCursor.newRow();
-                    /*
-                     * Each row is built left to right by adding the columns
-                     */
-                for (String col : columns) {
-                    // in case all columns are of string type. But if they are
-                    // different then see my comment below
-                    switch (c.getType(c.getColumnIndex(col))) {
-                        case Cursor.FIELD_TYPE_STRING:
-                            b.add(c.getString(c.getColumnIndex(col)));
-                            break;
-                        case Cursor.FIELD_TYPE_INTEGER:
-                            b.add(c.getInt(c.getColumnIndex(col)));
-                            break;
-                        case Cursor.FIELD_TYPE_NULL:
-                            b.add(null);
-                            break;
-                        case Cursor.FIELD_TYPE_BLOB:
-                            b.add(c.getBlob(c.getColumnIndex(col)));
-                            break;
-                    }
-                }
-                // invoke your listener here with newCursor
-                if (VERBOSE) Log.v(TAG, "row added: " + newCursor.toString());
-            }
-
-            if (VERBOSE) Log.v(TAG,"exiting createMatrixCursorFromCursor...");
-            return newCursor;
-        }
-
-        public MatrixCursor getData() {
-            return data;
-        }
-
-    }
-
     @Override
     public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
 
@@ -536,16 +454,21 @@ public class LiveFragment extends Fragment implements
         //Toast.makeText(getActivity(),"page " + position + " selected.",Toast.LENGTH_SHORT).show();
         ((TextView) getActivity().findViewById(R.id.live_thread_number)).setText(String.valueOf(position));
 
-        Cursor data = ((LiveAdapter)mAdapter).getData();
-        data.moveToPosition(position);
+        currentThread = getCurrentThreadID();
+        mListener.sendMsgRequestReplies(currentThread);
 
-        String threadID = data.getString(data.getColumnIndexOrThrow(LiveThreadInfoEntry.COLUMN_NAME_THREAD_ID));
-        currentThread = Integer.valueOf(threadID);
+
+        if (VERBOSE) Log.v(TAG,"initializing loader at id " + ReplyFragment.REPLY_LOADER_ID);
+
+        Bundle args = new Bundle();
+        args.putString(CURRENT_THREAD_KEY, String.valueOf(currentThread));
+        getReplyFragment().setCurrentThread(String.valueOf(currentThread));
+        getLoaderManager().restartLoader(ReplyFragment.REPLY_LOADER_ID, args, getReplyFragment());
 
         //report thread view to analytics service
         if (mListener != null) {
-            mListener.reportAnalyticsEvent(Constants.LIVE_THREADVIEW_EVENT, "Thread~ID: " + threadID + "," +
-                    " Position: " + position );
+            mListener.sendMsgReportAnalyticsEvent(Constants.LIVE_THREADVIEW_EVENT, "Thread~ID: " + currentThread + "," +
+                    " Position: " + position);
         }
         if (VERBOSE) Log.v(TAG, "exiting onPageSelected...");
     }
@@ -561,7 +484,7 @@ public class LiveFragment extends Fragment implements
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
         if (VERBOSE) Log.v(TAG,"enter onCreateLoader...");
-        
+
         String[] projection = {
                 LiveThreadInfoEntry.COLUMN_ID,
                 LiveThreadInfoEntry.COLUMN_NAME_NAME,
@@ -584,52 +507,41 @@ public class LiveFragment extends Fragment implements
         //sort by column ID
     }
 
+    private int getCurrentThreadID() {
+        int out;
+
+        LiveThreadFragment f = (LiveThreadFragment)mAdapter.getItem(threadPager.getCurrentItem());
+        if (f != null) {
+            String s = f.getThreadID();
+            if (s == null) {
+                out = 0;
+            } else {
+                out = Integer.parseInt(s);
+            }
+        } else {
+            out = 0;
+        }
+
+        return out;
+      //  return  Integer.valueOf(((LiveThreadFragment)mAdapter.getItem(threadPager.getCurrentItem())).getThreadID());
+    }
+
 
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
         if (VERBOSE) Log.v(TAG,"enter onLoadFinished...");
 
-        if (data == null) {
-            Log.i(TAG,"Live CursorLoader returned a null cursor... nothing to load- quitting.");
-            return;
-        }
-
-
         Log.i(TAG, "Live cursor finished loading data");
-        refreshThreadPager(data);
-        data.moveToPosition(0);
+        mAdapter.swapCursor(data);
 
-        if (data.getCount() > 0) { //this is messy but I am lazy
-            int thread = data.getInt(data.getColumnIndexOrThrow(LiveThreadInfoEntry.COLUMN_NAME_THREAD_ID));
-            if (VERBOSE) Log.v(TAG,"liveFragment thread at position 0 has thread id " + thread);
-            currentThread = thread;
-        }
+        currentThread = getCurrentThreadID();
+
+        Log.d(TAG, "Returned cursor contains: " + data.getCount() + " rows.");
 
 
         if (VERBOSE) Log.v(TAG,"exit onLoadFinished...");
     }
 
-
-
-
-    /**
-     * method 'refreshThreadPager'
-     *
-     * refreshs the thread pager, and all the data in it
-     *
-     * @param data the new data to be loaded
-     */
-    public void refreshThreadPager(Cursor data) {
-        if (VERBOSE) Log.v(TAG,"entering refreshThreadPager...");
-
-            threadPager.setAdapter(null);
-            if (VERBOSE) Log.v(TAG,"mAdapter was null...");
-            mAdapter = new LiveAdapter(getFragmentManager(), data);
-            threadPager.setAdapter(mAdapter);
-        if (VERBOSE ) Log.d(TAG, "Cursor returned has " + data.getCount() + " rows");
-
-        if (VERBOSE) Log.v(TAG,"exiting refreshThreadPager...");
-    }
 
     /**
      * method 'onLoaderReset'
@@ -642,15 +554,16 @@ public class LiveFragment extends Fragment implements
     public void onLoaderReset(Loader<Cursor> loader) {
         if (VERBOSE) Log.v(TAG,"enter onLoaderReset...");
 
-        threadPager = null;
-        mAdapter= null;
+        mAdapter.swapCursor(null);
 
         if (VERBOSE) Log.v(TAG,"exit onLoaderReset...");
     }
 
     public interface onLiveFragmentInteractionListener {
-        public void reportAnalyticsEvent(int event, String name);
+        public void sendMsgReportAnalyticsEvent(int event, String name);
         public void sendMsgRequestLiveThreads();
+        public void sendMsgRequestReplies(int threadID);
     }
+
 
 }

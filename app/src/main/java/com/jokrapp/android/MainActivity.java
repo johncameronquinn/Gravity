@@ -70,7 +70,7 @@ import java.util.Locale;
 public class MainActivity extends Activity implements CameraFragment.OnCameraFragmentInteractionListener,
 LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInteractionListener, ViewPager.OnPageChangeListener{
     private static String TAG = "MainActivity";
-    private static final boolean VERBOSE = false;
+    private static final boolean VERBOSE = true;
     private static final boolean SAVE_LOCALLY = false;
 
     //private static String imageDir;
@@ -336,7 +336,7 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
         mPager = (CustomViewPager) findViewById(R.id.pager);
         mPager.setAdapter(mAdapter);
         mPager.setCurrentItem(CAMERA_LIST_POSITION);
-        mPager.setOnPageChangeListener(this);
+        mPager.addOnPageChangeListener(this);
     }
 
     @Override
@@ -750,32 +750,28 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
     public void onPageSelected(int position) {
         switch (position) {
             case CAMERA_LIST_POSITION:
-                sendScreenImageName("Fragment~" + CAMERA_PAGER_TITLE);
+                sendMsgReportAnalyticsEvent(Constants.FRAGMENT_VIEW_EVENT,"Fragment~" + CAMERA_PAGER_TITLE);
             break;
 
             case LOCAL_LIST_POSITION:
-                sendScreenImageName("Fragment~" + LOCAL_PAGER_TITLE);
+                sendMsgReportAnalyticsEvent(Constants.FRAGMENT_VIEW_EVENT,"Fragment~" + LOCAL_PAGER_TITLE);
                 break;
 
             case MESSAGE_LIST_POSITION:
-                sendScreenImageName("Fragment~" + MESSAGE_PAGER_TITLE);
+                sendMsgReportAnalyticsEvent(Constants.FRAGMENT_VIEW_EVENT,"Fragment~" + MESSAGE_PAGER_TITLE);
                 break;
 
             case LIVE_LIST_POSITION:
-                sendScreenImageName("Fragment~" + LIVE_PAGER_TITLE);
+                sendMsgReportAnalyticsEvent(Constants.FRAGMENT_VIEW_EVENT,"Fragment~" + LIVE_PAGER_TITLE);
             if (previousPosition == REPLY_LIST_POSITION) {
-                    LiveFragReference.get().getReplyFragment().deleteLoader();
+                    //LiveFragReference.get().getReplyFragment().deleteLoader();
                 }
-                sendScreenImageName(LIVE_PAGER_TITLE);
                 break;
 
             case REPLY_LIST_POSITION:
-                sendScreenImageName("Fragment~" + REPLY_PAGER_TITLE);
-                LiveFragReference.get().getReplyFragment().resetDisplay();
+                sendMsgReportAnalyticsEvent(Constants.FRAGMENT_VIEW_EVENT, "Fragment~" + REPLY_PAGER_TITLE);
                 Integer currentThread = LiveFragReference.get().getCurrentThread();
-                LiveFragReference.get().getReplyFragment().setCurrentThread(String.valueOf(currentThread));
-
-                sendScreenImageName(REPLY_PAGER_TITLE);
+              //  LiveFragReference.get().getReplyFragment().resetDisplay();
                 break;
         }
 
@@ -1003,14 +999,20 @@ I*/
      * @param description description for thread
      */
     public void setLiveCreateThreadInfo(String title, String description) {
-        String name = getSharedPreferences("Settings",MODE_PRIVATE).
+        String name = getSharedPreferences(Constants.SHARED_PREFERENCES_NAME,MODE_PRIVATE).
                 getString(StashLiveSettingsFragment.LIVE_NAME_KEY,"jester");
-        setLiveCreateThreadInfo(name,title,description);
+        setLiveCreateThreadInfo(name, title, description);
     }
 
-
+    public void setLiveCreateReplyInfo(String comment, int threadID) {
+        String name = getSharedPreferences(Constants.SHARED_PREFERENCES_NAME,MODE_PRIVATE).
+                getString(StashLiveSettingsFragment.LIVE_NAME_KEY,"jester");
+        setLiveCreateReplyInfo(name,comment,threadID);
+    }
 
     public void setLiveCreateReplyInfo(String name, String Comment, int threadID) {
+        if (VERBOSE) Log.v(TAG,"enter setLiveCreateReplyInfo with " + name + ", " + Comment + ", " + threadID);
+
         if (replyData == null) {
             replyData = new Bundle(3);
         }
@@ -1085,7 +1087,7 @@ I*/
     }
 
     public void sendMsgRequestLiveThreads() {
-        if (VERBOSE) Log.v(TAG,"requesting live threads...");
+        Log.i(TAG,"requesting a new live thread list...");
         if (isBound) {
             Message msg = Message.obtain(null, DataHandlingService.MSG_REQUEST_THREAD_LIST);
             try {
@@ -2216,6 +2218,10 @@ I*/
 
     static final int MSG_TOO_MANY_REQUESTS = 51;
 
+    static final int MSG_LIVE_REFRESH_DONE = 52;
+
+    static final int MSG_UNAUTHORIZED = 53;
+
 
     /**
      * class 'replyHandler'
@@ -2277,6 +2283,26 @@ I*/
                     new AlertDialog.Builder(activity.get())
                             .setTitle("Alert")
                             .setMessage("You have posted too many times, in a small period, and now we're worried you're not human.")
+                            .setIcon(android.R.drawable.ic_dialog_alert)
+                            .show();
+                    break;
+
+                case MSG_LIVE_REFRESH_DONE:
+                    Toast.makeText(activity.get(),"Live Refresh Finished...",Toast.LENGTH_SHORT).show();
+                   /* LiveFragment f = LiveFragReference.get();
+                    if (f != null) {
+                        if (VERBOSE) Log.v(TAG,"recreating live loader at id" + LiveFragment.LIVE_LOADER_ID);
+                        getLoaderManager().initLoader(LiveFragment.LIVE_LOADER_ID, null,f);
+                        f = null;
+                    } else {
+                        Log.d(TAG,"Live is currently not instantiated... doing nothing...");
+                    }*/
+                    break;
+
+                case MSG_UNAUTHORIZED:
+                    new AlertDialog.Builder(activity.get())
+                            .setTitle("Unauthorized")
+                            .setMessage("A bad userID was supplied to our server... hold on a moment while we make you another one.")
                             .setIcon(android.R.drawable.ic_dialog_alert)
                             .show();
                     break;
@@ -2342,25 +2368,33 @@ I*/
 /***************************************************************************************************
  * ANALYTICS
  **/
-    private void sendScreenImageName(String name) {
-     //   Toast.makeText(this,name,Toast.LENGTH_SHORT).show();
-        mTracker.setScreenName(name);
-        mTracker.send(new HitBuilders.ScreenViewBuilder().build());
-    }
 
-
-    public void reportAnalyticsEvent(int event,String name) {
-        switch (event) {
-            case Constants.LIVE_THREADVIEW_EVENT:
-                sendScreenImageName(name);
-                break;
-            case Constants.LOCAL_BLOCK_EVENT:
-
-                break;
-
-            case Constants.LOCAL_MESSAGE_EVENT:
-
-                break;
+    /**
+     * method 'reportAnalyticsEvent'
+     *
+     * reports an event to Google analytics.
+     *
+     * {@link com.jokrapp.android.LiveFragment.onLiveFragmentInteractionListener}
+     * {@link com.jokrapp.android.LocalFragment.onLocalFragmentInteractionListener}
+     * Called by these linked interface callbacks.
+     *
+     * @param event which kind of even to report
+     * @param name additional info to be reported (this will maybe be a Bundle)
+     */
+    public void sendMsgReportAnalyticsEvent(int event,String name) {
+        if (VERBOSE) Log.d(TAG,"sending message to report analytics event");
+        if (isBound) {
+            try {
+                Message msg = Message.obtain(null,event);
+                Bundle b = new Bundle();
+                b.putString("name",name);
+                msg.setData(b);
+                mService.send(msg);
+            } catch (RemoteException e) {
+                Log.e(TAG, "error send message to report analytics",e);
+            }
+        } else {
+            Log.e(TAG,"failed to report analyitcs event, service was not bound...");
         }
     }
 

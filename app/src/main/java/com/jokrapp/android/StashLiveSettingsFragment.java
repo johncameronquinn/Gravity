@@ -5,6 +5,7 @@
 package com.jokrapp.android;
 
 import android.app.Activity;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
 import android.app.Fragment;

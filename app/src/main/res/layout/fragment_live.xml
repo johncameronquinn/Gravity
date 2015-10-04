@@ -6,6 +6,15 @@
     android:id="@+id/live_root_layout">
 
 
+    <TextView
+        android:layout_width="354dp"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:text="If you dont see any threads, try swiping up and down"
+        android:id="@+id/textView2"
+        android:layout_gravity="center"
+        android:gravity="center_horizontal" />
+
     <fr.castorflex.android.verticalviewpager.VerticalViewPager
          android:id="@+id/live_thread_pager"
          android:layout_width="match_parent"
