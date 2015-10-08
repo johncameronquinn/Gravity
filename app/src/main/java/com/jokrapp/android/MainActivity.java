@@ -18,6 +18,7 @@ import android.graphics.Matrix;
 import android.graphics.SurfaceTexture;
 import android.hardware.Camera;
 import android.location.LocationManager;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
@@ -68,10 +69,12 @@ import java.util.Locale;
  * there is only one activity, and all the other features are managed as fragments
  */
 public class MainActivity extends Activity implements CameraFragment.OnCameraFragmentInteractionListener,
-LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInteractionListener, ViewPager.OnPageChangeListener{
+LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInteractionListener, ViewPager.OnPageChangeListener,
+        DeveloperFragment.OnFragmentInteractionListener{
     private static String TAG = "MainActivity";
     private static final boolean VERBOSE = true;
     private static final boolean SAVE_LOCALLY = false;
+    private static final boolean DEV_MODE = true;
 
     //private static String imageDir;
 
@@ -94,7 +97,7 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
     private static final String CAMERA_PAGER_TITLE = "Camera";
     private static final String REPLY_PAGER_TITLE = "Reply";
 
-    private static final int NUMBER_OF_FRAGMENTS = 5;
+    private static final int NUMBER_OF_FRAGMENTS = 6;
 
     private static WeakReference<MessageFragment> MessageFragReference = new WeakReference<>(null);
     private static WeakReference<CameraFragment> CameraFragReference = new WeakReference<>(null);
@@ -700,6 +703,8 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
                 } else {
                     return LiveFragReference.get().getReplyFragment();
                 }
+            } else if (position == 5 && DEV_MODE == true) {
+                return new DeveloperFragment();
             } else {
                 Log.e(TAG, "Invalid fragment position loaded");
                 return null;
@@ -2397,5 +2402,12 @@ I*/
             Log.e(TAG,"failed to report analyitcs event, service was not bound...");
         }
     }
+
+
+
+    public void onDeveloperInteraction(int request, Uri resource) {
+        Log.i(TAG,"entering onDeveloperInteraction with request- " + request + " and resource - " + resource.toString());
+    }
+
 
 }

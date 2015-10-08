@@ -51,29 +51,24 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.StringReader;
 import java.lang.ref.WeakReference;
 import java.net.HttpURLConnection;
 import java.net.InetAddress;
 import java.net.MalformedURLException;
 import java.net.ProtocolException;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.net.UnknownHostException;
 import java.nio.channels.FileChannel;
 import java.nio.channels.NotYetConnectedException;
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+
+import javax.net.ssl.HttpsURLConnection;
 
 /**
  * Author/Copyright John C. Quinn, All Rights Reserved.
@@ -119,6 +114,21 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
     private final String GET_LIVE_THREAD_LIST = "/GetLiveThreadList/"; //does not change
     private final String GET_LIVE_THREAD_INFO = "/GetLiveThreadInfo/"; //does not change
     private final String GET_LIVE_THREAD_REPLIES = "/GetLiveThreadReplies/"; //does not change
+
+    /*
+
+    private final String UPLOAD_LOCAL_POST_PATH = "/local/upload/"; //does not change
+    private final String GET_LOCAL_POST_PATH = "/local/get/"; //does not change
+    private final String SEND_LOCAL_MESSAGE_PATH = "/message/upload/";
+    private final String GET_LOCAL_MESSAGES_PATH = "/message/get/"; //does not change
+    private final String BLOCK_LOCAL_USER_PATH = "/moderation/block/";
+    private final String REPORT_USER_PATH = "/moderation/report/";
+    private final String INITIALIZE_USER_PATH = "/security/initialize/";
+    private final String CREATE_LIVE_THREAD_PATH = "/live/upload/"; //does not change
+    private final String GET_LIVE_THREAD_LIST = "/live/get/"; //does not change
+    private final String REPLY_LIVE_THREAD_PATH = "/reply/upload/"; //does not change
+    private final String GET_LIVE_THREAD_REPLIES = "/reply/get/; //does not change
+     */
 
     private Tracker mTracker;
 
@@ -198,7 +208,7 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
          * Logging a user sign-in
          */
 
-        if (VERBOSE) {
+      /*  if (VERBOSE) {
             Log.v(TAG, "Listing stored image files...");
               File[] files = getFilesDir().listFiles(new DataHandlingService.ImageFileFilter());
 
@@ -219,7 +229,7 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
                 }
             }
             Log.v(TAG,"done listing files...");
-        }
+        }*/
 
 
         if (!ALLOW_DUPLICATES) {
@@ -445,7 +455,6 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
                     createGenerator(conn.getOutputStream()); //tcp connection to server
 
             jGen.writeStartObject();
-            jGen.writeStringField(FROM_USER, userID.toString());
             jGen.writeNumberField("latitude", lat);
             jGen.writeNumberField("longitude",lon);
             jGen.writeStringField(IMAGE, image);
@@ -546,7 +555,6 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
             JsonGenerator jGen = jsonFactory.createGenerator(conn.getOutputStream());
 
             jGen.writeStartObject();
-            jGen.writeStringField("from", userID.toString());
             jGen.writeNumberField("latitude", lat);
             jGen.writeNumberField("longitude", lon);
             jGen.writeNumberField("count", numberOfImages);
@@ -573,6 +581,7 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
 
 
             Log.d(TAG, "response message is: " + conn.getResponseMessage());
+
 
             JsonParser jParser = jsonFactory.createParser(conn.getInputStream());
 
@@ -756,13 +765,11 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
 
             if (VERBOSE) {
                 Log.v(TAG, "sending Image message:");
-                Log.v(TAG, "from : " + userID.toString());
                 Log.v(TAG, "to : " + messageTarget);
                 Log.v(TAG, "filePath : " + filePath);
             }
 
             jGen.writeStartObject();
-            jGen.writeStringField(FROM_USER, userID.toString());
             jGen.writeStringField(TO,messageTarget);
             jGen.writeStringField(IMAGE,image);
             jGen.writeEndObject();
@@ -821,17 +828,14 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
             return;
         }
 
+
        try {
            if (VERBOSE) Log.v(TAG,"opening outputStream to send JSON...");
            JsonFactory jsonFactory = new JsonFactory();
            JsonGenerator jGen = jsonFactory.
                    createGenerator(conn.getOutputStream());
-           if (VERBOSE) {
-               Log.v(TAG, "from : " + userID.toString());
-           }
 
            jGen.writeStartObject();
-           jGen.writeStringField("from", userID.toString());
            jGen.writeEndObject();
            jGen.flush();
            jGen.close();
@@ -943,7 +947,6 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
                 Log.v(TAG, "blocking: " + userToBlock);
             }
             jGen.writeStartObject();
-            jGen.writeStringField("from",userID.toString());
             jGen.writeStringField("block", userToBlock);
             jGen.writeEndObject();
             jGen.flush();
@@ -1021,7 +1024,6 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
             }
 
             jGen.writeStartObject();
-            jGen.writeStringField(FROM_USER, userID.toString());
             jGen.writeStringField(TITLE,title);
             jGen.writeStringField(NAME,name);
             jGen.writeStringField(TEXT,description);
@@ -1103,7 +1105,6 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
             }
 
             jGen.writeStartObject();
-            jGen.writeStringField(FROM_USER, userID.toString());
             jGen.writeNumberField(THREAD_ID, threadID);
             jGen.writeStringField(NAME, name);
             jGen.writeStringField(TEXT,description);
@@ -1175,7 +1176,6 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
             }
 
             jGen.writeStartObject();
-            jGen.writeStringField("from",userID.toString());
             jGen.writeEndObject();
             jGen.flush();
             jGen.close();
@@ -1268,12 +1268,10 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
             JsonGenerator jGen = jsonFactory.
                     createGenerator(conn.getOutputStream());
             if (VERBOSE) {
-                Log.v(TAG, "from : " + userID.toString());
                 Log.v(TAG, "thread number : " + threadID);
             }
 
             jGen.writeStartObject();
-            jGen.writeStringField(FROM_USER, userID.toString());
             jGen.writeNumberField(THREAD_ID, threadID);
             jGen.writeEndObject();
             jGen.flush();
@@ -1418,12 +1416,10 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
             JsonGenerator jGen = jsonFactory.
                     createGenerator(conn.getOutputStream());
             if (VERBOSE) {
-                Log.v(TAG, "from : " + userID.toString());
                 Log.v(TAG, "thread id: " + threadID);
             }
 
             jGen.writeStartObject();
-            jGen.writeStringField("from", userID.toString());
             jGen.writeStringField(THREAD_ID,String.valueOf(threadID));
             jGen.writeEndObject();
             jGen.flush();
@@ -1595,6 +1591,10 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
     static final int MSG_REQUEST_REPLIES = 15;
 
     static final int MSG_SET_CALLBACK_MESSENGER = 16;
+
+    static final int MSG_UPLOAD_IMAGE = 17;
+
+    static final int MSG_DOWNLOAD_IMAGE = 18;
     /**
      * class 'IncomingHandler'
      *
@@ -1755,6 +1755,15 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
                     irs.get().setReplyMessenger(msg.replyTo);
                     break;
 
+                case MSG_UPLOAD_IMAGE:
+                    Log.d(TAG, "received a message to upload an image...");
+                 //   irs.get().uploadImageToBucket(msg.getData());
+                    break;
+
+                case MSG_DOWNLOAD_IMAGE:
+                    Log.d(TAG, "received a message to download an image...");
+                    break;
+
                 default:
                     super.handleMessage(msg);
             }
@@ -1785,6 +1794,18 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
      *
      * these methods are created to perform common tasks throughout the service
      */
+
+    public void uploadImageToBucket(Bundle b) throws Exception{
+         Uri a = Uri.parse(b.getString("url"));
+        String STORAGE_SCOPE = "https://www.googleapis.com/auth/devstorage.read_write";
+        JsonFactory JSON_FACTORY = new JsonFactory();
+
+
+        URL httpsurl = new URL("https","storage.googleapis.com",443,"/jokr-local-0/");
+        HttpsURLConnection conn = (HttpsURLConnection)httpsurl.openConnection();
+
+
+    }
 
     /**
      * method 'loadImageForTransit'
@@ -1900,7 +1921,7 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
             fos.close();
 
         } catch (IOException e) {
-            Log.e(TAG,"error saving incoming image to internal storage...",e);
+            Log.e(TAG,"error saving incoming image to internal storage...", e);
             return false;
 
         }
@@ -1934,6 +1955,8 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
         conn.setReadTimeout(READ_TIMEOUT);
         conn.setConnectTimeout(CONNECT_TIMEOUT);
 
+
+
         try {
             conn.setRequestMethod("POST");
         } catch (ProtocolException e) {
@@ -1945,7 +1968,16 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
         conn.setDoOutput(true);
         conn.setRequestProperty("Accept", "application/json");
         conn.setRequestProperty("Content-Type", "application/json");
+        conn.setRequestProperty("X-Client-UserID",userID.toString());
         conn.setUseCaches(false);
+
+/*        Map<String,List<String>> map = conn.getHeaderFields();
+        for (Map.Entry<String,List<String>> e : map.entrySet()) {
+            Log.v(TAG,"Key is: " + e.getKey() + ". Printing values:");
+            for (String s : e.getValue()) {
+                Log.v(TAG,s);
+            }
+        }*/
 
         return conn;
     }
