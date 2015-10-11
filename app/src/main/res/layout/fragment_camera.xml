@@ -96,8 +96,7 @@
         android:layout_gravity="center_horizontal|bottom"
         android:visibility="invisible"
         android:layout_marginBottom="40dp"
-        android:alpha=".7"
-        android:background="@drawable/capturebutton_sendmessage" />
+        android:alpha=".7"/>
 
     <CheckBox
         android:layout_width="wrap_content"

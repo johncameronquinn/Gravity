@@ -24,4 +24,6 @@
     <color name="wpallete_main_blue">#348ADB</color>
     <color name="wpallete_accent_blue_alpha">#786dcff6</color>
     <color name="wpallete_complementary_green">#9AEF5B</color>
+
+    <color name="black_overlay">#66000000</color>
 </resources>

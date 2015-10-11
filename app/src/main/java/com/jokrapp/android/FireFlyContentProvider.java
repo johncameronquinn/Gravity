@@ -42,8 +42,6 @@ public class FireFlyContentProvider extends ContentProvider {
 
     private static final String LIVE_BASE_PATH = "live";
 
-    private static final String LIVE_INFO_BASE_PATH = "liveinfo";
-
     private static final String REPLY_BASE_PATH = "replies";
 
     private static final String REPLY_INFO_BASE_PATH = "replyinfo";
@@ -67,9 +65,6 @@ public class FireFlyContentProvider extends ContentProvider {
 
     public static final Uri CONTENT_URI_LIVE_THREAD_LIST = Uri.parse("content://" + AUTHORITY
             + "/" + LIVE_BASE_PATH);
-
-    public static final Uri CONTENT_URI_LIVE_THREAD_INFO = Uri.parse("content://" + AUTHORITY
-            + "/" + LIVE_INFO_BASE_PATH);
 
     public static final Uri CONTENT_URI_REPLY_THREAD_LIST = Uri.parse("content://" + AUTHORITY
             + "/" + REPLY_BASE_PATH);
@@ -95,8 +90,6 @@ public class FireFlyContentProvider extends ContentProvider {
     private static final int LOCAL_ID = 20;
     private static final int LIVE = 30;
     private static final int LIVE_ID = 40;
-    private static final int LIVE_INFO = 50;
-    private static final int LIVE_INFO_ID = 60;
     private static final int REPLIES = 70;
     private static final int REPLIES_ID = 80;
     private static final int REPLIES_INFO = 90;
@@ -122,9 +115,6 @@ public class FireFlyContentProvider extends ContentProvider {
 
         sURIMatcher.addURI(AUTHORITY, LIVE_BASE_PATH, LIVE);
         sURIMatcher.addURI(AUTHORITY, LIVE_BASE_PATH + "/#", LIVE_ID);
-
-        sURIMatcher.addURI(AUTHORITY, LIVE_INFO_BASE_PATH, LIVE_INFO);
-        sURIMatcher.addURI(AUTHORITY, LIVE_INFO_BASE_PATH + "/#", LIVE_INFO_ID);
 
         sURIMatcher.addURI(AUTHORITY, REPLY_BASE_PATH, REPLIES);
         sURIMatcher.addURI(AUTHORITY, REPLY_INFO_BASE_PATH + "/#", REPLIES_ID);
@@ -178,9 +168,9 @@ public class FireFlyContentProvider extends ContentProvider {
                 directory = LOCAL_BASE_PATH;
                 break;
 
-            case LIVE_INFO_ID:
-                Log.d(TAG,"LIVE_INFO_ID called");
-                directory = LIVE_INFO_BASE_PATH;
+            case LIVE_ID:
+                Log.d(TAG,"LIVE_ID called");
+                directory = LIVE_BASE_PATH;
                 break;
 
             case MESSAGE_ID:
@@ -283,16 +273,6 @@ public class FireFlyContentProvider extends ContentProvider {
                         + uri.getLastPathSegment());
                 break;
 
-            case LIVE_INFO:
-                Log.d(TAG,"LIVE_INFO called");
-                queryBuilder.setTables(SQLiteDbContract.LiveThreadInfoEntry.TABLE_NAME);
-            break;
-            case LIVE_INFO_ID:
-                Log.d(TAG, "LIVE_INFO_ID called");
-
-                queryBuilder.appendWhere(SQLiteDbContract.LiveThreadInfoEntry.COLUMN_ID + "="
-                        + uri.getLastPathSegment());
-                break;
 
             case REPLIES:
                 Log.d(TAG,"REPLY_INFO called");
@@ -416,24 +396,6 @@ public class FireFlyContentProvider extends ContentProvider {
                 }
                 break;
 
-            case LIVE_INFO:
-                rowsDeleted = sqlDB.delete(SQLiteDbContract.LiveThreadInfoEntry.TABLE_NAME, selection,
-                        selectionArgs);
-                break;
-
-            case LIVE_INFO_ID:
-                id = uri.getLastPathSegment();
-                if (TextUtils.isEmpty(selection)) {
-                    rowsDeleted = sqlDB.delete(SQLiteDbContract.LiveThreadInfoEntry.TABLE_NAME,
-                            SQLiteDbContract.LiveThreadInfoEntry.COLUMN_ID + "=" + id,
-                            null);
-                } else {
-                    rowsDeleted = sqlDB.delete(SQLiteDbContract.LiveThreadInfoEntry.TABLE_NAME,
-                            SQLiteDbContract.LiveThreadInfoEntry.COLUMN_ID + "=" + id
-                                    + " and " + selection,
-                            selectionArgs);
-                }
-                break;
 
             case REPLIES:
                 rowsDeleted = sqlDB.delete(SQLiteDbContract.LiveReplies.TABLE_NAME, selection,
@@ -483,44 +445,10 @@ public class FireFlyContentProvider extends ContentProvider {
                 break;
 
             case LIVE:
-                //if there is a thread at this specific thread's position, delete it first
-                //sqlDB.delete(SQLiteDbContract.LiveThreadEntry.TABLE_NAME,
-                  //      "_id" + "=?",
-                    //   new String[]{values.getAsString(SQLiteDbContract.LiveThreadEntry.COLUMN_ID)});
 
-           //     String table = SQLiteDbContract.LiveThreadEntry.TABLE_NAME;
-             //   String whereClause = "1";
-         //       String[] whereArgs = new String[] { String.valueOf(values.getAsString(SQLiteDbContract.LiveThreadEntry.COLUMN_ID)) };
-                //Log.d(TAG, "num returned..." + sqlDB.delete(table, whereClause, whereArgs));
-               // sqlDB.execSQL("DELETE FROM live_entries WHERE _id = ?" + values.getAsString(SQLiteDbContract.LiveThreadEntry.COLUMN_ID));
-                //Log.d(TAG,"Running delete for " + values.getAsString(SQLiteDbContract.LiveThreadEntry.COLUMN_ID));
-
-       //         Log.d(TAG,"deleting" + sqlDB.delete(table,whereClause,null) + " rows...");
                 id = sqlDB.insertWithOnConflict(SQLiteDbContract.LiveThreadEntry.TABLE_NAME,null,values,SQLiteDatabase.CONFLICT_REPLACE);
-
-
-       //         String sql = "INSERT OR REPLACE INTO " + table + " (";
-         //       for (String i : whereArgs) {
-           //         sql = sql + i +", ";
-             //   }
-               // sql = sql + ") VALUES (";
-
-
-
-               // sqlDB.execSQL(sql);
                 break;
 
-            case LIVE_INFO:
-                //delete all threads with the specified thread ID prior to insertion
-/*                sqlDB.delete(SQLiteDbContract.LiveThreadInfoEntry.TABLE_NAME,
-                        SQLiteDbContract.LiveThreadInfoEntry.COLUMN_NAME_THREAD_ID + "=?",
-                        new String[]{
-                                values.getAsString(SQLiteDbContract.LiveThreadInfoEntry.COLUMN_NAME_THREAD_ID)
-                        });*/
-
-                //now insert
-                id = sqlDB.insertWithOnConflict(SQLiteDbContract.LiveThreadInfoEntry.TABLE_NAME, null, values,SQLiteDatabase.CONFLICT_REPLACE);
-                break;
 
             case REPLIES:
 

@@ -37,12 +37,6 @@ public final class SQLiteDbContract {
     public static abstract class LiveThreadEntry implements BaseColumns {
         public static final String TABLE_NAME = "live_entries";
         public static final String COLUMN_ID = "_ID";
-        public static final String COLUMN_THREAD_ID = "threadID";
-    }
-
-    public static abstract class LiveThreadInfoEntry implements BaseColumns {
-        public static final String TABLE_NAME = "live_info_entries";
-        public static final String COLUMN_ID = "_ID";
         public static final String COLUMN_NAME_THREAD_ID = "threadID";
         public static final String COLUMN_NAME_TIME = "time";
         public static final String COLUMN_NAME_TITLE = "title";

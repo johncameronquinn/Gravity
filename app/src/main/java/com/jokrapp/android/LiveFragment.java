@@ -34,7 +34,7 @@ import java.io.FileNotFoundException;
 import java.lang.ref.WeakReference;
 
 import fr.castorflex.android.verticalviewpager.VerticalViewPager;
-import com.jokrapp.android.SQLiteDbContract.LiveThreadInfoEntry;
+import com.jokrapp.android.SQLiteDbContract.LiveThreadEntry;
 
 
 /**
@@ -150,14 +150,14 @@ public class LiveFragment extends Fragment implements
             }
 
         String[] projection = {
-                LiveThreadInfoEntry.COLUMN_ID,
-                LiveThreadInfoEntry.COLUMN_NAME_NAME,
-                LiveThreadInfoEntry.COLUMN_NAME_TITLE,
-                LiveThreadInfoEntry.COLUMN_NAME_DESCRIPTION,
-                LiveThreadInfoEntry.COLUMN_NAME_FILEPATH,
-                LiveThreadInfoEntry.COLUMN_NAME_THREAD_ID,
-                LiveThreadInfoEntry.COLUMN_NAME_REPLIES,
-                LiveThreadInfoEntry.COLUMN_NAME_UNIQUE
+                LiveThreadEntry.COLUMN_ID,
+                LiveThreadEntry.COLUMN_NAME_NAME,
+                LiveThreadEntry.COLUMN_NAME_TITLE,
+                LiveThreadEntry.COLUMN_NAME_DESCRIPTION,
+                LiveThreadEntry.COLUMN_NAME_FILEPATH,
+                LiveThreadEntry.COLUMN_NAME_THREAD_ID,
+                LiveThreadEntry.COLUMN_NAME_REPLIES,
+                LiveThreadEntry.COLUMN_NAME_UNIQUE
         };
 
         mAdapter = new CursorPagerAdapter<>(getFragmentManager(),LiveThreadFragment.class,projection,null);
@@ -486,24 +486,24 @@ public class LiveFragment extends Fragment implements
         if (VERBOSE) Log.v(TAG,"enter onCreateLoader...");
 
         String[] projection = {
-                LiveThreadInfoEntry.COLUMN_ID,
-                LiveThreadInfoEntry.COLUMN_NAME_NAME,
-                LiveThreadInfoEntry.COLUMN_NAME_TITLE,
-                LiveThreadInfoEntry.COLUMN_NAME_DESCRIPTION,
-                LiveThreadInfoEntry.COLUMN_NAME_FILEPATH,
-                LiveThreadInfoEntry.COLUMN_NAME_THREAD_ID,
-                LiveThreadInfoEntry.COLUMN_NAME_REPLIES,
-                LiveThreadInfoEntry.COLUMN_NAME_UNIQUE
+                LiveThreadEntry.COLUMN_ID,
+                LiveThreadEntry.COLUMN_NAME_NAME,
+                LiveThreadEntry.COLUMN_NAME_TITLE,
+                LiveThreadEntry.COLUMN_NAME_DESCRIPTION,
+                LiveThreadEntry.COLUMN_NAME_FILEPATH,
+                LiveThreadEntry.COLUMN_NAME_THREAD_ID,
+                LiveThreadEntry.COLUMN_NAME_REPLIES,
+                LiveThreadEntry.COLUMN_NAME_UNIQUE
         };
 
         if (VERBOSE) Log.v(TAG,"loader created.");
         if (VERBOSE) Log.v(TAG,"exit onCreateLoader...");
         return new CursorLoader(getActivity(),
-                FireFlyContentProvider.CONTENT_URI_LIVE_THREAD_INFO,
+                FireFlyContentProvider.CONTENT_URI_LIVE_THREAD_LIST,
                 projection,
                 null,
                 null,
-                LiveThreadInfoEntry.COLUMN_ID);
+                LiveThreadEntry.COLUMN_ID);
         //sort by column ID
     }
 

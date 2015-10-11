@@ -11,8 +11,6 @@ import com.jokrapp.android.SQLiteDbContract.MessageEntry;
 
 import com.jokrapp.android.SQLiteDbContract.LiveThreadEntry;
 
-import com.jokrapp.android.SQLiteDbContract.LiveThreadInfoEntry;
-
 import com.jokrapp.android.SQLiteDbContract.LiveReplies;
 
 import com.jokrapp.android.SQLiteDbContract.StashEntry;
@@ -74,23 +72,16 @@ public class SQLiteDbHelper extends SQLiteOpenHelper {
 
             "CREATE TABLE " + LiveThreadEntry.TABLE_NAME + " (" +
                     LiveThreadEntry._ID + PRIMARY_KEY + COMMA_SEP +
-                    LiveThreadEntry.COLUMN_THREAD_ID + INT_TYPE +
+                    LiveThreadEntry.COLUMN_NAME_THREAD_ID  + INT_TYPE + UNIQUE_KEY + COMMA_SEP +
+                    LiveThreadEntry.COLUMN_NAME_TIME + INT_TYPE + COMMA_SEP +
+                    LiveThreadEntry.COLUMN_NAME_TITLE + TEXT_TYPE + COMMA_SEP +
+                    LiveThreadEntry.COLUMN_NAME_NAME + TEXT_TYPE + COMMA_SEP +
+                    LiveThreadEntry.COLUMN_NAME_DESCRIPTION + TEXT_TYPE + COMMA_SEP +
+                    LiveThreadEntry.COLUMN_NAME_FILEPATH + TEXT_TYPE + COMMA_SEP +
+                    LiveThreadEntry.COLUMN_NAME_REPLIES + INT_TYPE + COMMA_SEP +
+                    LiveThreadEntry.COLUMN_NAME_UNIQUE + INT_TYPE +
                     " )";
 
-
-    private static final String SQL_CREATE_LIVE_INFO =
-
-            "CREATE TABLE " + LiveThreadInfoEntry.TABLE_NAME + " (" +
-                    LiveThreadInfoEntry._ID + PRIMARY_KEY + COMMA_SEP +
-                    LiveThreadInfoEntry.COLUMN_NAME_THREAD_ID  + INT_TYPE + UNIQUE_KEY + COMMA_SEP +
-                    LiveThreadInfoEntry.COLUMN_NAME_TIME + INT_TYPE + COMMA_SEP +
-                    LiveThreadInfoEntry.COLUMN_NAME_TITLE + TEXT_TYPE + COMMA_SEP +
-                    LiveThreadInfoEntry.COLUMN_NAME_NAME + TEXT_TYPE + COMMA_SEP +
-                    LiveThreadInfoEntry.COLUMN_NAME_DESCRIPTION + TEXT_TYPE + COMMA_SEP +
-                    LiveThreadInfoEntry.COLUMN_NAME_FILEPATH + TEXT_TYPE + COMMA_SEP +
-                    LiveThreadInfoEntry.COLUMN_NAME_REPLIES + INT_TYPE + COMMA_SEP +
-                    LiveThreadInfoEntry.COLUMN_NAME_UNIQUE + INT_TYPE +
-                    " )";
 
     private static final String SQL_CREATE_REPLIES =
 
@@ -130,8 +121,6 @@ public class SQLiteDbHelper extends SQLiteOpenHelper {
             "DROP TABLE IF EXISTS " + MessageEntry.TABLE_NAME;
     private final String SQL_DELETE_LIVE =
             "DROP TABLE IF EXISTS " + LiveThreadEntry.TABLE_NAME;
-    private final String SQL_DELETE_LIVE_INFO =
-            "DROP TABLE IF EXISTS " + LiveThreadInfoEntry.TABLE_NAME;
     private final String SQL_DELETE_REPLIES =
             "DROP TABLE IF EXISTS " + LiveReplies.TABLE_NAME;
     private final String SQL_DELETE_STASH_PICTUREURL =
@@ -149,7 +138,6 @@ public class SQLiteDbHelper extends SQLiteOpenHelper {
         db.execSQL(SQL_CREATE_LOCAL);
         db.execSQL(SQL_CREATE_MESSAGE);
         db.execSQL(SQL_CREATE_LIVE);
-        db.execSQL(SQL_CREATE_LIVE_INFO);
         db.execSQL(SQL_CREATE_REPLIES);
 
         db.execSQL(CREATE_PICTUREURL_TABLE_SQL);
@@ -163,7 +151,6 @@ public class SQLiteDbHelper extends SQLiteOpenHelper {
         db.execSQL(SQL_DELETE_LOCAL);
         db.execSQL(SQL_DELETE_MESSAGE);
         db.execSQL(SQL_DELETE_LIVE);
-        db.execSQL(SQL_DELETE_LIVE_INFO);
         db.execSQL(SQL_DELETE_REPLIES);
         db.execSQL(SQL_DELETE_STASH_DATETABLE);
         db.execSQL(SQL_DELETE_STASH_PICTUREURL);

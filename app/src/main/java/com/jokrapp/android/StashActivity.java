@@ -111,11 +111,10 @@ public class StashActivity extends Activity implements StashGalleryFragment.OnFr
 
 
     private class StashAdapter extends FragmentPagerAdapter {
-        private final int STASHACTIVITY_PAGE_COUNT = 4;
+        private final int STASHACTIVITY_PAGE_COUNT = 3;
         private final int LOCAL_SETTINGS_POSTION = 0;
         private final int GALLERY_POSTION = 1;
         private final int LIVE_SETTINGS_POSTION = 2;
-        private final int DEVELOPER_FRAGMENT_POSTION = 3;
 
         public StashAdapter(FragmentManager fm) {
             super(fm);

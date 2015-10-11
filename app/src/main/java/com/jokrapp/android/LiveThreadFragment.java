@@ -176,7 +176,7 @@ public class LiveThreadFragment extends Fragment implements View.OnClickListener
         // new LiveThreadLoadingTask((ImageView) view.findViewById(R.id.live_thread_imageView)).
         //         execute(threadFilePath);
 
-        new Thread(new Runnable() {
+       /* new Thread(new Runnable() {
             @Override
             public void run() {
 
@@ -200,7 +200,7 @@ public class LiveThreadFragment extends Fragment implements View.OnClickListener
                 }
             }
 
-        }).start();
+        }).start();*/
 
         if (LiveFragment.VERBOSE) Log.v(TAG,"exiting onViewCreated...");
     }

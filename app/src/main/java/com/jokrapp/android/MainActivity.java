@@ -72,9 +72,9 @@ public class MainActivity extends Activity implements CameraFragment.OnCameraFra
 LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInteractionListener, ViewPager.OnPageChangeListener,
         DeveloperFragment.OnFragmentInteractionListener{
     private static String TAG = "MainActivity";
-    private static final boolean VERBOSE = true;
+    private static final boolean VERBOSE = false;
     private static final boolean SAVE_LOCALLY = false;
-    private static final boolean DEV_MODE = true;
+    private static final boolean DEV_MODE = false;
 
     //private static String imageDir;
 
@@ -97,7 +97,7 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
     private static final String CAMERA_PAGER_TITLE = "Camera";
     private static final String REPLY_PAGER_TITLE = "Reply";
 
-    private static final int NUMBER_OF_FRAGMENTS = 6;
+    private static final int NUMBER_OF_FRAGMENTS = 5;
 
     private static WeakReference<MessageFragment> MessageFragReference = new WeakReference<>(null);
     private static WeakReference<CameraFragment> CameraFragReference = new WeakReference<>(null);
@@ -127,6 +127,11 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
     private final UIHandler uiHandler = new UIHandler();
     final Messenger messageHandler = new Messenger(uiHandler);
 
+    /** AWS CONNECTION
+     */
+    private IdentityManager identityManager;
+
+
     /** ANALYTICS
      */
     private Tracker mTracker;
@@ -154,22 +159,77 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
 
         checkForLocationEnabled(this);
 
-        //loads blank fragments
-        createUI();
+        initializeAWS();
 
+        initializeUI();
+
+        initializeAnalytics();
+
+        Log.d(TAG,"exit onCreate...");
+    }
+/***************************************************************************************************
+* INITIALIZATION METHODS
+ *
+ *
+ * These methods all occur within onCreate, and exist for nicencess
+**/
+    /**
+     * method 'initializeUI'
+     *
+     * creates the UI, sets the 5 fragment viewpaging, etc
+     */
+    private void initializeUI() {
+        setContentView(R.layout.activity_main);
+        mAdapter = new MainAdapter(getFragmentManager());
+        mPager = (CustomViewPager) findViewById(R.id.pager);
+        mPager.setAdapter(mAdapter);
+        mPager.setCurrentItem(CAMERA_LIST_POSITION);
+        mPager.addOnPageChangeListener(this);
+    }
+
+    /**
+     * method 'initializeAWS'
+     *
+     * initializes the connection to AWS
+     */
+    private void initializeAWS() {
+        // Obtain a reference to the mobile client. It is created in the Splash Activity.
+        AWSMobileClient awsMobileClient = AWSMobileClient.defaultMobileClient();
+        if (awsMobileClient == null) {
+            // In the case that the activity is restarted by the OS after the application
+            // is killed we must redirect to the splash activity to handle initialization.
+            Intent intent = new Intent(this, SplashActivity.class);
+            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+            startActivity(intent);
+            return;
+        }
+
+        // Obtain a reference to the identity manager.
+        identityManager = awsMobileClient.getIdentityManager();
+
+    }
+
+    /**
+     * method 'initializeAnalytics'
+     *
+     * initializes the connection to the analytics services
+     */
+    private void initializeAnalytics() {
         // [START shared_tracker]
         //obtain the shared Tracker instance
         AnalyticsApplication application = (AnalyticsApplication)getApplication();
         mTracker = application.getDefaultTracker();
         // [END shared_tracker]
-
-        Log.d(TAG,"exit onCreate...");
     }
+
 
     public Messenger getMessenger() {
         return mService;
     }
 
+    /***************************************************************************************************
+     * LIFECYCLE METHODS
+      */
 
     @Override
     protected void onStart() {
@@ -200,7 +260,7 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
               try {
                 mService.send(msg1);
              } catch (RemoteException e) {
-                e.printStackTrace();
+                  e.printStackTrace();
             }
         }
 
@@ -287,19 +347,6 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
         super.onSaveInstanceState(outState);
         Log.d(TAG, "enter onSavedInstanceState...");
 
-        //saves the cameraFragment
-
-        /*
-        if (isCamera) {
-            if (camera != null) {
-                Log.d(TAG, "camera was not null");
-                //getFragmentManager().putFragment(outState, "savedFragment", camera);
-            } else {
-                Log.e(TAG, "camera was null");
-            }
-        }*/
-
-
         Log.d(TAG, "exit onSavedInstanceState...");
     }
 
@@ -327,21 +374,6 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
      * USER INTERACTION
      *
      */
-    /**
-     * class 'createUI'
-     * <p>
-     * instantiates the UI pager elements
-     * its just a wrapper from the onCreate thread for niceness
-     */
-    private void createUI() {
-        setContentView(R.layout.activity_main);
-        mAdapter = new MainAdapter(getFragmentManager());
-        mPager = (CustomViewPager) findViewById(R.id.pager);
-        mPager.setAdapter(mAdapter);
-        mPager.setCurrentItem(CAMERA_LIST_POSITION);
-        mPager.addOnPageChangeListener(this);
-    }
-
     @Override
     public View onCreateView(String name, Context context, AttributeSet attrs) {
         return super.onCreateView(name,context,attrs);
@@ -448,39 +480,6 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
      */
     @Override
     public boolean dispatchTouchEvent(MotionEvent event) {
-      // Log.i(TAG,"event: " + event.toString());
-  /*      final GestureDetector gestureDetector = new GestureDetector(new GestureDetector.SimpleOnGestureListener() {
-            public void onLongPress(MotionEvent e) {
-
-                final int LOCAL_SETTINGS = 0;
-                final int GALLERY = 1;
-                final int LIVE_SETTINGS = 2;
-
-                int startPage = GALLERY;
-                switch (mPager.getCurrentItem()) {
-
-                    case MESSAGE_LIST_POSITION:
-                    case LOCAL_LIST_POSITION:
-                        startPage = LOCAL_SETTINGS;
-                        break;
-
-                    case CAMERA_LIST_POSITION:
-                        startPage = GALLERY;
-                        break;
-
-                    case LIVE_LIST_POSITION:
-                    case REPLY_LIST_POSITION:
-                        startPage = LIVE_SETTINGS;
-                        break;
-                }
-                Intent stashActivtyIntent = new Intent(getApplicationContext(),StashActivity.class);
-                stashActivtyIntent.putExtra(StashActivity.STARTING_PAGE_POSITION_KEY, startPage);
-                startActivity(stashActivtyIntent);
-            }
-        });*/
-      /*  if (gestureDetector.onTouchEvent(ev)) {
-            return true;
-        }*/
 
 
         if(event.getAction() == MotionEvent.ACTION_DOWN) {
@@ -488,11 +487,6 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
             xpos = event.getX();
             ypos = event.getY();
         }
-        /*if(event.getAction() == MotionEvent.ACTION_MOVE) {
-            if (xpos != event.getX() || ypos != event.getY()) {
-                uiHandler.removeCallbacks(mLongPressed);
-            }
-        }*/
         if (event.getAction() == MotionEvent.ACTION_UP) {
             uiHandler.removeCallbacks(mLongPressed);
         }
@@ -506,12 +500,7 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
             Toast.makeText(this,"Message pressed: " + view.getTag(),Toast.LENGTH_LONG).show();
         }
         CameraFragReference.get().setMessageTarget((String) view.getTag());
-        /*
-        if (CameraFragReference.get() != null) {
-            CameraFragReference.get().startMessageMode(UUID.fromString((String)view.getTag()));
-        } else {
-            CameraFragment.setMessageTarget(UUID.fromString((String) view.getTag()));
-        }*/
+
         mPager.setCurrentItem(CAMERA_LIST_POSITION);
         mPager.setPagingEnabled(false);
 
@@ -570,34 +559,6 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
             }
         }
     }
-
-
-    /* class UIReceiver extends BroadcastReceiver {
-        static final String RMSG_BUTTON_PRESSED = "com.jokrapp.android.MSG";
-        static final String RBLOCK_BUTTON_PRESSED = "com.jokrapp.android.BLOCK";
-        static final String INT_DATA = "intdata";
-        private final String TAG = "UIReceiver";
-
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            // TODO: This method is called when the BroadcastReceiver is receiving
-            // an Intent broadcast.
-            if (VERBOSE) {
-                Log.v(TAG,"Intent received: " + intent.toString());
-            }
-
-            switch (intent.getAction()) {
-                case RMSG_BUTTON_PRESSED:
-                    onLocalMessage(intent.getIntExtra(INT_DATA,-1));
-                    break;
-
-                case RBLOCK_BUTTON_PRESSED:
-                    onLocalBlock(intent.getIntExtra(INT_DATA,-1));
-                    break;
-            }
-        }
-    }*/
-
 
     /**
      * method 'sendImageToLocal'
@@ -1900,86 +1861,6 @@ I*/
             }
             return optimalSize;
         }
-
-
-        /**
-         * method 'getOptionalPreviewSize'
-         *
-         * grabs the best preview size from shared preferences, or calculates it through
-         * calculateOptimalPreviewSize
-         *
-         * @param camera the camera with which to measure
-         * @param w width to aim for
-         * @param h height to aim for
-         * @return the optinal Camera.size for the preview
-         *//*
-        private Camera.Size getOptimalPreviewSize(Camera camera, int w, int h) {
-            if (VERBOSE) {
-                Log.v(TAG,"enter getOptimalPreviewSize...");
-            }
-            SharedPreferences p = PreferenceManager.getDefaultSharedPreferences(mWeakActivity.get().getApplicationContext());
-
-
-            Camera.Size optimalSize;
-
-            int width;
-            int height;
-
-            if (currentCamera  == CAMERA_POSITION_FRONT) {
-                width = p.getInt(PREVIEW_WIDTH_FRONT, -1);
-                height = p.getInt(PREVIEW_HEIGHT_FRONT, -1);
-
-
-                if (width == -1) {//preview size has yet to be measured
-                    Log.d(TAG,"Measuring front camera preview dimensions");
-
-                    optimalSize = calculateOptimalPreviewSize(camera.getParameters().getSupportedPreviewSizes(),w,h);
-
-                    p.edit().putInt(PREVIEW_WIDTH_FRONT, optimalSize.width).apply();
-                    p.edit().putInt(PREVIEW_HEIGHT_FRONT, optimalSize.height).apply();
-                } else {
-                    optimalSize = camera.new Size(width,height);
-                }
-
-            } else {
-
-                width = p.getInt(PREVIEW_WIDTH_BACK, -1);
-                height = p.getInt(PREVIEW_HEIGHT_BACK, -1);
-
-                if (width == -1) {//preview size has yet to be measured
-                    Log.d(TAG,"Measuring back camera preview dimensions");
-
-                    optimalSize = calculateOptimalPreviewSize(camera.getParameters().getSupportedPreviewSizes(),w,h);
-
-                    p.edit().putInt(PREVIEW_WIDTH_BACK, optimalSize.width).apply();
-                    p.edit().putInt(PREVIEW_HEIGHT_BACK, optimalSize.height).apply();
-
-                } else {
-                    optimalSize = camera.new Size(width,height);
-                }
-            }
-
-            if (VERBOSE) {
-                Log.v(TAG,"exit getOptimalPreviewSize...");
-            }
-
-            return optimalSize;
-        }
-
-        private Camera.Size getOptimalCameraResolution(Camera camera) {
-            SharedPreferences p = PreferenceManager.getDefaultSharedPreferences(mWeakActivity.get().getApplicationContext());
-            int optimalWidth= p.getInt(RESOLUTION_WIDTH, -1);
-            int optimalHeight= p.getInt(RESOLUTION_HEIGHT, -1);
-            if (optimalWidth != -1 || optimalHeight != -1) {
-                return camera.new Size(optimalWidth, optimalHeight);
-            } else {
-                Camera.Size size =calculateOptimalCameraResolution(camera);
-                p.edit().putInt(RESOLUTION_WIDTH,size.width).apply();
-                p.edit().putInt(RESOLUTION_HEIGHT,size.height).apply();
-                return size;
-            }
-        }*/
-
 
         /**
          * method 'calculateOptimalResolution'

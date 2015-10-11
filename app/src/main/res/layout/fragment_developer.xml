@@ -1,6 +1,7 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent"
-    android:layout_height="match_parent" tools:context="com.jokrapp.android.DeveloperFragment">
+    android:layout_height="match_parent" tools:context="com.jokrapp.android.DeveloperFragment"
+    android:background="@color/wpallete_neutral_gray">
 
 
     <ImageView
@@ -13,8 +14,21 @@
     <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="UploadImage"
+        android:text="Upload"
         android:id="@+id/devbutton"
+        android:layout_above="@+id/imageView"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="113dp" />
+
+    <ProgressBar
+        style="?android:attr/progressBarStyleHorizontal"
+        android:layout_width="100dp"
+        android:layout_height="30dp"
+        android:id="@+id/devprogress"
+        android:progress="0"
+        android:indeterminate="false"
+        android:max="100"
         android:layout_alignParentTop="true"
-        android:layout_centerHorizontal="true" />
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="36dp" />
 </RelativeLayout>
