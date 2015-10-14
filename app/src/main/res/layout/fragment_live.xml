@@ -70,41 +70,4 @@
         android:progressTint="#00000000"
         android:visibility="invisible" />
 
-    <!--<RelativeLayout
-         android:layout_width="wrap_content"
-         android:layout_height="112dp"
-         android:layout_gravity="center_vertical|start"
-         android:layout_margin="10dp"
-         android:id="@+id/layout_thread_counter">
-
-         <ImageButton
-             android:layout_width="wrap_content"
-             android:layout_height="wrap_content"
-             android:id="@+id/upArrow"
-             android:layout_marginBottom="0dp"
-             android:enabled="false"
-             android:src="@drawable/arrowup"
-             android:background="#00feff8c"
-             android:layout_marginTop="0dp"
-             android:layout_alignParentTop="true" />
-
-         <ImageButton
-             android:layout_width="wrap_content"
-             android:layout_height="wrap_content"
-             android:id="@+id/downArrow"
-             android:src="@drawable/arrowdown"
-             android:background="#00feff8c"
-             android:layout_marginTop="30dp"
-             android:layout_alignParentBottom="true" />
-
-         <TextView
-             android:layout_width="wrap_content"
-             android:layout_height="wrap_content"
-             android:text="1"
-             android:id="@+id/threadNumber"
-             android:layout_centerHorizontal="true"
-             android:layout_centerVertical="true"
-             android:textSize="25dp" />
-     </RelativeLayout>-->
-
 </FrameLayout>

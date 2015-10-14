@@ -1,31 +1,25 @@
-package com.jokrapp.android;
+package com.jokrapp.android.dev;
 
 import android.app.Activity;
-import android.content.ContentProvider;
-import android.content.ContentProviderClient;
 import android.content.CursorLoader;
 import android.content.Intent;
 import android.database.Cursor;
-import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.Rect;
 import android.net.Uri;
 import android.os.Bundle;
 import android.app.Fragment;
 import android.os.Handler;
 import android.os.HandlerThread;
-import android.os.Looper;
 import android.provider.MediaStore;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageView;
 import android.widget.ProgressBar;
+import android.widget.Toast;
 
 import com.amazonaws.AmazonClientException;
 import com.amazonaws.AmazonServiceException;
-import com.amazonaws.auth.AnonymousAWSCredentials;
 import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.mobileconnectors.s3.transferutility.TransferListener;
 import com.amazonaws.mobileconnectors.s3.transferutility.TransferObserver;
@@ -35,18 +29,15 @@ import com.amazonaws.regions.Region;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.Bucket;
-import com.amazonaws.services.s3.model.BucketLoggingConfiguration;
-import com.amazonaws.services.s3.model.ObjectListing;
-import com.amazonaws.services.s3.model.ObjectMetadata;
-import com.amazonaws.services.s3.model.PutObjectRequest;
-import com.amazonaws.services.s3.model.transform.XmlResponsesSaxParser;
-import com.amazonaws.util.IOUtils;
+import com.amazonaws.services.s3.model.GetObjectRequest;
+import com.amazonaws.services.s3.model.S3Object;
+import com.amazonaws.services.s3.model.S3ObjectInputStream;
+import com.jokrapp.android.FireFlyContentProvider;
+import com.jokrapp.android.R;
 
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.List;
 
 
@@ -96,7 +87,8 @@ public class DeveloperFragment extends Fragment implements View.OnClickListener 
     public void onViewCreated(View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        view.findViewById(R.id.devbutton).setOnClickListener(this);
+        view.findViewById(R.id.devupload).setOnClickListener(this);
+        view.findViewById(R.id.devdownload).setOnClickListener(this);
     }
 
     @Override
@@ -136,39 +128,6 @@ public class DeveloperFragment extends Fragment implements View.OnClickListener 
 
                 networkHandler.post(new UploadImageRunnable(data.getData()));
 
-
-
-/*                TransferUtility transferUtility = new TransferUtility(s3Client, getActivity());
-
-                TransferObserver observer = transferUtility.upload(
-                        "launch-zone",     /* The bucket to upload to */
-/*                        "test.jpg",    /* The key for the uploaded object */
-  /*                      new File(selectedImageUri.getPath())        /* The file where the data to upload exists */
-    /*            );
-
-                final ProgressBar progressBar = (ProgressBar)getActivity().findViewById(R.id.devprogress);
-
-                observer.setTransferListener(new TransferListener(){
-
-                    @Override
-                    public void onStateChanged(int id, TransferState state) {
-                        // do something
-                    }
-
-                    @Override
-                    public void onProgressChanged(int id, long bytesCurrent, long bytesTotal) {
-                        int percentage = (int) (bytesCurrent/bytesTotal * 100);
-                        progressBar.setProgress(percentage);
-                        //Display percentage transfered to user
-                    }
-
-                    @Override
-                    public void onError(int id, Exception ex) {
-                        // do something
-                    }
-
-                });*/
-
             }
         }
     }
@@ -176,12 +135,17 @@ public class DeveloperFragment extends Fragment implements View.OnClickListener 
     @Override
     public void onClick(View v) {
         switch(v.getId()){
-            case R.id.devbutton:
-                Log.i(TAG, "opening gallery");
+            case R.id.devupload:
+                Log.i(TAG, "opening gallery to upload image");
                 Intent intent = new Intent();
                 intent.setAction(Intent.ACTION_GET_CONTENT);
                 intent.setType("image/*");
                 startActivityForResult(Intent.createChooser(intent,"Select Picture"), SELECT_PICTURE);
+                break;
+
+            case R.id.devdownload:
+                Log.i(TAG, "downloading image");
+                networkHandler.post(new DownloadImageRunnable());
                 break;
         }
     }
@@ -202,37 +166,10 @@ public class DeveloperFragment extends Fragment implements View.OnClickListener 
         }
         @Override
         public void run() {
-
-            Log.d(TAG,"image stored at path: " + selectedImageUri.getPath());
+            Log.d(TAG,"entering UploadImageRunnable...");
 
             BitmapFactory.Options options = new BitmapFactory.Options();
             options.inJustDecodeBounds = true;
-
-/*                Bitmap b;
-                try {
-                 b = BitmapFactory.decodeStream(,null,options);
-                } catch (FileNotFoundException e) {
-                    Log.e(TAG, "error decoding stream from returned URI...");
-                }*/
-
-      /*      InputStream datastream;
-       //     InputStream sendStream;
-            ObjectMetadata metadata;
-            try {
-                datastream = getActivity().getContentResolver().openInputStream(selectedImageUri);
-                byte[] contentBytes = IOUtils.toByteArray(datastream);
-
-                metadata = new ObjectMetadata();
-                metadata.setContentLength(contentBytes.length);
-                datastream.close();
-
-
-       //         sendStream = getActivity().getContentResolver().openInputStream(selectedImageUri);
-
-            } catch (IOException e) {
-                Log.e(TAG,"IOException opening file... quitting...",e);
-                return;
-            }*/
 
             String[] proj = { MediaStore.Images.Media.DATA };
             CursorLoader loader = new CursorLoader(getActivity(), selectedImageUri, proj, null, null, null);
@@ -243,30 +180,112 @@ public class DeveloperFragment extends Fragment implements View.OnClickListener 
             cursor.close();
 
 
-            PutObjectRequest putObjectRequest = new PutObjectRequest("launch-zone","image.jpg",result);
+            TransferUtility transferUtility = new TransferUtility(s3Client, getActivity());
+
+            TransferObserver observer = transferUtility.upload(
+                    "launch-zone",     /* The bucket to upload to */
+                    "local/2",
+                    new File(result)/* The key for the uploaded object */
+                    /* The file where the data to upload exists */
+            );
+
+            final ProgressBar progressBar = (ProgressBar)getActivity().findViewById(R.id.devprogress);
+
+            observer.setTransferListener(new TransferListener(){
+
+                @Override
+                public void onStateChanged(int id, TransferState state) {
+                    Log.d(TAG,"entering onStateChanged...");
+                    switch (state) {
+
+                        case COMPLETED:
+
+                            getActivity().runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    Toast.makeText(getActivity(),"Yay!",Toast.LENGTH_SHORT).show();
+                                    progressBar.setProgress(0);
+                                }
+                            });
+                            break;
+                    }
+
+                    // do something
+                }
+
+                @Override
+                public void onProgressChanged(int id, long bytesCurrent, long bytesTotal) {
+                    Log.d(TAG,"entering onProgressChanged...");
+                    int percentage = (int) (bytesCurrent/bytesTotal * 100);
+                    progressBar.setProgress(percentage);
+                    //Display percentage transfered to user
+                }
+
+                @Override
+                public void onError(int id, Exception ex) {
+                    Log.e(TAG,"entering onError...",ex);
+                    // do something
+                }
+
+            });
+
+
+        }
+    }
+
+    private class DownloadImageRunnable implements Runnable {
+        @Override
+        public void run() {
+            Log.d(TAG, "entering DownloadImageRunnable...");
+
+            S3Object object;
+
+            GetObjectRequest getObjectRequest = new GetObjectRequest("launch-zone","image.jpg");
+
             try {
-                s3Client.putObject(putObjectRequest);
+                object = s3Client.getObject(getObjectRequest);
             } catch (AmazonServiceException ase) {
                 System.out.println("Error Message:    " + ase.getMessage());
                 System.out.println("HTTP Status Code: " + ase.getStatusCode());
                 System.out.println("AWS Error Code:   " + ase.getErrorCode());
                 System.out.println("Error Type:       " + ase.getErrorType());
                 System.out.println("Request ID:       " + ase.getRequestId());
-                Log.e(TAG, "error", ase);
+                Log.e(TAG, "error, quitting... ", ase);
+
+
+                return;
             } catch (AmazonClientException ace) {
                 System.out.println("Error Message: " + ace.getMessage());
-                Log.e(TAG,"error",ace);
-            } /*finally {
-                if (sendStream != null) {
-                    try {
-                        sendStream.close();
-                    } catch (IOException e) {
-                        Log.e(TAG,"error closing stream...",e);
-                    }
-                }
-            }*/
+                Log.e(TAG,"error, quitting...",ace);
+
+                return;
+            }
+
+            Log.d(TAG, "S3 Object received: " + object.getObjectMetadata().getETag());
+
+            OutputStream os;
+            S3ObjectInputStream is;
+            try {
+                /*
+                 * Lets the ContentProvider handle where to store the image,
+                 * opens a stream from the amazon object to the output provided
+                 */
+                Uri uri = Uri.withAppendedPath(FireFlyContentProvider
+                        .CONTENT_URI_LIVE, "1");
+                is = object.getObjectContent();
+                os = getActivity().getContentResolver().openOutputStream(uri);
+                org.apache.commons.compress.utils.IOUtils.copy(is,os);
+
+            } catch (IOException e) {
+                Log.e(TAG,"error retrieving content and saving to file path",e);
+            }
+
+
+
+            Log.d(TAG,"exiting DownloadImageRunnable...");
         }
     }
+
 
     /**
      * This interface must be implemented by activities that contain this

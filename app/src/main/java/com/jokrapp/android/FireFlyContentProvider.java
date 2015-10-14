@@ -4,7 +4,6 @@ import android.content.ContentProvider;
 import android.content.ContentValues;
 import android.content.UriMatcher;
 import android.database.Cursor;
-import android.database.sqlite.SQLiteConstraintException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
 import android.database.sqlite.SQLiteQueryBuilder;
@@ -63,7 +62,7 @@ public class FireFlyContentProvider extends ContentProvider {
     public static final Uri CONTENT_URI_MESSAGE = Uri.parse("content://" + AUTHORITY
             + "/" + MESSAGE_BASE_PATH);
 
-    public static final Uri CONTENT_URI_LIVE_THREAD_LIST = Uri.parse("content://" + AUTHORITY
+    public static final Uri CONTENT_URI_LIVE = Uri.parse("content://" + AUTHORITY
             + "/" + LIVE_BASE_PATH);
 
     public static final Uri CONTENT_URI_REPLY_THREAD_LIST = Uri.parse("content://" + AUTHORITY

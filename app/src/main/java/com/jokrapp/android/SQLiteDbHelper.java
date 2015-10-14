@@ -37,7 +37,7 @@ public class SQLiteDbHelper extends SQLiteOpenHelper {
 
 
     // If you change the database schema, you must increment the database version.
-    public static final int DATABASE_VERSION = 1;
+    public static final int DATABASE_VERSION = 3;
     public static final String DATABASE_NAME = "ImagesStore.db";
     private static final String TEXT_TYPE = " TEXT";
     private static final String INT_TYPE = " INTEGER";
@@ -55,6 +55,7 @@ public class SQLiteDbHelper extends SQLiteOpenHelper {
                     LocalEntry.COLUMN_NAME_TIME + INT_TYPE + COMMA_SEP +
                     LocalEntry.COLUMN_NAME_LATITUDE + TEXT_TYPE + COMMA_SEP +
                     LocalEntry.COLUMN_NAME_LONGITUDE + TEXT_TYPE + COMMA_SEP +
+                    LocalEntry.COLUMN_NAME_TEXT + TEXT_TYPE + COMMA_SEP +
                     LocalEntry.COLUMN_NAME_FILEPATH + TEXT_TYPE +
                     " )";
 
@@ -90,8 +91,8 @@ public class SQLiteDbHelper extends SQLiteOpenHelper {
                     LiveReplies.COLUMN_NAME_THREAD_ID +  TEXT_TYPE + COMMA_SEP +
                     LiveReplies.COLUMN_NAME_TIME + INT_TYPE + COMMA_SEP +
                     LiveReplies.COLUMN_NAME_NAME + TEXT_TYPE + COMMA_SEP +
-                    LiveReplies.COLUMN_NAME_DESCRIPTION + TEXT_TYPE + //COMMA_SEP +
-     //               LiveReplies.COLUMN_NAME_FILEPATH + TEXT_TYPE +
+                    LiveReplies.COLUMN_NAME_DESCRIPTION + TEXT_TYPE + COMMA_SEP +
+                    LiveReplies.COLUMN_NAME_FILEPATH + TEXT_TYPE +
                     " )";
 
     // Defines an SQLite statement that builds the Picasa picture URL table

@@ -18,6 +18,7 @@ import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+import com.jokrapp.android.SQLiteDbContract.LiveThreadEntry;
 import android.widget.Toast;
 
 import java.io.IOException;
@@ -32,14 +33,6 @@ import java.lang.ref.WeakReference;
 public class LiveThreadFragment extends Fragment implements View.OnClickListener {
 
     private static final String TAG = "LiveThreadFragment";
-
-    private static final String ARG_THREAD_NAME = "name";
-    private static final String ARG_THREAD_TITLE = "title";
-    private static final String ARG_THREAD_TEXT = "desc";
-    private static final String ARG_THREAD_FILEPATH = "filepath";
-    private static final String ARG_THREAD_ID = "threadID";
-    private static final String ARG_THREAD_UNIQUE = "posters";
-    private static final String ARG_THREAD_REPLIES = "replies";
 
     private String threadName;
     private String threadTitle;
@@ -67,13 +60,13 @@ public class LiveThreadFragment extends Fragment implements View.OnClickListener
 
         // Supply num input as an argument.
         Bundle args = new Bundle();
-        args.putString(ARG_THREAD_NAME, name);
-        args.putString(ARG_THREAD_TITLE,title);
-        args.putString(ARG_THREAD_TEXT,text);
-        args.putString(ARG_THREAD_FILEPATH,filePath);
-        args.putString(ARG_THREAD_ID,threadID);
-        args.putString(ARG_THREAD_UNIQUE,unique);
-        args.putString(ARG_THREAD_REPLIES,replies);
+        args.putString(LiveThreadEntry.COLUMN_NAME_NAME, name);
+        args.putString(LiveThreadEntry.COLUMN_NAME_TITLE,title);
+        args.putString(LiveThreadEntry.COLUMN_NAME_DESCRIPTION,text);
+        args.putString(LiveThreadEntry.COLUMN_NAME_FILEPATH,filePath);
+        args.putString(LiveThreadEntry.COLUMN_NAME_THREAD_ID,threadID);
+        args.putString(LiveThreadEntry.COLUMN_NAME_UNIQUE,unique);
+        args.putString(LiveThreadEntry.COLUMN_NAME_REPLIES,replies);
         f.setArguments(args);
 
         return f;
@@ -98,13 +91,13 @@ public class LiveThreadFragment extends Fragment implements View.OnClickListener
 
         if (getArguments() != null) {
             Bundle args = getArguments();
-            threadName = args.getString(ARG_THREAD_NAME);
-            threadTitle = args.getString(ARG_THREAD_TITLE);
-            threadText = args.getString(ARG_THREAD_TEXT);
-            threadFilePath = args.getString(ARG_THREAD_FILEPATH);
-            threadID = args.getString(ARG_THREAD_ID);
-            unique = args.getString(ARG_THREAD_UNIQUE);
-            replies = args.getString(ARG_THREAD_REPLIES);
+            threadName = args.getString(LiveThreadEntry.COLUMN_NAME_NAME);
+            threadTitle = args.getString(LiveThreadEntry.COLUMN_NAME_TITLE);
+            threadText = args.getString(LiveThreadEntry.COLUMN_NAME_DESCRIPTION);
+            threadFilePath = args.getString(LiveThreadEntry.COLUMN_NAME_FILEPATH);
+            threadID = args.getString(LiveThreadEntry.COLUMN_NAME_THREAD_ID);
+            unique = args.getString(LiveThreadEntry.COLUMN_NAME_UNIQUE);
+            replies = args.getString(LiveThreadEntry.COLUMN_NAME_REPLIES);
         }
 
     }
@@ -113,13 +106,15 @@ public class LiveThreadFragment extends Fragment implements View.OnClickListener
     public void setArguments(Bundle args) {
 
         if (args != null) {
-            threadName = args.getString(ARG_THREAD_NAME);
-            threadTitle = args.getString(ARG_THREAD_TITLE);
-            threadText = args.getString(ARG_THREAD_TEXT);
-            threadFilePath = args.getString(ARG_THREAD_FILEPATH);
-            threadID = args.getString(ARG_THREAD_ID);
-            unique = args.getString(ARG_THREAD_UNIQUE);
-            replies = args.getString(ARG_THREAD_REPLIES);
+            threadName = args.getString(LiveThreadEntry.COLUMN_NAME_NAME);
+            threadTitle = args.getString(LiveThreadEntry.COLUMN_NAME_TITLE);
+            threadText = args.getString(LiveThreadEntry.COLUMN_NAME_DESCRIPTION);
+            threadFilePath = args.getString(LiveThreadEntry.COLUMN_NAME_FILEPATH);
+            threadID = args.getString(LiveThreadEntry.COLUMN_NAME_THREAD_ID);
+            unique = args.getString(LiveThreadEntry.COLUMN_NAME_UNIQUE);
+            replies = args.getString(LiveThreadEntry.COLUMN_NAME_REPLIES);
+            Log.i(TAG,"incoming name: " + threadName);
+            Log.i(TAG,"incoming threadFilePath: " + threadFilePath);
         }
 
         super.setArguments(args);
@@ -181,7 +176,7 @@ public class LiveThreadFragment extends Fragment implements View.OnClickListener
             public void run() {
 
                 Uri uri = Uri.withAppendedPath(FireFlyContentProvider
-                        .CONTENT_URI_LIVE_THREAD_INFO,String.valueOf(threadID));
+                        .CONTENT_URI_LIVE_THREAD_LIST,String.valueOf(threadID));
                 try {
                     if (isAdded()) {
                         image = BitmapFactory.decodeStream(getActivity()
@@ -202,6 +197,33 @@ public class LiveThreadFragment extends Fragment implements View.OnClickListener
 
         }).start();*/
 
+
+       new Thread(new Runnable() {
+            @Override
+            public void run() {
+
+                if (isAdded()) {
+
+                    image = BitmapFactory.decodeFile(getActivity().getCacheDir().toString()+"/"+threadFilePath);
+
+                    imageLoadHandler.post(new Runnable() {
+
+                        public void run() {
+                            displayView.setImageBitmap(image);
+                        }
+
+                    });
+
+                }
+
+            }
+
+            }).start();
+
+
+
+
+
         if (LiveFragment.VERBOSE) Log.v(TAG,"exiting onViewCreated...");
     }
 
@@ -212,15 +234,6 @@ public class LiveThreadFragment extends Fragment implements View.OnClickListener
                 View threadTextView = ((RelativeLayout) v.getParent()).findViewById(R.id.live_thread_text);
 
                 //todo insert threadTextView inside the viewPager, but on top of live buttons
-/*                TextView textView = new TextView(getActivity());
-
-                FrameLayout.LayoutParams layoutParams =
-                        new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
-                                ViewGroup.LayoutParams.WRAP_CONTENT);
-
-                layoutParams.gravity = Gravity.BOTTOM;
-                textView.setLayoutParams(layoutParams);
-                textView.setText(threadText);*/
                 threadTextView.setVisibility(View.VISIBLE);
                 threadTextView.bringToFront();
                 v.setVisibility(View.INVISIBLE);

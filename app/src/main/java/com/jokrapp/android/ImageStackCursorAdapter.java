@@ -166,17 +166,22 @@ public class ImageStackCursorAdapter extends CursorAdapter {
      * @param path place of the image to be loaded
      * @return Bitmap the loaded image
      */
-    protected Bitmap mySetImage ( String path ) {
+    protected Bitmap mySetImage ( final String path ) {
+        if (VERBOSE) Log.v(TAG,"entering mySetImage... which is disabled...");
 
-        Bitmap image = getThumbnail(path); // try to fetch thumbnail
+        /*Bitmap image = getThumbnail(path); // try to fetch thumbnail
         if (image != null) return image;
 
-        String imageDir = context.getFilesDir() +  "/";
-
-        Bitmap myBitmap = BitmapFactory.decodeFile(imageDir + path, null);
+        String imageDir = context.getFilesDir() +  "/";*/
 
 
-        setThumbnail(path, image); // save thumbnail for later reuse
+        Bitmap myBitmap = BitmapFactory.decodeFile(context.getCacheDir() + "/" + path, null);
+
+
+
+        //setThumbnail(path, image); // save thumbnail for later reuse
+
+        if (VERBOSE) Log.v(TAG,"exiting mySetImage...");
         return myBitmap;
     }
 

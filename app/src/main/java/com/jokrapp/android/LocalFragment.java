@@ -148,6 +148,7 @@ public class LocalFragment extends Fragment implements
                 SQLiteDbContract.LocalEntry.COLUMN_ID,
                 SQLiteDbContract.LocalEntry.COLUMN_FROM_USER,
                 SQLiteDbContract.LocalEntry.COLUMN_NAME_FILEPATH,
+                SQLiteDbContract.LocalEntry.COLUMN_NAME_TEXT
         };
 
         if (VERBOSE) {

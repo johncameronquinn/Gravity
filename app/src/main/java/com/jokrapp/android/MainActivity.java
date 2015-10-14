@@ -1,6 +1,5 @@
 package com.jokrapp.android;
 
-import android.app.ActionBar;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.FragmentManager;
@@ -35,18 +34,15 @@ import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.view.ViewPager;
 import android.util.AttributeSet;
 import android.util.Log;
-import android.view.GestureDetector;
 import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.TextureView;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.google.android.gms.analytics.HitBuilders;
 import com.google.android.gms.analytics.Tracker;
 
 import java.io.File;
@@ -58,6 +54,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+import java.util.UUID;
 
 /**
  * Author/Copyright John C. Quinn All Rights Reserved.
@@ -69,12 +66,10 @@ import java.util.Locale;
  * there is only one activity, and all the other features are managed as fragments
  */
 public class MainActivity extends Activity implements CameraFragment.OnCameraFragmentInteractionListener,
-LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInteractionListener, ViewPager.OnPageChangeListener,
-        DeveloperFragment.OnFragmentInteractionListener{
+LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInteractionListener, ViewPager.OnPageChangeListener {
     private static String TAG = "MainActivity";
     private static final boolean VERBOSE = false;
     private static final boolean SAVE_LOCALLY = false;
-    private static final boolean DEV_MODE = false;
 
     //private static String imageDir;
 
@@ -579,13 +574,13 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
 
             Message msg = Message.obtain(null, DataHandlingService.MSG_SEND_IMAGE,currentCamera,0);
             Bundle b = new Bundle();
-            b.putString(Constants.IMAGE_FILEPATH, filePath);
+            b.putString(Constants.KEY_S3_KEY, filePath);
 
             if (messageTarget != null) {
-                Log.d(TAG,"Sending message to user : " + messageTarget);
+                Log.d(TAG, "Sending message to user : " + messageTarget);
                 b.putString(Constants.MESSAGE_TARGET, messageTarget);
             } else {
-                Log.d(TAG,"Sending local broadcast...");
+                Log.d(TAG, "Sending local broadcast...");
             }
             msg.setData(b);
 
@@ -664,8 +659,6 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
                 } else {
                     return LiveFragReference.get().getReplyFragment();
                 }
-            } else if (position == 5 && DEV_MODE == true) {
-                return new DeveloperFragment();
             } else {
                 Log.e(TAG, "Invalid fragment position loaded");
                 return null;
@@ -828,7 +821,7 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
         if (isBound) {
             Log.d(TAG, "sending message to request " + num + " images");
 
-            Message msg = Message.obtain(null, DataHandlingService.MSG_REQUEST_IMAGES,num, 0);
+            Message msg = Message.obtain(null, DataHandlingService.MSG_REQUEST_LOCAL_POSTS,num, 0);
             Bundle data = new Bundle();
             data.putInt(Constants.IMAGE_COUNT, num);
             msg.setData(data);
@@ -1014,7 +1007,7 @@ I*/
         if (liveData == null) {
             liveData = new Bundle(1);
         }
-        liveData.putString("filePath",filePath);
+        liveData.putString(Constants.KEY_S3_KEY,filePath);
         if (liveData.size() == 4) {
             sendMsgCreateThread(liveData);
             liveData = null;
@@ -1032,7 +1025,7 @@ I*/
         if (replyData == null) {
             replyData = new Bundle(1);
         }
-        replyData.putString("filePath",filePath);
+        replyData.putString(Constants.KEY_S3_KEY,filePath);
         if (replyData.size() == 4) {
             sendMsgCreateThread(replyData);
             replyData = null;
@@ -1055,7 +1048,7 @@ I*/
     public void sendMsgRequestLiveThreads() {
         Log.i(TAG,"requesting a new live thread list...");
         if (isBound) {
-            Message msg = Message.obtain(null, DataHandlingService.MSG_REQUEST_THREAD_LIST);
+            Message msg = Message.obtain(null, DataHandlingService.MSG_REQUEST_LIVE_THREADS);
             try {
                 mService.send(msg);
             } catch (RemoteException e) {
@@ -1603,8 +1596,9 @@ I*/
             if (VERBOSE) {
                 Log.v(TAG, "enter onPictureTaken... ");
             }
-
+            camera.stopPreview();
             theData = data;
+
 //                        try {
             //                          mWeakActivity.get().messageHandler.
             //                                send(Message.obtain(null, MSG_PICTURE_TAKEN));
@@ -1676,13 +1670,13 @@ I*/
 
             Log.d(TAG, "saving image...");
 
-            String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
-
             // File file = new File(mWeakActivity.get().getFilesDir(),
             // "IMG_" + timeStamp + ".jpg");
 
-            File file = new File(mWeakActivity.get().getFilesDir(),
-                    "IMG_" + timeStamp + ".jpg");
+            UUID name = UUID.nameUUIDFromBytes(data);
+            String key = name.toString()+ ".jpg";
+
+            File file = new File(mWeakActivity.get().getCacheDir(),key);
 
             String filePath = file.getAbsolutePath();
 
@@ -1704,6 +1698,7 @@ I*/
             Bitmap image;
 
             BitmapFactory.Options options = new BitmapFactory.Options();
+
             options.inMutable = true;
             image = BitmapFactory.decodeByteArray(data, 0, data.length, options);
 
@@ -1776,7 +1771,7 @@ I*/
             switch (callBack) {
                 case LOCAL_CALLBACK:
                     Log.d(TAG, "notifying MainActivity to post image to Local...");
-                    mWeakActivity.get().sendImageToLocal(filePath, 2);
+                    mWeakActivity.get().sendImageToLocal(key, 2);
                 /*
                 if (SAVE_LOCALLY) {
             ContentValues values = new ContentValues();
@@ -1793,12 +1788,12 @@ I*/
 
                 case LIVE_CALLBACK:
                     Log.d(TAG, "notifying MainActivity image is ready to post to Live...");
-                    mWeakActivity.get().setLiveFilePath(filePath);
+                    mWeakActivity.get().setLiveFilePath(key);
                     break;
 
                 case REPLY_CALLBACK:
-                    Log.d(TAG,"notifying MainActivity image is ready to post to Reply...");
-                    mWeakActivity.get().setReplyFilePath(filePath);
+                    Log.d(TAG, "notifying MainActivity image is ready to post to Reply...");
+                    mWeakActivity.get().setReplyFilePath(key);
                     break;
             }
 
@@ -2174,7 +2169,7 @@ I*/
                     break;
 
                 case MSG_LIVE_REFRESH_DONE:
-                    Toast.makeText(activity.get(),"Live Refresh Finished...",Toast.LENGTH_SHORT).show();
+                  //  Toast.makeText(activity.get(),"Live Refresh Finished...",Toast.LENGTH_SHORT).show();
                    /* LiveFragment f = LiveFragReference.get();
                     if (f != null) {
                         if (VERBOSE) Log.v(TAG,"recreating live loader at id" + LiveFragment.LIVE_LOADER_ID);

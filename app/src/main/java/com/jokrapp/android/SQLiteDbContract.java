@@ -21,9 +21,10 @@ public final class SQLiteDbContract {
         public static final String COLUMN_FROM_USER = "userID";
         public static final String COLUMN_NAME_WEIGHT = "weight";
         public static final String COLUMN_NAME_TIME = "time";
-        public static final String COLUMN_NAME_LATITUDE = "lat";
-        public static final String COLUMN_NAME_LONGITUDE = "lng";
-        public static final String COLUMN_NAME_FILEPATH = "filepath";
+        public static final String COLUMN_NAME_LATITUDE = "latitude";
+        public static final String COLUMN_NAME_LONGITUDE = "longitude";
+        public static final String COLUMN_NAME_TEXT = "text";
+        public static final String COLUMN_NAME_FILEPATH = "url";
     }
 
     public static abstract class MessageEntry implements BaseColumns {
@@ -31,7 +32,7 @@ public final class SQLiteDbContract {
         public static final String COLUMN_ID = "_ID";
         public static final String COLUMN_NAME_TIME = "time";
         public static final String COLUMN_FROM_USER = "userID";
-        public static final String COLUMN_NAME_FILEPATH = "filepath";
+        public static final String COLUMN_NAME_FILEPATH = "url";
     }
 
     public static abstract class LiveThreadEntry implements BaseColumns {
@@ -41,10 +42,10 @@ public final class SQLiteDbContract {
         public static final String COLUMN_NAME_TIME = "time";
         public static final String COLUMN_NAME_TITLE = "title";
         public static final String COLUMN_NAME_NAME = "name";
-        public static final String COLUMN_NAME_DESCRIPTION = "desc";
-        public static final String COLUMN_NAME_UNIQUE = "posters";
+        public static final String COLUMN_NAME_DESCRIPTION = "text";
+        public static final String COLUMN_NAME_UNIQUE = "uniq";
         public static final String COLUMN_NAME_REPLIES = "replies";
-        public static final String COLUMN_NAME_FILEPATH = "filepath";
+        public static final String COLUMN_NAME_FILEPATH = "url";
     }
 
 
@@ -55,7 +56,7 @@ public final class SQLiteDbContract {
         public static final String COLUMN_NAME_TIME = "time";
         public static final String COLUMN_NAME_NAME = "name";
         public static final String COLUMN_NAME_DESCRIPTION = "text";
-//        public static final String COLUMN_NAME_FILEPATH = "filepath";
+        public static final String COLUMN_NAME_FILEPATH = "url";
     }
 
     public static abstract class StashEntry implements BaseColumns {
@@ -71,6 +72,7 @@ public final class SQLiteDbContract {
         public static final String DATE_TABLE_NAME = "DateMetadataData";
         public static final String DATA_DATE_COLUMN = "DownloadDate";
     }
+
 
 
 }

@@ -499,7 +499,7 @@ public class LiveFragment extends Fragment implements
         if (VERBOSE) Log.v(TAG,"loader created.");
         if (VERBOSE) Log.v(TAG,"exit onCreateLoader...");
         return new CursorLoader(getActivity(),
-                FireFlyContentProvider.CONTENT_URI_LIVE_THREAD_LIST,
+                FireFlyContentProvider.CONTENT_URI_LIVE,
                 projection,
                 null,
                 null,

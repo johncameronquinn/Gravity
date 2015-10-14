@@ -91,6 +91,12 @@ public final class Constants {
 
     public static final CharSequence BLANK = " ";
 
+    /**
+     * S3 KEY TAGS
+     */
+    public static final String KEY_S3_KEY = "key";
+    public static final String KEY_S3_DIRECTORY = "directory";
+
 
     /**
      * ANALYTICS

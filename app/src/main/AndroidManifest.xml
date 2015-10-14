@@ -74,6 +74,11 @@
             android:name=".RSSPullService"
             android:exported="false" />
 
+        <service
+            android:name= "com.amazonaws.mobileconnectors.s3.transferutility.TransferService"
+            android:process=":ServerConnectProcess"
+            android:enabled="true" />
+
         <!--
             The attribute "android:exported" must be set to "false" to restrict this content
             provider to its own app. Otherwise, all apps could access it.
