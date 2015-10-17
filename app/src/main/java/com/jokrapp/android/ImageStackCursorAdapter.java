@@ -107,8 +107,8 @@ public class ImageStackCursorAdapter extends CursorAdapter {
 
         String UUID = cursor.getString(cursor.getColumnIndex(SQLiteDbContract.MessageEntry.COLUMN_FROM_USER));
         ((TextView)vView.findViewById(R.id.userID)).setText(UUID);
-        vView.findViewById(R.id.messageButton).setTag(UUID);
-        vView.findViewById(R.id.blockButton).setTag(UUID);
+        context.findViewById(R.id.button_local_message).setTag(UUID);
+        context.findViewById(R.id.button_local_block).setTag(UUID);
 
         if (VERBOSE) {
             Log.v(TAG,"exiting newView...");

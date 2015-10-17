@@ -1140,7 +1140,7 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
                     case MSG_REQUEST_LIVE_THREADS:
                         map.put(SQLiteDbContract.LiveThreadEntry.COLUMN_ID, map.remove("order"));
                         map.put(SQLiteDbContract.LiveThreadEntry.COLUMN_NAME_THREAD_ID, map.remove("id"));
-
+                        b.putInt(PENDING_TRANSFER_TYPE,MSG_REQUEST_LIVE_THREADS);
                         b.putString(Constants.KEY_S3_DIRECTORY, "live");
                         break;
 
@@ -1152,6 +1152,7 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
 
                 }
                 if (map.containsKey("url")) {
+
                     String cont = (String)map.remove("url");
                     if (VERBOSE)Log.d(TAG,"url is: " + cont);
 
@@ -1161,6 +1162,7 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
                             Log.i(TAG,"this was a url, and not from AWS... lets just get it");
                         } else {
                             b.putString("url", cont);
+                            b.putString(Constants.KEY_S3_KEY, cont);
                             downloadImageFromS3(b);
                             map.put("url",cont);
                         }
@@ -1964,7 +1966,7 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
         if (VERBOSE) {
             Log.v(TAG,"entering downloadImageFromS3...");
             Log.v(TAG,"download directory " + b.getString(Constants.KEY_S3_DIRECTORY));
-            Log.v(TAG,"downloading from" + b.getString(Constants.KEY_S3_KEY));
+            Log.v(TAG,"downloading from " + b.getString(Constants.KEY_S3_KEY));
         }
 
         if (transferUtility == null) {
@@ -2055,6 +2057,10 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
                 //get the data pending data for this transfer ID
                 Bundle data = pendingMap.get(id);
                 //Depending on what the pending post was... handle it
+                if (data == null) {
+                    Log.e(TAG,"incoming bundle was null");
+                    break;
+                }
                 switch (data.getInt(PENDING_TRANSFER_TYPE,-1)) {
                     case MSG_SEND_IMAGE:
 

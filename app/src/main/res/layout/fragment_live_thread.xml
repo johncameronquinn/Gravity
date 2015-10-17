@@ -16,13 +16,15 @@
         android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal|bottom"
         android:layout_alignParentBottom="true"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true"
+        android:layout_alignParentLeft="false"
+        android:layout_alignParentStart="false"
         android:background="@drawable/greybox"
         android:id="@+id/live_thread_infoLayout"
-        android:layout_marginLeft="70dp"
-        android:layout_marginBottom="5dp"
-        android:layout_marginRight="70dp">
+        android:layout_marginBottom="17dp"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentRight="true"
+        android:layout_marginLeft="100dp"
+        android:layout_marginRight="10dp">
 
         <TextView
             android:layout_width="wrap_content"

@@ -4,17 +4,27 @@
     android:layout_width="wrap_content"
     android:layout_height="match_parent">
 
-    <Button
-        android:id="@+id/text"
+    <ImageButton
+        android:id="@+id/button_local_block"
         android:layout_width="match_parent"
-        android:layout_height="120dp"
+        android:layout_height="@dimen/button_height"
         android:gravity="center"
-        android:background="@drawable/block"/>
+        android:padding="10dp"
+        android:scaleType="fitXY"
+        android:src="@drawable/block"
+        android:background="@color/clear_background"
+        android:onClick="onLocalBlockPressed"
+        android:layout_below="@+id/button_local_message" />
 
-    <Button
+    <ImageButton
+        android:id="@+id/button_local_message"
         android:layout_width="match_parent"
-        android:layout_height="120dp"
-        android:background="@drawable/message50"
-        android:layout_below="@+id/text" />
+        android:layout_height="@dimen/button_height"
+        android:gravity="center"
+        android:padding="10dp"
+        android:scaleType="fitXY"
+        android:onClick="onLocalMessagePressed"
+        android:background="@color/clear_background"
+        android:src="@drawable/message"/>
 
 </RelativeLayout>
