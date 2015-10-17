@@ -23,7 +23,7 @@
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:largeHeap="true"
-        android:theme="@style/AppTheme" >
+        android:theme="@style/AppTheme">
 
         <!-- google play services version -->
         <meta-data
@@ -39,7 +39,8 @@
             android:name=".MainActivity"
             android:label="@string/app_name"
             android:screenOrientation="portrait"
-            android:theme="@style/AppTheme" >
+            android:theme="@style/AppTheme"
+            >
         </activity>
 
         <service
@@ -60,7 +61,8 @@
             android:name=".StashActivity"
             android:label="@string/title_activity_stash"
             android:parentActivityName=".MainActivity"
-            android:theme="@style/StashTheme" >
+            android:theme="@style/StashTheme"
+            android:hardwareAccelerated="true" >
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="com.jokrapp.android.MainActivity" />

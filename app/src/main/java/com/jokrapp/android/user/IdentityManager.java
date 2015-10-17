@@ -1,4 +1,4 @@
-package com.jokrapp.android;
+package com.jokrapp.android.user;
 //
 // Copyright 2015 Amazon.com, Inc. or its affiliates (Amazon). All Rights Reserved.
 //

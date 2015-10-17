@@ -198,7 +198,7 @@ public class LiveThreadFragment extends Fragment implements View.OnClickListener
         }).start();*/
 
 
-       new Thread(new Runnable() {
+        new Thread(new Runnable() {
             @Override
             public void run() {
 
@@ -218,7 +218,7 @@ public class LiveThreadFragment extends Fragment implements View.OnClickListener
 
             }
 
-            }).start();
+        }).start();
 
 
 

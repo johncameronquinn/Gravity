@@ -174,10 +174,7 @@ public class ImageStackCursorAdapter extends CursorAdapter {
 
         String imageDir = context.getFilesDir() +  "/";*/
 
-
         Bitmap myBitmap = BitmapFactory.decodeFile(context.getCacheDir() + "/" + path, null);
-
-
 
         //setThumbnail(path, image); // save thumbnail for later reuse
 
@@ -190,7 +187,6 @@ public class ImageStackCursorAdapter extends CursorAdapter {
         Log.d(TAG,"swapCursor called");
         return super.swapCursor(newCursor);
     }
-
 
 
     @Override

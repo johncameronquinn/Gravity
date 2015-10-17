@@ -39,7 +39,7 @@ import java.util.UUID;
  *
  */
 public class CameraFragment extends Fragment {
-    private static final boolean VERBOSE = false;
+    private static final boolean VERBOSE = true;
     private static final String TAG = "CameraFragment";
 
     private GestureDetector gestureDetector;
@@ -58,6 +58,7 @@ public class CameraFragment extends Fragment {
     private final int CAMERA_REPLY_MODE = 3;
 
     private static final String CAMERA_MODE_KEY = "ckey";
+    private static final String KEY_PREVIEW = "pkey";
 
 
     private OnCameraFragmentInteractionListener mListener;
@@ -127,7 +128,7 @@ n  */
         GestureDoubleTap gestureDoubleTap = new GestureDoubleTap();
         gestureDetector = new GestureDetector(getActivity(), gestureDoubleTap);
 
-        Log.d(TAG,"Setting CameraFragment to default mode");
+        Log.d(TAG, "Setting CameraFragment to default mode");
         currentCameraMode = 0;
     }
 
@@ -136,10 +137,29 @@ n  */
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
         if (VERBOSE) {
-            Log.v(TAG, "saving state...");
+            Log.v(TAG, "entering onSaveInstanceState...");
         }
 
+        outState.putBoolean(KEY_PREVIEW,isPreview);
+
+        if (VERBOSE) {
+            Log.v(TAG, "exiting onSaveInstanceState...");
+        }
     }
+
+
+    @Override
+    public void onViewStateRestored(Bundle savedInstanceState) {
+        if (VERBOSE) Log.v(TAG,"entering onViewStateRestored...");
+        super.onViewStateRestored(savedInstanceState);
+
+        if (savedInstanceState != null) {
+            isPreview = savedInstanceState.getBoolean(KEY_PREVIEW);
+        }
+
+        if (VERBOSE) Log.v(TAG,"exiting onViewStateRestored...");
+    }
+
 
     @Override
     public void onPause() {
@@ -172,14 +192,7 @@ n  */
             Log.v(TAG, "enter onStart...");
         }
 
-
         if (getView() != null) {
-            TextureView mPreview = (TextureView) getView().findViewById(R.id.cameraSurfaceView);
-            Log.d(TAG, "setting surface texture listener to cameraHandler");
-
-            MainActivity activity = (MainActivity) getActivity();
-            Log.d(TAG, "CameraHandler reference refers to: " + activity.getCameraHandlerSingleton(activity).toString());
-            mPreview.setSurfaceTextureListener(activity.getCameraHandlerSingleton(activity));
         }
 
 
@@ -216,7 +229,6 @@ n  */
 
     }
 
-
     /**
      * method 'onCreateView'
      *
@@ -237,7 +249,6 @@ n  */
         }
         CommentListener listener = new CommentListener();
         container.setOnTouchListener(listener);
-
 
 
       //creates the camera preview, adds to
@@ -265,7 +276,9 @@ n  */
         @Override
         public boolean onSingleTapConfirmed(MotionEvent e) {
             if (isPreview) { //its in preview mode, ignore
-                return super.onSingleTapConfirmed(e);
+                mListener.sendMsgAutoFocus(e);
+
+                return true;
             } else { //its not in preview mode, enable comments
                 if (isComment) {  //is in commenting mode, stop
                     isComment = false;
@@ -301,21 +314,6 @@ n  */
                 return false;
             }
 
-            /*else {
-                switch (event.getAction()) {
-                    case MotionEvent.ACTION_DOWN:
-                        commentText.setTranslationY(commentText.getY() - event.getY());
-                        return true;
-                    case MotionEvent.ACTION_MOVE:
-                        //commentText.setTranslationY(event.getY() + (event.getY() - commentText.getY()));
-                        return true;
-                    case MotionEvent.ACTION_CANCEL:
-                    case MotionEvent.ACTION_UP:
-                        return true;
-                }
-                return true;
-            }*/
-
         }
 
     }
@@ -343,6 +341,13 @@ n  */
             }
         }
 
+
+        TextureView mPreview = (TextureView) getView().findViewById(R.id.cameraSurfaceView);
+        Log.d(TAG, "setting surface texture listener to cameraHandler");
+
+        MainActivity activity = (MainActivity) getActivity();
+        Log.d(TAG, "CameraHandler reference refers to: " + activity.getCameraHandlerSingleton(activity).toString());
+        mPreview.setSurfaceTextureListener(activity.getCameraHandlerSingleton(activity));
 
         Log.d(TAG, "created view is: " + view.toString());
 
@@ -964,6 +969,7 @@ n  */
         void sendMsgSaveImage(EditText comment, boolean postToLive);
         void sendMsgSaveImage(EditText comment, boolean postToLive, String messageTarget);
         void sendMsgSwitchCamera();
+        void sendMsgAutoFocus(MotionEvent event);
     }
 
     static final String ACTION_PICTURE_TAKEN = "com.jokrapp.android.picturetaken";

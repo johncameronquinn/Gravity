@@ -91,6 +91,8 @@ public final class Constants {
 
     public static final CharSequence BLANK = " ";
 
+    public static final String KEY_TEXT = "text";
+
     /**
      * S3 KEY TAGS
      */

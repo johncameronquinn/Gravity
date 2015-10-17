@@ -14,6 +14,8 @@ import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Matrix;
+import android.graphics.Rect;
+import android.graphics.RectF;
 import android.graphics.SurfaceTexture;
 import android.hardware.Camera;
 import android.location.LocationManager;
@@ -35,6 +37,7 @@ import android.support.v4.view.ViewPager;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.Gravity;
+import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.TextureView;
 import android.view.View;
@@ -44,6 +47,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.analytics.Tracker;
+import com.jokrapp.android.user.IdentityManager;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -51,6 +55,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
@@ -68,7 +73,7 @@ import java.util.UUID;
 public class MainActivity extends Activity implements CameraFragment.OnCameraFragmentInteractionListener,
 LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInteractionListener, ViewPager.OnPageChangeListener {
     private static String TAG = "MainActivity";
-    private static final boolean VERBOSE = false;
+    private static final boolean VERBOSE = true;
     private static final boolean SAVE_LOCALLY = false;
 
     //private static String imageDir;
@@ -1092,6 +1097,7 @@ I*/
     public static final int MSG_SWITCH_CAMERA = 7;
     public static final int MSG_FLASH_ON = 8;
     public static final int MSG_FLASH_OFF = 9;
+    public static final int MSG_AUTOFOCUS = 10;
 
     /**
      * class 'CameraHanderThread'
@@ -1141,6 +1147,8 @@ I*/
         return cameraHandlerWeakReference.get();
     }
 
+    private static SurfaceTexture mSurface;
+
     /**
      * static class 'CameraHandler'
      *
@@ -1151,10 +1159,10 @@ I*/
      *
      * It is possible that a SurfaceView would be a more effective implementation //todo look into this
      */
-    class CameraHandler extends Handler implements TextureView.SurfaceTextureListener, Camera.PictureCallback, Camera.ShutterCallback {
+    class CameraHandler extends Handler implements TextureView.SurfaceTextureListener, Camera.PictureCallback, Camera.ShutterCallback,
+            Camera.AutoFocusCallback {
         private static final String TAG = "MainCameraHandler";
         private boolean isConnected = false;
-
 
         private static final int CAMERA_POSITION_BACK = 0;
         private static final int CAMERA_POSITION_FRONT = 1;
@@ -1164,7 +1172,6 @@ I*/
         private static final String FRONT_CAMERA_PARAMETERS = "fParams";
         private static final String BACK_CAMERA_PARAMETERS = "bParams";
 
-
         private Camera mCamera; //static to prevent garbage collection during onStop
         private Camera.CameraInfo cameraInfo;
 
@@ -1172,8 +1179,10 @@ I*/
 
         private byte[] theData;
 
-        private SurfaceTexture mSurface;
+        private boolean meteringAreaSupported = false;
 
+        private int width;
+        private int height;
 
 
         // Weak reference to the Activity; only access this from the UI thread.
@@ -1214,6 +1223,8 @@ I*/
                 Log.v(TAG,"enter onSurfaceTextureAvailable");
             }
             mSurface = surface;
+            this.width = width;
+            this.height = height;
 
 //            Log.d(TAG, "thread is : " + getLooper().getThread().toString());
 
@@ -1226,7 +1237,6 @@ I*/
                     Log.d(TAG, "Camera is not connected and is available, setting and starting " +
                             "preview.");
                     try {
-                        mCamera.setPreviewCallbackWithBuffer(null);
                         mCamera.setPreviewTexture(surface);
                         mCamera.startPreview();
                     } catch (IOException e) {
@@ -1236,13 +1246,12 @@ I*/
                     }
                 } else {
                     Log.d(TAG, "camera was not avaliable, saving surface...");
-                    //mSurface = surface;
+                    mSurface = surface;
                 }
             } else {
                 Log.v(TAG,"Camera was not connected, saving surface...");
-                //mSurface = surface;
+                mSurface = surface;
             }
-
 
 
             if (VERBOSE) {
@@ -1258,6 +1267,12 @@ I*/
                 Log.v(TAG,"enter onSurfaceTextureSizeChanged");
             }
             mSurface = surface;
+            Camera.Parameters p = mCamera.getParameters();
+            if (p.getMaxNumMeteringAreas() > 0) {
+                this.meteringAreaSupported = true;
+            }
+            this.width = width;
+            this.height = height;
 
             if (VERBOSE) {
                 Log.v(TAG,"exit onSurfaceTextureSizeChanged");
@@ -1431,39 +1446,6 @@ I*/
                         mCamera.setDisplayOrientation(cameraInfo.orientation);
                     }
 
-/*                    Camera.getCameraInfo(inputMessage.arg1,cameraInfo);
-
-                    Log.d(TAG,"setting camera DisplayOrientation to: " + cameraInfo.orientation);
-
-
-                    if (cameraInfo.facing == Camera.CameraInfo.CAMERA_FACING_FRONT) {
-                        mCamera.setDisplayOrientation(cameraInfo.orientation-180);
-                    } else {
-                        mCamera.setDisplayOrientation(cameraInfo.orientation);
-                    }
-
-                    int sWidth = activity.getResources().getDisplayMetrics().widthPixels;
-                    int sHeight = activity.getResources().getDisplayMetrics().heightPixels;
-
-                        parameters = mCamera.getParameters();
-                        Camera.Size mFpreviewSize = calculateOptimalPreviewSize(
-                                parameters.getSupportedPreviewSizes(),sWidth,sHeight);
-                        Camera.Size mFdisplaySize = calculateOptimalCameraResolution(
-                                parameters.getSupportedPictureSizes());
-                        parameters.setPictureSize(mFdisplaySize.width, mFdisplaySize.height);
-                        parameters.setPreviewSize(mFpreviewSize.width, mFpreviewSize.height);
-
-                    mCamera.setParameters(parameters);
-
-                    try {
-                        if (mSurface != null) {
-                            mCamera.setPreviewTexture(mSurface);
-                            mCamera.startPreview();
-                        }
-                    } catch (IOException e) {
-                        Log.e(TAG,"error setting preview display",e);
-                    }*/
-
                     break;
 
                 case MSG_FLASH_ON: //8
@@ -1490,6 +1472,10 @@ I*/
                     invalidateHandler();
                     break;
 
+                case MSG_AUTOFOCUS:
+                    focusOnTouch(inputMessage.getData().getFloat("x"),inputMessage.getData().getFloat("y"));
+                    break;
+
 
                 default:
                     throw new RuntimeException("unknown msg " + what);
@@ -1502,7 +1488,7 @@ I*/
         private void startPreview() {
             if (isConnected) {
                 if (VERBOSE) {
-                    Log.v(TAG,"starting camera preview");
+                    Log.v(TAG, "starting camera preview");
                 }
                 mCamera.startPreview();
             } else {
@@ -1598,64 +1584,10 @@ I*/
             }
             camera.stopPreview();
             theData = data;
-
-//                        try {
-            //                          mWeakActivity.get().messageHandler.
-            //                                send(Message.obtain(null, MSG_PICTURE_TAKEN));
-            //                  } catch (RemoteException e) {
-            //                    Log.e(TAG,"error notifying that picture was taken...",e);
-            //              }
             if (VERBOSE) {
                 Log.v(TAG, "exit onPictureTaken... ");
             }
-
-
         }
-
-
-        /**
-         * Interface to receive picture callback from the capturebutton
-         *
-         * sets a new click listener for the confirm button, which saves the file
-         */
-/*        private final android.hardware.Camera.PictureCallback mPicture =
-                new android.hardware.Camera.PictureCallback() {
-
-                    /**
-                     * method 'onPictureTaken'
-                     *
-                     * the method that is called when a picture is taken
-                     *
-                     * @param data the byte array data of the image that was taken
-                     * @param camera the camera from which the picture was taken
-                     */
-          /*          @Override
-                    public void onPictureTaken(final byte[] data, android.hardware.Camera camera) {
-                        if (VERBOSE) {
-                            Log.v(TAG, "enter onPictureTaken... ");
-                        }
-                        if (Looper.myLooper() == Looper.getMainLooper()) {
-                            Log.i(TAG,"callback is in the main thread");
-                        }
-
-                        theData = data;
-
-                        Intent intent = new Intent(CameraFragment.ACTION_PICTURE_TAKEN);
-                        LocalBroadcastManager.getInstance(getApplicationContext()).sendBroadcastSync(intent);
-
-//                        try {
-  //                          mWeakActivity.get().messageHandler.
-    //                                send(Message.obtain(null, MSG_PICTURE_TAKEN));
-      //                  } catch (RemoteException e) {
-        //                    Log.e(TAG,"error notifying that picture was taken...",e);
-          //              }
-                        if (VERBOSE) {
-                            Log.v(TAG, "exit onPictureTaken... ");
-                        }
-                    }
-
-
-                };*/
 
         /**
          * method 'saveImage'
@@ -1670,9 +1602,6 @@ I*/
 
             Log.d(TAG, "saving image...");
 
-            // File file = new File(mWeakActivity.get().getFilesDir(),
-            // "IMG_" + timeStamp + ".jpg");
-
             UUID name = UUID.nameUUIDFromBytes(data);
             String key = name.toString()+ ".jpg";
 
@@ -1681,27 +1610,16 @@ I*/
             String filePath = file.getAbsolutePath();
 
 
-            // String filePath = pictureFile.getAbsolutePath();
-
-
-/*            if (file == null) {
-                Log.e(TAG,"no file was able to be opened");
-                return;
-            }*/
-
-
             Log.d(TAG, "Saving file to... " + filePath);
             Log.d(TAG, "The size of the image before compression: " + data.length);
 
 
             //create bitmap from data
             Bitmap image;
-
             BitmapFactory.Options options = new BitmapFactory.Options();
 
             options.inMutable = true;
             image = BitmapFactory.decodeByteArray(data, 0, data.length, options);
-
 
             Matrix matrix = new Matrix();
             matrix.postRotate(cameraInfo.orientation);
@@ -1750,20 +1668,6 @@ I*/
 
             }
 
-            /*
-            ContentValues values = new ContentValues();
-            values.put(SQLiteDbContract.LocalEntry.COLUMN_ID, 1337);
-            values.put(SQLiteDbContract.LocalEntry.COLUMN_NAME_TIME, 15091);
-            values.put(SQLiteDbContract.LocalEntry.COLUMN_NAME_LATITUDE, 88.88);
-            values.put(SQLiteDbContract.LocalEntry.COLUMN_NAME_LONGITUDE, 88.88);
-            values.put(SQLiteDbContract.LocalEntry.COLUMN_NAME_FILEPATH, "IMG_1337.jpg");
-
-            mWeakActivity.get().getContentResolver().insert(FireFlyContentProvider.CONTENT_URI,
-                    values);*/
-
-
-            //mWeakActivity.get().onImageSaved(filePath, currentCamera);
-
             final int LOCAL_CALLBACK = 0;
             final int LIVE_CALLBACK = 1;
             final int REPLY_CALLBACK = 2;
@@ -1772,18 +1676,6 @@ I*/
                 case LOCAL_CALLBACK:
                     Log.d(TAG, "notifying MainActivity to post image to Local...");
                     mWeakActivity.get().sendImageToLocal(key, 2);
-                /*
-                if (SAVE_LOCALLY) {
-            ContentValues values = new ContentValues();
-            values.put(SQLiteDbContract.LocalEntry.COLUMN_ID, 1337);
-            values.put(SQLiteDbContract.LiveEntry.COLUMN_NAME_NAME,"LOCAL");
-            values.put(SQLiteDbContract.LocalEntry.COLUMN_NAME_TIME, 15091);
-            values.put(SQLiteDbContract.LocalEntry.COLUMN_NAME_LATITUDE, 88.88);
-            values.put(SQLiteDbContract.LocalEntry.COLUMN_NAME_LONGITUDE, 88.88);
-            values.put(SQLiteDbContract.LocalEntry.COLUMN_NAME_FILEPATH, "IMG_1337.jpg");
-            mWeakActivity.get().getContentResolver().insert(FireFlyContentProvider.CONTENT_URI_LOCAL,
-                      values);
-                }*/
                     break;
 
                 case LIVE_CALLBACK:
@@ -1803,7 +1695,87 @@ I*/
             }
         }
 
+        @Override
+        public void onAutoFocus(boolean success, Camera camera) {
+            if (success) {
+                // do something...
+                Log.i(TAG,"success!");
+            } else {
+                // do something...
+                Log.i(TAG,"fail!");
+            }
+        }
 
+
+        /**
+         * method 'focusOnTouch'
+         *
+         * from http://stackoverflow.com/questions/18460647/android-setfocusarea-and-auto-focus
+         *
+         * @param x the x coord of the touchevent
+         * @param y the y coord of the touchevent
+         */
+        protected void focusOnTouch(float x, float y) {
+            if (mCamera != null) {
+
+                mCamera.cancelAutoFocus();
+                Rect focusRect = calculateTapArea(x, y, 1f);
+                Rect meteringRect = calculateTapArea(x, y, 1.5f);
+
+
+                Camera.Parameters parameters = mCamera.getParameters();
+                parameters.setFocusMode(Camera.Parameters.FOCUS_MODE_AUTO);
+
+                ArrayList<Camera.Area> cameraAreas = new ArrayList<>();
+                cameraAreas.add(new Camera.Area(focusRect, 1000));
+                parameters.setFocusAreas(cameraAreas);
+
+                if (meteringAreaSupported) {
+                    ArrayList<Camera.Area> meterAreas = new ArrayList<>();
+                    meterAreas.add(new Camera.Area(meteringRect, 1000));
+                    parameters.setMeteringAreas(meterAreas);
+                }
+
+                Log.d(TAG,parameters.flatten());
+
+                try {
+                    mCamera.setParameters(parameters);
+                    mCamera.autoFocus(this);
+                } catch (RuntimeException e) {
+                    Log.e(TAG,"Failed to set camera parameters...",e);
+                }
+            }
+        }
+
+        Matrix matrix = new Matrix();
+        int focusAreaSize = 75;
+
+        /**
+         * Convert touch position x:y to {@link Camera.Area} position -1000:-1000 to 1000:1000.
+         */
+        private Rect calculateTapArea(float x, float y, float coefficient) {
+            int areaSize = Float.valueOf(focusAreaSize * coefficient).intValue();
+
+            int left = clamp((int) x - areaSize / 2, 0, width - areaSize);
+            int top = clamp((int) y - areaSize / 2, 0, height - areaSize);
+
+            RectF rectF = new RectF(left, top, left + areaSize, top + areaSize);
+
+            matrix.mapRect(rectF);
+
+
+
+            return new Rect(Math.round(rectF.left), Math.round(rectF.top), Math.round(rectF.right), Math.round(rectF.bottom));
+        }
+        private int clamp(int x, int min, int max) {
+            if (x > max) {
+                return max;
+            }
+            if (x < min) {
+                return min;
+            }
+            return x;
+        }
 
 
         /**
@@ -1967,7 +1939,6 @@ I*/
         if (VERBOSE) {
             Log.v(TAG,"exiting sendMsgTakePicture...");
         }
-
     }
 
     /**
@@ -2079,6 +2050,29 @@ I*/
             Log.v(TAG, "exiting setFlash...");
         }
     }
+
+    public void sendMsgAutoFocus(MotionEvent event) {
+        if (VERBOSE) {
+            Log.v(TAG, "entering sendMsgAutoFocus...");
+        }
+
+        try {
+            Bundle b = new Bundle(2);
+            b.putFloat("x",event.getX());
+            b.putFloat("y",event.getY());
+
+            Message msg = Message.obtain(null,MSG_AUTOFOCUS);
+            msg.setData(b);
+            cameraMessenger.send(msg);
+        } catch (RemoteException e) {
+            Log.e(TAG,"error sending message to take picture");
+        }
+
+        if (VERBOSE) {
+            Log.v(TAG,"exiting sendMsgAutoFocus...");
+        }
+    }
+
 
     /**
      * tags for replyHandler's various tasks

@@ -10,12 +10,8 @@ package com.jokrapp.android;
 import android.content.Context;
 import android.util.Log;
 
-import com.jokrapp.android.IdentityManager;
+import com.jokrapp.android.user.IdentityManager;
 import com.amazonaws.regions.Regions;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 
 /**
  * The AWS Mobile Client bootstraps the application to make calls to AWS 

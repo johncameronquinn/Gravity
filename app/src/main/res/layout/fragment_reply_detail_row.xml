@@ -52,7 +52,7 @@
         android:id="@+id/reply_detail_row_image"
         android:layout_alignParentTop="true"
         android:layout_alignParentLeft="true"
-        android:visibility="visible"
+        android:visibility="gone"
         android:background="@color/image_bg"
         android:cropToPadding="false"
         android:layout_margin="5dp" />

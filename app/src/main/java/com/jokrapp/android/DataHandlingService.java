@@ -13,17 +13,12 @@ import android.util.Base64InputStream;
 import android.util.Log;
 import android.widget.Toast;
 
-import com.amazonaws.AmazonClientException;
-import com.amazonaws.AmazonServiceException;
 import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.mobileconnectors.s3.transferutility.TransferListener;
 import com.amazonaws.mobileconnectors.s3.transferutility.TransferObserver;
 import com.amazonaws.mobileconnectors.s3.transferutility.TransferState;
 import com.amazonaws.mobileconnectors.s3.transferutility.TransferUtility;
 import com.amazonaws.services.s3.AmazonS3Client;
-import com.amazonaws.services.s3.model.GetObjectRequest;
-import com.amazonaws.services.s3.model.S3Object;
-import com.amazonaws.services.s3.model.S3ObjectInputStream;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.android.gms.analytics.HitBuilders;
 import com.google.android.gms.analytics.Tracker;
@@ -41,11 +36,6 @@ import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream;
 
 import org.apache.commons.compress.utils.IOUtils;
-//import org.apache.http.HttpResponse;
-//import org.apache.http.client.ClientProtocolException;
-//import org.apache.http.client.HttpClient;
-//import org.apache.http.client.methods.HttpGet;
-//import org.apache.http.impl.client.DefaultHttpClient;
 
 import java.io.BufferedOutputStream;
 import java.io.ByteArrayInputStream;
@@ -56,7 +46,6 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.lang.ref.WeakReference;
 import java.net.HttpURLConnection;
 import java.net.InetAddress;
@@ -70,12 +59,12 @@ import java.nio.channels.NotYetConnectedException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Hashtable;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
-import java.util.concurrent.TransferQueue;
+
+import com.jokrapp.android.util.LogUtils;
 
 /**
  * Author/Copyright John C. Quinn, All Rights Reserved.
@@ -95,7 +84,7 @@ import java.util.concurrent.TransferQueue;
 public class DataHandlingService extends Service implements GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener, LocationListener, TransferListener {
     private static final String TAG = "DataHandlingService";
-    private static final boolean VERBOSE = true;
+    private static final boolean VERBOSE = false;
     private static final boolean ALLOW_DUPLICATES = false;
 
     private boolean isLocalRequesting = false;
@@ -234,15 +223,7 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
             }
 
             //todo this should use a more secure system involving amazon cognito
-            transferUtility =
-                    new TransferUtility(
-                            new AmazonS3Client(
-                                    new BasicAWSCredentials(
-                                            "AKIAIZ42NH277ZC764XQ",
-                                            "pMYCGMq+boy6858OfITL4CTXWgdkVbVreyROHckG"
-                                    )
-                            ),getApplicationContext()
-                    );
+            initializeTransferUtility();
 
 
 
@@ -281,6 +262,22 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
         Log.v(TAG, "exiting onDestroy...");
     }
 
+    public void initializeTransferUtility() {
+        if (VERBOSE) Log.v(TAG,"entering initializeTransferUtility...");
+
+        transferUtility =
+                new TransferUtility(
+                        new AmazonS3Client(
+                                new BasicAWSCredentials(
+                                        "AKIAIZ42NH277ZC764XQ",
+                                        "pMYCGMq+boy6858OfITL4CTXWgdkVbVreyROHckG"
+                                )
+                        ),getApplicationContext()
+                );
+
+        if (VERBOSE) Log.v(TAG,"exiting initializeTransferUtility...");
+    }
+
     public class initializeUserWithServer implements Runnable {
 
         private Thread currentThread;
@@ -309,24 +306,15 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
 
                 InputStream responseStream = conn.getInputStream();
                 if (responseStream == null) {
-                    Log.e(TAG, "No input stream was retreived from the connection... exiting...");
+                    Log.e(TAG, "No input stream was retrieved from the connection... exiting...");
                     return;
                 }
-/*
-                BufferedReader r = new BufferedReader(new InputStreamReader(responseStream));
-                StringBuilder total = new StringBuilder();
-                String line;
-                while ((line = r.readLine()) != null) {
-                    total.append(line);
-                }
-
-                Log.i(TAG,"initialize user returned " + total.toString());*/
 
                 ObjectMapper objectMapper = new ObjectMapper();
                 Map<String, Object> asMap = objectMapper.readValue(conn.getInputStream(), Map.class);
 
                 if (VERBOSE) {
-                    printMapToVerbose(asMap);
+                    LogUtils.printMapToVerbose(asMap, TAG);
                 }
 
                 userID = UUID.fromString(String.valueOf(asMap.get("id")));
@@ -356,7 +344,7 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
 
 
     private void createLocalPost(Bundle b) {
-        createLocalPost(b.getString(Constants.KEY_S3_KEY), mLocation);
+        createLocalPost(b.getString(Constants.KEY_S3_KEY), mLocation, b.getString(Constants.KEY_TEXT));
     }
 
     /***********************************************************************************************
@@ -379,7 +367,8 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
      * @param location  current location of the device
      */
     private void createLocalPost(final String imageKey,
-                                 final Location location) {
+                                 final Location location,
+                                 final String text) {
         Log.d(TAG, "entering handleActionSendImages...");
 
         new Thread(new Runnable() {
@@ -422,50 +411,6 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
 
 
                 try {
-                    //create the data into an input stream
-                    //  InputStream is = new FileInputStream(imageData);
-                    /**
-                     * create byte array output stream
-                     *
-                     * wrap in gzip stream
-                     *
-                     * wrap in b64 stream
-                     *
-                     * - byte by byte, will convert, then zip
-                     */
-
-                    //copy data from input stream to output stream
-/*
-            byte[] readData = IOUtils.toByteArray(is);
-
-
-            ByteArrayOutputStream bos = new ByteArrayOutputStream();
-            GzipCompressorOutputStream gos = new GzipCompressorOutputStream(bos);
-
-            gos.write(readData);
-            gos.flush();
-            gos.close();
-
-            String image = Base64.encodeToString(bos.toByteArray(), Base64.DEFAULT);*/
-
-
-                    //Log.d(TAG, "base64 encoded size is " + readData.length);
-                    //read data into a byte array
-                    //readData = IOUtils.toByteArray(new FileInputStream(imageData)); //todo using apache dependancy
-                    //Log.d(TAG, "byteArray size is " + readData.length);
-
-                    //ByteArrayOutputStream jsonStream = new ByteArrayOutputStream(readData.length);
-
-
-                    //String dataString = jsonStream.toString();
-
-                    //Log.d(TAG, dataString);
-/*
-            HttpClient client = new DefaultHttpClient();
-            HttpConnectionParams.setConnectionTimeout(client.getParams(), 10000); //Timeout Limit
-            HttpResponse response;
-            JSONObject json = new JSONObject();*/
-
 
                     JsonFactory jsonFactory = new JsonFactory();
                     JsonGenerator jGen = jsonFactory.
@@ -474,6 +419,7 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
                     jGen.writeStartObject();
                     jGen.writeNumberField("latitude", lat);
                     jGen.writeNumberField("longitude", lon);
+                    jGen.writeStringField(Constants.KEY_TEXT, text);
                     jGen.writeStringField(IMAGE_URL, imageKey);
                     jGen.writeEndObject();
                     jGen.flush();
@@ -652,23 +598,11 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
      *
      * @param filePath      the location the image is stored which is to be sent
      * @param messageTarget the UUID of the user to send the message to
-     * @param orientation   whether or not the server should rotate the image
      */
-    private void sendImageMessage(String filePath, String messageTarget, int orientation) {
+    private void sendImageMessage(String filePath, String messageTarget) {
         if (VERBOSE) {
             Log.v(TAG, "entering sendImageMessage...");
         }
-
-
-        //load image from file
-        //String image = loadImageForTransit(filePath);
-
-
-
-        /*if (image == null) {
-            Log.e(TAG, "image was not process properly for transit");
-            return;
-        }*/
 
         if (VERBOSE) Log.v(TAG, "creating url...");
 
@@ -722,12 +656,20 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
         }
     }
 
-    public void sendImageMessageAsync(final String filePath, final String messageTarget, final int orientation) {
+    public void sendImageMessageAsync(Bundle b) {
+        sendImageMessageAsync(b.getString(Constants.KEY_S3_KEY),b.getString(Constants.MESSAGE_TARGET));
+    }
+
+    public void sendImageMessageAsync(final String filePath, final String messageTarget) {
+        if (VERBOSE) {
+            Log.v(TAG,"entering sendImageMessageAsync with: " + filePath + ", " + messageTarget);
+        }
+
         new Thread(new Runnable() {
             @Override
             public void run() {
                 android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_BACKGROUND);
-                sendImageMessage(filePath, messageTarget, orientation);
+                sendImageMessage(filePath, messageTarget);
             }
         }).start();
     }
@@ -865,7 +807,10 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
      * @param filePath    the path of the thread image
      */
     private void createLiveThread(String name, String title, String description, String filePath) {
-        if (VERBOSE) Log.v(TAG, "creating live thread...");
+        if (VERBOSE) {
+            Log.v(TAG, "entering createLiveThread...");
+        }
+
         URL url = null;
         try {
             url = createURLtoServer(CREATE_LIVE_THREAD_PATH);
@@ -914,6 +859,11 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
         deleteFile(filePath.substring(filePath.lastIndexOf("/") + 1, filePath.length()));
     }
     private void createLiveThreadAsync(final Bundle b) {
+        if (VERBOSE) {
+            Log.v(TAG, "entering createLiveThreadAsync...");
+            com.jokrapp.android.util.LogUtils.printBundle(b, TAG);
+        }
+
         new Thread(new Runnable() {
             @Override
             public void run() {
@@ -925,6 +875,8 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
                 );
             }
         }).start();
+
+        if (VERBOSE) Log.v(TAG,"exiting createLiveThreadAsync...");
     }
 
     private void createLiveThreadAsync(final String name, final String title, final String description, final String filePath) {
@@ -1007,17 +959,6 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
         if (filePath != null) {
             deleteFile(filePath.substring(filePath.lastIndexOf("/") + 1, filePath.length()));
         }
-
-
-
-/*        if (responseCode == HttpURLConnection.HTTP_OK) {
-            Log.d(TAG, "server returned successful response" + responseCode);
-            Log.d(TAG, "now deleting image from internal storage...");
-
-        } else {
-            Log.e(TAG, "Sending failed for " + url.toString() +
-                    " response code: " + responseCode);
-        }*/
     }
 
 
@@ -1238,7 +1179,7 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
 
 
                 if (VERBOSE) {
-                    printMapToVerbose(map);
+                    LogUtils.printMapToVerbose(map, TAG);
                 }
 
                 //parcels map and reads as contentValues set, then passes to the content provider for insertion
@@ -1464,6 +1405,7 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
                     Log.d(TAG, "received a message to create a thread");
 
                     data = msg.getData();
+                    data.putInt(PENDING_TRANSFER_TYPE, MSG_CREATE_THREAD);
                     data.putString(Constants.KEY_S3_DIRECTORY, "live");
                     uploadImageToS3(data);
                     break;
@@ -1704,12 +1646,6 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
         return conn;
     }
 
-    private void printMapToVerbose(Map<String, Object> toPrint) {
-        Log.d(TAG, "printing map...");
-        for (Map.Entry<String, Object> entry : toPrint.entrySet()) {
-            Log.v(TAG, ":  " + entry.getKey() + ":  " + String.valueOf(entry.getValue()));
-        }
-    }
 
     /**
      * method "createURLtoServer"
@@ -2003,6 +1939,11 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
             Log.v(TAG,"uploading with key " + b.getString(Constants.KEY_S3_KEY));
         }
 
+        if (transferUtility == null) {
+            initializeTransferUtility();
+        }
+
+
         File file = new File(getCacheDir(),b.getString(Constants.KEY_S3_KEY));
 
         if (Constants.LOGD)
@@ -2024,6 +1965,10 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
             Log.v(TAG,"entering downloadImageFromS3...");
             Log.v(TAG,"download directory " + b.getString(Constants.KEY_S3_DIRECTORY));
             Log.v(TAG,"downloading from" + b.getString(Constants.KEY_S3_KEY));
+        }
+
+        if (transferUtility == null) {
+            initializeTransferUtility();
         }
 
         if (b.getString(Constants.KEY_S3_KEY)==null){
@@ -2113,15 +2058,28 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
                 switch (data.getInt(PENDING_TRANSFER_TYPE,-1)) {
                     case MSG_SEND_IMAGE:
 
-
                         createLocalPost(data);
+                        pendingMap.remove(id);
                         break;
 
                     case MSG_CREATE_THREAD:
 
-
                         createLiveThreadAsync(data);
+                        pendingMap.remove(id);
                         break;
+
+                    case MSG_REQUEST_MESSAGES:
+
+                        sendImageMessageAsync(data);
+                        pendingMap.remove(id);
+                        break;
+
+                    case MSG_REQUEST_LIVE_THREADS:
+                        break;
+
+                    default:
+                        Log.e(TAG,"no dynamic transfer type was provided... discarding...");
+                        pendingMap.remove(id);
 
                 }
 
