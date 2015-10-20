@@ -33,7 +33,7 @@ import java.util.concurrent.TimeUnit;
  * Finally, this class defines a handler that communicates back to the UI
  * thread to change the bitmap to reflect the state.
  */
-public class PhotoManager {
+public class StaticContentManager {
     /*
      * Status indicators
      */
@@ -94,7 +94,7 @@ public class PhotoManager {
     private Handler mHandler;
 
     // A single instance of PhotoManager, used to implement the singleton pattern
-    private static PhotoManager sInstance = null;
+    private static StaticContentManager sInstance = null;
 
     // A static block that sets class fields
     static {
@@ -103,13 +103,13 @@ public class PhotoManager {
         KEEP_ALIVE_TIME_UNIT = TimeUnit.SECONDS;
 
         // Creates a single static instance of PhotoManager
-        sInstance = new PhotoManager();
+        sInstance = new StaticContentManager();
     }
     /**
      * Constructs the work queues and thread pools used to download and decode images.
      */
-    private PhotoManager() {
-        if (Constants.LOGV) Log.v(TAG,"entering PhotoManager constructor...");
+    private StaticContentManager() {
+        if (Constants.LOGV) Log.v(TAG,"entering StaticContentManager constructor...");
 
         /*
          * Creates a work queue for the pool of Thread objects used for downloading, using a linked
@@ -244,14 +244,14 @@ public class PhotoManager {
             }
         };
 
-        if (Constants.LOGV) Log.v(TAG,"exiting PhotoManager constructor...");
+        if (Constants.LOGV) Log.v(TAG,"exiting StaticContentManager constructor...");
     }
 
     /**
      * Returns the PhotoManager object
      * @return The global PhotoManager object
      */
-    public static PhotoManager getInstance() {
+    public static StaticContentManager getInstance() {
 
         return sInstance;
     }
@@ -393,7 +393,7 @@ public class PhotoManager {
         }
 
         // Initializes the task
-        downloadTask.initializeDownloaderTask(PhotoManager.sInstance, imageView, cacheFlag);
+   //     downloadTask.initializeDownloaderTask(StaticContentManager.sInstance, imageView, cacheFlag);
 
         /*
          * Provides the download task with the cache buffer corresponding to the URL to be

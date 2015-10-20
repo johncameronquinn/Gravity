@@ -29,6 +29,9 @@ import java.lang.ref.WeakReference;
  *
  *  Created by John C. Quinn on 8/20/15.
  *
+ *  Represents a single live thread
+ *
+ *  instantiated from {@link CursorPagerAdapter}
  */
 public class LiveThreadFragment extends Fragment implements View.OnClickListener {
 
@@ -197,6 +200,9 @@ public class LiveThreadFragment extends Fragment implements View.OnClickListener
 
         }).start();*/
 
+        /*
+         * Starts the query for the incoming image,
+         */
 
         new Thread(new Runnable() {
             @Override

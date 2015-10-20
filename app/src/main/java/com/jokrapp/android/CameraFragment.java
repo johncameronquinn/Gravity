@@ -342,7 +342,7 @@ n  */
         }
 
 
-        TextureView mPreview = (TextureView) getView().findViewById(R.id.cameraSurfaceView);
+        TextureView mPreview = (TextureView) view.findViewById(R.id.cameraSurfaceView);
         Log.d(TAG, "setting surface texture listener to cameraHandler");
 
         MainActivity activity = (MainActivity) getActivity();

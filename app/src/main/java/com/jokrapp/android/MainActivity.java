@@ -1150,7 +1150,7 @@ I*/
     private static SurfaceTexture mSurface;
 
     /**
-     * static class 'CameraHandler'
+     * class 'CameraHandler'
      *
      * Handles camera operation requests from other threads.  Necessary because the Camera
      * must only be accessed from one thread.
@@ -1297,6 +1297,7 @@ I*/
                 }
 
                 if (mSurface != null) {
+                    surface.release();
                     mSurface.release();
                     mSurface = null;
                 }

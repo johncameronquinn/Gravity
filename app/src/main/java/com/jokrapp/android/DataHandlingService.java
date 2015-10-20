@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.BitmapFactory;
 import android.location.Location;
+import android.net.Network;
 import android.net.Uri;
 import android.os.*;
 
@@ -14,6 +15,7 @@ import android.util.Log;
 import android.widget.Toast;
 
 import com.amazonaws.auth.BasicAWSCredentials;
+import com.amazonaws.mobileconnectors.cognito.exceptions.NetworkException;
 import com.amazonaws.mobileconnectors.s3.transferutility.TransferListener;
 import com.amazonaws.mobileconnectors.s3.transferutility.TransferObserver;
 import com.amazonaws.mobileconnectors.s3.transferutility.TransferState;
@@ -47,6 +49,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.ref.WeakReference;
+import java.net.ConnectException;
 import java.net.HttpURLConnection;
 import java.net.InetAddress;
 import java.net.MalformedURLException;
@@ -395,18 +398,13 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
 
                 int status = -1; //status of the image sent
                 int responseCode = -1;
-                URL url = null;
-                try {
-                    url = createURLtoServer(UPLOAD_LOCAL_POST_PATH);
-                } catch (MalformedURLException e) {
-                    Log.e(TAG, "error creating url to post to local", e);
-                }
-                HttpURLConnection conn = openConnectionToURL(url);
 
-                if (conn == null || imageKey == null) {
-                    //todo broadcast this
-                    Log.d(TAG, "failed to prepare to post to local");
-                    return;
+                HttpURLConnection conn;
+                try {
+                    conn = connectToServer(UPLOAD_LOCAL_POST_PATH);
+                } catch (ConnectException e) {
+                    Log.e(TAG,"failed to connect to the server... quitting...");
+                    throw new RuntimeException();
                 }
 
 
@@ -470,7 +468,7 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
      * <p/>
      * the client then waits for a reply of images, saving each one
      * - the reply comes in the form of a JSONArray, with position 0 as the count
-     * of images incoming. Each image and associated data is its own json object
+     * of images incoming. Each image and associated data is its own json objec
      * the array is decoded, and the objects are saved to separate files in the internal storage
      * based on ID of the image.
      *
@@ -498,17 +496,13 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
 
         int responseCode = 0;
 
-        URL url = null;
-        try {
-            url = createURLtoServer(GET_LOCAL_POST_PATH);
-        } catch (MalformedURLException e) {
-            Log.d(TAG, "error creating url to get local posts", e);
-        }
-        HttpURLConnection conn = openConnectionToURL(url);
 
-        if (conn == null) {
-            //todo broadcast this
-            return;
+        HttpURLConnection conn;
+        try {
+            conn = connectToServer(GET_LOCAL_POST_PATH);
+        } catch (ConnectException e) {
+            Log.e(TAG,"failed to connect to the server... quitting...");
+            throw new RuntimeException();
         }
 
         try {
@@ -606,19 +600,15 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
 
         if (VERBOSE) Log.v(TAG, "creating url...");
 
-        URL url = null;
+
+        HttpURLConnection conn;
         try {
-            url = createURLtoServer(SEND_LOCAL_MESSAGE_PATH);
-        } catch (MalformedURLException e) {
-            Log.e(TAG, "MalformedURL", e);
-            return;
+            conn = connectToServer(SEND_LOCAL_MESSAGE_PATH);
+        } catch (ConnectException e) {
+            Log.e(TAG,"failed to connect to the server... quitting...");
+            throw new RuntimeException();
         }
 
-        HttpURLConnection conn = openConnectionToURL(url);
-        if (conn == null) {
-            //todo broadcast this
-            return;
-        }
 
         int responseCode = -1;
 
@@ -651,13 +641,11 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
             Log.d(TAG, "now deleting image from internal storage...");
             deleteFile(filePath.substring(filePath.lastIndexOf("/") + 1, filePath.length()));
         } else {
-            Log.e(TAG, "Sending failed for " + url.toString() +
-                    " response code: " + responseCode);
         }
     }
 
     public void sendImageMessageAsync(Bundle b) {
-        sendImageMessageAsync(b.getString(Constants.KEY_S3_KEY),b.getString(Constants.MESSAGE_TARGET));
+        sendImageMessageAsync(b.getString(Constants.KEY_S3_KEY), b.getString(Constants.MESSAGE_TARGET));
     }
 
     public void sendImageMessageAsync(final String filePath, final String messageTarget) {
@@ -686,19 +674,14 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
             Log.v(TAG, "enter requestLocalMessages...");
         }
 
-        URL url = null;
+        HttpURLConnection conn;
         try {
-            url = createURLtoServer(GET_LOCAL_MESSAGES_PATH);
-        } catch (MalformedURLException e) {
-            Log.e(TAG, "MalformedURL", e);
-            return;
+            conn = connectToServer(GET_LOCAL_MESSAGES_PATH);
+        } catch (ConnectException e) {
+            Log.e(TAG,"failed to connect to the server... quitting...");
+            throw new RuntimeException();
         }
 
-        HttpURLConnection conn = openConnectionToURL(url);
-        if (conn == null) {
-            //todo broadcast this
-            return;
-        }
 
 
         try {
@@ -746,17 +729,13 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
         }
         Log.d(TAG, "Received a request to block user " + userToBlock);
 
-        URL url;
+
+        HttpURLConnection conn;
         try {
-            url = createURLtoServer(BLOCK_LOCAL_USER_PATH);
-        } catch (MalformedURLException e) {
-            Log.e(TAG, "MalformedURL", e);
-            return;
-        }
-        HttpURLConnection conn = openConnectionToURL(url);
-        if (conn == null) {
-            //todo broadcast this
-            return;
+            conn = connectToServer(BLOCK_LOCAL_USER_PATH);
+        } catch (ConnectException e) {
+            Log.e(TAG,"failed to connect to the server... quitting...");
+            throw new RuntimeException();
         }
 
 
@@ -811,22 +790,13 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
             Log.v(TAG, "entering createLiveThread...");
         }
 
-        URL url = null;
+
+        HttpURLConnection conn;
         try {
-            url = createURLtoServer(CREATE_LIVE_THREAD_PATH);
-        } catch (MalformedURLException e) {
-            Log.e(TAG, "MalformedURL", e);
-            return;
-        }
-
-        if (VERBOSE) Log.v(TAG, "opening connection to server...");
-
-        int responseCode = -1;
-
-        HttpURLConnection conn = openConnectionToURL(url);
-        if (conn == null) {
-            //todo broadcast this
-            return;
+            conn = connectToServer(CREATE_LIVE_THREAD_PATH);
+        } catch (ConnectException e) {
+            Log.e(TAG,"failed to connect to the server... quitting...");
+            throw new RuntimeException();
         }
 
         try {
@@ -910,22 +880,12 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
             }
         }
 
-        URL url = null;
+        HttpURLConnection conn;
         try {
-            url = createURLtoServer(REPLY_LIVE_THREAD_PATH);
-        } catch (MalformedURLException e) {
-            Log.e(TAG, "MalformedURL", e);
-            return;
-        }
-
-        if (VERBOSE) Log.v(TAG, "opening connection to server...");
-
-        int responseCode = -1;
-
-        HttpURLConnection conn = openConnectionToURL(url);
-        if (conn == null) {
-            //todo this should broadcast
-            return;
+            conn = connectToServer(REPLY_LIVE_THREAD_PATH);
+        } catch (ConnectException e) {
+            Log.e(TAG,"failed to connect to the server... quitting...");
+            throw new RuntimeException();
         }
 
         try {
@@ -982,15 +942,13 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
             Log.v(TAG, "enter requestLiveThreads...");
         }
 
-        URL url = null;
+        HttpURLConnection conn;
         try {
-            url = createURLtoServer(GET_LIVE_THREAD_LIST);
-        } catch (MalformedURLException e) {
-            Log.e(TAG, "MalformedURL", e);
-            return;
+            conn = connectToServer(GET_LIVE_THREAD_LIST);
+        } catch (ConnectException e) {
+            Log.e(TAG,"failed to connect to the server... quitting...");
+            throw new RuntimeException();
         }
-
-        HttpURLConnection conn = openConnectionToURL(url);
 
 
         try {
@@ -1048,16 +1006,13 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
             Log.v(TAG, "enter requestLiveReplies...");
         }
 
-        URL url = null;
+        HttpURLConnection conn;
         try {
-            url = createURLtoServer(GET_LIVE_THREAD_REPLIES);
-        } catch (MalformedURLException e) {
-            Log.e(TAG, "MalformedURL", e);
-            return;
+            conn = connectToServer(GET_LIVE_THREAD_REPLIES);
+        } catch (ConnectException e) {
+            Log.e(TAG,"failed to connect to the server... quitting...");
+            throw new RuntimeException();
         }
-
-        HttpURLConnection conn = openConnectionToURL(url);
-
 
         try {
             if (VERBOSE) Log.v(TAG, "opening outputStream to send JSON...");
@@ -1257,6 +1212,7 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
     static final int MSG_REQUEST_CONSTANT_UPDATES = 4;
 
     static final int MSG_SEND_IMAGE = 5;
+    static final int MSG_SEND_MESSAGE = 19;
 
     static final int MSG_REQUEST_LOCAL_POSTS = 6;
 
@@ -1353,7 +1309,7 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
                         //irs.get().createLocalPost(filePath, mLocation);
                     } else {
                         Log.d(TAG, "sending Message to user: " + messageTarget);
-                        data.putInt(PENDING_TRANSFER_TYPE, MSG_SEND_IMAGE);
+                        data.putInt(PENDING_TRANSFER_TYPE, MSG_SEND_MESSAGE);
                         data.putString(Constants.KEY_S3_DIRECTORY, "message");
                         //irs.get().sendImageMessageAsync(filePath, messageTarget, msg.arg1);
                     }
@@ -1604,17 +1560,12 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
      * @param url the url to connect to
      * @return the prepared URL for input and output, or null if an error occurred
      */
-    private HttpURLConnection openConnectionToURL(URL url) {
+    private HttpURLConnection openConnectionToURL(URL url) throws IOException {
 
         URLConnection urlconn;
 
-        try {
-            urlconn = url.openConnection();
-        } catch (IOException e) {
-            Log.e(TAG, "error opening connection to url... exiting....");
-            //todo readd to message queue
-            return null;
-        }
+        urlconn = url.openConnection();
+
 
         if (VERBOSE) Log.v(TAG, "connection opened to " + urlconn.toString());
 
@@ -1623,13 +1574,7 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
         conn.setConnectTimeout(CONNECT_TIMEOUT);
 
 
-        try {
-            conn.setRequestMethod("POST");
-        } catch (ProtocolException e) {
-            Log.e(TAG, "failed to set protocol ot post... exiting...");
-            //todo readd to message quere
-            return null;
-        }
+        conn.setRequestMethod("POST");
         conn.setDoInput(true);
         conn.setDoOutput(true);
         conn.setRequestProperty("Accept", "application/json");
@@ -1637,14 +1582,70 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
         conn.setRequestProperty("X-Client-UserID", userID.toString());
         conn.setUseCaches(false);
 
-/*        Map<String,List<String>> map = conn.getHeaderFields();
-        for (Map.Entry<String,List<String>> e : map.entrySet()) {
-            Log.v(TAG,"Key is: " + e.getKey() + ". Printing values:");
-            for (String s : e.getValue()) {
-                Log.v(TAG,s);
-            }
-        }*/
 
+        return conn;
+    }
+
+
+    private HttpURLConnection connectToServer(String serverPath) throws ConnectException {
+        return connectToServer(serverPath,0);
+    }
+
+
+    /**
+     * method 'connectToServer'
+     *
+     * attempts to open up a connection to the server with the provided path
+     *
+     * @param serverPath the path to connect to
+     * @return the open connection, ready for JSON transmission
+     */
+    private HttpURLConnection connectToServer(String serverPath, int attempt) throws ConnectException {
+        if (VERBOSE) {
+            Log.v(TAG,"attempting to connect to: " + serverPath + " attempt " + attempt);
+        }
+
+        final int MAX_CONNECTION_ATTEMPTS = 5;
+
+        attempt = attempt + 1;
+
+        HttpURLConnection conn;
+
+        URL url;
+        try {
+            url = createURLtoServer(serverPath);
+        } catch (MalformedURLException e) {
+            throw new RuntimeException();
+        }
+
+        try {
+            conn = openConnectionToURL(url);
+        } catch (IOException e) {
+            Log.e(TAG,"attempt failed, attempt number: " + attempt,e);
+            if (attempt <= MAX_CONNECTION_ATTEMPTS) {
+                Double delay = (Math.pow(attempt, 2) * 1000);
+
+                Log.w(TAG," waiting " + delay + " milliseconds before retry...");
+                try {
+                    Thread.sleep(delay.longValue());
+                } catch (InterruptedException es) {
+                    throw new NetworkOnMainThreadException();
+                }
+
+                return connectToServer(serverPath, attempt + 1);
+            } else {
+                Log.e(TAG, "attempt count exceeded maximum allowed: " + attempt + " cancelling.");
+                throw new ConnectException();
+            }
+
+
+        }
+
+
+
+        if (VERBOSE) {
+            Log.v(TAG,"connection opened successfully :-)");
+        }
         return conn;
     }
 
@@ -1990,7 +1991,7 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
         );
 
 
-        //pendingMap.put(observer.getId(),b);
+        pendingMap.put(observer.getId(),b);
         observer.setTransferListener(this);
     }
 
@@ -2029,6 +2030,21 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
     }
 
 
+    /**
+     * method 'onStateChanged'
+     *
+     * callback from the high level AWS TransferObserver
+     *
+     * currently, sending and receiving are handled very differently in regards to static content
+     *
+     * for sending, the dynamic content is only sent to the server upon success confirmation from
+     * AWS
+     *
+     * for receiving, as soon as the dynamic content is received, the static is also received.
+     *
+     * @param id
+     * @param state
+     */
     @Override
     public void onStateChanged(int id, TransferState state) {
         if (VERBOSE) {
@@ -2052,7 +2068,7 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
 
             case COMPLETED:
                 if (VERBOSE) {
-                    Log.v(TAG,"static content successfully sent");
+                    Log.v(TAG,"static content successfully transferred");
                 }
                 //get the data pending data for this transfer ID
                 Bundle data = pendingMap.get(id);
@@ -2060,28 +2076,42 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
                 if (data == null) {
                     Log.e(TAG,"incoming bundle was null");
                     break;
+                } else if (VERBOSE){
+                    LogUtils.printBundle(data,TAG);
                 }
+
                 switch (data.getInt(PENDING_TRANSFER_TYPE,-1)) {
                     case MSG_SEND_IMAGE:
 
                         createLocalPost(data);
-                        pendingMap.remove(id);
                         break;
 
                     case MSG_CREATE_THREAD:
 
                         createLiveThreadAsync(data);
-                        pendingMap.remove(id);
+                        break;
+
+                    case MSG_SEND_MESSAGE:
+
+                        sendImageMessageAsync(data);
+                        break;
+
+                    case MSG_REQUEST_LIVE_THREADS:
+
+                        break;
+
+                    case MSG_REQUEST_LOCAL_POSTS:
+
+                        break;
+
+                    case MSG_REQUEST_REPLIES:
+
                         break;
 
                     case MSG_REQUEST_MESSAGES:
 
-                        sendImageMessageAsync(data);
-                        pendingMap.remove(id);
                         break;
 
-                    case MSG_REQUEST_LIVE_THREADS:
-                        break;
 
                     default:
                         Log.e(TAG,"no dynamic transfer type was provided... discarding...");
@@ -2089,6 +2119,7 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
 
                 }
 
+                pendingMap.remove(id);
 
                 break;
         }
