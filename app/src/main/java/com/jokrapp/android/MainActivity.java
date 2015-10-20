@@ -46,6 +46,8 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.amazonaws.mobileconnectors.s3.transferutility.TransferListener;
+import com.amazonaws.mobileconnectors.s3.transferutility.TransferState;
 import com.google.android.gms.analytics.Tracker;
 import com.jokrapp.android.user.IdentityManager;
 
@@ -1054,6 +1056,23 @@ I*/
         Log.i(TAG,"requesting a new live thread list...");
         if (isBound) {
             Message msg = Message.obtain(null, DataHandlingService.MSG_REQUEST_LIVE_THREADS);
+            try {
+                mService.send(msg);
+            } catch (RemoteException e) {
+                Log.e(TAG,"error sending message to create request live threads",e);
+            }
+        }
+    }
+
+    public void sendMsgDownloadImage(String s3Directory, String s3Key) {
+        Log.i(TAG,"send a message download image...");
+        if (isBound) {
+            Message msg = Message.obtain(null, DataHandlingService.MSG_REQUEST_LIVE_THREADS);
+            Bundle b = new Bundle(2);
+            b.putString(Constants.KEY_S3_KEY,s3Key);
+            b.putString(Constants.KEY_S3_DIRECTORY,s3Directory);
+            msg.setData(b);
+
             try {
                 mService.send(msg);
             } catch (RemoteException e) {
@@ -2277,7 +2296,7 @@ I*/
 
 
     public void onDeveloperInteraction(int request, Uri resource) {
-        Log.i(TAG,"entering onDeveloperInteraction with request- " + request + " and resource - " + resource.toString());
+        Log.i(TAG, "entering onDeveloperInteraction with request- " + request + " and resource - " + resource.toString());
     }
 
 

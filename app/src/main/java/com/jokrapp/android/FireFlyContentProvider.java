@@ -431,7 +431,9 @@ public class FireFlyContentProvider extends ContentProvider {
     }
 
     @Override
-    public Uri insert(Uri uri, ContentValues values) {int uriType = sURIMatcher.match(uri);
+    public Uri insert(Uri uri, ContentValues values) {
+        int uriType = sURIMatcher.match(uri);
+
         SQLiteDatabase sqlDB = database.getWritableDatabase();
         long id = 0;
         switch (uriType) {
@@ -482,6 +484,7 @@ public class FireFlyContentProvider extends ContentProvider {
             default:
                 throw new IllegalArgumentException("Unknown URI: " + uri);
         }
+
         getContext().getContentResolver().notifyChange(uri, null);
         return Uri.parse(uriType + "/" + id);
     }

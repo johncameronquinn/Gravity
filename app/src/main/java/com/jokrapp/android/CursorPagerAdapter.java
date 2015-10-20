@@ -8,6 +8,7 @@ import android.database.Cursor;
 import android.os.Bundle;
 import android.app.Fragment;
 import android.app.FragmentManager;
+import android.os.Parcelable;
 import android.support.v13.app.FragmentStatePagerAdapter;
 
 

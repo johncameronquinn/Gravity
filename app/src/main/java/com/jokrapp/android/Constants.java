@@ -22,6 +22,7 @@ public final class Constants {
     public static final String SHARED_PREFERENCES_NAME = "settings";
 
 
+    public static final String ACTION_IMAGE_LOADED = "com.jokrapp.android.IMAGELOADED";
 
     /** threadSample
      */

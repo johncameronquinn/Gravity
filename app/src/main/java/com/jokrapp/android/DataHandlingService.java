@@ -87,7 +87,7 @@ import com.jokrapp.android.util.LogUtils;
 public class DataHandlingService extends Service implements GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener, LocationListener, TransferListener {
     private static final String TAG = "DataHandlingService";
-    private static final boolean VERBOSE = false;
+    private static final boolean VERBOSE = true;
     private static final boolean ALLOW_DUPLICATES = false;
 
     private boolean isLocalRequesting = false;
@@ -1116,9 +1116,9 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
                             map.put("url",downloadImageFromURL(cont));
                             Log.i(TAG,"this was a url, and not from AWS... lets just get it");
                         } else {
-                            b.putString("url", cont);
-                            b.putString(Constants.KEY_S3_KEY, cont);
-                            downloadImageFromS3(b);
+                            //b.putString("url", cont);
+                            //b.putString(Constants.KEY_S3_KEY, cont);
+                            //downloadImageFromS3(b);
                             map.put("url",cont);
                         }
                     }
@@ -1396,6 +1396,10 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
 
                 case MSG_DOWNLOAD_IMAGE:
                     Log.d(TAG, "received a message to download an image...");
+
+                    data = msg.getData();
+                    downloadImageFromS3(data);
+
                     break;
 
                 default:
@@ -1640,8 +1644,6 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
 
 
         }
-
-
 
         if (VERBOSE) {
             Log.v(TAG,"connection opened successfully :-)");
@@ -1936,10 +1938,8 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
 
     public void uploadImageToS3(Bundle b) {
         if (VERBOSE) {
-            Log.v(TAG,"uploading to directory " + Constants.KEY_S3_DIRECTORY);
             Log.v(TAG,"entering uploadImageToS3...");
-            Log.v(TAG,"uploading to directory " + b.getString(Constants.KEY_S3_DIRECTORY));
-            Log.v(TAG,"uploading with key " + b.getString(Constants.KEY_S3_KEY));
+            LogUtils.printBundle(b,TAG);
         }
 
         if (transferUtility == null) {
@@ -1951,7 +1951,7 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
 
         if (Constants.LOGD)
             Log.d(TAG,"uploading image to s3 with key: " + b.getString(Constants.KEY_S3_KEY));
-        Log.d(TAG,"uploading image from file" + file.getPath());
+        Log.d(TAG, "uploading image from file" + file.getPath());
 
         TransferObserver observer = transferUtility.upload(
                 BUCKET_NAME,     /* The bucket to upload to */
@@ -1959,15 +1959,19 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
                 file /* The file where the data to upload exists */
         );
 
-        pendingMap.put(observer.getId(),b);
+        pendingMap.put(observer.getId(), b);
         observer.setTransferListener(this);
+
+
+        if (VERBOSE) {
+            Log.v(TAG,"exiting uploadImageToS3...");
+        }
     }
 
     public void downloadImageFromS3(Bundle b) {
         if (VERBOSE) {
             Log.v(TAG,"entering downloadImageFromS3...");
-            Log.v(TAG,"download directory " + b.getString(Constants.KEY_S3_DIRECTORY));
-            Log.v(TAG,"downloading from " + b.getString(Constants.KEY_S3_KEY));
+            LogUtils.printBundle(b,TAG);
         }
 
         if (transferUtility == null) {
@@ -1991,8 +1995,13 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
         );
 
 
-        pendingMap.put(observer.getId(),b);
+        pendingMap.put(observer.getId(), b);
         observer.setTransferListener(this);
+
+
+        if (VERBOSE) {
+            Log.v(TAG,"exiting downloadImageFromS3...");
+        }
     }
 
     public String downloadImageFromURL(String url) {
@@ -2109,6 +2118,14 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
                         break;
 
                     case MSG_REQUEST_MESSAGES:
+
+                        break;
+
+                    case MSG_DOWNLOAD_IMAGE:
+
+                        Intent intent = new Intent(Constants.ACTION_IMAGE_LOADED);
+                        intent.putExtras(data);
+                        sendBroadcast(intent);
 
                         break;
 

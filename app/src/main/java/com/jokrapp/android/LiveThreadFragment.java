@@ -1,6 +1,11 @@
 package com.jokrapp.android;
 
+import android.app.Activity;
 import android.app.Fragment;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
@@ -21,6 +26,7 @@ import android.widget.TextView;
 import com.jokrapp.android.SQLiteDbContract.LiveThreadEntry;
 import android.widget.Toast;
 
+import java.io.File;
 import java.io.IOException;
 import java.lang.ref.WeakReference;
 
@@ -45,9 +51,15 @@ public class LiveThreadFragment extends Fragment implements View.OnClickListener
     private String unique;
     private String replies;
 
-    private WeakReference<Handler> progressHandlerReference;
     private ImageView displayView;
     private Bitmap image;
+    private ProgressBar progressBar;
+
+    private static final String IMAGE_KEY = "bitmap";
+
+    public WeakReference<Thread> imageLoaderThreadReference = new WeakReference(null);
+
+    public LiveThreadReceiver receiver;
 
     Handler imageLoadHandler = new Handler();
 
@@ -80,11 +92,29 @@ public class LiveThreadFragment extends Fragment implements View.OnClickListener
         return f;
     }
 
+
     public LiveThreadFragment() {
     }
 
     public String getThreadID(){
         return threadID;
+    }
+
+    @Override
+    public void onAttach(Activity activity) {
+        super.onAttach(activity);
+
+        receiver = new LiveThreadReceiver();
+        IntentFilter filter = new IntentFilter(Constants.ACTION_IMAGE_LOADED);
+        activity.registerReceiver(receiver, filter);
+
+
+    }
+
+    @Override
+    public void onDetach() {
+        super.onDetach();
+        getActivity().unregisterReceiver(receiver);
     }
 
     @Override
@@ -126,6 +156,11 @@ public class LiveThreadFragment extends Fragment implements View.OnClickListener
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+        if (savedInstanceState!=null) {
+            image = savedInstanceState.getParcelable(IMAGE_KEY);
+        }
+
+
         return inflater.inflate(R.layout.fragment_live_thread,container,false);
     }
 
@@ -139,6 +174,7 @@ public class LiveThreadFragment extends Fragment implements View.OnClickListener
         super.onSaveInstanceState(outState);
         if (LiveFragment.VERBOSE) Log.v(TAG, "entering onSaveInstanceState...");
 
+        outState.putParcelable(IMAGE_KEY, image);
 
         if (LiveFragment.VERBOSE) Log.v(TAG, "exiting onSaveInstanceState...");
     }
@@ -147,7 +183,6 @@ public class LiveThreadFragment extends Fragment implements View.OnClickListener
     public void onViewStateRestored(Bundle savedInstanceState) {
         super.onViewStateRestored(savedInstanceState);
         if (LiveFragment.VERBOSE) Log.v(TAG, "entering onViewStateRestored...");
-
 
 
         if (LiveFragment.VERBOSE) Log.v(TAG,"exiting onViewStateRestored...");
@@ -169,66 +204,42 @@ public class LiveThreadFragment extends Fragment implements View.OnClickListener
         view.findViewById(R.id.live_thread_text).setOnClickListener(this);
 
 
+
         displayView = ((ImageView) view.findViewById(R.id.live_thread_imageView));
-
-        // new LiveThreadLoadingTask((ImageView) view.findViewById(R.id.live_thread_imageView)).
-        //         execute(threadFilePath);
-
-       /* new Thread(new Runnable() {
-            @Override
-            public void run() {
-
-                Uri uri = Uri.withAppendedPath(FireFlyContentProvider
-                        .CONTENT_URI_LIVE_THREAD_LIST,String.valueOf(threadID));
-                try {
-                    if (isAdded()) {
-                        image = BitmapFactory.decodeStream(getActivity()
-                                .getContentResolver()
-                                .openInputStream(uri));
-                        imageLoadHandler.post(new Runnable() {
-
-                            public void run() {
-                                displayView.setImageBitmap(image);
-
-                            }
-                        });
-                    }
-                } catch (IOException e) {
-                    Log.e(TAG, "file returned from content provider was not found - Uri: " + uri.toString(), e);
-                }
-            }
-
-        }).start();*/
+        progressBar = ((ProgressBar)view.findViewById(R.id.threadprogressbar));
 
         /*
-         * Starts the query for the incoming image,
+         * No saved image was loaded, load from file or request
          */
+        if (image == null) {
 
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-
-                if (isAdded()) {
-
-                    image = BitmapFactory.decodeFile(getActivity().getCacheDir().toString()+"/"+threadFilePath);
-
-                    imageLoadHandler.post(new Runnable() {
-
-                        public void run() {
-                            displayView.setImageBitmap(image);
-                        }
-
-                    });
-
-                }
-
+            if (LiveFragment.VERBOSE) {
+                Log.v(TAG,"loading image was null, attempting to decode from exposed filepath");
             }
 
-        }).start();
+            File file = new File(getActivity().getCacheDir().toString() + "/" + threadFilePath);
+            if (file.exists() && imageLoaderThreadReference.get() == null) {
 
+                Log.i(TAG, "filepath exists and no other images are being decoded");
+                imageLoaderThreadReference =
+                        new WeakReference<>(new Thread(new ImageLoaderRunnable(threadFilePath)));
+                imageLoaderThreadReference.get().start();
+            } else {
+                if (LiveFragment.VERBOSE) {
+                    Log.v(TAG,"requested image has not yet been downloaded... requesting: "
+                            + threadFilePath);
+                }
 
+                ((MainActivity)getActivity()).sendMsgDownloadImage("live",threadFilePath);
+            }
 
-
+        } else {
+            if (LiveFragment.VERBOSE) {
+                Log.v(TAG,"Image was not null, setting...");
+            }
+            displayView.setImageBitmap(image);
+            progressBar.setVisibility(View.INVISIBLE);
+        }
 
         if (LiveFragment.VERBOSE) Log.v(TAG,"exiting onViewCreated...");
     }
@@ -251,10 +262,6 @@ public class LiveThreadFragment extends Fragment implements View.OnClickListener
                 v.setVisibility(View.INVISIBLE);
                 break;
         }
-    }
-
-    public void setProgressHandler(Handler handler) {
-        progressHandlerReference = new WeakReference<>(handler);
     }
 
     private class LiveThreadLoadingTask extends AsyncTask<String,Integer,Bitmap> {
@@ -284,4 +291,56 @@ public class LiveThreadFragment extends Fragment implements View.OnClickListener
 
         }
     }
+
+    public class LiveThreadReceiver extends BroadcastReceiver {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if (LiveFragment.VERBOSE) {
+                Log.v(TAG,"received intent...");
+            }
+
+            String path = intent.getExtras().getString(Constants.KEY_S3_KEY);
+
+            if (imageLoaderThreadReference.get() == null) {
+                imageLoaderThreadReference = new WeakReference<>(new Thread(new ImageLoaderRunnable(path)));
+            } else {
+                imageLoaderThreadReference.get().interrupt();
+                imageLoaderThreadReference = new WeakReference<>(new Thread(new ImageLoaderRunnable(path)));
+            }
+
+            imageLoaderThreadReference.get().start();
+        }
+    }
+
+    private class ImageLoaderRunnable implements Runnable {
+
+        String filepath;
+
+        public ImageLoaderRunnable(String path) {
+            filepath = path;
+        }
+
+        @Override
+        public void run() {
+
+                if (!Thread.interrupted()) {
+                    image = BitmapFactory.decodeFile(getActivity().getCacheDir().toString() + "/" + filepath);
+
+                    imageLoadHandler.post(new Runnable() {
+
+                        public void run() {
+                            if (isVisible()) {
+                                progressBar.setVisibility(View.INVISIBLE);
+                                displayView.setImageBitmap(image);
+                            }
+                        }
+
+                    });
+                } else {
+                    Log.i(TAG,"thread was interrupted... canceling...");
+                }
+        }
+    }
+
+
 }

@@ -17,10 +17,13 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.app.Fragment;
 import android.os.Handler;
+import android.os.Parcelable;
 import android.provider.MediaStore;
 import android.support.v13.app.FragmentStatePagerAdapter;
 import android.support.v4.view.ViewPager;
+import android.text.ParcelableSpan;
 import android.util.Log;
+import android.util.SparseArray;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -48,7 +51,7 @@ import com.jokrapp.android.SQLiteDbContract.LiveThreadEntry;
  */
 public class LiveFragment extends Fragment implements
         LoaderManager.LoaderCallbacks<Cursor>, ViewPager.OnPageChangeListener {
-    public static final boolean VERBOSE = false;
+    public static final boolean VERBOSE = true;
     private static final String TAG = "LiveFragment";
 
     // TODO: Rename parameter arguments, choose names that match
@@ -57,7 +60,8 @@ public class LiveFragment extends Fragment implements
     private static final String ARG_ADAPTER = "ada";
 
     private final String CURRENT_THREAD_KEY = "threadkey";
-    private final String THREAD_PAGER_KEY = "pagerkey";
+   // private final String THREAD_PAGER_KEY = "pagerkey";
+    private final String VIEW_HACK_KEY = "pagerkey";
 
     private final int LIVE_LOADER_ID = 1;
     private int numberOfThreads;
@@ -200,11 +204,16 @@ public class LiveFragment extends Fragment implements
         super.onSaveInstanceState(outState);
         if (VERBOSE) Log.v(TAG,"entering onSaveInstanceState...");
         outState.putInt(CURRENT_THREAD_KEY, currentThread);
+    //    outState.putInt(THREAD_PAGER_KEY, threadPager.getCurrentItem());
+
+        /*View v = threadPager.getChildAt(threadPager.getCurrentItem());
+        SparseArray<Parcelable> viewsave = new SparseArray<>();
+        v.saveHierarchyState(viewsave);
+        outState.putSparseParcelableArray(VIEW_HACK_KEY, viewsave);*/
+
 
         if (VERBOSE) Log.v(TAG,"exiting onSaveInstanceState...");
     }
-
-
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -242,6 +251,17 @@ public class LiveFragment extends Fragment implements
         threadPager.setOnPageChangeListener(this);
         threadPager.setAdapter(mAdapter);
 
+
+        if (savedInstanceState != null) {
+            Log.d(TAG,"savedState was not null");
+//            int instate = savedInstanceState.getInt(THREAD_PAGER_KEY);
+       //     int outstate = instate + 3;
+
+      /*      View a = new View(getActivity());
+            a.restoreHierarchyState(savedInstanceState.getSparseParcelableArray(VIEW_HACK_KEY));
+            threadPager.removeViewAt(0);
+            threadPager.addView(a,0);*/
+        }
 
         if (VERBOSE) Log.v(TAG,"exiting onViewCreated...");
     }
