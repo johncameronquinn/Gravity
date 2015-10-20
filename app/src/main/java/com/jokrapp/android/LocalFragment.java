@@ -3,7 +3,6 @@ package com.jokrapp.android;
 
 import android.app.Activity;
 import android.app.LoaderManager;
-import android.content.Context;
 import android.content.CursorLoader;
 import android.content.Loader;
 import android.database.Cursor;
@@ -13,6 +12,8 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+
+import com.jokrapp.android.view.ImageCursorAdapterView;
 
 
 /**

@@ -1,4 +1,4 @@
-package com.jokrapp.android;
+package com.jokrapp.android.view;
 
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
@@ -23,6 +23,8 @@ import android.view.animation.LinearInterpolator;
 import android.widget.AdapterView;
 import android.widget.CursorAdapter;
 import android.widget.FrameLayout;
+
+import com.jokrapp.android.ImageStackCursorAdapter;
 
 /***************************************************************************************************
  * class "ImageAdapterView"

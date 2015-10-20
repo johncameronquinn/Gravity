@@ -4,7 +4,6 @@
     <style name="AppTheme" parent="@android:style/Theme.Holo">
        <item name="android:windowActionBar">false</item>
         <item name="android:windowNoTitle">true</item>
-        <item name="android:windowBackground">@drawable/jesterhat</item>
         <item name="android:windowActionBarOverlay">true</item>
     </style>
 

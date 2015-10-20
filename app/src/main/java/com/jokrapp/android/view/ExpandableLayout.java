@@ -1,4 +1,4 @@
-package com.jokrapp.android;
+package com.jokrapp.android.view;
 /***********************************************************************************
  * The MIT License (MIT)
  * Copyright (c) 2014 Robin Chutaux
@@ -30,6 +30,8 @@ package com.jokrapp.android;
         import android.view.animation.Transformation;
         import android.widget.FrameLayout;
         import android.widget.RelativeLayout;
+
+        import com.jokrapp.android.R;
 
 public class ExpandableLayout extends RelativeLayout
 {
@@ -112,8 +114,6 @@ public class ExpandableLayout extends RelativeLayout
     {
         v.measure(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT);
         final int targetHeight = v.getMeasuredHeight();
-
-        Log.i("VIEWEXPANDABLE","targetHeight is: " + targetHeight);
 
         v.getLayoutParams().height = 0;
         v.setVisibility(VISIBLE);

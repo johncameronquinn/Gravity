@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+
+    <ImageButton
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/button_height"
+        android:id="@+id/button_new_reply"
+        android:src="@drawable/new_reply"
+        android:scaleType="fitXY"
+        android:layout_below="@+id/button_reply_refresh" />
+
+
+    <ImageButton
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/button_height"
+        android:id="@+id/button_reply_refresh"
+        android:scaleType="fitXY"
+        android:src="@drawable/androidrefresh64px"
+        android:layout_alignParentTop="true"
+        android:layout_alignRight="@+id/button_new_reply"
+        android:layout_alignEnd="@+id/button_new_reply" />
+
+</RelativeLayout>

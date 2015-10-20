@@ -43,7 +43,7 @@
 
      </fr.castorflex.android.verticalviewpager.VerticalViewPager>
 
-    <com.jokrapp.android.ExpandableLayout
+    <com.jokrapp.android.view.ExpandableLayout
         android:id="@+id/localexpandable"
         android:layout_width="@dimen/button_width"
         android:layout_height="wrap_content"

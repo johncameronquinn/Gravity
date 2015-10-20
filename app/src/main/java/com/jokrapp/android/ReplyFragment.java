@@ -19,6 +19,7 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.FrameLayout;
+import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.RelativeLayout;
 import android.widget.SeekBar;
@@ -181,7 +182,7 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
 
     public void setCurrentThread(String thread) {
         Log.i(TAG, "setting current thread to : " + thread + ".");
-        ((Button)getActivity().findViewById(R.id.button_reply_refresh)).setText(thread);
+        //((ImageButton)getActivity().findViewById(R.id.button_reply_refresh)).setText(thread);
         currentThread = Integer.valueOf(thread);
     }
 
