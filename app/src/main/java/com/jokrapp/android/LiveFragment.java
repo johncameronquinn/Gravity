@@ -4,9 +4,11 @@ import android.animation.ValueAnimator;
 import android.app.Activity;
 import android.app.FragmentManager;
 import android.app.LoaderManager;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.CursorLoader;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.Loader;
 import android.database.Cursor;
 import android.database.MatrixCursor;
@@ -14,6 +16,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.app.Fragment;
 import android.os.Handler;
@@ -29,6 +32,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.AccelerateInterpolator;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -188,6 +192,11 @@ public class LiveFragment extends Fragment implements
         super.onAttach(context);
         mListener = (onLiveFragmentInteractionListener)context;
         mListener.sendMsgRequestLiveThreads();
+
+
+        receiver = new LiveThreadReceiver();
+        IntentFilter filter = new IntentFilter(Constants.ACTION_IMAGE_LOADED);
+        context.registerReceiver(receiver, filter);
     }
 
     //todo, this is a workaround for a bug and can be removed in the future
@@ -195,6 +204,11 @@ public class LiveFragment extends Fragment implements
         super.onAttach(context);
         mListener = (onLiveFragmentInteractionListener)context;
         mListener.sendMsgRequestLiveThreads();
+
+
+        receiver = new LiveThreadReceiver();
+        IntentFilter filter = new IntentFilter(Constants.ACTION_IMAGE_LOADED);
+        context.registerReceiver(receiver, filter);
     }
 
 
@@ -281,6 +295,7 @@ public class LiveFragment extends Fragment implements
     @Override
     public void onDetach() {
         super.onDetach();
+        getActivity().unregisterReceiver(receiver);
     }
 
     public int getCurrentThread() {
@@ -496,6 +511,7 @@ public class LiveFragment extends Fragment implements
     public void onPageScrollStateChanged(int state) {
     }
 
+
     /**************************************************************************************************
      * CONTENT LOADING
       */
@@ -514,6 +530,8 @@ public class LiveFragment extends Fragment implements
                 LiveThreadEntry.COLUMN_NAME_REPLIES,
                 LiveThreadEntry.COLUMN_NAME_UNIQUE
         };
+
+
 
         if (VERBOSE) Log.v(TAG,"loader created.");
         if (VERBOSE) Log.v(TAG,"exit onCreateLoader...");
@@ -584,6 +602,64 @@ public class LiveFragment extends Fragment implements
         public void sendMsgRequestReplies(int threadID);
     }
 
+
+/***************************************************************************************************
+ * DOWNLOAD STATE RECEIVER
+ */
+
+public LiveThreadReceiver receiver;
+
+public class LiveThreadReceiver extends BroadcastReceiver {
+    @Override
+    public void onReceive(Context context, Intent intent) {
+        if (LiveFragment.VERBOSE) {
+            Log.v(TAG, "received intent...");
+        }
+
+        String path = intent.getExtras().getString(Constants.KEY_S3_KEY);
+        View v = threadPager.findViewWithTag(path);
+
+        if (v.isShown()) {
+            if (VERBOSE) Log.v(TAG,"Image loaded from view is visible, decoding and displaying...");
+            ImageView imageView = (ImageView) v.findViewById(R.id.live_thread_imageView);
+            ProgressBar bar = (ProgressBar) v.findViewById(R.id.live_thread_progressbar);
+
+            String[] params = {path};
+
+            new imageLoadTask(imageView, bar).execute(
+                    params);
+        } else {
+            if (VERBOSE) Log.v(TAG,"image is now shown do nothing...");
+        }
+
+    }
+}
+
+private class imageLoadTask extends AsyncTask<String,Integer,Bitmap>{
+    WeakReference<ImageView> imageViewWeakReference;
+    WeakReference<ProgressBar> progressBarWeakReference;
+
+    public imageLoadTask(ImageView v, ProgressBar b) {
+        imageViewWeakReference = new WeakReference<>(v);
+        progressBarWeakReference= new WeakReference<>(b);
+    }
+
+    @Override
+    protected Bitmap doInBackground(String... params) {
+        String path = params[0];
+
+        if (VERBOSE) Log.v(TAG,"decoding image at path : " + path);
+
+        return BitmapFactory.decodeFile(getActivity().getCacheDir().toString() + "/" + path);
+
+    }
+
+    @Override
+    protected void onPostExecute(Bitmap bitmap) {
+        imageViewWeakReference.get().setImageBitmap(bitmap);
+        progressBarWeakReference.get().setVisibility(View.INVISIBLE);
+    }
+}
 
 
 

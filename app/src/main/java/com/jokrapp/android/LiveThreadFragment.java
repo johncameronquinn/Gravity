@@ -11,6 +11,7 @@ import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.nfc.tech.TagTechnology;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
@@ -59,9 +60,6 @@ public class LiveThreadFragment extends Fragment implements View.OnClickListener
 
     public WeakReference<Thread> imageLoaderThreadReference = new WeakReference(null);
 
-    public LiveThreadReceiver receiver;
-
-    Handler imageLoadHandler = new Handler();
 
     static LiveThreadFragment newInstance(String name,
                                           String title,
@@ -104,9 +102,6 @@ public class LiveThreadFragment extends Fragment implements View.OnClickListener
     public void onAttach(Activity activity) {
         super.onAttach(activity);
 
-        receiver = new LiveThreadReceiver();
-        IntentFilter filter = new IntentFilter(Constants.ACTION_IMAGE_LOADED);
-        activity.registerReceiver(receiver, filter);
 
 
     }
@@ -114,7 +109,6 @@ public class LiveThreadFragment extends Fragment implements View.OnClickListener
     @Override
     public void onDetach() {
         super.onDetach();
-        getActivity().unregisterReceiver(receiver);
     }
 
     @Override
@@ -131,6 +125,8 @@ public class LiveThreadFragment extends Fragment implements View.OnClickListener
             threadID = args.getString(LiveThreadEntry.COLUMN_NAME_THREAD_ID);
             unique = args.getString(LiveThreadEntry.COLUMN_NAME_UNIQUE);
             replies = args.getString(LiveThreadEntry.COLUMN_NAME_REPLIES);
+
+
         }
 
     }
@@ -202,11 +198,12 @@ public class LiveThreadFragment extends Fragment implements View.OnClickListener
         ((TextView)view.findViewById(R.id.live_thread_replies)).setText(replies);
         view.findViewById(R.id.live_thread_infoLayout).setOnClickListener(this);
         view.findViewById(R.id.live_thread_text).setOnClickListener(this);
+        view.setTag(threadFilePath);
 
 
 
         displayView = ((ImageView) view.findViewById(R.id.live_thread_imageView));
-        progressBar = ((ProgressBar)view.findViewById(R.id.threadprogressbar));
+        progressBar = ((ProgressBar)view.findViewById(R.id.live_thread_progressbar));
 
         /*
          * No saved image was loaded, load from file or request
@@ -292,7 +289,8 @@ public class LiveThreadFragment extends Fragment implements View.OnClickListener
         }
     }
 
-    public class LiveThreadReceiver extends BroadcastReceiver {
+
+    /*public class LiveThreadReceiver extends BroadcastReceiver {
         @Override
         public void onReceive(Context context, Intent intent) {
             if (LiveFragment.VERBOSE) {
@@ -310,7 +308,8 @@ public class LiveThreadFragment extends Fragment implements View.OnClickListener
 
             imageLoaderThreadReference.get().start();
         }
-    }
+    }*/
+
 
     private class ImageLoaderRunnable implements Runnable {
 
@@ -323,22 +322,24 @@ public class LiveThreadFragment extends Fragment implements View.OnClickListener
         @Override
         public void run() {
 
-                if (!Thread.interrupted()) {
-                    image = BitmapFactory.decodeFile(getActivity().getCacheDir().toString() + "/" + filepath);
+            if (!Thread.interrupted()) {
+                image = BitmapFactory.decodeFile(getActivity().getCacheDir().toString() + "/" + filepath);
 
-                    imageLoadHandler.post(new Runnable() {
+                getActivity().runOnUiThread((new Runnable() {
 
-                        public void run() {
-                            if (isVisible()) {
-                                progressBar.setVisibility(View.INVISIBLE);
-                                displayView.setImageBitmap(image);
-                            }
+                            public void run() {
+                                if (isVisible()) {
+                                    progressBar.setVisibility(View.INVISIBLE);
+                                    displayView.setImageBitmap(image);
                         }
+                    }
 
-                    });
-                } else {
-                    Log.i(TAG,"thread was interrupted... canceling...");
-                }
+                })
+                );
+
+            } else {
+                Log.i(TAG,"thread was interrupted... canceling...");
+            }
         }
     }
 

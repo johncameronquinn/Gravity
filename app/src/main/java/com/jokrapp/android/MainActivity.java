@@ -551,7 +551,7 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
     }
 
     public void sendMsgRequestReplies(int threadNumber) {
-        if (VERBOSE) Log.v(TAG, "refreshing replies for thread: " + threadNumber);
+        Log.i(TAG, "refreshing replies for thread: " + threadNumber);
 
         if (isBound) {
             try {
@@ -1067,7 +1067,7 @@ I*/
     public void sendMsgDownloadImage(String s3Directory, String s3Key) {
         Log.i(TAG,"send a message download image...");
         if (isBound) {
-            Message msg = Message.obtain(null, DataHandlingService.MSG_REQUEST_LIVE_THREADS);
+            Message msg = Message.obtain(null, DataHandlingService.MSG_DOWNLOAD_IMAGE);
             Bundle b = new Bundle(2);
             b.putString(Constants.KEY_S3_KEY,s3Key);
             b.putString(Constants.KEY_S3_DIRECTORY,s3Directory);
@@ -1078,6 +1078,8 @@ I*/
             } catch (RemoteException e) {
                 Log.e(TAG,"error sending message to create request live threads",e);
             }
+        } else {
+            Log.e(TAG,"service was not bound!");
         }
     }
 

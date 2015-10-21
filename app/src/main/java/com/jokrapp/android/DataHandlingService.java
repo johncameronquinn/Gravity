@@ -1083,16 +1083,21 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
                 switch (where) {
 
                     case MSG_REQUEST_REPLIES:
-                        map.put(SQLiteDbContract.LiveReplies.COLUMN_NAME_THREAD_ID, extradata.getString(THREAD_ID));
+                        if (VERBOSE) Log.v(TAG,"saving json from replies");
 
+                        map.put(SQLiteDbContract.LiveReplies.COLUMN_NAME_THREAD_ID, extradata.getString(THREAD_ID));
                         b.putString(Constants.KEY_S3_DIRECTORY, "replies");
                     case MSG_REQUEST_LOCAL_POSTS:
+                        if (VERBOSE) Log.v(TAG,"saving json from local/");
+
                         //swap id for _ID, to allow listview loading, and add the thread ID
                         map.put(SQLiteDbContract.LiveReplies.COLUMN_ID, map.remove("id"));
 
                         b.putString(Constants.KEY_S3_DIRECTORY, "local");
                         break;
                     case MSG_REQUEST_LIVE_THREADS:
+                        if (VERBOSE) Log.v(TAG,"saving json from live");
+
                         map.put(SQLiteDbContract.LiveThreadEntry.COLUMN_ID, map.remove("order"));
                         map.put(SQLiteDbContract.LiveThreadEntry.COLUMN_NAME_THREAD_ID, map.remove("id"));
                         b.putInt(PENDING_TRANSFER_TYPE,MSG_REQUEST_LIVE_THREADS);
@@ -1100,6 +1105,8 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
                         break;
 
                     case MSG_REQUEST_MESSAGES:
+                        if (VERBOSE) Log.v(TAG,"saving json from message");
+
 
                         b.putString(Constants.KEY_S3_DIRECTORY, "message");
                         break;
@@ -1123,17 +1130,6 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
                         }
                     }
                 }
-
-
-                if (map.containsKey("from")) {
-                    map.put("userID",map.remove("from"));
-                }
-
-                if (map.containsKey("unique")) {
-                    map.put("uniq",map.remove("unique"));
-                }
-
-
 
                 if (VERBOSE) {
                     LogUtils.printMapToVerbose(map, TAG);
@@ -1262,7 +1258,6 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
             Log.d(TAG, "enter handleMessage");
             Bundle data;
 
-
             /**
              * ANALYTICS REPORTING SWITCH, if message is greater than analytics switch, pass and exit
              */
@@ -1271,7 +1266,6 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
                 reportAnalyticsEvent(msg.what, msg.getData().getString("name"));
                 return;
             }
-
 
             switch (msg.what) {
                 case MSG_BUILD_CLIENT:
@@ -1398,6 +1392,7 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
                     Log.d(TAG, "received a message to download an image...");
 
                     data = msg.getData();
+                    data.putInt(PENDING_TRANSFER_TYPE, msg.what);
                     downloadImageFromS3(data);
 
                     break;
@@ -1987,6 +1982,7 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
             Log.d(TAG, "downloading image from  s3 with key: " + b.getString(Constants.KEY_S3_KEY));
             Log.d(TAG, "downloading image from file" + file.getPath());
         }
+
         TransferObserver observer = transferUtility.download(
                 BUCKET_NAME,     /* The bucket to upload to */
                 b.getString(Constants.KEY_S3_DIRECTORY) + "/"
@@ -2123,6 +2119,7 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
 
                     case MSG_DOWNLOAD_IMAGE:
 
+                        if (VERBOSE) Log.d(TAG,"image finished downloading... broadcasting...");
                         Intent intent = new Intent(Constants.ACTION_IMAGE_LOADED);
                         intent.putExtras(data);
                         sendBroadcast(intent);

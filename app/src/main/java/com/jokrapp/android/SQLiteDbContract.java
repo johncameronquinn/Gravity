@@ -18,7 +18,7 @@ public final class SQLiteDbContract {
     public static abstract class LocalEntry implements BaseColumns {
         public static final String TABLE_NAME = "local_entries";
         public static final String COLUMN_ID = "_ID";
-        public static final String COLUMN_FROM_USER = "userID";
+        public static final String COLUMN_FROM_USER = "fromUser";
         public static final String COLUMN_NAME_WEIGHT = "weight";
         public static final String COLUMN_NAME_TIME = "time";
         public static final String COLUMN_NAME_LATITUDE = "latitude";
@@ -31,7 +31,7 @@ public final class SQLiteDbContract {
         public static final String TABLE_NAME = "message_entries";
         public static final String COLUMN_ID = "_ID";
         public static final String COLUMN_NAME_TIME = "time";
-        public static final String COLUMN_FROM_USER = "userID";
+        public static final String COLUMN_FROM_USER = "fromUser";
         public static final String COLUMN_NAME_FILEPATH = "url";
     }
 
