@@ -435,12 +435,14 @@ public class LiveFragment extends Fragment implements
 
         private void setSeekMode(View v) {
             if (v != null) { //button_new_thread was pressed, set seek mode
-             ViewGroup group = (ViewGroup)v.getParent();
-                group.findViewById(R.id.button_new_thread).setVisibility(View.INVISIBLE);
-                group.findViewById(R.id.live_thread_number).setVisibility(View.INVISIBLE);
-                SeekBar bar = ((SeekBar)group.findViewById(R.id.seekBar));
-                bar.setVisibility(View.VISIBLE);
-                bar.setOnSeekBarChangeListener(this);
+                View vg = getView();
+                if (vg != null) {
+                    vg.findViewById(R.id.button_new_thread).setVisibility(View.INVISIBLE);
+                    vg.findViewById(R.id.live_thread_number).setVisibility(View.INVISIBLE);
+                    SeekBar bar = ((SeekBar) vg.findViewById(R.id.seekBar));
+                    bar.setVisibility(View.VISIBLE);
+                    bar.setOnSeekBarChangeListener(this);
+                }
             } else {
                 if (getView() != null) {
                     View group = getView();

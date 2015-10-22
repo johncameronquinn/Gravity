@@ -167,7 +167,7 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
 
         initializeAnalytics();
 
-        Log.d(TAG,"exit onCreate...");
+        Log.d(TAG, "exit onCreate...");
     }
 /***************************************************************************************************
 * INITIALIZATION METHODS
@@ -378,7 +378,11 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
      */
     @Override
     public View onCreateView(String name, Context context, AttributeSet attrs) {
-        return super.onCreateView(name,context,attrs);
+        return super.onCreateView(name, context, attrs);
+    }
+
+    public void onNotImplemented(View v) {
+        Toast.makeText(this,"Not yet implemented...",Toast.LENGTH_SHORT).show();
     }
 
 

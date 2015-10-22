@@ -4,22 +4,29 @@
     android:layout_width="wrap_content"
     android:layout_height="match_parent">
 
-    <ImageButton
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/button_new_thread"
-        android:src="@drawable/new_post"
-        android:background="#00ffffff"
-        android:layout_below="@+id/button_live_refresh"
-        android:layout_centerHorizontal="true" />
 
     <Button
-        android:layout_width="wrap_content"
-        android:layout_height="40dp"
-        android:text=""
-        android:id="@+id/button_live_refresh"
+        style="@style/radicalContentButton"
+        android:id="@+id/button_live_report"
+        android:background="@drawable/ic_live_report"/>
+
+    <Button
+        style="@style/radicalContentButton"
+        android:id="@+id/button_live_hide"
+        android:background="@drawable/ic_live_hidethread"
+        android:layout_below="@+id/button_live_refresh"/>
+
+    <Button
+        style="@style/radicalContentButton"
+        android:id="@+id/button_new_thread"
+        android:background="@drawable/ic_live_newthread"
         android:layout_gravity="center_horizontal|top"
-        android:visibility="visible"
-        android:background="@color/wpallete_complementary_green" />
+        android:layout_below="@+id/button_live_hide" />
+
+    <Button
+        style="@style/radicalContentButton"
+        android:id="@+id/button_live_refresh"
+        android:background="@drawable/ic_live_refresh"
+        android:layout_below="@+id/button_live_report"/>
 
 </RelativeLayout>

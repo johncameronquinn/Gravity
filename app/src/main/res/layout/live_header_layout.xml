@@ -17,7 +17,7 @@
         android:layout_width="@dimen/button_width"
         android:layout_height="@dimen/button_height"
         android:gravity="center"
-        android:background="@drawable/ic_local_radical"
+        android:background="@drawable/ic_live_radical"
         android:id="@+id/header_text" />
 
 </RelativeLayout>
