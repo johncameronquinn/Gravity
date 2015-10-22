@@ -27,6 +27,7 @@ public final class Constants {
     public static final String ACTION_IMAGE_REPLY_LOADED = "com.jokrapp.android.reply.LOADED";
     public static final String ACTION_IMAGE_LOCAL_LOADED = "com.jokrapp.android.local.LOADED";
     public static final String ACTION_IMAGE_MESSAGE_LOADED = "com.jokrapp.android.message.LOADED";
+    public static final String LOCAL_KEY_PATH = "pkl";
 
     /** threadSample
      */
@@ -103,6 +104,9 @@ public final class Constants {
      */
     public static final String KEY_S3_KEY = "key";
     public static final String KEY_S3_DIRECTORY = "directory";
+    public static final String KEY_S3_LIVE_DIRECTORY = "live";
+    public static final String KEY_S3_LOCAL_DIRECTORY = "local";
+    public static final String KEY_S3_STASH_DIRECTORY = "stash";
 
 
     /**

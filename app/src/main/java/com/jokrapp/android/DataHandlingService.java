@@ -347,7 +347,7 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
 
 
     private void createLocalPost(Bundle b) {
-        createLocalPost(b.getString(Constants.KEY_S3_KEY), mLocation, b.getString(Constants.KEY_TEXT));
+        createLocalPost(b.getString(Constants.KEY_S3_KEY), mLocation, b.getString(Constants.KEY_TEXT,""));
     }
 
     /***********************************************************************************************
@@ -2120,10 +2120,26 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
                     case MSG_DOWNLOAD_IMAGE:
 
                         if (VERBOSE) Log.d(TAG,"image finished downloading... broadcasting...");
-                        Intent intent = new Intent(Constants.ACTION_IMAGE_LOADED);
-                        intent.putExtras(data);
-                        sendBroadcast(intent);
 
+                        Intent intent;
+
+                        switch (data.getString(Constants.KEY_S3_DIRECTORY,"")) {
+                            case Constants.KEY_S3_LIVE_DIRECTORY:
+                                intent = new Intent(Constants.ACTION_IMAGE_LIVE_LOADED);
+                                intent.putExtras(data);
+                                sendBroadcast(intent);
+                                break;
+
+                            case Constants.KEY_S3_LOCAL_DIRECTORY:
+                                intent = new Intent(Constants.ACTION_IMAGE_LOCAL_LOADED);
+                                intent.putExtras(data);
+                                sendBroadcast(intent);
+                                break;
+
+                            default:
+                                Log.e(TAG, "no directory was provided, not broadcasting");
+                                break;
+                        }
                         break;
 
 

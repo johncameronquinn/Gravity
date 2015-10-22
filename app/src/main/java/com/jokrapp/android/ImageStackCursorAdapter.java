@@ -11,7 +11,12 @@ import android.widget.CursorAdapter;
 import android.widget.ImageView;
 
 import android.net.Uri;
+import android.widget.ProgressBar;
 import android.widget.TextView;
+
+import java.io.File;
+import java.util.Hashtable;
+import java.util.Map;
 
 /**
  * Author/Copyright John C. Quinn, All Rights Reserved.
@@ -23,12 +28,13 @@ import android.widget.TextView;
  * and dynamically swaps the cursors with their actual data once the data is finished loading
  */
 public class ImageStackCursorAdapter extends CursorAdapter {
-    private final boolean VERBOSE = false;
+    private final boolean VERBOSE = true;
     private final String TAG = "ImageCursorStackAdapter";
 
         private MainActivity context;
         private int layout;
         private Uri table;
+        private Map<String,ViewHolder> viewKey = new Hashtable<>();
 
     private LayoutInflater mLayoutInflater;
 
@@ -41,9 +47,11 @@ public class ImageStackCursorAdapter extends CursorAdapter {
         private class ViewHolder {
             //TextView textView;
             ImageView imageView;
+            ProgressBar progressBar;
 
-            ViewHolder(View v) {
-            //    textView = (TextView) v.findViewById(R.id.imageID);
+            ViewHolder(View v, String s) {
+                progressBar = (ProgressBar) v.findViewById(R.id.local_post_progressbar);
+                progressBar.setTag(s);
                 imageView = (ImageView) v.findViewById(R.id.image);
             }
         }
@@ -97,8 +105,8 @@ public class ImageStackCursorAdapter extends CursorAdapter {
             }
         }
 
-            vView.setTag(new ViewHolder(vView));
-            vView.setBackgroundColor(context.getResources().getColor(R.color.adapter_bg));
+        vView.setTag(new ViewHolder(vView,cursor.getString
+                (cursor.getColumnIndex(SQLiteDbContract.LocalEntry.COLUMN_NAME_FILEPATH))));
 
             /*
              * sets tags of the buttons, so then when they are clicked, the method in mainactivity
@@ -106,6 +114,7 @@ public class ImageStackCursorAdapter extends CursorAdapter {
              */
 
         String UUID = cursor.getString(cursor.getColumnIndex(SQLiteDbContract.MessageEntry.COLUMN_FROM_USER));
+
         ((TextView)vView.findViewById(R.id.userID)).setText(UUID);
         context.findViewById(R.id.button_local_message).setTag(UUID);
         context.findViewById(R.id.button_local_block).setTag(UUID);
@@ -113,7 +122,8 @@ public class ImageStackCursorAdapter extends CursorAdapter {
         if (VERBOSE) {
             Log.v(TAG,"exiting newView...");
         }
-            return vView;// **EDITED:**need to return the view
+
+        return vView;// **EDITED:**need to return the view
         }
 
     /**
@@ -138,8 +148,20 @@ public class ImageStackCursorAdapter extends CursorAdapter {
 
 
             ViewHolder vh = (ViewHolder) v.getTag();
-            //vh.textView.setText(sText);
-            vh.imageView.setImageBitmap(mySetImage(sText));
+
+            String[] params = {ctx.getCacheDir() + "/" + sText};
+
+            File f = new File(sText);
+
+            if (f.exists()) {
+                if (VERBOSE) Log.v(TAG,"file exists, decoding image...");
+                new ImageLoadTask(vh.imageView, vh.progressBar).execute(params);
+            } else {
+                Log.i(TAG,"file did not exist at path: " + sText + " not decoding...");
+                ((MainActivity)ctx).sendMsgDownloadImage(Constants.KEY_S3_LOCAL_DIRECTORY,sText);
+            }
+
+            v.setTag(params);
 
             if (VERBOSE) {
                 Log.v(TAG,"exiting bindView...");
@@ -147,44 +169,9 @@ public class ImageStackCursorAdapter extends CursorAdapter {
         }
 
 
-
-    private void setThumbnail(String path, Bitmap b) {
-        // save thumbnail to some kind of cache
-        // see comment below
-    }
-
-    private Bitmap getThumbnail(String path) {
-        Bitmap thumbnail = null;
-        // try to fetch the thumbnail from some kind of cache
-        // see comment below
-        return thumbnail;
-    }
-
-    /**
-     * method 'mySetImage'
-     *
-     * @param path place of the image to be loaded
-     * @return Bitmap the loaded image
-     */
-    protected Bitmap mySetImage ( final String path ) {
-        if (VERBOSE) Log.v(TAG,"entering mySetImage... which is disabled...");
-
-        /*Bitmap image = getThumbnail(path); // try to fetch thumbnail
-        if (image != null) return image;
-
-        String imageDir = context.getFilesDir() +  "/";*/
-
-        Bitmap myBitmap = BitmapFactory.decodeFile(context.getCacheDir() + "/" + path, null);
-
-        //setThumbnail(path, image); // save thumbnail for later reuse
-
-        if (VERBOSE) Log.v(TAG,"exiting mySetImage...");
-        return myBitmap;
-    }
-
     @Override
     public Cursor swapCursor(Cursor newCursor) {
-        Log.d(TAG,"swapCursor called");
+        Log.d(TAG, "swapCursor called");
         return super.swapCursor(newCursor);
     }
 

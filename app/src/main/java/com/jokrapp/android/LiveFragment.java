@@ -2,7 +2,6 @@ package com.jokrapp.android;
 
 import android.animation.ValueAnimator;
 import android.app.Activity;
-import android.app.FragmentManager;
 import android.app.LoaderManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -11,22 +10,13 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.Loader;
 import android.database.Cursor;
-import android.database.MatrixCursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.Matrix;
 import android.net.Uri;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.app.Fragment;
-import android.os.Handler;
-import android.os.Parcelable;
-import android.provider.MediaStore;
-import android.support.v13.app.FragmentStatePagerAdapter;
 import android.support.v4.view.ViewPager;
-import android.text.ParcelableSpan;
 import android.util.Log;
-import android.util.SparseArray;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -195,7 +185,7 @@ public class LiveFragment extends Fragment implements
 
 
         receiver = new LiveThreadReceiver();
-        IntentFilter filter = new IntentFilter(Constants.ACTION_IMAGE_LOADED);
+        IntentFilter filter = new IntentFilter(Constants.ACTION_IMAGE_LIVE_LOADED);
         context.registerReceiver(receiver, filter);
     }
 
@@ -611,57 +601,34 @@ public class LiveFragment extends Fragment implements
 
 public LiveThreadReceiver receiver;
 
-public class LiveThreadReceiver extends BroadcastReceiver {
-    @Override
-    public void onReceive(Context context, Intent intent) {
-        if (LiveFragment.VERBOSE) {
-            Log.v(TAG, "received intent...");
+    public class LiveThreadReceiver extends BroadcastReceiver {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if (LiveFragment.VERBOSE) {
+                Log.v(TAG, "received intent...");
+            }
+
+            String path = intent.getExtras()
+                    .getString(Constants.KEY_S3_KEY);
+            View v = threadPager.findViewWithTag(path);
+
+            if (v.isShown()) {
+                if (VERBOSE) Log.v(TAG,"Image loaded from view is visible, decoding and displaying...");
+                ImageView imageView = (ImageView) v.findViewById(R.id.live_thread_imageView);
+                ProgressBar bar = (ProgressBar) v.findViewById(R.id.live_thread_progressbar);
+
+                /* create full path from tag*/
+                String[] params = {getActivity().getCacheDir() + "/" +path};
+
+                new ImageLoadTask(imageView, bar).execute(
+                        params);
+            } else {
+                if (VERBOSE) Log.v(TAG,"image is now shown do nothing...");
+            }
+
         }
-
-        String path = intent.getExtras().getString(Constants.KEY_S3_KEY);
-        View v = threadPager.findViewWithTag(path);
-
-        if (v.isShown()) {
-            if (VERBOSE) Log.v(TAG,"Image loaded from view is visible, decoding and displaying...");
-            ImageView imageView = (ImageView) v.findViewById(R.id.live_thread_imageView);
-            ProgressBar bar = (ProgressBar) v.findViewById(R.id.live_thread_progressbar);
-
-            String[] params = {path};
-
-            new imageLoadTask(imageView, bar).execute(
-                    params);
-        } else {
-            if (VERBOSE) Log.v(TAG,"image is now shown do nothing...");
-        }
-
-    }
-}
-
-private class imageLoadTask extends AsyncTask<String,Integer,Bitmap>{
-    WeakReference<ImageView> imageViewWeakReference;
-    WeakReference<ProgressBar> progressBarWeakReference;
-
-    public imageLoadTask(ImageView v, ProgressBar b) {
-        imageViewWeakReference = new WeakReference<>(v);
-        progressBarWeakReference= new WeakReference<>(b);
     }
 
-    @Override
-    protected Bitmap doInBackground(String... params) {
-        String path = params[0];
-
-        if (VERBOSE) Log.v(TAG,"decoding image at path : " + path);
-
-        return BitmapFactory.decodeFile(getActivity().getCacheDir().toString() + "/" + path);
-
-    }
-
-    @Override
-    protected void onPostExecute(Bitmap bitmap) {
-        imageViewWeakReference.get().setImageBitmap(bitmap);
-        progressBarWeakReference.get().setVisibility(View.INVISIBLE);
-    }
-}
 
 
 

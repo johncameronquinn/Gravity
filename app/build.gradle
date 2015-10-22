@@ -9,7 +9,7 @@ android {
         minSdkVersion 15
         targetSdkVersion 23
         versionCode 1
-        versionName "2.2.2"
+        versionName "2.2.4"
     }
     buildTypes {
         release {
@@ -35,9 +35,19 @@ android {
             applicationId 'com.jokrapp.android'
             targetSdkVersion 23
             versionCode 1
-            versionName '2.2.2-developer'
+            versionName '2.2.4-developer'
+        }
+
+
+        prototypeConfig {
+            minSdkVersion 15
+            applicationId 'com.jokrapp.android'
+            targetSdkVersion 23
+            versionCode 1
+            versionName '2.2.4'
         }
     }
+
 }
 
 dependencies {

@@ -153,7 +153,7 @@ public class LiveThreadFragment extends Fragment implements View.OnClickListener
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         if (savedInstanceState!=null) {
-            image = savedInstanceState.getParcelable(IMAGE_KEY);
+           // image = savedInstanceState.getParcelable(IMAGE_KEY);
         }
 
 
@@ -170,7 +170,7 @@ public class LiveThreadFragment extends Fragment implements View.OnClickListener
         super.onSaveInstanceState(outState);
         if (LiveFragment.VERBOSE) Log.v(TAG, "entering onSaveInstanceState...");
 
-        outState.putParcelable(IMAGE_KEY, image);
+        //outState.putParcelable(IMAGE_KEY, image);
 
         if (LiveFragment.VERBOSE) Log.v(TAG, "exiting onSaveInstanceState...");
     }
@@ -227,7 +227,8 @@ public class LiveThreadFragment extends Fragment implements View.OnClickListener
                             + threadFilePath);
                 }
 
-                ((MainActivity)getActivity()).sendMsgDownloadImage("live",threadFilePath);
+                ((MainActivity)getActivity())
+                        .sendMsgDownloadImage(Constants.KEY_S3_LIVE_DIRECTORY,threadFilePath);
             }
 
         } else {
@@ -331,10 +332,10 @@ public class LiveThreadFragment extends Fragment implements View.OnClickListener
                                 if (isVisible()) {
                                     progressBar.setVisibility(View.INVISIBLE);
                                     displayView.setImageBitmap(image);
-                        }
-                    }
+                                }
+                            }
 
-                })
+                        })
                 );
 
             } else {

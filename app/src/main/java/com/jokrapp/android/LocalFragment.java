@@ -1,9 +1,12 @@
 package com.jokrapp.android;
 
-
 import android.app.Activity;
 import android.app.LoaderManager;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.CursorLoader;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.Loader;
 import android.database.Cursor;
 import android.os.Bundle;
@@ -12,6 +15,9 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
+import android.widget.ProgressBar;
+import android.widget.RelativeLayout;
 
 import com.jokrapp.android.view.ImageCursorAdapterView;
 
@@ -65,6 +71,10 @@ public class LocalFragment extends Fragment implements
                     + " must implement OnFragmentInteractionListener");
         }
 
+
+        receiver = new LiveThreadReceiver();
+        IntentFilter filter = new IntentFilter(Constants.ACTION_IMAGE_LOCAL_LOADED);
+        activity.registerReceiver(receiver, filter);
     }
 
     @Override
@@ -78,6 +88,8 @@ public class LocalFragment extends Fragment implements
         if (VERBOSE) {
             Log.v(TAG,"exit onDestroy...");
         }
+
+        getActivity().unregisterReceiver(receiver);
     }
 
     @Override
@@ -202,12 +214,52 @@ public class LocalFragment extends Fragment implements
         }
     }
 
+    public LiveThreadReceiver receiver;
+
+    public class LiveThreadReceiver extends BroadcastReceiver {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if (LiveFragment.VERBOSE) {
+                Log.v(TAG, "received local intent...");
+            }
+
+            Bundle data = intent.getExtras();
+            String path = data.getString(Constants.KEY_S3_KEY);
+
+            View v = (RelativeLayout)imageAdapterView.findViewWithTag(path).getParent();
+            if (v==null){
+                Log.e(TAG,"no image was found with the tag: " + path + " doing nothing");
+                return;
+            }
+
+            if (v.isShown()) {
+                if (VERBOSE) Log.v(TAG,"Image loaded from view is visible, decoding and displaying...");
+                ImageView imageView = (ImageView) v.findViewById(R.id.local_post_imageView);
+                ProgressBar bar = (ProgressBar) v.findViewById(R.id.local_post_progressbar);
+
+                /* create full path from tag*/
+                String[] params = {getActivity().getCacheDir() + "/" + path};
+
+
+                new ImageLoadTask(imageView, bar).execute(params);
+
+            } else {
+                if (VERBOSE) Log.v(TAG,"image is now shown do nothing...");
+            }
+
+        }
+    }
+
+
+
     /**
      * interface 'onLocalFragmentInteractionListener'
      *
      */
     public interface onLocalFragmentInteractionListener {
         public void sendMsgReportAnalyticsEvent(int event, String action);
+        public void sendMsgDownloadImage(String s3Directroy, String s3Key);
+
 
     }
 }
