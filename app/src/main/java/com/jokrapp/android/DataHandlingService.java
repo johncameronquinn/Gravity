@@ -347,8 +347,14 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
     }
 
 
-    private void createLocalPost(Bundle b) {
-        createLocalPost(b.getString(Constants.KEY_S3_KEY), mLocation, b.getString(Constants.KEY_TEXT, ""));
+    private void createLocalPostAsync(final Bundle b) {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                createLocalPost(b.getString(Constants.KEY_S3_KEY), mLocation, b.getString(Constants.KEY_TEXT, ""));
+            }
+        }).start();
+
     }
 
     /***********************************************************************************************
@@ -474,10 +480,10 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
      * @param location       current location of the client
      */
     private void requestLocalPosts(int numberOfImages, Location location) {
-        Log.d(TAG, "entering requestImages...");
+        Log.d(TAG, "entering requestLocalPosts...");
 
         if (mLocation == null) {
-            Log.e(TAG, "Location was null in requestImages... canceling...");
+            Log.e(TAG, "Location was null in requestLocalPosts... canceling...");
             return;
             //todo readd request to message queue
         }
@@ -561,7 +567,7 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
             Log.e(TAG, "Error sending image to server", e);
         }
 
-        Log.d(TAG, "exiting requestImages...");
+        Log.d(TAG, "exiting requestLocalPosts...");
     }
 
     private void requestLocalPostsAsync(final int numberOfImages, final Location location) {
@@ -592,7 +598,7 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
      * @param filePath      the location the image is stored which is to be sent
      * @param messageTarget the UUID of the user to send the message to
      */
-    private void sendImageMessage(String filePath, String messageTarget) {
+    private void sendImageMessage(String filePath, String messageTarget, String text) {
         if (VERBOSE) {
             Log.v(TAG, "entering sendImageMessage...");
         }
@@ -625,29 +631,23 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
             jGen.writeStartObject();
             jGen.writeStringField(TO, messageTarget);
             jGen.writeStringField(IMAGE_URL, filePath);
+            jGen.writeStringField(Constants.KEY_TEXT, text);
             jGen.writeEndObject();
             jGen.flush();
             jGen.close();
 
-            responseCode = conn.getResponseCode();
+            handleResponseCode(conn.getResponseCode(),replyMessenger);
+            deleteFile(filePath.substring(filePath.lastIndexOf("/") + 1, filePath.length()));
         } catch (IOException e) {
             Log.e(TAG, "IOException", e);
-        }
-
-
-        if (responseCode == HttpURLConnection.HTTP_OK) {
-            Log.d(TAG, "server returned successful response" + responseCode);
-            Log.d(TAG, "now deleting image from internal storage...");
-            deleteFile(filePath.substring(filePath.lastIndexOf("/") + 1, filePath.length()));
-        } else {
         }
     }
 
     public void sendImageMessageAsync(Bundle b) {
-        sendImageMessageAsync(b.getString(Constants.KEY_S3_KEY), b.getString(Constants.MESSAGE_TARGET));
+        sendImageMessageAsync(b.getString(Constants.KEY_S3_KEY), b.getString(Constants.MESSAGE_TARGET), b.getString(Constants.KEY_TEXT,""));
     }
 
-    public void sendImageMessageAsync(final String filePath, final String messageTarget) {
+    public void sendImageMessageAsync(final String filePath, final String messageTarget, final String text) {
         if (VERBOSE) {
             Log.v(TAG,"entering sendImageMessageAsync with: " + filePath + ", " + messageTarget);
         }
@@ -656,7 +656,7 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
             @Override
             public void run() {
                 android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_BACKGROUND);
-                sendImageMessage(filePath, messageTarget);
+                sendImageMessage(filePath, messageTarget,text);
             }
         }).start();
     }
@@ -1185,6 +1185,13 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
             }
         } else {
             Log.v(TAG, "nothing was supplied...");
+            Message msg = Message.obtain(null,MainActivity.MSG_NOTHING_RETURNED,where,0);
+            try {
+                replyMessenger.send(msg);
+            } catch (RemoteException e) {
+                Log.e(TAG,"error notifying main thread of status");
+            }
+
         }
 
         jParser.close();
@@ -2131,7 +2138,7 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
                 switch (data.getInt(PENDING_TRANSFER_TYPE,-1)) {
                     case MSG_SEND_IMAGE:
 
-                        createLocalPost(data);
+                        createLocalPostAsync(data);
                         break;
 
                     case MSG_CREATE_THREAD:

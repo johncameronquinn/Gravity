@@ -32,6 +32,7 @@ public final class SQLiteDbContract {
         public static final String COLUMN_ID = "_ID";
         public static final String COLUMN_NAME_TIME = "time";
         public static final String COLUMN_FROM_USER = "fromUser";
+        public static final String COLUMN_NAME_TEXT = "text";
         public static final String COLUMN_NAME_FILEPATH = "url";
     }
 

@@ -16,6 +16,7 @@
         style="@style/radicalContentButton"
         android:id="@+id/button_local_refresh"
         android:background="@drawable/ic_local_refresh"
+        android:onClick="onLocalRefresh"
         android:layout_below="@+id/button_local_report"/>
 
     <Button
@@ -26,12 +27,13 @@
 
         android:layout_below="@+id/button_local_refresh"/>
 
-    <ImageButton
+    <Button
         style="@style/radicalContentButton"
         android:id="@+id/button_local_message"
         android:onClick="onLocalMessagePressed"
         android:background="@drawable/ic_local_message"
-        android:layout_below="@+id/button_local_block"/>
+        android:layout_below="@+id/button_local_block"
+        android:contextClickable="false" />
 
 
 

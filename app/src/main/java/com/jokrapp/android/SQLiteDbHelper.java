@@ -65,6 +65,7 @@ public class SQLiteDbHelper extends SQLiteOpenHelper {
                     MessageEntry._ID + PRIMARY_KEY + COMMA_SEP +
                     MessageEntry.COLUMN_NAME_TIME + TEXT_TYPE + COMMA_SEP +
                     MessageEntry.COLUMN_FROM_USER + TEXT_TYPE + COMMA_SEP +
+                    MessageEntry.COLUMN_NAME_TEXT + TEXT_TYPE + COMMA_SEP +
                     MessageEntry.COLUMN_NAME_FILEPATH + TEXT_TYPE +
                     " )";
 

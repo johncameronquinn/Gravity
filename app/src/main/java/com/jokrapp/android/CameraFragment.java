@@ -21,6 +21,8 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.FrameLayout;
 
+import com.jokrapp.android.view.ExpandableLayout;
+
 import java.lang.ref.WeakReference;
 import java.util.UUID;
 
@@ -273,22 +275,28 @@ n  */
             return true;
         }
 
+        /**
+         * method 'onSingleTapConfirmed'
+         *
+         * this method provides functionality to singletaps,
+         * if the preview is running, trigger an autofocus, if it is not, toggle comment
+         *
+         *
+         * @param e incoming event
+         * @return whether or not the event was consumed
+         */
         @Override
         public boolean onSingleTapConfirmed(MotionEvent e) {
-            if (isPreview) { //its in preview mode, ignore
+            if (isPreview) { //its in preview mode, so trigger an auto-focus
                 mListener.sendMsgAutoFocus(e);
 
                 return true;
-            } else { //its not in preview mode, enable comments
+            } else { //its not in preview mode,  toggle comment
                 if (isComment) {  //is in commenting mode, stop
                     isComment = false;
                     commentText.setVisibility(View.INVISIBLE);
-                    commentText.setText(null);
-                    if (getView() != null) {
-                        InputMethodManager imm = (InputMethodManager)getActivity().getSystemService(
-                                Context.INPUT_METHOD_SERVICE);
-                        imm.hideSoftInputFromWindow(getView().getWindowToken(), 0);
-                    }
+                    commentText.setText("");
+                    hideSoftKeyboard(commentText);
                 } else { //is not in commenting mode, start
                     isComment = true;
                     commentText.setVisibility(View.VISIBLE);
@@ -361,6 +369,12 @@ n  */
         captureButton.bringToFront();
 
         commentText = (EditText)view.findViewById(R.id.commentText);
+        commentText.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+             showSoftKeyboard(commentText);
+            }
+        });
 
         if (messageTarget != null) {
             Log.d(TAG,"CameraFragment was started with a target UUID. Starting message mode...");
@@ -671,6 +685,7 @@ n  */
                     break;
 
             }
+            hideSoftKeyboard(commentText);
             captureButton.setPressed(false);
             captureButton.setClickable(true);
             currentCameraMode = CAMERA_DEFAULT_MODE;
@@ -839,6 +854,9 @@ n  */
         View v = inflater.inflate(R.layout.camera_live_mode,
                 root,
                 false);
+        ((EditText)v.findViewById(R.id.editText_live_mode_title)).setText(commentText.getText());
+        commentText.setVisibility(View.INVISIBLE);
+        commentText.setText("");
 
         getLiveModeButtonListener(this).setCreateView(v);
         v.findViewById(R.id.button_camera_live_mode_cancel).setOnClickListener(getLiveModeButtonListener(this));
@@ -936,6 +954,19 @@ n  */
         if (VERBOSE) {
             Log.v(TAG,"exiting startNewReplyInputMode...");
         }
+    }
+
+    private void hideSoftKeyboard(EditText input) {
+        input.clearFocus();
+            Log.e(TAG, "hiding the view with focus...");
+            input.setInputType(0);
+            InputMethodManager imm = (InputMethodManager) getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
+            imm.hideSoftInputFromWindow(getView().getWindowToken(), 0);
+    }
+
+    private void showSoftKeyboard(EditText input) {
+        InputMethodManager imm = (InputMethodManager)getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
+        imm.showSoftInput(input, InputMethodManager.SHOW_IMPLICIT);
     }
 
 

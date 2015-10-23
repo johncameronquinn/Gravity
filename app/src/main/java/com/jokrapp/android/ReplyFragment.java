@@ -156,8 +156,17 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
         view.findViewById(R.id.button_reply_refresh).setOnClickListener(getButtonListener(this));
         setCurrentThread(String.valueOf(currentThread));
         //anything that requires the UI to already exist goes here
-
         if (VERBOSE) Log.v(TAG,"exiting onViewCreated...");
+    }
+
+    @Override
+    public void onViewStateRestored(Bundle savedInstanceState) {
+        super.onViewStateRestored(savedInstanceState);
+
+
+        getView().findViewById(R.id.button_new_reply).setOnClickListener(getButtonListener(this));
+        getView().findViewById(R.id.button_reply_refresh).setOnClickListener(getButtonListener(this));
+        setCurrentThread(String.valueOf(currentThread));
     }
 
     @Override

@@ -1,8 +1,6 @@
 package com.jokrapp.android;
 import android.content.Context;
 import android.database.Cursor;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -211,7 +209,7 @@ public class ImageStackCursorAdapter extends CursorAdapter {
                         SQLiteDbContract.LocalEntry.COLUMN_NAME_FILEPATH + " = " + out,
                         null);
 
-        context.requestImages(1);
+        context.sendMsgRequestLocalPosts(1);
 
         if (VERBOSE) {
             Log.v(TAG,"exiting pop...");

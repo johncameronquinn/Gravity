@@ -25,12 +25,12 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:id="@+id/commentText"
-        android:layout_gravity="center"
+        android:layout_gravity="bottom|center"
         android:gravity="center"
-        android:background="@color/pallete_accent_blue_alpha"
         android:visibility="invisible"
-        android:textColor="@color/pallete_accent_gray"
-        android:textSize="22dp" />
+        android:textSize="22dp"
+        android:layout_marginBottom="10dp"
+        android:hint="Caption" />
 
     <Button
         android:id="@+id/button_capture"

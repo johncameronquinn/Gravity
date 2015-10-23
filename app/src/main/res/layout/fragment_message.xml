@@ -18,7 +18,7 @@
         android:layout_height="wrap_content"
         android:layout_margin="@dimen/radical_margin"
         expandable:el_headerLayout="@layout/local_header_layout"
-        expandable:el_contentLayout="@layout/local_content_layout"
+        expandable:el_contentLayout="@layout/message_content_layout"
         android:layout_gravity="bottom|end"/>
 
 

@@ -37,7 +37,6 @@ import android.support.v4.view.ViewPager;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.Gravity;
-import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.TextureView;
 import android.view.View;
@@ -46,8 +45,6 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.amazonaws.mobileconnectors.s3.transferutility.TransferListener;
-import com.amazonaws.mobileconnectors.s3.transferutility.TransferState;
 import com.google.android.gms.analytics.Tracker;
 import com.jokrapp.android.user.IdentityManager;
 
@@ -470,8 +467,8 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
     };
 
 
-    private float xpos = 0;
-    private float ypos = 0;
+ //   private float xpos = 0;
+ //   private float ypos = 0;
 
     /**
      * method 'dispatchTouchEvent'
@@ -481,7 +478,7 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
      *
      * in this method, we test for a long click and handle it accordingly.
      *
-     * @param event
+     * @param
      * @return
      */
    /* @Override
@@ -500,6 +497,14 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
 
         return super.dispatchTouchEvent(event);
     }*/
+
+    public void onMessageRefresh(View v) {
+        sendMsgRequestLocalMessages();
+    }
+
+    public void onLocalRefresh(View v) {
+        sendMsgRequestLocalPosts(3);
+    }
 
     public void onLocalReplyPressed(View view) {
         if (VERBOSE) {
@@ -577,7 +582,7 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
      * @param filePath the file path of the image saved
      * @param currentCamera the camera that the image was taken with
      */
-    public void sendImageToLocal(String filePath, int currentCamera) {
+    public void sendImageToLocal(String filePath, int currentCamera, String text) {
         if (VERBOSE) Log.v(TAG,"entering sendImageToLocal...");
 
         if (isBound) {
@@ -586,6 +591,7 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
             Message msg = Message.obtain(null, DataHandlingService.MSG_SEND_IMAGE,currentCamera,0);
             Bundle b = new Bundle();
             b.putString(Constants.KEY_S3_KEY, filePath);
+            b.putString(Constants.KEY_TEXT,text);
 
             if (messageTarget != null) {
                 Log.d(TAG, "Sending message to user : " + messageTarget);
@@ -644,22 +650,24 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
             if (position == MESSAGE_LIST_POSITION) {
                 if (MessageFragReference.get() == null){
                     MessageFragReference = new WeakReference<>(new MessageFragment());
-                }
-                return MessageFragReference.get();
+                } return MessageFragReference.get();
             } else if (position == LOCAL_LIST_POSITION) {
                 if (LocalFragReference.get() == null) {
                     LocalFragReference = new WeakReference<>(new LocalFragment());
                 }
+
                 return LocalFragReference.get();
             } else if (position == LIVE_LIST_POSITION) {
                 if (LiveFragReference.get() == null){
                     LiveFragReference = new WeakReference<>(LiveFragment.newInstance("a","a"));
                 }
+
                 return LiveFragReference.get();
             } else if (position == CAMERA_LIST_POSITION) {
                 if (CameraFragReference.get() == null){
                     CameraFragReference = new WeakReference<>(CameraFragment.newInstance(0));
                 }
+
                 return CameraFragReference.get();
             } else if (position == REPLY_LIST_POSITION) {
                 if (LiveFragReference.get().getReplyFragment() == null) {
@@ -721,14 +729,18 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
         switch (position) {
             case CAMERA_LIST_POSITION:
                 sendMsgReportAnalyticsEvent(Constants.FRAGMENT_VIEW_EVENT,"Fragment~" + CAMERA_PAGER_TITLE);
+                mPager.findViewById(R.id.pager_tab_strip).setVisibility(View.VISIBLE);
             break;
 
             case LOCAL_LIST_POSITION:
                 sendMsgReportAnalyticsEvent(Constants.FRAGMENT_VIEW_EVENT,"Fragment~" + LOCAL_PAGER_TITLE);
+                mPager.findViewById(R.id.pager_tab_strip).setVisibility(View.VISIBLE);
                 break;
 
             case MESSAGE_LIST_POSITION:
                 sendMsgReportAnalyticsEvent(Constants.FRAGMENT_VIEW_EVENT,"Fragment~" + MESSAGE_PAGER_TITLE);
+                mPager.findViewById(R.id.pager_tab_strip).setVisibility(View.GONE);
+
                 break;
 
             case LIVE_LIST_POSITION:
@@ -736,12 +748,16 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
             if (previousPosition == REPLY_LIST_POSITION) {
                     //LiveFragReference.get().getReplyFragment().deleteLoader();
                 }
+                mPager.findViewById(R.id.pager_tab_strip).setVisibility(View.VISIBLE);
                 break;
 
             case REPLY_LIST_POSITION:
                 sendMsgReportAnalyticsEvent(Constants.FRAGMENT_VIEW_EVENT, "Fragment~" + REPLY_PAGER_TITLE);
                 Integer currentThread = LiveFragReference.get().getCurrentThread();
-              //  LiveFragReference.get().getReplyFragment().resetDisplay();
+
+                mPager.findViewById(R.id.pager_tab_strip).setVisibility(View.GONE);
+
+                //  LiveFragReference.get().getReplyFragment().resetDisplay();
                 break;
         }
 
@@ -820,14 +836,15 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
         return true;
     }
 
+
     /**
-     * method 'requestImages'
+     * method 'sendMsgRequestLocalPosts'
      *
      * requests images from the service
      *
      * @param num of images to request from server
      */
-    public void requestImages(int num) {
+    public void sendMsgRequestLocalPosts(int num) {
 
         if (isBound) {
             Log.d(TAG, "sending message to request " + num + " images");
@@ -959,6 +976,7 @@ I*/
             liveData = null;
         }
     }
+
 
     /**
      * method 'setLiveCreateInfo'
@@ -1174,6 +1192,7 @@ I*/
 
     private static SurfaceTexture mSurface;
 
+
     /**
      * class 'CameraHandler'
      *
@@ -1189,6 +1208,8 @@ I*/
         private static final String TAG = "MainCameraHandler";
         private boolean isConnected = false;
 
+        private Camera mCamera; //static to prevent garbage collection during onStop
+
         private static final int CAMERA_POSITION_BACK = 0;
         private static final int CAMERA_POSITION_FRONT = 1;
 
@@ -1197,7 +1218,6 @@ I*/
         private static final String FRONT_CAMERA_PARAMETERS = "fParams";
         private static final String BACK_CAMERA_PARAMETERS = "bParams";
 
-        private Camera mCamera; //static to prevent garbage collection during onStop
         private Camera.CameraInfo cameraInfo;
 
         private Camera.Parameters parameters;
@@ -1257,18 +1277,24 @@ I*/
                 Log.i(TAG,"surface was created and saved");
             }
 
+
+            if (getMainLooper().getThread() == getLooper().getThread()) {
+                Log.e(TAG,"this occurs in the main thread...");
+            }
+
             if (isConnected) {
+
                 if (mCamera != null) {
                     Log.d(TAG, "Camera is not connected and is available, setting and starting " +
                             "preview.");
-                    try {
-                        mCamera.setPreviewTexture(surface);
-                        mCamera.startPreview();
-                    } catch (IOException e) {
-                        Log.e(TAG, "error setting preview texture to camera", e);
-                    } catch (NullPointerException e) {
-                        Log.e(TAG, "error setting Preview texture to camera", e);
-                    }
+                            try {
+                                mCamera.setPreviewTexture(mSurface);
+                                mCamera.startPreview();
+                            } catch (IOException e) {
+                                Log.e(TAG, "error setting preview texture to camera", e);
+                            } catch (NullPointerException e) {
+                                Log.e(TAG, "error setting Preview texture to camera", e);
+                            }
                 } else {
                     Log.d(TAG, "camera was not avaliable, saving surface...");
                     mSurface = surface;
@@ -1436,7 +1462,7 @@ I*/
                 case MSG_SAVE_PICTURE: //6
                     saveImage(theData,
                             inputMessage.getData().getString("commenttext"),
-                            inputMessage.arg1, //height of commentText
+                            0,
                             inputMessage.arg2); // local vs live
                     theData = null;
                     break;
@@ -1662,35 +1688,9 @@ I*/
                             new FileOutputStream(filePath));
                 } catch (FileNotFoundException e) {
                     Log.e(TAG,"error compressing bitmap to filepath" + filePath, e);
-                }
+                            }
 
-                Log.d(TAG, "The size of the image after: " + data.length);
-
-            } else {
-                Log.d(TAG, "comment text is:"+commentText);
-
-                Canvas canvas = new Canvas(image);
-
-
-                TextView tv = new TextView(mWeakActivity.get());
-                tv.setText(commentText);
-                tv.layout(0, 0, canvas.getWidth(), TEXT_BOX_HEIGHT);
-                tv.setTextColor(Color.BLACK);
-                tv.setBackgroundColor(mWeakActivity.get().
-                        getResources().
-                        getColor(R.color.pallete_accent_blue_alpha));
-                tv.setGravity(Gravity.CENTER);
-                tv.setDrawingCacheEnabled(true);
-                tv.buildDrawingCache();
-                canvas.drawBitmap(tv.getDrawingCache(), 0, height, null);
-
-                try {
-                    image.compress(Bitmap.CompressFormat.JPEG, COMPRESSION_QUALITY,
-                            new FileOutputStream(filePath));
-                } catch (FileNotFoundException e) {
-                    Log.d(TAG, "File not found: " + e.getMessage());
-                }
-                Log.d(TAG, "The size of the image after: " + data.length);
+            Log.d(TAG, "The size of the image after: " + data.length);
 
             }
 
@@ -1701,7 +1701,7 @@ I*/
             switch (callBack) {
                 case LOCAL_CALLBACK:
                     Log.d(TAG, "notifying MainActivity to post image to Local...");
-                    mWeakActivity.get().sendImageToLocal(key, 2);
+                    mWeakActivity.get().sendImageToLocal(key, 2, commentText);
                     break;
 
                 case LIVE_CALLBACK:
@@ -1991,7 +1991,6 @@ I*/
             Bundle b = new Bundle();
             b.putString("commenttext",comment.getText().toString());
             msg.setData(b);
-            msg.arg1 = comment.getTop();
         } else {
             Log.d(TAG, "comment was null...");
         }
@@ -2125,6 +2124,8 @@ I*/
 
     static final int MSG_NOT_FOUND = 54;
 
+    static final int MSG_NOTHING_RETURNED = 55;
+
 
     /**
      * class 'replyHandler'
@@ -2185,7 +2186,8 @@ I*/
                 case MSG_TOO_MANY_REQUESTS:
                     new AlertDialog.Builder(activity.get())
                             .setTitle("Alert")
-                            .setMessage("You have posted too many times, in a small period, and now we're worried you're not human.")
+                            .setMessage("You have posted too many times, " +
+                                    "in a small period, and now we're worried you're not human.")
                             .setIcon(android.R.drawable.ic_dialog_alert)
                             .show();
                     break;
@@ -2238,9 +2240,31 @@ I*/
                             })
                         .show();
                     break;
+
+                case MSG_NOTHING_RETURNED:
+
+                    switch (msg.arg1) {
+                        case DataHandlingService.MSG_REQUEST_MESSAGES:
+                            Toast.makeText(activity.get(),"No messages received...",Toast.LENGTH_SHORT).show();
+                            break;
+
+                        case DataHandlingService.MSG_REQUEST_LIVE_THREADS:
+                            Toast.makeText(activity.get(),"No live threads returned...",Toast.LENGTH_SHORT).show();
+                            break;
+
+                        case DataHandlingService.MSG_REQUEST_LOCAL_POSTS:
+                            Toast.makeText(activity.get(),"No local posts returned...",Toast.LENGTH_SHORT).show();
+                            break;
+
+                        case DataHandlingService.MSG_REQUEST_REPLIES:
+                            Toast.makeText(activity.get(),"No replies received...",Toast.LENGTH_SHORT).show();
+                            break;
+                    }
+
+                    break;
             }
 
-            Log.d(TAG,"exit handleMessage");
+            Log.d(TAG, "exit handleMessage");
         }
     }
 

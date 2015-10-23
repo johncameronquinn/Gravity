@@ -62,7 +62,7 @@ public class LocalFragment extends Fragment implements
         String[] projection = new String[1];
         projection[0] = SQLiteDbContract.LocalEntry.COLUMN_ID;
 
-        ((MainActivity)activity).requestImages(3);
+        ((MainActivity)activity).sendMsgRequestLocalPosts(3);
 
         try {
             mListener = (onLocalFragmentInteractionListener) activity;
