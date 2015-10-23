@@ -72,7 +72,7 @@ public class LocalFragment extends Fragment implements
         }
 
 
-        receiver = new LiveThreadReceiver();
+        receiver = new LocalPostReceiver();
         IntentFilter filter = new IntentFilter(Constants.ACTION_IMAGE_LOCAL_LOADED);
         activity.registerReceiver(receiver, filter);
     }
@@ -84,12 +84,13 @@ public class LocalFragment extends Fragment implements
             Log.v(TAG,"enter onDestroy...");
         }
         mListener = null;
+
+        getActivity().unregisterReceiver(receiver);
+        receiver = null;
         getLoaderManager().destroyLoader(LOCAL_LOADER_ID);
         if (VERBOSE) {
             Log.v(TAG,"exit onDestroy...");
         }
-
-        getActivity().unregisterReceiver(receiver);
     }
 
     @Override
@@ -214,9 +215,9 @@ public class LocalFragment extends Fragment implements
         }
     }
 
-    public LiveThreadReceiver receiver;
+    private LocalPostReceiver receiver;
 
-    public class LiveThreadReceiver extends BroadcastReceiver {
+    public class LocalPostReceiver extends BroadcastReceiver {
         @Override
         public void onReceive(Context context, Intent intent) {
             if (LiveFragment.VERBOSE) {
@@ -226,10 +227,12 @@ public class LocalFragment extends Fragment implements
             Bundle data = intent.getExtras();
             String path = data.getString(Constants.KEY_S3_KEY);
 
-            View v = (RelativeLayout)imageAdapterView.findViewWithTag(path).getParent();
+            View v = imageAdapterView.findViewWithTag(path);
             if (v==null){
                 Log.e(TAG,"no image was found with the tag: " + path + " doing nothing");
                 return;
+            } else {
+                v = (RelativeLayout)v.getParent();
             }
 
             if (v.isShown()) {

@@ -157,7 +157,7 @@ public class LiveFragment extends Fragment implements
                 LiveThreadEntry.COLUMN_NAME_UNIQUE
         };
 
-        mAdapter = new CursorPagerAdapter<>(getFragmentManager(),LiveThreadFragment.class,projection,null);
+        mAdapter = new CursorPagerAdapter<>(getChildFragmentManager(),LiveThreadFragment.class,projection,null);
 
 
         if (VERBOSE) Log.v(TAG,"initializing loader at id " + LIVE_LOADER_ID);

@@ -52,7 +52,7 @@ public class ImageStackCursorAdapter extends CursorAdapter {
             ViewHolder(View v, String s) {
                 progressBar = (ProgressBar) v.findViewById(R.id.local_post_progressbar);
                 progressBar.setTag(s);
-                imageView = (ImageView) v.findViewById(R.id.image);
+                imageView = (ImageView) v.findViewById(R.id.local_post_imageView);
             }
         }
 
@@ -161,7 +161,7 @@ public class ImageStackCursorAdapter extends CursorAdapter {
                 ((MainActivity)ctx).sendMsgDownloadImage(Constants.KEY_S3_LOCAL_DIRECTORY,sText);
             }
 
-            v.setTag(params);
+            v.setTag(params[0]);
 
             if (VERBOSE) {
                 Log.v(TAG,"exiting bindView...");

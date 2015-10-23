@@ -134,6 +134,7 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
     private final int RESPONSE_TOO_MANY_REQUESTS = 429;
     private final int RESPONSE_BLOCK_CONFLICT = 409;
     private final int RESPONSE_UNAUTHORIZED = 401;
+    private final int RESPONSE_NOT_FOUND = 404;
 
     /**
      * JSON TAGS
@@ -347,7 +348,7 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
 
 
     private void createLocalPost(Bundle b) {
-        createLocalPost(b.getString(Constants.KEY_S3_KEY), mLocation, b.getString(Constants.KEY_TEXT,""));
+        createLocalPost(b.getString(Constants.KEY_S3_KEY), mLocation, b.getString(Constants.KEY_TEXT, ""));
     }
 
     /***********************************************************************************************
@@ -397,7 +398,6 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
                 //read the image, send to server
 
                 int status = -1; //status of the image sent
-                int responseCode = -1;
 
                 HttpURLConnection conn;
                 try {
@@ -443,8 +443,6 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
                 /**
                  * Report status back to the main thread
                  */
-
-                Log.d(TAG, "Server response: " + responseCode);
 
                 Log.d(TAG, "exiting handleActionSendImages...");
 
@@ -534,6 +532,7 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
 
             try {
                 saveIncomingJsonArray(MSG_REQUEST_LOCAL_POSTS, conn, null);
+                handleResponseCode(conn.getResponseCode(), replyMessenger);
             } catch (IOException e) {
                 Log.e(TAG,"error saving incoming json...");
                 //todo handle this
@@ -701,7 +700,13 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
         try {
             saveIncomingJsonArray(MSG_REQUEST_MESSAGES, conn, null);
         } catch (IOException e) {
-            Log.d(TAG, "error receiving and storing messages...", e);
+            Log.e(TAG, "error receiving and storing messages...", e);
+        }
+
+        try {
+            handleResponseCode(conn.getResponseCode(), replyMessenger);
+        } catch (IOException e) {
+            Log.e(TAG, "error handling responsecode...", e);
         }
 
         if (VERBOSE) Log.v(TAG, "exiting requestLocalMessages...");
@@ -858,6 +863,7 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
         }).start();
     }
 
+
     /**
      * method 'replyToLiveThread'
      * <p/>
@@ -975,6 +981,12 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
             Log.d(TAG, "error receiving and storing messages...", e);
         }
 
+        try {
+            handleResponseCode(conn.getResponseCode(), replyMessenger);
+        } catch (IOException e) {
+            Log.e(TAG, "error handling responsecode...", e);
+        }
+
         if (Constants.LOGD)
             Log.d(TAG, "Notifying client that thread list has been requested loading...");
         try {
@@ -1024,7 +1036,7 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
             }
 
             jGen.writeStartObject();
-            jGen.writeStringField(THREAD_ID, String.valueOf(threadID));
+            jGen.writeNumberField(THREAD_ID, threadID);
             jGen.writeEndObject();
             jGen.flush();
             jGen.close();
@@ -1040,6 +1052,12 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
             saveIncomingJsonArray(MSG_REQUEST_REPLIES, conn, b);
         } catch (IOException e) {
             Log.e(TAG, "error receiving and storing messages...", e);
+        }
+
+        try {
+            handleResponseCode(conn.getResponseCode(), replyMessenger);
+        } catch (IOException e) {
+            Log.e(TAG, "error handling responsecode...", e);
         }
 
         if (VERBOSE) Log.v(TAG, "exiting requestLiveReplies...");
@@ -1086,36 +1104,37 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
                         if (VERBOSE) Log.v(TAG,"saving json from replies");
 
                         map.put(SQLiteDbContract.LiveReplies.COLUMN_NAME_THREAD_ID, extradata.getString(THREAD_ID));
-                        b.putString(Constants.KEY_S3_DIRECTORY, "replies");
+                        b.putString(Constants.KEY_S3_DIRECTORY, Constants.KEY_S3_REPLIES_DIRECTORY);
+                        b.putInt(PENDING_TRANSFER_TYPE, MSG_REQUEST_REPLIES);
                     case MSG_REQUEST_LOCAL_POSTS:
                         if (VERBOSE) Log.v(TAG,"saving json from local/");
 
                         //swap id for _ID, to allow listview loading, and add the thread ID
                         map.put(SQLiteDbContract.LiveReplies.COLUMN_ID, map.remove("id"));
 
-                        b.putString(Constants.KEY_S3_DIRECTORY, "local");
+                        b.putString(Constants.KEY_S3_DIRECTORY, Constants.KEY_S3_LOCAL_DIRECTORY);
                         break;
                     case MSG_REQUEST_LIVE_THREADS:
                         if (VERBOSE) Log.v(TAG,"saving json from live");
 
                         map.put(SQLiteDbContract.LiveThreadEntry.COLUMN_ID, map.remove("order"));
                         map.put(SQLiteDbContract.LiveThreadEntry.COLUMN_NAME_THREAD_ID, map.remove("id"));
-                        b.putInt(PENDING_TRANSFER_TYPE,MSG_REQUEST_LIVE_THREADS);
-                        b.putString(Constants.KEY_S3_DIRECTORY, "live");
+                        b.putInt(PENDING_TRANSFER_TYPE, MSG_REQUEST_LIVE_THREADS);
+                        b.putString(Constants.KEY_S3_DIRECTORY, Constants.KEY_S3_LIVE_DIRECTORY);
                         break;
 
                     case MSG_REQUEST_MESSAGES:
                         if (VERBOSE) Log.v(TAG,"saving json from message");
-
-
-                        b.putString(Constants.KEY_S3_DIRECTORY, "message");
+                        map.put(SQLiteDbContract.MessageEntry.COLUMN_ID, map.remove("id"));
+                        b.putString(Constants.KEY_S3_DIRECTORY, Constants.KEY_S3_MESSAGE_DIRECTORY);
+                        b.putInt(PENDING_TRANSFER_TYPE, MSG_REQUEST_MESSAGES);
                         break;
 
 
                 }
                 if (map.containsKey("url")) {
 
-                    String cont = (String)map.remove("url");
+                    String cont = (String)map.get("url");
                     if (VERBOSE)Log.d(TAG,"url is: " + cont);
 
                     if (!cont.equals("")) {
@@ -1126,7 +1145,6 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
                             //b.putString("url", cont);
                             //b.putString(Constants.KEY_S3_KEY, cont);
                             //downloadImageFromS3(b);
-                            map.put("url",cont);
                         }
                     }
                 }
@@ -1299,12 +1317,12 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
                     if (messageTarget == null) {
                         Log.d(TAG, "posting to local...");
                         data.putInt(PENDING_TRANSFER_TYPE, MSG_SEND_IMAGE);
-                        data.putString(Constants.KEY_S3_DIRECTORY, "local");
+                        data.putString(Constants.KEY_S3_DIRECTORY, Constants.KEY_S3_LOCAL_DIRECTORY);
                         //irs.get().createLocalPost(filePath, mLocation);
                     } else {
                         Log.d(TAG, "sending Message to user: " + messageTarget);
                         data.putInt(PENDING_TRANSFER_TYPE, MSG_SEND_MESSAGE);
-                        data.putString(Constants.KEY_S3_DIRECTORY, "message");
+                        data.putString(Constants.KEY_S3_DIRECTORY, Constants.KEY_S3_MESSAGE_DIRECTORY);
                         //irs.get().sendImageMessageAsync(filePath, messageTarget, msg.arg1);
                     }
 
@@ -1358,7 +1376,7 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
 
                     data = msg.getData();
                     data.putInt(PENDING_TRANSFER_TYPE, MSG_CREATE_THREAD);
-                    data.putString(Constants.KEY_S3_DIRECTORY, "live");
+                    data.putString(Constants.KEY_S3_DIRECTORY, Constants.KEY_S3_LIVE_DIRECTORY);
                     uploadImageToS3(data);
                     break;
 
@@ -1366,10 +1384,23 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
                     Log.d(TAG, "received a message to create a thread");
 
                     data = msg.getData();
-                    String namea = data.getString("name");
-                    String desc = data.getString("description");
-                    String fpath = data.getString("filePath");
-                    irs.get().replyToLiveThreadAsync(msg.arg1, namea, desc, fpath);
+                    if (data.containsKey(Constants.KEY_S3_KEY)){
+                        if (Constants.LOGD) Log.d(TAG,"contained an image filepath," +
+                                "uploading the image there to s3 first...");
+
+                        data.putInt(PENDING_TRANSFER_TYPE, MSG_REPLY_TO_THREAD);
+                        data.putString(Constants.KEY_S3_DIRECTORY, Constants.KEY_S3_REPLIES_DIRECTORY);
+                        uploadImageToS3(data);
+                    } else {
+                        if (Constants.LOGD) Log.d(TAG,"no image filepath was provided," +
+                                " this must be a text reply, so uploading straight to the server.");
+                        irs.get().replyToLiveThreadAsync(msg.arg1,
+                                data.getString("name"),
+                                data.getString("description"),
+                                data.getString("filePath")
+                        );
+                    }
+
                     break;
 
                 case MSG_REQUEST_LIVE_THREADS:
@@ -1662,6 +1693,10 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
         return new URL(CONNECTION_PROTOCOL, serverAddress, SERVER_SOCKET, path);
     }
 
+    private boolean handleResponseCode(int responseCode, Messenger replyMessenger) {
+        return handleResponseCode(responseCode,replyMessenger,new Bundle());
+    }
+
     /**
      * method "handleResponseCode"
      *
@@ -1669,16 +1704,18 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
      * @param replyMessenger
      * @return success - whether or not to retry to request
      */
-    private boolean handleResponseCode(int responseCode, Messenger replyMessenger) {
+    private boolean handleResponseCode(int responseCode, Messenger replyMessenger, Bundle extradata) {
         boolean success = true;
         if (VERBOSE) Log.v(TAG, "handling responseCode: " + responseCode);
-
+        Message msg;
         try {
 
             switch (responseCode) {
                 case RESPONSE_SUCCESS:
                     //let the user know
-                    replyMessenger.send(Message.obtain(null, MainActivity.MSG_SUCCESS));
+                    msg = Message.obtain(null, MainActivity.MSG_SUCCESS);
+                    msg.setData(extradata);
+                    replyMessenger.send(msg);
                     break;
 
                 case RESPONSE_BLOCK_CONFLICT:
@@ -1699,6 +1736,12 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
 
                     mMessenger.send(Message.obtain(null, new initializeUserWithServer()));
                     replyMessenger.send(Message.obtain(null, MainActivity.MSG_UNAUTHORIZED));
+
+                    break;
+
+                case RESPONSE_NOT_FOUND:
+                    msg = Message.obtain(null, MainActivity.MSG_NOT_FOUND);
+                    msg.setData(extradata);
 
                     break;
             }
@@ -2135,6 +2178,22 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
                                 intent.putExtras(data);
                                 sendBroadcast(intent);
                                 break;
+
+
+                            case Constants.KEY_S3_MESSAGE_DIRECTORY:
+                                intent = new Intent(Constants.ACTION_IMAGE_MESSAGE_LOADED);
+                                intent.putExtras(data);
+                                sendBroadcast(intent);
+                                break;
+
+
+
+                            case Constants.KEY_S3_REPLIES_DIRECTORY:
+                                intent = new Intent(Constants.ACTION_IMAGE_REPLY_LOADED);
+                                intent.putExtras(data);
+                                sendBroadcast(intent);
+                                break;
+
 
                             default:
                                 Log.e(TAG, "no directory was provided, not broadcasting");

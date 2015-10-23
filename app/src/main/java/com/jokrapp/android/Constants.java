@@ -107,6 +107,8 @@ public final class Constants {
     public static final String KEY_S3_LIVE_DIRECTORY = "live";
     public static final String KEY_S3_LOCAL_DIRECTORY = "local";
     public static final String KEY_S3_STASH_DIRECTORY = "stash";
+    public static final String KEY_S3_MESSAGE_DIRECTORY = "message";
+    public static final String KEY_S3_REPLIES_DIRECTORY = "replies";
 
 
     /**

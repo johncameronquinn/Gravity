@@ -484,7 +484,7 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
      * @param event
      * @return
      */
-    @Override
+   /* @Override
     public boolean dispatchTouchEvent(MotionEvent event) {
 
 
@@ -499,7 +499,7 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
 
 
         return super.dispatchTouchEvent(event);
-    }
+    }*/
 
     public void onLocalReplyPressed(View view) {
         if (VERBOSE) {
@@ -1499,7 +1499,7 @@ I*/
                     break;
 
                 case MSG_AUTOFOCUS:
-                    focusOnTouch(inputMessage.getData().getFloat("x"),inputMessage.getData().getFloat("y"));
+                        focusOnTouch(inputMessage.getData().getFloat("x"),inputMessage.getData().getFloat("y"));
                     break;
 
 
@@ -2123,6 +2123,8 @@ I*/
 
     static final int MSG_UNAUTHORIZED = 53;
 
+    static final int MSG_NOT_FOUND = 54;
+
 
     /**
      * class 'replyHandler'
@@ -2177,7 +2179,7 @@ I*/
                     break;
 
                 case MSG_SUCCESS:
-                    Toast.makeText(activity.get(),"Post successful!",Toast.LENGTH_SHORT).show();
+                    //Toast.makeText(activity.get(),"Post successful!",Toast.LENGTH_SHORT).show();
                     break;
 
                 case MSG_TOO_MANY_REQUESTS:
@@ -2205,7 +2207,36 @@ I*/
                             .setTitle("Unauthorized")
                             .setMessage("A bad userID was supplied to our server... hold on a moment while we make you another one.")
                             .setIcon(android.R.drawable.ic_dialog_alert)
+                            .setPositiveButton("Got it, coach", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    dialog.dismiss();
+                                }
+                            })
                             .show();
+                    break;
+
+                case MSG_NOT_FOUND:
+                    new AlertDialog.Builder(activity.get())
+                        .setTitle("404 - not found")
+                        .setMessage("You have attempted to get the replies for a thread that no longer exists. You should refresh.")
+                        .setIcon(android.R.drawable.ic_dialog_alert)
+                            .setPositiveButton("Refresh", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    activity.get().sendMsgRequestReplies(
+                                            ((ReplyFragment)mAdapter.getItem(REPLY_LIST_POSITION))
+                                                    .getCurrentThread());
+                                }
+                            })
+                            .setPositiveButton("Don't tell me what to do.",
+                                    new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    dialog.dismiss();
+                                }
+                            })
+                        .show();
                     break;
             }
 

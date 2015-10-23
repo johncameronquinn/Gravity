@@ -13,15 +13,12 @@
 
     <Button
         android:layout_width="wrap_content"
-        android:layout_height="77dp"
-        android:text="live"
-        android:background="@drawable/capturebutton3"
+        android:layout_height="wrap_content"
+        android:background="@drawable/ic_camera_sendtolive"
         android:id="@+id/button_live"
         android:layout_gravity="end|bottom"
         android:visibility="invisible"
-        android:alpha=".5"
-        android:layout_margin="30dp"
-        android:textColor="#ffff74d4" />
+        android:layout_margin="40dp" />
 
 
     <EditText
@@ -57,27 +54,22 @@
 
     <Button
         android:layout_width="wrap_content"
-        android:layout_height="42dp"
-        android:text="Cancel"
-        android:background="@drawable/capturebutton3"
+        android:layout_height="wrap_content"
+        android:background="@drawable/ic_cancel"
         android:id="@+id/button_cancel"
         android:layout_gravity="center_horizontal|bottom"
         android:visibility="invisible"
-        android:alpha=".5"
-        android:layout_margin="30dp"
+        android:layout_marginBottom="70dp"
         android:textColor="#ffff34b2" />
 
     <Button
         android:layout_width="wrap_content"
-        android:layout_height="77dp"
-        android:text="Local"
-        android:background="@drawable/capturebutton3"
+        android:layout_height="wrap_content"
+        android:background="@drawable/ic_camera_sendtolocal"
         android:id="@+id/button_local"
         android:layout_gravity="left|bottom"
         android:visibility="invisible"
-        android:alpha=".5"
-        android:layout_margin="30dp"
-        android:textColor="#ffff56cd" />
+        android:layout_margin="40dp" />
 
     <Button
         android:layout_width="59dp"

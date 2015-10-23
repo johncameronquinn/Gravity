@@ -2,7 +2,11 @@ package com.jokrapp.android;
 
 import android.app.Activity;
 import android.app.LoaderManager;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.CursorLoader;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.Loader;
 import android.database.Cursor;
 import android.os.Bundle;
@@ -12,6 +16,9 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
+import android.widget.ProgressBar;
+import android.widget.RelativeLayout;
 
 import com.jokrapp.android.view.ImageCursorAdapterView;
 
@@ -55,6 +62,9 @@ public class MessageFragment extends Fragment implements
 
         ((MainActivity)activity).sendMsgRequestLocalMessages();
 
+        receiver = new MessageReceiver();
+        IntentFilter filter = new IntentFilter(Constants.ACTION_IMAGE_MESSAGE_LOADED);
+        activity.registerReceiver(receiver, filter);
     }
 
     @Override
@@ -64,6 +74,9 @@ public class MessageFragment extends Fragment implements
             Log.v(TAG,"enter onDestroy...");
         }
         mListener = null;
+        getActivity().unregisterReceiver(receiver);
+        receiver = null;
+
         if (VERBOSE) {
             Log.v(TAG,"exit onDestroy...");
         }
@@ -187,6 +200,47 @@ public class MessageFragment extends Fragment implements
             Log.v(TAG,"exit onLoaderReset...");
         }
     }
+
+
+    private MessageReceiver receiver;
+
+    public class MessageReceiver extends BroadcastReceiver {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if (LiveFragment.VERBOSE) {
+                Log.v(TAG, "received local intent...");
+            }
+
+            Bundle data = intent.getExtras();
+            String path = data.getString(Constants.KEY_S3_KEY);
+
+            View v = imageAdapterView.findViewWithTag(path);
+            if (v==null){
+                Log.e(TAG,"no image was found with the tag: " + path + " doing nothing");
+                return;
+            } else {
+                v = (RelativeLayout)v.getParent();
+            }
+
+            if (v.isShown()) {
+                if (VERBOSE) Log.v(TAG,"Image loaded from view is visible, decoding and displaying...");
+                ImageView imageView = (ImageView) v.findViewById(R.id.message_imageView);
+                ProgressBar bar = (ProgressBar) v.findViewById(R.id.message_progressbar);
+
+                /* create full path from tag*/
+                String[] params = {getActivity().getCacheDir() + "/" + path};
+
+
+                new ImageLoadTask(imageView, bar).execute(params);
+
+            } else {
+                if (VERBOSE) Log.v(TAG,"image is now shown do nothing...");
+            }
+
+        }
+    }
+
+
 
     /**
      * interface 'onLocalFragmentInteractionListener'

@@ -47,6 +47,9 @@ public class ImageLoadTask extends AsyncTask<String,Integer,Bitmap> {
 
     @Override
     protected void onPostExecute(Bitmap bitmap) {
+        if (imageViewWeakReference.get()== null || progressBarWeakReference.get() == null) {
+            return; //todo remove logically unnecessary null-check
+        }
         imageViewWeakReference.get().setImageBitmap(bitmap);
         progressBarWeakReference.get().setVisibility(View.INVISIBLE);
     }
