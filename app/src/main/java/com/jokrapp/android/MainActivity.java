@@ -1695,21 +1695,19 @@ I*/
             image = Bitmap.createBitmap(image, 0, 0, image.getWidth(),
                     image.getHeight(), matrix, true);
 
+            Log.d(TAG, "comment was null...");
 
 
-            if (commentText == null) {
-                Log.d(TAG, "comment was null...");
-
-                try {
-                    image.compress(Bitmap.CompressFormat.JPEG, COMPRESSION_QUALITY,
-                            new FileOutputStream(filePath));
-                } catch (FileNotFoundException e) {
-                    Log.e(TAG,"error compressing bitmap to filepath" + filePath, e);
-                            }
-
-            Log.d(TAG, "The size of the image after: " + data.length);
+            try {
+                 image.compress(Bitmap.CompressFormat.JPEG, COMPRESSION_QUALITY,
+                        new FileOutputStream(filePath));
+             } catch (FileNotFoundException e) {
+                Log.e(TAG,"error compressing bitmap to filepath" + filePath, e);
 
             }
+             Log.d(TAG, "The size of the image after: " + data.length);
+
+
 
             final int LOCAL_CALLBACK = 0;
             final int LIVE_CALLBACK = 1;

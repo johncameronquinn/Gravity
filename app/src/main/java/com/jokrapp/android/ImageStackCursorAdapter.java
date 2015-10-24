@@ -103,7 +103,7 @@ public class ImageStackCursorAdapter extends CursorAdapter {
             }
         }
 
-        vView.setTag(new ViewHolder(vView,cursor.getString
+        vView.setTag(new ViewHolder(vView, cursor.getString
                 (cursor.getColumnIndex(SQLiteDbContract.LocalEntry.COLUMN_NAME_FILEPATH))));
 
             /*
@@ -114,6 +114,9 @@ public class ImageStackCursorAdapter extends CursorAdapter {
         String UUID = cursor.getString(cursor.getColumnIndex(SQLiteDbContract.MessageEntry.COLUMN_FROM_USER));
 
         ((TextView)vView.findViewById(R.id.userID)).setText(UUID);
+
+
+
         context.findViewById(R.id.button_local_message).setTag(UUID);
         context.findViewById(R.id.button_local_block).setTag(UUID);
 
@@ -139,6 +142,22 @@ public class ImageStackCursorAdapter extends CursorAdapter {
             if (VERBOSE) {
                 Log.v(TAG,"entering bindView...");
             }
+
+
+            /* grab the caption from incoming files*/
+            String caption_text = c.getString(
+                    c.getColumnIndex(
+                            SQLiteDbContract.LocalEntry.COLUMN_NAME_TEXT)
+            );
+
+
+            /* if the caption is not empty (or null) set and display*/
+            if (!caption_text.equals("")) {
+                TextView caption = ((TextView) v.findViewById(R.id.textView_local_caption));
+                caption.setText(caption_text);
+                caption.setVisibility(View.VISIBLE);
+            }
+
 
             // you might want to cache these too
             int iCol_filepath = c.getColumnIndex(SQLiteDbContract.LocalEntry.COLUMN_NAME_FILEPATH);

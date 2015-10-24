@@ -12,7 +12,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:scaleType="fitXY"
-        android:background="#aaaaaaaa"
+        android:visibility="visible"
         android:layout_alignParentTop="true"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true" />
@@ -36,6 +36,22 @@
         android:layout_marginTop="26dp"
         android:layout_alignParentTop="true"
         android:layout_centerHorizontal="true" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/textView_message_caption"
+        android:background="@drawable/ic_comment"
+        android:padding="10dp"
+        android:textColor="@color/jpallete_neutral_blue"
+        android:text="Error"
+        android:textSize="15dp"
+        android:visibility="invisible"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:layout_marginLeft="@dimen/side_screen_margin"
+        android:layout_marginRight="@dimen/local_card_margin" />
 
 
 </RelativeLayout>

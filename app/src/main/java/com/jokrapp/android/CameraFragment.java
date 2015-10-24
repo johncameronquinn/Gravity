@@ -127,8 +127,11 @@ n  */
         if (savedInstanceState != null) {
             Log.d(TAG, "restoring state...");
         }
+
+
         GestureDoubleTap gestureDoubleTap = new GestureDoubleTap();
         gestureDetector = new GestureDetector(getActivity(), gestureDoubleTap);
+
 
         Log.d(TAG, "Setting CameraFragment to default mode");
         currentCameraMode = 0;
@@ -225,6 +228,8 @@ n  */
         if (VERBOSE) {
             Log.v(TAG, "enter onDestroy...");
         }
+
+        gestureDetector = null;
         if (VERBOSE) {
             Log.v(TAG, "exit onDestroy...");
         }
@@ -257,6 +262,7 @@ n  */
         return inflater.inflate(R.layout.fragment_camera, container, false);
     }
 
+
     public class GestureDoubleTap extends GestureDetector.SimpleOnGestureListener  {
 
         @Override
@@ -276,6 +282,25 @@ n  */
         }
 
         /**
+         * method 'onDown'
+         * @param e the incoming event
+         * @return true to attempt to detect this event, false to discard
+         */
+        @Override
+        public boolean onDown(MotionEvent e) {
+            switch (currentCameraMode) {
+                case CAMERA_DEFAULT_MODE:
+                    return true;
+                case CAMERA_MESSAGE_MODE:
+                    return true;
+                case CAMERA_REPLY_MODE:
+                    return true;
+                default:
+                    return false;
+            }
+        }
+
+        /**
          * method 'onSingleTapConfirmed'
          *
          * this method provides functionality to singletaps,
@@ -287,9 +312,12 @@ n  */
          */
         @Override
         public boolean onSingleTapConfirmed(MotionEvent e) {
+            if (VERBOSE) Log.v(TAG,"entering onSingleTapConfirmed...");
+
             if (isPreview) { //its in preview mode, so trigger an auto-focus
                 mListener.sendMsgAutoFocus(e);
 
+                if (VERBOSE) Log.v(TAG,"exiting onSingleTapConfirmed...");
                 return true;
             } else { //its not in preview mode,  toggle comment
                 if (isComment) {  //is in commenting mode, stop
@@ -302,6 +330,7 @@ n  */
                     commentText.setVisibility(View.VISIBLE);
                 }
             }
+            if (VERBOSE) Log.v(TAG,"exiting onSingleTapConfirmed...");
             return true;
         }
     }
@@ -314,8 +343,9 @@ n  */
         @Override
         public boolean onTouch(View v, MotionEvent event) {
             if (VERBOSE) {
-                //Log.v(TAG,"Event: " + event.toString());
+                Log.v(TAG,"Event: " + event.toString());
             }
+
             if (gestureDetector.onTouchEvent(event)) {
                 return true;
             } else {

@@ -31,6 +31,12 @@
 
     <style name="liveTextStyle">
         <item name="android:textColor">@color/jpallete_accent_grey</item>
+        <item name="android:textSize">12sp</item>
+    </style>
+
+    <style name="localCaptionStyle">
+        <item name="android:textSize">12sp</item>
+        <item name="android:background">@drawable/ic_comment</item>
     </style>
 
     <style name="nameTextStyle">

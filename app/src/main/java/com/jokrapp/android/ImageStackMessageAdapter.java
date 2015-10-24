@@ -134,6 +134,21 @@ public class ImageStackMessageAdapter extends ImageStackCursorAdapter {
             Log.v(TAG,"entering bindView...");
         }
 
+         /* grab the caption from incoming files*/
+        String caption_text = c.getString(
+                c.getColumnIndex(
+                        SQLiteDbContract.MessageEntry.COLUMN_NAME_TEXT)
+        );
+
+
+            /* if the caption is not empty (or null) set and display*/
+        if (!caption_text.equals("")) {
+            TextView caption = ((TextView) v.findViewById(R.id.textView_message_caption));
+            caption.setText(caption_text);
+            caption.setVisibility(View.VISIBLE);
+        }
+
+
         // you might want to cache these too
         int iCol_filepath = c.getColumnIndex(SQLiteDbContract.MessageEntry.COLUMN_NAME_FILEPATH);
         String sText = c.getString(iCol_filepath);

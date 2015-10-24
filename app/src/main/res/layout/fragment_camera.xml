@@ -88,7 +88,7 @@
         android:layout_gravity="center_horizontal|bottom"
         android:visibility="invisible"
         android:layout_marginBottom="40dp"
-        android:alpha=".7"/>
+        android:background="@drawable/ic_camera_confirm"/>
 
     <CheckBox
         android:layout_width="wrap_content"

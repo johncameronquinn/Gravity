@@ -12,4 +12,6 @@
     <dimen name="button_width">65dp</dimen>
 
     <dimen name="side_screen_margin">16dp</dimen>
+    <dimen name="local_card_margin">80dp</dimen>
+    <dimen name="text_font_size">12sp</dimen>
 </resources>
