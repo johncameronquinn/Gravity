@@ -2,13 +2,12 @@
     xmlns:expandable="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/pallete_accent_gray">
+    android:background="@color/jpallete_main_grey">
 
         <com.jokrapp.android.view.ImageCursorAdapterView
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:id="@+id/imageMessageAdapter"
-            android:background="@color/pallete_accent_gray">
+            android:id="@+id/imageMessageAdapter">
         </com.jokrapp.android.view.ImageCursorAdapterView>
 
 

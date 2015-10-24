@@ -18,7 +18,8 @@
         android:layout_alignParentTop="true"
         android:layout_alignParentRight="true"
         android:layout_alignParentEnd="true"
-        android:layout_marginRight="5dp"/>
+        android:layout_marginRight="5dp"
+        style="@style/liveTextStyle" />
 
 
     <TextView
@@ -32,7 +33,9 @@
         android:layout_below="@+id/reply_detail_row_time"
         android:layout_alignParentTop="false"
         android:layout_alignParentRight="true"
-        android:layout_toRightOf="@+id/reply_detail_row_image">
+        android:layout_toRightOf="@+id/reply_detail_row_image"
+        android:focusable="true"
+        android:textColor="@color/jpallete_accent_grey">
     </TextView>
 
     <TextView
@@ -45,7 +48,8 @@
         android:layout_alignParentTop="true"
         android:layout_marginLeft="5dp"
         android:layout_toRightOf="@+id/reply_detail_row_image"
-        android:layout_alignParentLeft="false" />
+        android:layout_alignParentLeft="false"
+        style="@style/nameTextStyle" />
 
     <ImageView
         android:layout_width="100dp"

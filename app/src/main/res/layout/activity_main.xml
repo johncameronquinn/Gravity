@@ -16,8 +16,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_gravity="top"
-            android:background="@color/wpallete_accent_blue"
-            android:textColor="@color/wpallete_neutral_gray"
+            android:textColor="@color/jpallete_accent_purple"
+            android:background="@color/jpallete_neutral_blue"
             android:paddingTop="4dp"
             android:paddingBottom="4dp"
           />

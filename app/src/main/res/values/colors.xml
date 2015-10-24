@@ -16,7 +16,6 @@
     <color name="pallete_accent_gray">#424242</color>
 
 
-
     <color name="wpallete_main_purple">#7F11A3</color>
     <color name="wpallete_accent_purple">#CD90E1</color>
     <color name="wpallete_neutral_gray">#5B555D</color>
@@ -24,6 +23,16 @@
     <color name="wpallete_main_blue">#348ADB</color>
     <color name="wpallete_accent_blue_alpha">#786dcff6</color>
     <color name="wpallete_complementary_green">#9AEF5B</color>
+
+    <color name="jpallete_main_blue">#5d8bea</color>
+    <color name="jpallete_main_grey">#e8f3ff</color>
+    <color name="jpallete_main_green">#00c44b</color>
+    <color name="jpallete_neutral_blue">#80f2e6</color>
+    <color name="jpallete_neutral_green">#24F24C</color>
+    <color name="jpallete_accent_purple">#636C7F</color>
+    <color name="jpallete_accent_grey">#648063</color>
+    <color name="jpallete_accent_orange">#F38C08</color>
+    <color name="jpallete_accent_peach">#FEF18D</color>
 
     <color name="black_overlay">#66000000</color>
 </resources>

@@ -29,6 +29,15 @@
         <item name="android:onClick">onNotImplemented</item>
     </style>
 
+    <style name="liveTextStyle">
+        <item name="android:textColor">@color/jpallete_accent_grey</item>
+    </style>
+
+    <style name="nameTextStyle">
+        <item name="android:textColor">@color/jpallete_accent_peach</item>
+    </style>
+
+
 
 
 </resources>
