@@ -534,6 +534,11 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
 
     }
 
+    public void onLiveTakeReplyPicture(View view) {
+        takeReplyPicture();
+    }
+
+
     /**
      * method 'onLocalBlockPressed'
      *
@@ -955,8 +960,6 @@ I*/
         if (isBound) {
             Toast.makeText(this,"posting a reply to the server.",Toast.LENGTH_SHORT).show();
             Message msg = Message.obtain(null, DataHandlingService.MSG_REPLY_TO_THREAD);
-            msg.arg1 = replyData.getInt("threadID");
-            replyData.remove("threadID");
             msg.setData(replyData);
             try {
                 mService.send(msg);
@@ -1012,7 +1015,7 @@ I*/
     public void setLiveCreateReplyInfo(String comment, int threadID) {
         String name = getSharedPreferences(Constants.SHARED_PREFERENCES_NAME,MODE_PRIVATE).
                 getString(StashLiveSettingsFragment.LIVE_NAME_KEY,"jester");
-        setLiveCreateReplyInfo(name,comment,threadID);
+        setLiveCreateReplyInfo(name, comment, threadID);
     }
 
     public void setLiveCreateReplyInfo(String name, String Comment, int threadID) {
@@ -1024,10 +1027,17 @@ I*/
 
         replyData.putString("name",name);
         replyData.putString("description",Comment);
-        replyData.putInt("threadID",threadID);
+        replyData.putInt("threadID", threadID);
 
-        sendMsgCreateReply(replyData);
-        replyData = null;
+        if (replyData.size() == 4) {
+            sendMsgCreateReply(replyData);
+            replyData = null;
+        }
+    }
+
+    public void clearReplyInfo() {
+        if (VERBOSE) Log.v(TAG,"reply picture mode was cancelled, clearing info.");
+        replyData.clear();
     }
 
 
@@ -1053,7 +1063,7 @@ I*/
         if (liveData == null) {
             liveData = new Bundle(1);
         }
-        liveData.putString(Constants.KEY_S3_KEY,filePath);
+        liveData.putString(Constants.KEY_S3_KEY, filePath);
         if (liveData.size() == 4) {
             sendMsgCreateThread(liveData);
             liveData = null;
@@ -1076,6 +1086,15 @@ I*/
             sendMsgCreateThread(replyData);
             replyData = null;
         }
+    }
+
+    public void setReplyComment(String comment) {
+        replyData.putString("description",comment);
+    }
+
+
+    public String getReplyComment() {
+        return replyData.getString("description","");
     }
 
     public void removePendingLiveImage() {
@@ -1187,7 +1206,7 @@ I*/
 
     private static WeakReference<CameraHandler> cameraHandlerWeakReference = new WeakReference<>(null);
 
-    public CameraHandler getCameraHandlerSingleton(MainActivity activity) {
+    public synchronized CameraHandler getCameraHandlerSingleton(MainActivity activity) {
         if (cameraHandlerWeakReference.get() == null) {
             if (VERBOSE) Log.v(TAG,"reference to camera handler did not exist... creating new cameraHandler...");
 
@@ -1208,7 +1227,7 @@ I*/
     }
 
     private static SurfaceTexture mSurface;
-
+    private static Camera mCamera; //static to prevent garbage collection during onStop
 
     /**
      * class 'CameraHandler'
@@ -1220,12 +1239,10 @@ I*/
      *
      * It is possible that a SurfaceView would be a more effective implementation //todo look into this
      */
-    class CameraHandler extends Handler implements TextureView.SurfaceTextureListener, Camera.PictureCallback, Camera.ShutterCallback,
-            Camera.AutoFocusCallback {
+    class CameraHandler extends Handler implements TextureView.SurfaceTextureListener, Camera.PictureCallback, Camera.ShutterCallback {
         private static final String TAG = "MainCameraHandler";
         private boolean isConnected = false;
 
-        private Camera mCamera; //static to prevent garbage collection during onStop
 
         private static final int CAMERA_POSITION_BACK = 0;
         private static final int CAMERA_POSITION_FRONT = 1;
@@ -1709,23 +1726,23 @@ I*/
 
 
 
-            final int LOCAL_CALLBACK = 0;
-            final int LIVE_CALLBACK = 1;
-            final int REPLY_CALLBACK = 2;
-
             switch (callBack) {
-                case LOCAL_CALLBACK:
-                    Log.d(TAG, "notifying MainActivity to post image to Local...");
+                case CameraFragment.CAMERA_MESSAGE_MODE:
+                case CameraFragment.CAMERA_DEFAULT_MODE:
+                    if (Constants.LOGD) Log.d(TAG, "notifying MainActivity to" +
+                            " post image to Local...");
                     mWeakActivity.get().sendImageToLocal(key, 2, commentText);
                     break;
 
-                case LIVE_CALLBACK:
-                    Log.d(TAG, "notifying MainActivity image is ready to post to Live...");
+                case CameraFragment.CAMERA_LIVE_MODE:
+                    if (Constants.LOGD) Log.d(TAG, "notifying MainActivity image " +
+                            "is ready to post to Live...");
                     mWeakActivity.get().setLiveFilePath(key);
                     break;
 
-                case REPLY_CALLBACK:
-                    Log.d(TAG, "notifying MainActivity image is ready to post to Reply...");
+                case CameraFragment.CAMERA_REPLY_MODE:
+                    if (Constants.LOGD) Log.d(TAG, "notifying MainActivity" +
+                            " image is ready to post to Reply...");
                     mWeakActivity.get().setReplyFilePath(key);
                     break;
             }
@@ -1733,17 +1750,6 @@ I*/
 
             if (VERBOSE) {
                 Log.v(TAG, "exit savePicture...");
-            }
-        }
-
-        @Override
-        public void onAutoFocus(boolean success, Camera camera) {
-            if (success) {
-                // do something...
-                Log.i(TAG,"success!");
-            } else {
-                // do something...
-                Log.i(TAG,"fail!");
             }
         }
 
@@ -1781,7 +1787,7 @@ I*/
 
                 try {
                     mCamera.setParameters(parameters);
-                    mCamera.autoFocus(this);
+                    mCamera.autoFocus((CameraFragment)mAdapter.getItem(CAMERA_LIST_POSITION));
                 } catch (RuntimeException e) {
                     Log.e(TAG,"Failed to set camera parameters...",e);
                 }
@@ -1989,7 +1995,7 @@ I*/
      *
      * @param comment if there is a comment, it is passed here
      */
-    public void sendMsgSaveImage(EditText comment, boolean postToLive) {
+    public void sendMsgSaveImage(EditText comment, int where) {
         if (VERBOSE) {
             Log.v(TAG, "entering sendMsgSaveImage...");
         }
@@ -1997,9 +2003,8 @@ I*/
         Message msg = Message.obtain(null, MSG_SAVE_PICTURE);
 
         //APPLYING SETTINGS
-        if (postToLive) {
-            msg.arg2 = 1;
-        }
+        msg.arg2 = where;
+
         if (!comment.getText().toString().trim().matches("")) {
             Log.d(TAG,"Text retrieved was not null, attempting to send");
 
@@ -2029,18 +2034,18 @@ I*/
      *
      * @param comment if there is a comment, it is passed here
      */
-    public void sendMsgSaveImage(EditText comment, boolean postToLive, String messageTarget) {
+    public void sendMsgSaveImage(EditText comment, int where, String messageTarget) {
         if (VERBOSE) {
             Log.v(TAG, "entering sendMsgSaveImageWrapper...");
             Log.v(TAG, "printing arguments: ");
             Log.v(TAG, "comment " + comment.getText().toString());
-            Log.v(TAG, "postToLive " + postToLive);
+            Log.v(TAG, "where " + where);
             Log.v(TAG, "messageTarget " + messageTarget);
         }
 
 
         this.messageTarget = messageTarget;
-        sendMsgSaveImage(comment,postToLive);
+        sendMsgSaveImage(comment,where);
         if (VERBOSE) Log.v(TAG, "exiting sendMsgSaveImageWrapper...");
     }
 
@@ -2195,7 +2200,22 @@ I*/
                     break;
 
                 case MSG_SUCCESS:
-                    //Toast.makeText(activity.get(),"Post successful!",Toast.LENGTH_SHORT).show();
+
+                    switch (msg.arg1) {
+                        case DataHandlingService.MSG_REPLY_TO_THREAD:
+                            Toast.makeText(activity.get(),"reply successful",Toast.LENGTH_SHORT).show();
+                            sendMsgRequestReplies(msg.getData().getInt("threadID"));
+                            break;
+
+                        case -1:
+                            if (Constants.LOGV) {
+                                Log.v(TAG,"generic operation successful, printing data bundle");
+                                com.jokrapp.android.util.LogUtils.printBundle(msg.getData(),TAG);
+                            }
+                            break;
+
+
+                    }
                     break;
 
                 case MSG_TOO_MANY_REQUESTS:

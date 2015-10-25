@@ -4,7 +4,7 @@
     android:layout_height="wrap_content"
     android:layout_alignParentTop="true"
     android:gravity="top"
-    android:background="@drawable/bg_reply_textbox"
+    android:background="@drawable/ic_comment"
     android:padding="10dp"
     android:visibility="visible">
 

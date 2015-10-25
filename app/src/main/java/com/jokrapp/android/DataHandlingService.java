@@ -376,7 +376,7 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
      * @param imageKey file name of the location of the image to send
      * @param location  current location of the device
      */
-    private void createLocalPost(final String imageKey,
+    private synchronized void createLocalPost(final String imageKey,
                                  final Location location,
                                  final String text) {
         Log.d(TAG, "entering handleActionSendImages...");
@@ -869,13 +869,15 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
      * <p/>
      * opens a connection to the server, and sends the information to reply to a thread in live
      *
-     * @param threadID    id of the thread to reply to
-     * @param name        of the poster
-     * @param description the description of the thread
-     * @param filePath    the path of the thread image
+     * @param data the incoming data
      */
-    private void replyToLiveThread(int threadID, String name, String description, String filePath) {
+    private void replyToLiveThread(Bundle data) {
         if (VERBOSE) Log.v(TAG, "creating live thread...");
+
+        int threadID = data.getInt("threadID");
+        String name = data.getString("name");
+        String description = data.getString("description");
+        String filePath = data.getString("filePath");
 
         String image = null;
         if (filePath != null) {
@@ -917,7 +919,7 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
             jGen.flush();
             jGen.close();
 
-            handleResponseCode(conn.getResponseCode(), replyMessenger);
+            handleResponseCode(conn.getResponseCode(), replyMessenger,data);
         } catch (IOException e) {
             Log.e(TAG, "IOException", e);
         }
@@ -928,11 +930,11 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
     }
 
 
-    private void replyToLiveThreadAsync(final int threadID, final String name, final String description, final String filePath) {
+    private void replyToLiveThreadAsync(final Bundle indata) {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                replyToLiveThread(threadID, name, description, filePath);
+                replyToLiveThread(indata);
             }
         }).start();
     }
@@ -1390,22 +1392,20 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
                 case MSG_REPLY_TO_THREAD:
                     Log.d(TAG, "received a message to create a thread");
 
+
                     data = msg.getData();
+                    data.putInt(PENDING_TRANSFER_TYPE, MSG_REPLY_TO_THREAD);
+
                     if (data.containsKey(Constants.KEY_S3_KEY)){
                         if (Constants.LOGD) Log.d(TAG,"contained an image filepath," +
                                 "uploading the image there to s3 first...");
 
-                        data.putInt(PENDING_TRANSFER_TYPE, MSG_REPLY_TO_THREAD);
                         data.putString(Constants.KEY_S3_DIRECTORY, Constants.KEY_S3_REPLIES_DIRECTORY);
                         uploadImageToS3(data);
                     } else {
                         if (Constants.LOGD) Log.d(TAG,"no image filepath was provided," +
                                 " this must be a text reply, so uploading straight to the server.");
-                        irs.get().replyToLiveThreadAsync(msg.arg1,
-                                data.getString("name"),
-                                data.getString("description"),
-                                data.getString("filePath")
-                        );
+                        irs.get().replyToLiveThreadAsync(data);
                     }
 
                     break;
@@ -1722,6 +1722,7 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
                     //let the user know
                     msg = Message.obtain(null, MainActivity.MSG_SUCCESS);
                     msg.setData(extradata);
+                    msg.arg1 = extradata.getInt(PENDING_TRANSFER_TYPE,-1);
                     replyMessenger.send(msg);
                     break;
 

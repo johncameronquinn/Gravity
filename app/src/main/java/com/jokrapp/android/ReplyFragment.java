@@ -152,8 +152,9 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
     public void onViewCreated(View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         if (VERBOSE) Log.v(TAG,"entering onViewCreated...");
-        view.findViewById(R.id.button_new_reply).setOnClickListener(getButtonListener(this));
         view.findViewById(R.id.button_reply_refresh).setOnClickListener(getButtonListener(this));
+        view.findViewById(R.id.button_send_reply).setOnClickListener(getButtonListener(this));
+        view.findViewById(R.id.button_reply_capture).setOnClickListener(getButtonListener(this));
         setCurrentThread(String.valueOf(currentThread));
         //anything that requires the UI to already exist goes here
         if (VERBOSE) Log.v(TAG,"exiting onViewCreated...");
@@ -163,10 +164,14 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
     public void onViewStateRestored(Bundle savedInstanceState) {
         super.onViewStateRestored(savedInstanceState);
 
+        View view = getView();
 
-        getView().findViewById(R.id.button_new_reply).setOnClickListener(getButtonListener(this));
-        getView().findViewById(R.id.button_reply_refresh).setOnClickListener(getButtonListener(this));
-        setCurrentThread(String.valueOf(currentThread));
+        if(view != null) {
+            view.findViewById(R.id.button_reply_refresh).setOnClickListener(getButtonListener(this));
+            view.findViewById(R.id.button_send_reply).setOnClickListener(getButtonListener(this));
+            view.findViewById(R.id.button_reply_capture).setOnClickListener(getButtonListener(this));
+            setCurrentThread(String.valueOf(currentThread));
+        }
     }
 
     @Override
@@ -176,7 +181,16 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
 
     @Override
     public void onResume() {
+
+        View view = getView();
+
         super.onResume();
+        if(view != null) {
+            view.findViewById(R.id.button_reply_refresh).setOnClickListener(getButtonListener(this));
+            view.findViewById(R.id.button_send_reply).setOnClickListener(getButtonListener(this));
+            view.findViewById(R.id.button_reply_capture).setOnClickListener(getButtonListener(this));
+            setCurrentThread(String.valueOf(currentThread));
+        }
     }
 
     @Override
@@ -219,7 +233,7 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
      *
      * listens to all the general live thread interactions
      */
-    public class ReplyButtonListener implements SeekBar.OnSeekBarChangeListener, View.OnClickListener,ValueAnimator.AnimatorUpdateListener {
+    public class ReplyButtonListener implements View.OnClickListener {
 
         @Override
         public void onClick(View v) {
@@ -227,216 +241,57 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
                 Log.v(TAG, "OnClickRegistered..." + v.toString());
             }
 
+            EditText commentText;
+
+            MainActivity activity = (MainActivity)getActivity();
+
             switch (v.getId()) {
 
                 case R.id.button_reply_refresh:
                     if (isAdded()) {
-                        ((MainActivity) getActivity()).sendMsgRequestReplies(currentThread);
+                        activity.sendMsgRequestReplies(currentThread);
                     }
                     resetDisplay();
                     break;
 
+                case R.id.button_send_reply:
 
-                case R.id.button_new_reply:
-                    startNewReplyInputMode((MainActivity)getActivity(), v);
+                    if (isAdded()) {
+                        commentText   = ((EditText) activity.findViewById(R.id.editText_reply_comment));
+                        RelativeLayout layout = (RelativeLayout) commentText.getParent();
+
+                        activity.setLiveFilePath("");
+                        activity.setLiveCreateReplyInfo(commentText.getText().toString(), getCurrentThread());
+
+                        InputMethodManager imm = (InputMethodManager) activity
+                                .getSystemService(Context.INPUT_METHOD_SERVICE);
+                        imm.hideSoftInputFromWindow(layout.getWindowToken(), 0);
+
+                        commentText.setText("");
+                    }
+
+                    break;
+
+                case R.id.button_reply_capture:
+
+                    if (isAdded()) {
+
+                        commentText   = ((EditText) activity.findViewById(R.id.editText_reply_comment));
+                        RelativeLayout layout = (RelativeLayout) commentText.getParent();
+                        activity.takeReplyPicture();
+                        activity.setLiveCreateReplyInfo(commentText.getText().toString(),
+                                getCurrentThread());
+
+                        InputMethodManager imm = (InputMethodManager) activity
+                                .getSystemService(Context.INPUT_METHOD_SERVICE);
+                        imm.hideSoftInputFromWindow(layout.getWindowToken(), 0);
+
+                        commentText.setText("");
+                    }
                     break;
             }
         }
 
-
-        final int OPEN_CAMERA_VALUE = 0;
-        final int STARTING_VALUE = 50;
-        final int OPEN_STASH_VALUE = 100;
-        int value = 0;
-
-        @Override
-        public void onProgressChanged(SeekBar seekBar, int progressValue, boolean fromUser) {
-            value = progressValue;
-            switch (progressValue) {
-                case OPEN_CAMERA_VALUE:
-                    ((MainActivity)getActivity()).takeReplyPicture();
-                    break;
-
-                case OPEN_STASH_VALUE:
-
-                    break;
-                case STARTING_VALUE:
-                    //do nothing. possibly hide the seekbar?
-                    break;
-            }
-        }
-
-        @Override
-        public void onStartTrackingTouch(SeekBar seekBar) {
-        }
-
-        private SeekBar seekBar;
-        private int destValue;
-
-        @Override
-        public void onStopTrackingTouch(SeekBar seekBar) {
-            //todo animator should interpolate the seekbar to the closest node (0,50,100)
-            final int ANIMATION_SPEED_FACTOR = 1000;
-            final int ANIMATION_ACCEL_FACTOR = 3;
-
-            this.seekBar = seekBar;
-
-            if (value < 20) {
-                destValue = OPEN_CAMERA_VALUE;
-            } else if (value > 80) {
-                destValue = OPEN_STASH_VALUE;
-            } else {
-                destValue = STARTING_VALUE;
-            }
-            double distance = Math.abs(destValue - value);
-
-            double speedRatio = (distance / seekBar.getMax());
-            Log.d(TAG,"The distance is " + distance + " and the speedRatio is " + speedRatio);
-            Log.d(TAG, "The adjusted duration is " + Math.round(speedRatio * ANIMATION_SPEED_FACTOR));
-
-            ValueAnimator anim = ValueAnimator.ofInt(value, destValue);
-            anim.setInterpolator(new AccelerateInterpolator(ANIMATION_ACCEL_FACTOR));
-            anim.setDuration(Math.round(speedRatio * ANIMATION_SPEED_FACTOR));
-            anim.addUpdateListener(this);
-            anim.start();
-        }
-
-        @Override
-        public void onAnimationUpdate(ValueAnimator animation) {
-            int animProgress = (Integer) animation.getAnimatedValue();
-            seekBar.setProgress(animProgress);
-
-            if (animProgress == destValue) {
-                setSeekMode(null);
-            }
-        }
-
-        private void setSeekMode(View v) {
-            if (v != null) { //button_new_thread was pressed, set seek mode
-                ViewGroup group = (ViewGroup)getView();
-                if (getView() != null) {
-                    group.findViewById(R.id.button_new_reply).setVisibility(View.INVISIBLE);
-                    SeekBar bar = ((SeekBar) group.findViewById(R.id.replySeekBar));
-                    bar.setVisibility(View.VISIBLE);
-                    bar.setProgress(STARTING_VALUE);
-                    value = STARTING_VALUE;
-                    bar.setOnSeekBarChangeListener(this);
-                }
-            } else {
-                if (getView() != null) {
-                    View group = getView();
-                    group.findViewById(R.id.button_new_reply).setVisibility(View.VISIBLE);
-                    SeekBar bar = ((SeekBar)group.findViewById(R.id.replySeekBar));
-                    bar.setVisibility(View.INVISIBLE);
-                    bar.setOnSeekBarChangeListener(null);
-                    bar.setProgress(STARTING_VALUE);
-                }
-            }
-        }
-
-    }
-
-    /***************************************************************************************************
-     * REPLY MODE
-     */
-    private static WeakReference<ReplyModeButtonListener> buttonReplyListenerReference;
-
-    public static ReplyModeButtonListener getReplyModeButtonListener(ReplyFragment parent) {
-        if (buttonReplyListenerReference == null) {
-            buttonReplyListenerReference = new WeakReference<>(parent.new ReplyModeButtonListener(parent));
-        }
-        return buttonReplyListenerReference.get();
-    }
-
-    /**
-     * class 'ReplyMostButtonListener'
-     *
-     * special class that listens to the buttons inflated from the layout camera_reply_mode
-     */
-    public class ReplyModeButtonListener implements View.OnClickListener {
-
-        View createReplyView;
-        View plusButtonView;
-
-        private ReplyFragment parent;
-
-        public ReplyModeButtonListener(ReplyFragment parent) {
-            this.parent = parent;
-        }
-
-        public void setCreateView(View view) {
-            createReplyView = view;
-        }
-
-        public void setCreateReplyView(View v) {
-            plusButtonView = v;
-        }
-
-        @Override
-        public void onClick(View v) {
-            if (VERBOSE) {
-                Log.v(TAG,"OnClickRegistered..." + v.toString());
-            }
-            MainActivity activity = (MainActivity)getActivity();
-            InputMethodManager imm = (InputMethodManager)activity
-                    .getSystemService(Context.INPUT_METHOD_SERVICE);
-
-            switch (v.getId()) {
-                case R.id.button_camera_reply_mode_cancel:
-                    ((ViewGroup)v.getParent().getParent()).removeView((View) v.getParent());
-                    activity.removePendingLiveImage();
-                    imm.hideSoftInputFromWindow(createReplyView.getWindowToken(), 0);
-                    activity.enableScrolling();
-                    plusButtonView.setVisibility(View.VISIBLE);
-                    break;
-                case R.id.button_camera_reply_mode_confirm:
-                    RelativeLayout layout = (RelativeLayout) v.getParent().getParent();
-                    String description = ((EditText)layout.findViewById(R.id.editText_reply_mode_comment)).getText().toString();
-                    activity.setLiveCreateReplyInfo(description, getCurrentThread());//todo load name from sharedpreferences
-                    layout.removeView((View) v.getParent());
-                    imm.hideSoftInputFromWindow(createReplyView.getWindowToken(), 0);
-                    activity.enableScrolling();
-                    plusButtonView.setVisibility(View.VISIBLE);
-                    break;
-
-                case R.id.button_camera_reply_mode_add_image:
-                    getButtonListener(parent).setSeekMode(v);
-                    ((ViewGroup) v.getParent().getParent()).removeView((View) v.getParent());
-                    imm.hideSoftInputFromWindow(createReplyView.getWindowToken(), 0);
-                    plusButtonView.setVisibility(View.VISIBLE);
-                    activity.enableScrolling();
-                    break;
-            }
-            plusButtonView = null;
-            buttonReplyListenerReference = null;
-        }
-
-    }
-
-    public void startNewReplyInputMode(MainActivity activity, View plusButtonView) {
-        if (VERBOSE) {
-            Log.v(TAG,"entering startNewReplyInputMode...");
-        }
-        activity.disableScrolling();
-        LayoutInflater inflater = (LayoutInflater)activity.getSystemService
-                (Context.LAYOUT_INFLATER_SERVICE);
-        RelativeLayout root = (RelativeLayout) activity.findViewById(R.id.layout_reply_root);
-        View v = inflater.inflate(R.layout.camera_reply_mode,
-                root,
-                false);
-
-        ReplyModeButtonListener rListener = getReplyModeButtonListener(this);
-        plusButtonView.setVisibility(View.INVISIBLE);
-        rListener.setCreateView(v);
-        rListener.setCreateReplyView(plusButtonView);
-        v.findViewById(R.id.button_camera_reply_mode_cancel).setOnClickListener(rListener);
-        v.findViewById(R.id.button_camera_reply_mode_confirm).setOnClickListener(rListener);
-        v.findViewById(R.id.button_camera_reply_mode_add_image).setOnClickListener(rListener);
-        root.addView(v,root.getChildCount());
-
-        if (VERBOSE) {
-            Log.v(TAG,"exiting startNewReplyInputMode...");
-        }
     }
 
 

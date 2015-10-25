@@ -5,6 +5,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.hardware.Camera;
 import android.os.Bundle;
 import android.app.Fragment;
 import android.os.Looper;
@@ -40,8 +41,8 @@ import java.util.UUID;
  * create an instance of this fragment.
  *
  */
-public class CameraFragment extends Fragment {
-    private static final boolean VERBOSE = true;
+public class CameraFragment extends Fragment implements Camera.AutoFocusCallback{
+    private static final boolean VERBOSE = false;
     private static final String TAG = "CameraFragment";
 
     private GestureDetector gestureDetector;
@@ -54,10 +55,10 @@ public class CameraFragment extends Fragment {
     private int currentCameraMode;
     private CameraReceiver cameraReceiver;
 
-    private final int CAMERA_DEFAULT_MODE = 0;
-    private final int CAMERA_MESSAGE_MODE = 1;
-    private final int CAMERA_LIVE_MODE = 2;
-    private final int CAMERA_REPLY_MODE = 3;
+    public static final int CAMERA_DEFAULT_MODE = 0;
+    public static final int CAMERA_MESSAGE_MODE = 1;
+    public static final int CAMERA_LIVE_MODE = 2;
+    public static final int CAMERA_REPLY_MODE = 3;
 
     private static final String CAMERA_MODE_KEY = "ckey";
     private static final String KEY_PREVIEW = "pkey";
@@ -317,6 +318,14 @@ n  */
             if (isPreview) { //its in preview mode, so trigger an auto-focus
                 mListener.sendMsgAutoFocus(e);
 
+                View v= getView();
+                if (v!= null) {
+                    v = getView().findViewById(R.id.camera_focus);
+                    v.setVisibility(View.VISIBLE);
+                    v.setX(e.getX());
+                    v.setY(e.getY());
+                }
+
                 if (VERBOSE) Log.v(TAG,"exiting onSingleTapConfirmed...");
                 return true;
             } else { //its not in preview mode,  toggle comment
@@ -476,7 +485,7 @@ n  */
         @Override
         public void onClick(View v) {
 
-            Log.d(TAG,"click " + v.toString());
+            if (Constants.LOGD) Log.d(TAG,"click " + v.toString());
             switch (v.getId()) {
                 case R.id.button_capture:
 
@@ -484,7 +493,7 @@ n  */
                     //initialize the buttons while the picture is being taken
                     switch (currentCameraMode) {
                         case CAMERA_DEFAULT_MODE:
-                            Log.d(TAG,"Taking a picture in default mode...");
+                            if (Constants.LOGD) Log.d(TAG,"Taking a picture in default mode...");
                             captureButton = (Button) v;
                             switchButton = (Button) mActivity.findViewById(R.id.switch_camera);
                             flashButton = (Button) mActivity.findViewById(R.id.button_flash);
@@ -497,7 +506,7 @@ n  */
                             break;
 
                         case CAMERA_MESSAGE_MODE:
-                            Log.d(TAG,"Taking a picture in message mode...");
+                            if (Constants.LOGD) Log.d(TAG,"Taking a picture in message mode...");
                             captureButton = (Button) v;
                             cancelMessageButton = (Button) mActivity.
                                     findViewById(R.id.button_cancel_message);
@@ -511,7 +520,7 @@ n  */
                             break;
 
                         case CAMERA_LIVE_MODE:
-                            Log.d(TAG,"Taking a picture in live mode...");
+                            if (Constants.LOGD) Log.d(TAG,"Taking a picture in live mode...");
                            captureButton = (Button) v;
                             switchButton = (Button) mActivity.findViewById(R.id.switch_camera);
                             flashButton = (Button) mActivity.findViewById(R.id.button_flash);
@@ -522,12 +531,16 @@ n  */
                             break;
 
                         case CAMERA_REPLY_MODE:
-                            Log.d(TAG,"Taking a picture in reply mode...");
-                            Log.d(TAG,"Taking a picture in live mode...");
+                            if (Constants.LOGD) Log.d(TAG,"Taking a picture in reply mode...");
                             captureButton = (Button) v;
                             switchButton = (Button) mActivity.findViewById(R.id.switch_camera);
                             flashButton = (Button) mActivity.findViewById(R.id.button_flash);
                             mListener.sendMsgTakePicture();
+                            sendMessageButton = (Button)mActivity.
+                                    findViewById(R.id.button_send_message);
+                            cancelMessageButton = (Button) mActivity.
+                                    findViewById(R.id.button_cancel_message);
+                            commentText.setText(((MainActivity)getActivity()).getReplyComment());
 
                             v.setPressed(true);
                             v.setClickable(false);
@@ -540,12 +553,12 @@ n  */
                     break;
 
                 case R.id.button_local:
-                    mListener.sendMsgSaveImage(commentText, false);
+                    mListener.sendMsgSaveImage(commentText, CAMERA_DEFAULT_MODE);
                     resetCameraUI();
                     break;
 
                 case R.id.button_live:
-                    mListener.sendMsgSaveImage(commentText, true); //save the image
+                    mListener.sendMsgSaveImage(commentText, CAMERA_LIVE_MODE); //save the image
                     setCameraUI(CAMERA_LIVE_MODE);
 
                     liveButton.setVisibility(View.INVISIBLE);
@@ -560,9 +573,23 @@ n  */
                 break;
 
                 case R.id.button_send_message:
-                    mListener.sendMsgSaveImage(commentText, false, messageTarget);
-                    resetCameraUI();
-                    stopMessageMode();
+
+                    switch(currentCameraMode) {
+                        case CAMERA_REPLY_MODE:
+
+                            mListener.sendMsgSaveImage(commentText, currentCameraMode);
+                            ((MainActivity)getActivity()).setReplyComment(commentText.toString());
+                            resetCameraUI();
+                            stopReplyMode();
+
+                            break;
+                        case CAMERA_MESSAGE_MODE:
+
+                            mListener.sendMsgSaveImage(commentText, CAMERA_MESSAGE_MODE, messageTarget);
+                            resetCameraUI();
+                            stopMessageMode();
+                            break;
+                    }
 
                     mListener.enableScrolling();
                     break;
@@ -571,7 +598,7 @@ n  */
                         resetCameraUI();
                     }
                     cancelMessageButton = (Button)getActivity().
-                                findViewById(R.id.button_cancel_message);
+                            findViewById(R.id.button_cancel_message);
                     cancelMessageButton.setVisibility(View.INVISIBLE);
                     stopMessageMode();
 
@@ -653,8 +680,11 @@ n  */
                     captureButton.setVisibility(View.INVISIBLE);
                     switchButton.setVisibility(View.INVISIBLE);
                     flashButton.setVisibility(View.INVISIBLE);
-                    startNewReplyInputMode((MainActivity)getActivity());
+                    commentText.setVisibility(View.VISIBLE);
+                   // startNewReplyInputMode((MainActivity)getActivity());
 
+                    sendMessageButton.setVisibility(View.VISIBLE);
+                    sendMessageButton.setOnClickListener(this);
                     break;
 
             }
@@ -667,6 +697,8 @@ n  */
          */
         public void resetCameraUI() {
             switch (currentCameraMode) {
+
+                case CAMERA_REPLY_MODE:
                 case CAMERA_MESSAGE_MODE:
                     isPreview = true;
 
@@ -703,7 +735,6 @@ n  */
                     break;
 
                 case CAMERA_LIVE_MODE:
-                case CAMERA_REPLY_MODE:
                     isPreview = true;
 
                     mListener.sendMsgStartPreview();
@@ -751,7 +782,29 @@ n  */
          }
      }
 
-/***************************************************************************************************
+
+    @Override
+    public void onAutoFocus(boolean success, Camera camera) {
+        View v= getView();
+
+        if (v != null) {
+            v = v.findViewById(R.id.camera_focus);
+            v.setVisibility(View.INVISIBLE);
+            if (success) {
+                // do something...
+                Log.i(TAG,"success!");
+
+            } else {
+                // do something...
+                Log.i(TAG,"fail!");
+
+            }
+        }
+
+    }
+
+
+    /***************************************************************************************************
  * MESSAGING
  *
  */
@@ -1006,6 +1059,12 @@ n  */
 
    public void startReplyMode() {
        Log.i(TAG,"Camera is entering reply mode...");
+
+
+       Button cancel;
+       cancel = (Button)getView().findViewById(R.id.button_cancel_message);
+       cancel.setVisibility(View.VISIBLE);
+       cancel.setOnClickListener(getButtonListener(this));
        currentCameraMode = CAMERA_REPLY_MODE;
    }
 
@@ -1027,8 +1086,8 @@ n  */
         void sendMsgStartPreview();
         void sendMsgTakePicture();
         void createLiveThread();
-        void sendMsgSaveImage(EditText comment, boolean postToLive);
-        void sendMsgSaveImage(EditText comment, boolean postToLive, String messageTarget);
+        void sendMsgSaveImage(EditText comment, int postWhere);
+        void sendMsgSaveImage(EditText comment, int postWhere, String messageTarget);
         void sendMsgSwitchCamera();
         void sendMsgAutoFocus(MotionEvent event);
     }

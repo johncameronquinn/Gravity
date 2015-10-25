@@ -345,7 +345,8 @@ public class LiveFragment extends Fragment implements
 
 
                 case R.id.button_new_thread:
-                    setSeekMode(v);
+                 //   setSeekMode(v);
+                    ((MainActivity)getActivity()).takeLivePicture();
                     break;
             }
         }

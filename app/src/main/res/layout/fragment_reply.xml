@@ -5,43 +5,53 @@
     android:layout_height="match_parent"
     android:background="@color/jpallete_main_grey"
     android:id="@+id/layout_reply_root"
-    tools:context="com.jokrapp.android.ReplyFragment"
-    android:paddingLeft="@dimen/side_screen_margin"
-    android:paddingRight="@dimen/side_screen_margin">
+    tools:context="com.jokrapp.android.ReplyFragment">
 
 
     <ListView
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:id="@+id/reply_list_view"
-        android:dividerHeight="2dp"
+        android:dividerHeight="4dp"
         android:layout_alignParentTop="true"
-        android:layout_alignRight="@+id/button_new_reply"
-        android:layout_alignEnd="@+id/button_new_reply" />
+        android:layout_alignLeft="@+id/replyexpandable"
+        android:layout_marginRight="@dimen/side_screen_margin"
+        android:layout_marginLeft="@dimen/side_screen_margin"
+        android:layout_alignStart="@+id/replyexpandable" />
 
 
     <com.jokrapp.android.view.ExpandableLayout
         android:id="@+id/replyexpandable"
         android:layout_width="@dimen/button_width"
         android:layout_height="wrap_content"
-        android:layout_margin="@dimen/side_screen_margin"
         expandable:el_headerLayout="@layout/live_header_layout"
         expandable:el_contentLayout="@layout/reply_content_layout"
-        android:layout_alignParentBottom="true"/>
+        android:layout_alignParentBottom="true"
+        android:layout_marginBottom="12dp"
+        android:layout_marginLeft="@dimen/side_screen_margin" />
 
-
-    <SeekBar
+    <EditText
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:id="@+id/replySeekBar"
-        android:layout_gravity="center_horizontal|bottom"
-        android:indeterminate="false"
-        android:progress="50"
-        android:progressTint="#00000000"
-        android:visibility="invisible"
-        android:layout_alignTop="@+id/button_new_reply"
-        android:layout_alignRight="@+id/button_new_reply"
-        android:layout_alignEnd="@+id/button_new_reply" />
+        android:id="@+id/editText_reply_comment"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true"
+        android:layout_marginRight="@dimen/side_screen_margin"
+        android:layout_marginBottom="@dimen/side_screen_margin"
+        android:background="@drawable/bg_reply_textbox"
+        android:layout_marginLeft="@dimen/local_card_margin" />
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/button_send_reply"
+        android:layout_alignRight="@+id/editText_reply_comment"
+        android:layout_alignEnd="@+id/editText_reply_comment"
+        android:background="@drawable/ic_reply_send"
+        android:layout_alignTop="@id/editText_reply_comment"
+        android:layout_alignBottom="@+id/editText_reply_comment"
+        android:layout_margin="5dp" />
 
 
 

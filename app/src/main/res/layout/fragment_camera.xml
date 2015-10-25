@@ -87,7 +87,7 @@
         android:id="@+id/button_send_message"
         android:layout_gravity="center_horizontal|bottom"
         android:visibility="invisible"
-        android:layout_marginBottom="40dp"
+        android:layout_marginBottom="@dimen/local_card_margin"
         android:background="@drawable/ic_camera_confirm"/>
 
     <CheckBox
@@ -101,5 +101,14 @@
         android:button="@drawable/custom_flash"
         android:layout_marginBottom="12dp"
         android:visibility="visible" />
+
+    <Button
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:id="@+id/camera_focus"
+        android:background="@drawable/focus"
+        android:visibility="invisible"
+        android:gravity="center"
+        android:tint="@color/jpallete_neutral_blue"/>
 
 </FrameLayout>

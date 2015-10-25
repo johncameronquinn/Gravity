@@ -260,8 +260,8 @@ public class LocalFragment extends Fragment implements
      *
      */
     public interface onLocalFragmentInteractionListener {
-        public void sendMsgReportAnalyticsEvent(int event, String action);
-        public void sendMsgDownloadImage(String s3Directroy, String s3Key);
+        void sendMsgReportAnalyticsEvent(int event, String action);
+        void sendMsgDownloadImage(String s3Directroy, String s3Key);
 
 
     }

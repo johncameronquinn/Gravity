@@ -13,11 +13,16 @@ import java.util.Map;
 public final class LogUtils {
 
     public static void printBundle(Bundle bundle,String TAG) {
-
         Log.v(TAG,"printing bundle...");
-        for (String key : bundle.keySet())
-        {
-            Log.v(TAG, key + " = \"" + bundle.get(key) + "\"");
+
+        if (bundle == null) {
+            Log.d(TAG, "bundle was null...");
+            Log.v(TAG,"done printing bundle.");
+        } else {
+
+            for (String key : bundle.keySet()) {
+                Log.v(TAG, key + " = \"" + bundle.get(key) + "\"");
+            }
         }
 
         Log.v(TAG,"done printing bundle.");

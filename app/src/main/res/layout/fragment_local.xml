@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:expandable="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -18,10 +18,13 @@
         android:id="@+id/localexpandable"
         android:layout_width="@dimen/button_width"
         android:layout_height="wrap_content"
-        android:layout_margin="8dp"
         expandable:el_headerLayout="@layout/local_header_layout"
         expandable:el_contentLayout="@layout/local_content_layout"
-        android:layout_gravity="bottom|end" />
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true"
+        android:layout_marginRight="@dimen/side_screen_margin"
+        android:layout_marginBottom="@dimen/radical_bottom_screen_margin" />
 
 
-</FrameLayout>
+</RelativeLayout>

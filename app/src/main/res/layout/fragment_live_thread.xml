@@ -21,11 +21,11 @@
         android:layout_alignParentStart="false"
         android:background="@drawable/ic_comment"
         android:id="@+id/live_thread_infoLayout"
-        android:layout_marginBottom="17dp"
+        android:layout_marginBottom="@dimen/side_screen_margin"
         android:layout_alignParentEnd="true"
         android:layout_alignParentRight="true"
-        android:layout_marginLeft="100dp"
-        android:layout_marginRight="10dp"
+        android:layout_marginLeft="@dimen/local_card_margin"
+        android:layout_marginRight="@dimen/side_screen_margin"
         android:padding="8dp">
 
         <TextView
@@ -100,7 +100,9 @@
         android:layout_alignParentLeft="false"
         android:layout_alignParentStart="true"
         android:layout_alignParentBottom="true"
-        android:layout_alignParentRight="true" />
+        android:layout_alignParentRight="true"
+        android:layout_marginBottom="@dimen/side_screen_margin"
+        android:layout_marginLeft="@dimen/local_card_margin" />
 
     <ProgressBar
         style="?android:attr/progressBarStyleLarge"

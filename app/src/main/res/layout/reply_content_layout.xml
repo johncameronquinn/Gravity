@@ -4,24 +4,24 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content">
 
+    <Button
+        style="@style/radicalContentButton"
+        android:background="@drawable/ic_live_report"
+        android:id="@+id/button_reply_report"/>
 
-    <ImageButton
-        android:layout_width="match_parent"
-        android:layout_height="@dimen/button_height"
-        android:id="@+id/button_new_reply"
-        android:src="@drawable/new_reply"
-        android:scaleType="fitXY"
-        android:layout_below="@+id/button_reply_refresh" />
-
-
-    <ImageButton
-        android:layout_width="match_parent"
-        android:layout_height="@dimen/button_height"
+    <Button
+        style="@style/radicalContentButton"
+        android:background="@drawable/ic_live_refresh"
         android:id="@+id/button_reply_refresh"
-        android:scaleType="fitXY"
-        android:src="@drawable/androidrefresh64px"
-        android:layout_alignParentTop="true"
-        android:layout_alignRight="@+id/button_new_reply"
-        android:layout_alignEnd="@+id/button_new_reply" />
+        android:layout_below="@id/button_reply_report"/>
+
+    <Button
+        style="@style/radicalContentButton"
+        android:id="@+id/button_reply_capture"
+        android:background="@drawable/ic_reply_capture"
+        android:layout_below="@id/button_reply_refresh"/>
+
+
+
 
 </RelativeLayout>
