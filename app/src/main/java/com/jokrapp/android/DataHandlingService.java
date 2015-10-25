@@ -872,21 +872,12 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
      * @param data the incoming data
      */
     private void replyToLiveThread(Bundle data) {
-        if (VERBOSE) Log.v(TAG, "creating live thread...");
+        if (VERBOSE) Log.v(TAG, "creating reply to live thread...");
 
         int threadID = data.getInt("threadID");
         String name = data.getString("name");
         String description = data.getString("description");
-        String filePath = data.getString("filePath");
-
-        String image = null;
-        if (filePath != null) {
-            image = loadImageForTransit(filePath);
-            if (image == null) {
-                Log.e(TAG, "image failed to load for transit...");
-                return;
-            }
-        }
+        String filePath = data.getString(Constants.KEY_S3_KEY);
 
         HttpURLConnection conn;
         try {
@@ -914,7 +905,7 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
             jGen.writeNumberField(THREAD_ID, threadID);
             jGen.writeStringField(NAME, name);
             jGen.writeStringField(TEXT, description);
-            jGen.writeStringField("url", image);
+            jGen.writeStringField("url", filePath);
             jGen.writeEndObject();
             jGen.flush();
             jGen.close();
@@ -1105,15 +1096,15 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
                     case MSG_REQUEST_REPLIES:
                         if (VERBOSE) Log.v(TAG,"saving json from replies");
 
+                        map.put(SQLiteDbContract.LiveReplies.COLUMN_ID, map.remove("id"));
                         map.put(SQLiteDbContract.LiveReplies.COLUMN_NAME_THREAD_ID, extradata.getString(THREAD_ID));
-                        b.putString(Constants.KEY_S3_DIRECTORY, Constants.KEY_S3_REPLIES_DIRECTORY);
                         b.putInt(PENDING_TRANSFER_TYPE, MSG_REQUEST_REPLIES);
+                        break;
                     case MSG_REQUEST_LOCAL_POSTS:
                         if (VERBOSE) Log.v(TAG,"saving json from local/");
 
                         //swap id for _ID, to allow listview loading, and add the thread ID
                         map.put(SQLiteDbContract.LiveReplies.COLUMN_ID, map.remove("id"));
-
                         b.putString(Constants.KEY_S3_DIRECTORY, Constants.KEY_S3_LOCAL_DIRECTORY);
                         break;
                     case MSG_REQUEST_LIVE_THREADS:
@@ -1144,9 +1135,13 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
                             map.put("url",downloadImageFromURL(cont));
                             Log.i(TAG,"this was a url, and not from AWS... lets just get it");
                         } else {
-                            //b.putString("url", cont);
-                            //b.putString(Constants.KEY_S3_KEY, cont);
-                            //downloadImageFromS3(b);
+
+                            if (where == MSG_REQUEST_REPLIES) {
+                                b.putString("url", cont);
+                                b.putString(Constants.KEY_S3_KEY, cont+"s");
+                                b.putString(Constants.KEY_S3_DIRECTORY, Constants.KEY_S3_REPLIES_DIRECTORY);
+                                downloadImageFromS3(b);
+                            }
                         }
                     }
                 }
@@ -1390,22 +1385,22 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
                     break;
 
                 case MSG_REPLY_TO_THREAD:
-                    Log.d(TAG, "received a message to create a thread");
+                    Log.d(TAG, "received a message to reply to a thread");
 
 
                     data = msg.getData();
                     data.putInt(PENDING_TRANSFER_TYPE, MSG_REPLY_TO_THREAD);
 
-                    if (data.containsKey(Constants.KEY_S3_KEY)){
-                        if (Constants.LOGD) Log.d(TAG,"contained an image filepath," +
-                                "uploading the image there to s3 first...");
-
-                        data.putString(Constants.KEY_S3_DIRECTORY, Constants.KEY_S3_REPLIES_DIRECTORY);
-                        uploadImageToS3(data);
-                    } else {
+                    if (data.getString(Constants.KEY_S3_KEY,"").equals("")){
                         if (Constants.LOGD) Log.d(TAG,"no image filepath was provided," +
                                 " this must be a text reply, so uploading straight to the server.");
                         irs.get().replyToLiveThreadAsync(data);
+                    } else {
+                        if (Constants.LOGD) Log.d(TAG,"contained an image filepath," +
+                            "uploading the image there to s3 first...");
+
+                        data.putString(Constants.KEY_S3_DIRECTORY, Constants.KEY_S3_REPLIES_DIRECTORY);
+                        uploadImageToS3(data);
                     }
 
                     break;
@@ -1993,6 +1988,8 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
         }
 
 
+        String directory = b.getString(Constants.KEY_S3_DIRECTORY);
+
         File file = new File(getCacheDir(),b.getString(Constants.KEY_S3_KEY));
 
         if (Constants.LOGD)
@@ -2001,13 +1998,28 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
 
         TransferObserver observer = transferUtility.upload(
                 BUCKET_NAME,     /* The bucket to upload to */
-                b.getString(Constants.KEY_S3_DIRECTORY) + "/" + b.getString(Constants.KEY_S3_KEY), /* The key for the uploaded object */
+                directory + "/" + b.getString(Constants.KEY_S3_KEY), /* The key for the uploaded object */
                 file /* The file where the data to upload exists */
         );
+
 
         pendingMap.put(observer.getId(), b);
         observer.setTransferListener(this);
 
+        if (directory.equals(Constants.KEY_S3_REPLIES_DIRECTORY)) {
+            Log.i(TAG,"now uploading reply thumbnail");
+            pendingMap.remove(observer.getId());
+            observer.cleanTransferListener();
+
+             observer = transferUtility.upload(
+                    BUCKET_NAME,     /* The bucket to upload to */
+                    directory + "/" + b.getString(Constants.KEY_S3_KEY)+"s", /* The key for the uploaded object */
+                    new File(getCacheDir(),b.getString(Constants.KEY_S3_KEY)+"s") /* The file where the data to upload exists */
+            );
+            b.putInt(PENDING_TRANSFER_TYPE,MSG_REPLY_TO_THREAD);
+            pendingMap.put(observer.getId(), b);
+            observer.setTransferListener(this);
+        }
 
         if (VERBOSE) {
             Log.v(TAG,"exiting uploadImageToS3...");
@@ -2136,6 +2148,8 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
                     LogUtils.printBundle(data,TAG);
                 }
 
+                Intent intent;
+
                 switch (data.getInt(PENDING_TRANSFER_TYPE,-1)) {
                     case MSG_SEND_IMAGE:
 
@@ -2152,6 +2166,11 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
                         sendImageMessageAsync(data);
                         break;
 
+                    case MSG_REPLY_TO_THREAD:
+                        Log.i(TAG,"reply to thread upload completed...");
+                        replyToLiveThreadAsync(data);
+                        break;
+
                     case MSG_REQUEST_LIVE_THREADS:
 
                         break;
@@ -2162,6 +2181,10 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
 
                     case MSG_REQUEST_REPLIES:
 
+                        Log.i(TAG,"notifying UI of Reply download finish");
+                        intent = new Intent(Constants.ACTION_IMAGE_REPLY_THUMBNAIL_LOADED);
+                        intent.putExtras(data);
+                        sendBroadcast(intent);
                         break;
 
                     case MSG_REQUEST_MESSAGES:
@@ -2172,16 +2195,18 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
 
                         if (VERBOSE) Log.d(TAG,"image finished downloading... broadcasting...");
 
-                        Intent intent;
 
                         switch (data.getString(Constants.KEY_S3_DIRECTORY,"")) {
+
                             case Constants.KEY_S3_LIVE_DIRECTORY:
+                                Log.i(TAG,"notifying UI of Live download finish");
                                 intent = new Intent(Constants.ACTION_IMAGE_LIVE_LOADED);
                                 intent.putExtras(data);
                                 sendBroadcast(intent);
                                 break;
 
                             case Constants.KEY_S3_LOCAL_DIRECTORY:
+                                Log.i(TAG,"notifying UI of Local download finish");
                                 intent = new Intent(Constants.ACTION_IMAGE_LOCAL_LOADED);
                                 intent.putExtras(data);
                                 sendBroadcast(intent);
@@ -2189,14 +2214,16 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
 
 
                             case Constants.KEY_S3_MESSAGE_DIRECTORY:
+                                Log.i(TAG,"notifying UI of Message download finish");
                                 intent = new Intent(Constants.ACTION_IMAGE_MESSAGE_LOADED);
                                 intent.putExtras(data);
                                 sendBroadcast(intent);
                                 break;
 
 
-
                             case Constants.KEY_S3_REPLIES_DIRECTORY:
+                                Log.i(TAG,"notifying UI that the non-thumbnail" +
+                                        " Reply image has finished downloading");
                                 intent = new Intent(Constants.ACTION_IMAGE_REPLY_LOADED);
                                 intent.putExtras(data);
                                 sendBroadcast(intent);

@@ -19,6 +19,7 @@ import android.graphics.RectF;
 import android.graphics.SurfaceTexture;
 import android.hardware.Camera;
 import android.location.LocationManager;
+import android.media.ThumbnailUtils;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -50,6 +51,7 @@ import android.widget.Toast;
 
 import com.google.android.gms.analytics.Tracker;
 import com.jokrapp.android.user.IdentityManager;
+import com.jokrapp.android.util.LogUtils;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -956,7 +958,11 @@ I*/
 
 
     private void sendMsgCreateReply(Bundle replyData) {
-        if (VERBOSE) Log.v(TAG,"entering sendMsgCreateReply");
+        if (VERBOSE) {
+            Log.v(TAG,"entering sendMsgCreateReply");
+            LogUtils.printBundle(replyData,TAG);
+        }
+
         if (isBound) {
             Toast.makeText(this,"posting a reply to the server.",Toast.LENGTH_SHORT).show();
             Message msg = Message.obtain(null, DataHandlingService.MSG_REPLY_TO_THREAD);
@@ -1013,26 +1019,33 @@ I*/
     }
 
     public void setLiveCreateReplyInfo(String comment, int threadID) {
+        if (VERBOSE) Log.v(TAG,"enter setLiveCreateReplyInfo with "  + comment + ", " + threadID);
+
         String name = getSharedPreferences(Constants.SHARED_PREFERENCES_NAME,MODE_PRIVATE).
                 getString(StashLiveSettingsFragment.LIVE_NAME_KEY,"jester");
         setLiveCreateReplyInfo(name, comment, threadID);
+
+
+        if (VERBOSE) Log.v(TAG,"exiting setLiveCreateReplyInfo");
     }
 
-    public void setLiveCreateReplyInfo(String name, String Comment, int threadID) {
-        if (VERBOSE) Log.v(TAG,"enter setLiveCreateReplyInfo with " + name + ", " + Comment + ", " + threadID);
+    public void setLiveCreateReplyInfo(String name, String comment, int threadID) {
+        if (VERBOSE) Log.v(TAG,"enter setLiveCreateReplyInfo with " + name + ", " + comment + ", " + threadID);
 
         if (replyData == null) {
             replyData = new Bundle(3);
         }
 
         replyData.putString("name",name);
-        replyData.putString("description",Comment);
+        replyData.putString("description",comment);
         replyData.putInt("threadID", threadID);
 
         if (replyData.size() == 4) {
             sendMsgCreateReply(replyData);
             replyData = null;
         }
+
+        if (VERBOSE) Log.v(TAG,"exiting setLiveCreateReplyInfo");
     }
 
     public void clearReplyInfo() {
@@ -1071,6 +1084,8 @@ I*/
     }
 
     public void setReplyFilePath(String filePath) {
+        if (VERBOSE) Log.v(TAG,"entering setReplyFilepath" + filePath);
+
         if (cancelReply) {
             new File(filePath).delete();
             cancelPost = false;
@@ -1083,9 +1098,10 @@ I*/
         }
         replyData.putString(Constants.KEY_S3_KEY,filePath);
         if (replyData.size() == 4) {
-            sendMsgCreateThread(replyData);
+            sendMsgCreateReply(replyData);
             replyData = null;
         }
+        if (VERBOSE) Log.v(TAG,"exiting setReplyFilepath" + filePath);
     }
 
     public void setReplyComment(String comment) {
@@ -1100,7 +1116,7 @@ I*/
     public void removePendingLiveImage() {
         //todo, cancel image saving process if it has not saved it
        if (liveData!=null) { //if the image has already been saved and set, delete it
-           String path = liveData.getString("filePath");
+           String path = liveData.getString(Constants.KEY_S3_KEY);
            if (path!=null) {
                new File(path).delete();
            }
@@ -1495,7 +1511,7 @@ I*/
                     break;
                 case MSG_SAVE_PICTURE: //6
                     saveImage(theData,
-                            inputMessage.getData().getString("commenttext"),
+                            inputMessage.getData().getString(Constants.KEY_TEXT),
                             0,
                             inputMessage.arg2); // local vs live
                     theData = null;
@@ -1684,9 +1700,10 @@ I*/
          */
         public void saveImage(byte[] data, String commentText, int height, int callBack) {
             int TEXT_BOX_HEIGHT = 55;
-            int COMPRESSION_QUALITY = 80;
+            int COMPRESSION_QUALITY = 100;
 
             Log.d(TAG, "saving image...");
+            Log.d(TAG,"incoming string comment " + commentText);
 
             UUID name = UUID.nameUUIDFromBytes(data);
             String key = name.toString()+ ".jpg";
@@ -1716,13 +1733,26 @@ I*/
 
 
             try {
-                 image.compress(Bitmap.CompressFormat.JPEG, COMPRESSION_QUALITY,
+                image.compress(Bitmap.CompressFormat.JPEG, COMPRESSION_QUALITY,
                         new FileOutputStream(filePath));
-             } catch (FileNotFoundException e) {
+            } catch (FileNotFoundException e) {
                 Log.e(TAG,"error compressing bitmap to filepath" + filePath, e);
 
             }
              Log.d(TAG, "The size of the image after: " + data.length);
+
+            if (callBack == CameraFragment.CAMERA_REPLY_MODE) {
+                Log.d(TAG,"now extracting and saving thumbnail");
+
+                try {
+                    image = ThumbnailUtils.extractThumbnail(image,250,250);
+                    image.compress(Bitmap.CompressFormat.JPEG, COMPRESSION_QUALITY,
+                            new FileOutputStream(filePath+"s"));
+                } catch (FileNotFoundException e) {
+                    Log.e(TAG,"error compressing bitmap to filepath" + filePath, e);
+
+                }
+            }
 
 
 
@@ -2006,10 +2036,10 @@ I*/
         msg.arg2 = where;
 
         if (!comment.getText().toString().trim().matches("")) {
-            Log.d(TAG,"Text retrieved was not null, attempting to send");
+            Log.d(TAG, "Text retrieved was not null, attempting to send");
 
             Bundle b = new Bundle();
-            b.putString("commenttext",comment.getText().toString());
+            b.putString(Constants.KEY_TEXT,comment.getText().toString());
             msg.setData(b);
         } else {
             Log.d(TAG, "comment was null...");

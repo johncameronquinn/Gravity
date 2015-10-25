@@ -53,6 +53,12 @@
         android:layout_alignBottom="@+id/editText_reply_comment"
         android:layout_margin="5dp" />
 
+    <ImageView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scaleType="fitXY"
+        android:id="@+id/imageView_reply_fullscreen"
+        android:visibility="visible"/>
 
 
 </RelativeLayout>

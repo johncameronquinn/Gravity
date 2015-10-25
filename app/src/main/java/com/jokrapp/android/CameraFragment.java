@@ -578,7 +578,7 @@ n  */
                         case CAMERA_REPLY_MODE:
 
                             mListener.sendMsgSaveImage(commentText, currentCameraMode);
-                            ((MainActivity)getActivity()).setReplyComment(commentText.toString());
+                            ((MainActivity)getActivity()).setReplyComment(commentText.getText().toString());
                             resetCameraUI();
                             stopReplyMode();
 

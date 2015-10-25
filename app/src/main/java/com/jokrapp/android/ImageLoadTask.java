@@ -8,6 +8,7 @@ import android.view.View;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 
+import java.awt.font.TextAttribute;
 import java.io.File;
 import java.lang.ref.WeakReference;
 
@@ -47,10 +48,15 @@ public class ImageLoadTask extends AsyncTask<String,Integer,Bitmap> {
 
     @Override
     protected void onPostExecute(Bitmap bitmap) {
-        if (imageViewWeakReference.get()== null || progressBarWeakReference.get() == null) {
+        if (imageViewWeakReference.get()== null) {
             return; //todo remove logically unnecessary null-check
+        } else {
+            Log.e("ImageLoadTask","imageView supplied was null...");
         }
         imageViewWeakReference.get().setImageBitmap(bitmap);
-        progressBarWeakReference.get().setVisibility(View.INVISIBLE);
+
+        if (progressBarWeakReference.get() != null) {
+            progressBarWeakReference.get().setVisibility(View.INVISIBLE);
+        }
     }
 }

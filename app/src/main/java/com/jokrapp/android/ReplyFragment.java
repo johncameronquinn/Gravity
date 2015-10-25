@@ -4,8 +4,11 @@ package com.jokrapp.android;
 import android.animation.ValueAnimator;
 import android.app.Activity;
 import android.app.LoaderManager;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.CursorLoader;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.Loader;
 import android.database.Cursor;
 import android.os.Bundle;
@@ -14,16 +17,20 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewParent;
 import android.view.animation.AccelerateInterpolator;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.ListView;
+import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 import android.widget.SimpleCursorAdapter;
+import android.widget.Toast;
 
 import java.lang.ref.WeakReference;
 
@@ -44,7 +51,7 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
 
     private static final String CURRENT_THREAD_KEY = "threadkey";
 
-    SimpleCursorAdapter mAdapter;
+    ReplyCursorAdapter mAdapter;
 
     public static ReplyFragment newInstance(int currentThread) {
         Bundle args = new Bundle();
@@ -81,6 +88,8 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
             }
 
         }
+
+
     }
 
     @Override
@@ -97,12 +106,19 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
     @Override
     public void onAttach(Activity activity) {
         super.onAttach(activity);
+
+        receiver = new ReplyReceiver();
+        IntentFilter filter = new IntentFilter(Constants.ACTION_IMAGE_REPLY_THUMBNAIL_LOADED);
+        filter.addAction(Constants.ACTION_IMAGE_REPLY_LOADED);
+        activity.registerReceiver(receiver, filter);
     }
 
     @Override
     public void onDetach() {
         super.onDetach();
         getLoaderManager().destroyLoader(REPLY_LOADER_ID);
+        getActivity().unregisterReceiver(receiver);
+        receiver = null;
     }
 
     /**
@@ -125,16 +141,18 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
 
         ListView listView = (ListView)v.findViewById(R.id.reply_list_view);
 
-        String[] fromColumns = {
+/*        String[] fromColumns = {
                 SQLiteDbContract.LiveReplies.COLUMN_NAME_NAME,
                 SQLiteDbContract.LiveReplies.COLUMN_NAME_DESCRIPTION,
                 SQLiteDbContract.LiveReplies.COLUMN_NAME_TIME};
 
-        int[] toViews = {R.id.reply_detail_row_name, R.id.reply_detail_row_text, R.id.reply_detail_row_time};
+        int[] toViews = {R.id.reply_detail_row_name, R.id.reply_detail_row_text, R.id.reply_detail_row_time};*/
 
         if (currentThread!=LiveFragment.NO_LIVE_THREADS_ID) {
-            mAdapter = new SimpleCursorAdapter(getActivity(),
-                    R.layout.fragment_reply_detail_row, null, fromColumns, toViews, 0);
+            //mAdapter = new SimpleCursorAdapter(getActivity(),
+//                    R.layout.fragment_reply_detail_row, null, fromColumns, toViews, 0);
+
+            mAdapter = new ReplyCursorAdapter(getActivity(),null,0);
             listView.setAdapter(mAdapter);
         }
 
@@ -260,7 +278,7 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
                         commentText   = ((EditText) activity.findViewById(R.id.editText_reply_comment));
                         RelativeLayout layout = (RelativeLayout) commentText.getParent();
 
-                        activity.setLiveFilePath("");
+                        activity.setReplyFilePath("");
                         activity.setLiveCreateReplyInfo(commentText.getText().toString(), getCurrentThread());
 
                         InputMethodManager imm = (InputMethodManager) activity
@@ -289,6 +307,8 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
                         commentText.setText("");
                     }
                     break;
+
+
             }
         }
 
@@ -326,4 +346,84 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
         mAdapter.swapCursor(null);
         if (VERBOSE) Log.v(TAG,"exiting onLoaderReset...");
     }
+
+
+    private ReplyReceiver receiver;
+
+    public class ReplyReceiver extends BroadcastReceiver {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if (LiveFragment.VERBOSE) {
+
+            }
+            Log.v(TAG, "received reply intent...");
+            switch (intent.getAction()) {
+
+                case Constants.ACTION_IMAGE_REPLY_THUMBNAIL_LOADED:
+                Bundle data = intent.getExtras();
+                String path = data.getString(Constants.KEY_S3_KEY);
+
+                Log.d(TAG, "searching for image with tag: " + path.substring(0,path.length()-1));
+                View layout = getActivity().findViewById(R.id.reply_list_view);
+                View v = layout.findViewWithTag(path.substring(0,path.length()-1));
+                if (v != null) {
+                    if (v.isShown()) {
+                        Log.i(TAG, v.toString());
+                        if (VERBOSE)
+                            Log.v(TAG, "Image loaded from view is visible, decoding and displaying...");
+                        ImageView imageView = (ImageView) v.findViewById(R.id.reply_detail_row_image);
+                        imageView.setVisibility(View.VISIBLE);
+                        imageView.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+
+                                switch (v.getId()) {
+                                    case R.id.reply_detail_row_image:
+                                        Toast.makeText(getActivity(),"requesting fullscreen mode...",Toast.LENGTH_SHORT).show();
+
+                                        String tag =String.valueOf(((RelativeLayout)v.getParent()).getTag());
+
+                                        MainActivity activity = (MainActivity)getActivity();
+                                        activity.sendMsgDownloadImage(Constants.KEY_S3_REPLIES_DIRECTORY,tag
+                                               );
+                                        activity.findViewById(R.id.imageView_reply_fullscreen).setTag(tag);
+                                        activity.findViewById(R.id.imageView_reply_fullscreen).setOnClickListener(this);
+                                        break;
+
+                                    case R.id.imageView_reply_fullscreen:
+                                        Toast.makeText(getActivity(),"exiting fullscreen mode...",Toast.LENGTH_SHORT).show();
+
+                                        v.setVisibility(View.INVISIBLE);
+                                        v.bringToFront();
+                                        ((ImageView)v).setImageBitmap(null);
+                                        break;
+                                }
+                            }
+                        });
+
+                        /* create full path from tag - DECODE THUMBNAIL ONLY (so add "s") */
+                        String[] params = {getActivity().getCacheDir() + "/" + path};
+
+
+                        new ImageLoadTask(imageView, null).execute(params);
+
+                    } else {
+                        if (VERBOSE) Log.v(TAG, "image is now shown do nothing...");
+                    }
+                } else {
+                    Log.e(TAG, "searching for image tag failed...");
+                }
+                    break;
+
+                case Constants.ACTION_IMAGE_REPLY_LOADED:
+                    ImageView fullScreenView= (ImageView)getActivity().findViewById(R.id.imageView_reply_fullscreen);
+                    new ImageLoadTask(fullScreenView
+                            , null).execute(String.valueOf(getActivity().getCacheDir()+ "/" + fullScreenView.getTag()));
+                    break;
+
+            }
+        }
+    }
+
+
 }
