@@ -485,9 +485,13 @@ n  */
         @Override
         public void onClick(View v) {
 
+            Bundle b = new Bundle();
+            b.putString(Constants.KEY_ANALYTICS_CATEGORY,Constants.ANALYTICS_CATEGORY_CAMERA);
+
             if (Constants.LOGD) Log.d(TAG,"click " + v.toString());
             switch (v.getId()) {
                 case R.id.button_capture:
+                    b.putString(Constants.KEY_ANALYTICS_ACTION,"camera capture");
 
                     Activity mActivity = getActivity();
                     //initialize the buttons while the picture is being taken
@@ -503,6 +507,10 @@ n  */
                             mListener.sendMsgTakePicture();
                             v.setPressed(true);
                             v.setClickable(false);
+
+                            b.putString(Constants.KEY_ANALYTICS_LABEL,"default mode");
+
+
                             break;
 
                         case CAMERA_MESSAGE_MODE:
@@ -517,6 +525,9 @@ n  */
                             mListener.sendMsgTakePicture();
                             v.setPressed(true);
                             v.setClickable(false);
+
+                            b.putString(Constants.KEY_ANALYTICS_LABEL, "message mode");
+
                             break;
 
                         case CAMERA_LIVE_MODE:
@@ -528,6 +539,9 @@ n  */
 
                             v.setPressed(true);
                             v.setClickable(false);
+
+                            b.putString(Constants.KEY_ANALYTICS_LABEL, "live mode");
+
                             break;
 
                         case CAMERA_REPLY_MODE:
@@ -540,21 +554,27 @@ n  */
                                     findViewById(R.id.button_send_message);
                             cancelMessageButton = (Button) mActivity.
                                     findViewById(R.id.button_cancel_message);
-                            commentText.setText(((MainActivity)getActivity()).getReplyComment());
+                            commentText.setText(((MainActivity) getActivity()).getReplyComment());
 
                             v.setPressed(true);
                             v.setClickable(false);
+
+                            b.putString(Constants.KEY_ANALYTICS_LABEL, "reply mode");
                             break;
                     }
                     break;
 
                 case R.id.switch_camera:
                     mListener.sendMsgSwitchCamera();
+
+                    b.putString(Constants.KEY_ANALYTICS_ACTION, "switch camera");
                     break;
 
                 case R.id.button_local:
                     mListener.sendMsgSaveImage(commentText, CAMERA_DEFAULT_MODE);
                     resetCameraUI();
+
+                    b.putString(Constants.KEY_ANALYTICS_ACTION, "save to local");
                     break;
 
                 case R.id.button_live:
@@ -565,22 +585,32 @@ n  */
                     cancelButton.setVisibility(View.INVISIBLE);
                     localButton.setVisibility(View.INVISIBLE);
 
+                    b.putString(Constants.KEY_ANALYTICS_ACTION, "save to live");
                     startLiveMode();
                     break;
 
                 case R.id.button_cancel:
+
+                    b.putString(Constants.KEY_ANALYTICS_ACTION,"cancel");
+                    b.putString(Constants.KEY_ANALYTICS_LABEL,"current camera");
+                    b.putString(Constants.KEY_ANALYTICS_VALUE,String.valueOf(currentCameraMode));
+
                     resetCameraUI();
                 break;
 
                 case R.id.button_send_message:
 
+                    b.putString(Constants.KEY_ANALYTICS_ACTION,"camera send to");
+
                     switch(currentCameraMode) {
                         case CAMERA_REPLY_MODE:
 
                             mListener.sendMsgSaveImage(commentText, currentCameraMode);
-                            ((MainActivity)getActivity()).setReplyComment(commentText.getText().toString());
+                            ((MainActivity) getActivity()).setReplyComment(commentText.getText().toString());
                             resetCameraUI();
                             stopReplyMode();
+
+                            b.putString(Constants.KEY_ANALYTICS_LABEL, "reply");
 
                             break;
                         case CAMERA_MESSAGE_MODE:
@@ -588,12 +618,17 @@ n  */
                             mListener.sendMsgSaveImage(commentText, CAMERA_MESSAGE_MODE, messageTarget);
                             resetCameraUI();
                             stopMessageMode();
+
+                            b.putString(Constants.KEY_ANALYTICS_LABEL,"message");
                             break;
                     }
 
                     mListener.enableScrolling();
                     break;
                 case R.id.button_cancel_message:
+
+                    b.putString(Constants.KEY_ANALYTICS_ACTION,"camera cancel send");
+
                     if(sendMessageButton != null) { //this means a picture has been taken, resetUI
                         resetCameraUI();
                     }
@@ -607,6 +642,8 @@ n  */
 
 
             }
+
+            mListener.sendMsgReportAnalyticsEvent(b);
 
         }
 
@@ -1097,6 +1134,7 @@ n  */
         void sendMsgSaveImage(EditText comment, int postWhere, String messageTarget);
         void sendMsgSwitchCamera();
         void sendMsgAutoFocus(MotionEvent event);
+        void sendMsgReportAnalyticsEvent(Bundle b);
     }
 
     static final String ACTION_PICTURE_TAKEN = "com.jokrapp.android.picturetaken";

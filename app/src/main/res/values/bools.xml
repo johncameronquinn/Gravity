@@ -9,4 +9,5 @@
 <resources>
     <bool name="sideBySide">false</bool>
     <bool name="hideNavigation">true</bool>
+    <bool name="ga_reportUncaughtExceptions">true</bool>
 </resources>

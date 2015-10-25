@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+<string name="ga_trackingId">UA-68211223-1</string>
+<bool name="ga_reportUncaughtExceptions">true</bool>
+<integer name="ga_dispatchPeriod">100</integer>
+</resources>

@@ -8,6 +8,7 @@ import android.app.Application;
 import android.util.Log;
 
 import com.google.android.gms.analytics.GoogleAnalytics;
+import com.google.android.gms.analytics.Logger;
 import com.google.android.gms.analytics.Tracker;
 
 /**
@@ -24,10 +25,12 @@ public class AnalyticsApplication extends Application {
         if (mTracker == null) {
             GoogleAnalytics analytics = GoogleAnalytics.getInstance(this);
 
+            analytics.getLogger().setLogLevel(Logger.LogLevel.VERBOSE);
             // To enable debug logging use: adb shell setprop log.tag.GAv4 DEBUG
-            mTracker = analytics.newTracker(R.xml.global_tracker);
+            mTracker = analytics.newTracker(R.xml.analytics);
         }
         return mTracker;
     }
+
 
 }

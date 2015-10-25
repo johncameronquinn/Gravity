@@ -115,10 +115,23 @@ public final class Constants {
     /**
      * ANALYTICS
      */
-    public static final int ANALYTICS = 100;
+
     public static final int LOCAL_BLOCK_EVENT= 101;
     public static final int LOCAL_MESSAGE_EVENT= 102;
     public static final int LIVE_THREADVIEW_EVENT = 103;
     public static final int REPLY_VIEW_EVENT = 104;
     public static final int FRAGMENT_VIEW_EVENT = 105;
+
+    public static final String KEY_ANALYTICS_CATEGORY = "category";
+    public static final String KEY_ANALYTICS_ACTION = "action";
+    public static final String KEY_ANALYTICS_LABEL = "label";
+    public static final String KEY_ANALYTICS_VALUE = "value";
+    public static final String KEY_ANALYTICS_VARIABLE = "variable";
+
+    public static final String ANALYTICS_CATEGORY_LIFECYCLE = "lifecycle";
+    public static final String ANALYTICS_CATEGORY_LOCAL = "local";
+    public static final String ANALYTICS_CATEGORY_LIVE = "live";
+    public static final String ANALYTICS_CATEGORY_MESSAGE = "message";
+    public static final String ANALYTICS_CATEGORY_REPLY = "reply";
+    public static final String ANALYTICS_CATEGORY_CAMERA = "camera";
 }

@@ -17,10 +17,10 @@
         android:phoneNumber="false"
         style="@style/AppTheme"
         android:textSize="20dp"
-        android:gravity="left"
         android:layout_alignParentTop="true"
         android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true" />
+        android:layout_alignParentStart="true"
+        android:gravity="bottom|center_horizontal" />
 
     <EditText
         android:layout_width="match_parent"
@@ -31,7 +31,7 @@
         android:hint="Description"
         android:textSize="20dp"
         android:layout_below="@+id/editText_live_mode_title"
-        android:gravity="left|top" />
+        android:gravity="center_horizontal" />
 
     <Button
         android:layout_width="100dp"

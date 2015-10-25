@@ -22,6 +22,4 @@
         android:layout_below="@id/button_reply_refresh"/>
 
 
-
-
 </RelativeLayout>

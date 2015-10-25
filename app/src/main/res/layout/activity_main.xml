@@ -24,16 +24,6 @@
 
     </com.jokrapp.android.CustomViewPager>
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceLarge"
-        android:text="Connecting.."
-        android:id="@+id/statusTextView"
-        android:layout_gravity="center"
-        android:enabled="false"
-        android:visibility="invisible" />
-
 
 
 

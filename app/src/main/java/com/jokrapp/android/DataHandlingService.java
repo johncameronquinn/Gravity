@@ -178,10 +178,15 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
         if (VERBOSE)
             Log.v(TAG, "entering onCreate...");
 
+
+
         buildGoogleApiClient();
         if (mGoogleApiClient != null) {
             mGoogleApiClient.connect();
         }
+        mTracker = ((AnalyticsApplication) getApplication()).getDefaultTracker();
+        startSession();
+
 
         SharedPreferences settings = getSharedPreferences(TAG, MODE_PRIVATE);
         boolean isFirstRun = settings.getBoolean(ISFIRSTRUN_KEY, true);
@@ -260,10 +265,13 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
         }
 
 
+
         SharedPreferences settings = getSharedPreferences(TAG, MODE_PRIVATE);
 
         settings.edit().putStringSet(IMAGESSEEN_KEY, new HashSet<>(imagesSeen)).apply();
 
+
+        stopSession();
         Log.v(TAG, "exiting onDestroy...");
     }
 
@@ -878,7 +886,7 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
         int threadID = data.getInt("threadID");
         String name = data.getString("name");
         String description = data.getString("description");
-        String filePath = data.getString(Constants.KEY_S3_KEY);
+        String filePath = data.getString(Constants.KEY_S3_KEY,"");
 
         HttpURLConnection conn;
         try {
@@ -894,12 +902,12 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
                     createGenerator(conn.getOutputStream()); //tcp connection to server
 
             if (VERBOSE) {
-                Log.v(TAG, "sending thread to server:");
+                Log.v(TAG, "sending reply to server:");
                 Log.v(TAG, "from : " + userID.toString());
                 Log.v(TAG, "thread number : " + threadID);
                 Log.v(TAG, "name : " + name);
                 Log.v(TAG, "text : " + description);
-                Log.v(TAG, "filePath : " + filePath);
+                Log.v(TAG, "url : " + filePath);
             }
 
             jGen.writeStartObject();
@@ -1257,6 +1265,10 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
 
     static final int MSG_DOWNLOAD_IMAGE = 18;
 
+    static final int MSG_REPORT_ANALYTICS= 100;
+
+    static final int MSG_REPORT_ANALYTIC_TIMING = 101;
+
     /**
      * class 'IncomingHandler'
      * <p/>
@@ -1282,15 +1294,6 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
         public void handleMessage(Message msg) {
             Log.d(TAG, "enter handleMessage");
             Bundle data;
-
-            /**
-             * ANALYTICS REPORTING SWITCH, if message is greater than analytics switch, pass and exit
-             */
-            if (msg.what >= Constants.ANALYTICS) {
-                if (Constants.LOGD) Log.d(TAG, "Received analytics event, passing...");
-                reportAnalyticsEvent(msg.what, msg.getData().getString("name"));
-                return;
-            }
 
             switch (msg.what) {
                 case MSG_BUILD_CLIENT:
@@ -1431,6 +1434,17 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
                     data.putInt(PENDING_TRANSFER_TYPE, msg.what);
                     downloadImageFromS3(data);
 
+                    break;
+
+                case MSG_REPORT_ANALYTICS:
+                    if (Constants.LOGD) Log.d(TAG, "Received a message to report analytics events");
+                    reportAnalyticsEvent(msg.getData());
+                    break;
+
+                case MSG_REPORT_ANALYTIC_TIMING:
+
+                    if (Constants.LOGD) Log.d(TAG, "Received a message to report timing events");
+                    reportAnalyticsTimingEvent(msg.getData());
                     break;
 
                 default:
@@ -1742,12 +1756,12 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
 
                     mMessenger.send(Message.obtain(null, new initializeUserWithServer()));
                     replyMessenger.send(Message.obtain(null, MainActivity.MSG_UNAUTHORIZED));
-
                     break;
 
                 case RESPONSE_NOT_FOUND:
                     msg = Message.obtain(null, MainActivity.MSG_NOT_FOUND);
                     msg.setData(extradata);
+                    replyMessenger.send(msg);
 
                     break;
             }
@@ -1921,24 +1935,27 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
     private void sendSignOnEvent(String userID) {
         Log.i(TAG, "sending login event for user: " + userID.toString());
 
-        mTracker = ((AnalyticsApplication) getApplication()).getDefaultTracker();
+
         mTracker.set("&uid", userID.toString());
-        mTracker.send(new HitBuilders.EventBuilder().setCategory("UX").setAction("User Sign In").build());
+        mTracker.send(new HitBuilders.EventBuilder()
+                .setCategory(Constants.ANALYTICS_CATEGORY_LIFECYCLE)
+                .setAction("User Sign In").build());
+
     }
 
-    /**
-     * method 'sendScreenName'
-     * <p/>
-     * reports a screen view event to Google Analytics
-     *
-     * @param name name of the screen to be sent
-     */
-    private void sendScreenImageName(String name) {
-        if (VERBOSE) Log.v(TAG, "Sending screen event for screen name: " + name);
-        //   Toast.makeText(this,name,Toast.LENGTH_SHORT).show();
-        mTracker.setScreenName(name);
-        mTracker.send(new HitBuilders.ScreenViewBuilder().build());
+    private void startSession() {
+        mTracker.send(new HitBuilders.ScreenViewBuilder()
+                .setNewSession()
+                .build());
     }
+
+    private void stopSession() {
+                 Map<String, String> hit = new HitBuilders.ScreenViewBuilder().build();
+                 hit.put("&sc", "end");
+        mTracker.send(hit);
+    }
+
+
 
     /**
      * method 'reportAnalyticsEvent'
@@ -1949,30 +1966,63 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
      * {@link com.jokrapp.android.LocalFragment.onLocalFragmentInteractionListener}
      * Called by these linked interface callbacks.
      *
-     * @param event which kind of even to report
-     * @param name  additional info to be reported (this will maybe be a Bundle)
      */
-    public void reportAnalyticsEvent(int event, String name) {
-        if (VERBOSE)
-            Log.v(TAG, "entering reportAnalyticsEvent with event: " + event + " and name " + name);
-
-        switch (event) {
-            case Constants.LIVE_THREADVIEW_EVENT:
-                sendScreenImageName(name);
-                break;
-            case Constants.LOCAL_BLOCK_EVENT:
-
-                break;
-
-            case Constants.LOCAL_MESSAGE_EVENT:
-
-                break;
-
-            case Constants.FRAGMENT_VIEW_EVENT:
-                mTracker.setScreenName(name);
-                mTracker.send(new HitBuilders.ScreenViewBuilder().build());
-                break;
+    public void reportAnalyticsEvent(Bundle data) {
+        if (VERBOSE) {
+            Log.v(TAG, "entering reportAnalyticsEvent");
+            LogUtils.printBundle(data, TAG);
         }
+
+        HitBuilders.EventBuilder event = new HitBuilders.EventBuilder();
+        event.setCategory(data.getString(Constants.KEY_ANALYTICS_CATEGORY));
+        event.setAction(data.getString(Constants.KEY_ANALYTICS_ACTION));
+
+        if (data.containsKey(Constants.KEY_ANALYTICS_LABEL)) {
+            event.setLabel(data.getString(Constants.KEY_ANALYTICS_LABEL));
+        }
+
+        if (data.containsKey(Constants.KEY_ANALYTICS_VALUE)) {
+            event.setLabel(data.getString(Constants.KEY_ANALYTICS_VALUE));
+        }
+
+        mTracker.send(event.build());
+
+        Log.v(TAG, "exiting reportAnalyticsEvent");
+    }
+
+
+    /**
+     * method 'reportAnalyticsTimingEvent'
+     * <p/>
+     * reports a timing event to Google analytics.
+     * <p/>
+     * {@link com.jokrapp.android.LiveFragment.onLiveFragmentInteractionListener}
+     * {@link com.jokrapp.android.LocalFragment.onLocalFragmentInteractionListener}
+     * Called by these linked interface callbacks.
+     *
+     */
+    public void reportAnalyticsTimingEvent(Bundle data) {
+        if (VERBOSE) {
+            Log.v(TAG, "entering reportAnalyticsEvent");
+            LogUtils.printBundle(data, TAG);
+        }
+
+        HitBuilders.TimingBuilder event = new HitBuilders.TimingBuilder()
+                .setCategory(data.getString(Constants.KEY_ANALYTICS_CATEGORY))
+                .setValue(data.getLong(Constants.KEY_ANALYTICS_ACTION));
+
+        if (data.containsKey(Constants.KEY_ANALYTICS_LABEL)) {
+            event.setLabel(data.getString(Constants.KEY_ANALYTICS_LABEL));
+        }
+
+        if (data.containsKey(Constants.KEY_ANALYTICS_VARIABLE)) {
+
+            event.setVariable(data.getString(Constants.KEY_ANALYTICS_VARIABLE));
+        }
+
+        mTracker.send(event.build());
+
+        Log.v(TAG, "exiting reportAnalyticsEvent");
     }
 
 

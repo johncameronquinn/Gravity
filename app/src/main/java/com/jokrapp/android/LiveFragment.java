@@ -150,8 +150,10 @@ public class LiveFragment extends Fragment implements
                 LiveThreadEntry.COLUMN_NAME_UNIQUE
         };
 
-        mAdapter = new CursorPagerAdapter<>(getChildFragmentManager(),LiveThreadFragment.class,projection,null);
-
+        mAdapter = new CursorPagerAdapter<>(getChildFragmentManager(),
+                LiveThreadFragment.class,
+                projection,
+                null);
 
         if (VERBOSE) Log.v(TAG,"initializing loader at id " + LIVE_LOADER_ID);
         getLoaderManager().restartLoader(LIVE_LOADER_ID, null, this);
@@ -190,7 +192,7 @@ public class LiveFragment extends Fragment implements
 
 
         receiver = new LiveThreadReceiver();
-        IntentFilter filter = new IntentFilter(Constants.ACTION_IMAGE_LOADED);
+        IntentFilter filter = new IntentFilter(Constants.ACTION_IMAGE_LIVE_LOADED);
         context.registerReceiver(receiver, filter);
     }
 
@@ -222,7 +224,6 @@ public class LiveFragment extends Fragment implements
         //    activity.loadBitmap(activity.theImages.get(5),imageView);
         //    activity = (MainActivity)getActivity();
         //}
-
 
         // Inflate the layout for this fragment
         //inflater.inflate(R.layout.fragment_live_thread,threadPager,false);//
@@ -305,7 +306,9 @@ public class LiveFragment extends Fragment implements
                 Uri selectedImageUri = data.getData();
                 Bitmap b = null;
                 try {
-                    b = BitmapFactory.decodeStream(getActivity().getContentResolver().openInputStream(selectedImageUri));
+                    b = BitmapFactory.decodeStream(getActivity()
+                            .getContentResolver()
+                            .openInputStream(selectedImageUri));
                 } catch (FileNotFoundException e) {
                     Log.e(TAG, "error decoding stream from returned URI...");
                 }
@@ -321,7 +324,9 @@ public class LiveFragment extends Fragment implements
      *
      * listens to all the general live thread interactions
      */
-    public class LiveButtonListener implements SeekBar.OnSeekBarChangeListener, View.OnClickListener,ValueAnimator.AnimatorUpdateListener {
+    public class LiveButtonListener implements SeekBar.OnSeekBarChangeListener,
+            View.OnClickListener,
+            ValueAnimator.AnimatorUpdateListener {
 
         @Override
         public void onClick(View v) {
@@ -364,7 +369,8 @@ public class LiveFragment extends Fragment implements
                     Intent intent = new Intent();
                     intent.setAction(Intent.ACTION_GET_CONTENT);
                     intent.setType("image/*");
-                    startActivityForResult(Intent.createChooser(intent,"Select Picture"), SELECT_PICTURE);
+                    startActivityForResult(Intent.createChooser(intent,"Select Picture"),
+                            SELECT_PICTURE);
                     break;
                 case STARTING_VALUE:
                     //do nothing. possibly hide the seekbar?
@@ -486,8 +492,7 @@ public class LiveFragment extends Fragment implements
 
         //report thread view to analytics service
         if (mListener != null) {
-            mListener.sendMsgReportAnalyticsEvent(Constants.LIVE_THREADVIEW_EVENT, "Thread~ID: " + currentThread + "," +
-                    " Position: " + position);
+            mListener.setAnalyticsScreenName( "Thread-Position: " + position);
         }
         if (VERBOSE) Log.v(TAG, "exiting onPageSelected...");
     }
@@ -583,7 +588,8 @@ public class LiveFragment extends Fragment implements
     }
 
     public interface onLiveFragmentInteractionListener {
-        void sendMsgReportAnalyticsEvent(int event, String name);
+        void sendMsgReportAnalyticsEvent(Bundle b);
+        void setAnalyticsScreenName(String name);
         void sendMsgRequestLiveThreads();
         void sendMsgRequestReplies(int threadID);
         void setCurrentThread(String threadID);

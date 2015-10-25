@@ -56,6 +56,29 @@ public class LocalFragment extends Fragment implements
     }
 
     @Override
+    public void onAttach(Context activity) {
+        super.onAttach(activity);
+
+
+        String[] projection = new String[1];
+        projection[0] = SQLiteDbContract.LocalEntry.COLUMN_ID;
+
+        ((MainActivity)activity).sendMsgRequestLocalPosts(3);
+
+        try {
+            mListener = (onLocalFragmentInteractionListener) activity;
+        } catch (ClassCastException e) {
+            throw new ClassCastException(activity.toString()
+                    + " must implement OnFragmentInteractionListener");
+        }
+
+
+        receiver = new LocalPostReceiver();
+        IntentFilter filter = new IntentFilter(Constants.ACTION_IMAGE_LOCAL_LOADED);
+        activity.registerReceiver(receiver, filter);
+    }
+
+    @Override
     public void onAttach(Activity activity) {
         super.onAttach(activity);
 
@@ -70,7 +93,6 @@ public class LocalFragment extends Fragment implements
             throw new ClassCastException(activity.toString()
                     + " must implement OnFragmentInteractionListener");
         }
-
 
         receiver = new LocalPostReceiver();
         IntentFilter filter = new IntentFilter(Constants.ACTION_IMAGE_LOCAL_LOADED);
@@ -133,9 +155,12 @@ public class LocalFragment extends Fragment implements
 
         getLoaderManager().initLoader(LOCAL_LOADER_ID, null, this);
 
-        adapter = new ImageStackCursorAdapter((MainActivity)getActivity(), R.layout.std_card_inner,null,
+        adapter = new ImageStackCursorAdapter((MainActivity)getActivity(),
+                R.layout.std_card_inner,
+                null,
                 FireFlyContentProvider.CONTENT_URI_LOCAL,
-                null,0);
+                null,
+                0);
                 //to, 0);
     }
 
@@ -260,7 +285,8 @@ public class LocalFragment extends Fragment implements
      *
      */
     public interface onLocalFragmentInteractionListener {
-        void sendMsgReportAnalyticsEvent(int event, String action);
+        void setAnalyticsScreenName(String name);
+        void sendMsgReportAnalyticsEvent(Bundle b);
         void sendMsgDownloadImage(String s3Directroy, String s3Key);
 
 

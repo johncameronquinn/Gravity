@@ -1,7 +1,6 @@
 package com.jokrapp.android;
 
 
-import android.animation.ValueAnimator;
 import android.app.Activity;
 import android.app.LoaderManager;
 import android.content.BroadcastReceiver;
@@ -17,20 +16,14 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.ViewParent;
-import android.view.animation.AccelerateInterpolator;
 import android.view.inputmethod.InputMethodManager;
-import android.widget.Button;
 import android.widget.EditText;
-import android.widget.FrameLayout;
-import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ListView;
-import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
-import android.widget.SeekBar;
-import android.widget.SimpleCursorAdapter;
 import android.widget.Toast;
+
+import com.google.android.gms.analytics.Tracker;
 
 import java.lang.ref.WeakReference;
 
@@ -50,6 +43,10 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
     private final String TAG = "ReplyFragment";
 
     private static final String CURRENT_THREAD_KEY = "threadkey";
+
+    private LiveFragment.onLiveFragmentInteractionListener mListener;
+
+    Tracker mTracker;
 
     ReplyCursorAdapter mAdapter;
 
@@ -112,6 +109,10 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
         filter.addAction(Constants.ACTION_IMAGE_REPLY_LOADED);
         activity.registerReceiver(receiver, filter);
 
+
+        mTracker = ((AnalyticsApplication)activity.getApplication()).getDefaultTracker();
+        mListener = (MainActivity)activity;
+
         Bundle b = new Bundle();
         b.putString(CURRENT_THREAD_KEY, String.valueOf(currentThread));
         getLoaderManager().restartLoader(REPLY_LOADER_ID, b, this);
@@ -123,6 +124,7 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
         getLoaderManager().destroyLoader(REPLY_LOADER_ID);
         getActivity().unregisterReceiver(receiver);
         receiver = null;
+        mListener = null;
     }
 
     /**
@@ -270,12 +272,19 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
 
             MainActivity activity = (MainActivity)getActivity();
 
+            Bundle b = new Bundle();
+            b.putString(Constants.KEY_ANALYTICS_CATEGORY,Constants.ANALYTICS_CATEGORY_REPLY);
+
             switch (v.getId()) {
 
                 case R.id.button_reply_refresh:
                     if (isAdded()) {
                         activity.sendMsgRequestReplies(currentThread);
                     }
+                    b.putString(Constants.KEY_ANALYTICS_ACTION,"refresh");
+                    b.putString(Constants.KEY_ANALYTICS_LABEL,"current thread");
+                    b.putString(Constants.KEY_ANALYTICS_VALUE,String.valueOf(currentThread));
+
                     resetDisplay();
                     break;
 
@@ -293,6 +302,10 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
                         imm.hideSoftInputFromWindow(layout.getWindowToken(), 0);
 
                         commentText.setText("");
+
+                        b.putString(Constants.KEY_ANALYTICS_ACTION, "send reply");
+                        b.putString(Constants.KEY_ANALYTICS_LABEL, "current thread");
+                        b.putString(Constants.KEY_ANALYTICS_VALUE, String.valueOf(currentThread));
                     }
 
                     break;
@@ -312,11 +325,16 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
                         imm.hideSoftInputFromWindow(layout.getWindowToken(), 0);
 
                         commentText.setText("");
+
+
+                        b.putString(Constants.KEY_ANALYTICS_ACTION,"take picture");
                     }
                     break;
 
 
             }
+
+            mListener.sendMsgReportAnalyticsEvent(b);
         }
 
     }
@@ -390,16 +408,16 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
 
                                         String tag =String.valueOf(((RelativeLayout)v.getParent()).getTag());
 
-                                        MainActivity activity = (MainActivity)getActivity();
-                                        activity.sendMsgDownloadImage(Constants.KEY_S3_REPLIES_DIRECTORY,tag
-                                               );
+                                        MainActivity activity = (MainActivity) getActivity();
+                                        activity.sendMsgDownloadImage(Constants.KEY_S3_REPLIES_DIRECTORY, tag
+                                        );
                                         activity.findViewById(R.id.imageView_reply_fullscreen).setTag(tag);
                                         activity.findViewById(R.id.imageView_reply_fullscreen).setOnClickListener(this);
+
                                         break;
 
                                     case R.id.imageView_reply_fullscreen:
                                         Toast.makeText(getActivity(),"exiting fullscreen mode...",Toast.LENGTH_SHORT).show();
-
                                         v.setVisibility(View.INVISIBLE);
                                         break;
                                 }
