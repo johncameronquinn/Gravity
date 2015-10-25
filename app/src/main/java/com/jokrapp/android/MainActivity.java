@@ -106,6 +106,7 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
     private static WeakReference<MessageFragment> MessageFragReference = new WeakReference<>(null);
     private static WeakReference<CameraFragment> CameraFragReference = new WeakReference<>(null);
     private static WeakReference<LiveFragment> LiveFragReference = new WeakReference<>(null);
+    private static WeakReference<ReplyFragment> ReplyFragReference = new WeakReference<>(null);
     private static WeakReference<LocalFragment> LocalFragReference = new WeakReference<>(null);
 
 
@@ -694,13 +695,13 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
 
                 return CameraFragReference.get();
             } else if (position == REPLY_LIST_POSITION) {
-                if (LiveFragReference.get().getReplyFragment() == null) {
+                if (ReplyFragReference.get() == null) {
                     ReplyFragment f = ReplyFragment.newInstance(LiveFragReference.get()
                             .getCurrentThread());
-                    LiveFragReference.get().setReplyFragment(f);
+                    ReplyFragReference = new WeakReference<>(f);
                     return f;
                 } else {
-                    return LiveFragReference.get().getReplyFragment();
+                    return ReplyFragReference.get();
                 }
             } else {
                 Log.e(TAG, "Invalid fragment position loaded");
@@ -1101,7 +1102,13 @@ I*/
             sendMsgCreateReply(replyData);
             replyData = null;
         }
-        if (VERBOSE) Log.v(TAG,"exiting setReplyFilepath" + filePath);
+        if (VERBOSE) Log.v(TAG, "exiting setReplyFilepath" + filePath);
+    }
+
+    public void setCurrentThread(String thread) {
+        if (ReplyFragReference.get()!=null) {
+            ReplyFragReference.get().setCurrentThread(thread);
+        }
     }
 
     public void setReplyComment(String comment) {

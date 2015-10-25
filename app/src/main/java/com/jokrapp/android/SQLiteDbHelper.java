@@ -48,8 +48,7 @@ public class SQLiteDbHelper extends SQLiteOpenHelper {
     private static final String SQL_CREATE_LOCAL =
 
             "CREATE TABLE " + LocalEntry.TABLE_NAME + " (" +
-                    LocalEntry._ID + " INTEGER KEY" +
-                    COMMA_SEP +
+                    LocalEntry._ID + PRIMARY_KEY + COMMA_SEP +
                     LocalEntry.COLUMN_FROM_USER + TEXT_TYPE + COMMA_SEP +
                     LocalEntry.COLUMN_NAME_WEIGHT + INT_TYPE + COMMA_SEP +
                     LocalEntry.COLUMN_NAME_TIME + INT_TYPE + COMMA_SEP +

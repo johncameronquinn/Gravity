@@ -784,22 +784,29 @@ n  */
 
 
     @Override
-    public void onAutoFocus(boolean success, Camera camera) {
-        View v= getView();
+    public void onAutoFocus(final boolean success, Camera camera) {
 
-        if (v != null) {
-            v = v.findViewById(R.id.camera_focus);
-            v.setVisibility(View.INVISIBLE);
-            if (success) {
-                // do something...
-                Log.i(TAG,"success!");
+        getActivity().runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                View v= getView();
 
-            } else {
-                // do something...
-                Log.i(TAG,"fail!");
+                if (v != null) {
+                    v = v.findViewById(R.id.camera_focus);
+                    v.setVisibility(View.INVISIBLE);
+                    if (success) {
+                        // do something...
+                        Log.i(TAG,"success!");
 
+                    } else {
+                        // do something...
+                        Log.i(TAG,"fail!");
+
+                    }
+                }
             }
-        }
+        });
+
 
     }
 

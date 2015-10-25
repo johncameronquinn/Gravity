@@ -219,6 +219,7 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
             }
 
             imagesSeen = new ArrayList<>(loaded);
+
             if (VERBOSE) {
                 Log.v(TAG, "imagesSeen array loaded from SharedPreferences, printing...");
                 for (String i : imagesSeen) { //print all sharedpreferences entry
@@ -479,7 +480,7 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
      * @param numberOfImages image count to request
      * @param location       current location of the client
      */
-    private void requestLocalPosts(int numberOfImages, Location location) {
+    private synchronized void requestLocalPosts(int numberOfImages, Location location) {
         Log.d(TAG, "entering requestLocalPosts...");
 
         if (mLocation == null) {
@@ -1104,7 +1105,9 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
                         if (VERBOSE) Log.v(TAG,"saving json from local/");
 
                         //swap id for _ID, to allow listview loading, and add the thread ID
-                        map.put(SQLiteDbContract.LiveReplies.COLUMN_ID, map.remove("id"));
+                        Object id = map.remove("id");
+                        imagesSeen.add(String.valueOf(id));
+                        map.put(SQLiteDbContract.LiveReplies.COLUMN_ID, id);
                         b.putString(Constants.KEY_S3_DIRECTORY, Constants.KEY_S3_LOCAL_DIRECTORY);
                         break;
                     case MSG_REQUEST_LIVE_THREADS:

@@ -67,7 +67,6 @@ public class LiveFragment extends Fragment implements
 
     private VerticalViewPager threadPager;
     private CursorPagerAdapter mAdapter;
-    private WeakReference<ReplyFragment> mReplyFragmentReference = new WeakReference<>(null);
 
 
     private onLiveFragmentInteractionListener mListener;
@@ -90,12 +89,6 @@ public class LiveFragment extends Fragment implements
         fragment.setArguments(args);
         return fragment;
     }
-
-    public void setReplyFragment(ReplyFragment fragment) {
-        mReplyFragmentReference = new WeakReference<ReplyFragment>(fragment);
-    }
-
-    public ReplyFragment getReplyFragment() {return  mReplyFragmentReference.get();}
 
 
     /**
@@ -489,8 +482,7 @@ public class LiveFragment extends Fragment implements
 
         Bundle args = new Bundle();
         args.putString(CURRENT_THREAD_KEY, String.valueOf(currentThread));
-        getReplyFragment().setCurrentThread(String.valueOf(currentThread));
-        getLoaderManager().restartLoader(ReplyFragment.REPLY_LOADER_ID, args, getReplyFragment());
+        mListener.setCurrentThread(String.valueOf(currentThread));
 
         //report thread view to analytics service
         if (mListener != null) {
@@ -565,6 +557,7 @@ public class LiveFragment extends Fragment implements
         mAdapter.swapCursor(data);
 
         currentThread = getCurrentThreadID();
+        mListener.setCurrentThread(String.valueOf(currentThread));
 
         Log.d(TAG, "Returned cursor contains: " + data.getCount() + " rows.");
 
@@ -590,9 +583,10 @@ public class LiveFragment extends Fragment implements
     }
 
     public interface onLiveFragmentInteractionListener {
-        public void sendMsgReportAnalyticsEvent(int event, String name);
-        public void sendMsgRequestLiveThreads();
-        public void sendMsgRequestReplies(int threadID);
+        void sendMsgReportAnalyticsEvent(int event, String name);
+        void sendMsgRequestLiveThreads();
+        void sendMsgRequestReplies(int threadID);
+        void setCurrentThread(String threadID);
     }
 
 

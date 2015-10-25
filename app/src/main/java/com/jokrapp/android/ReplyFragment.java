@@ -111,6 +111,10 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
         IntentFilter filter = new IntentFilter(Constants.ACTION_IMAGE_REPLY_THUMBNAIL_LOADED);
         filter.addAction(Constants.ACTION_IMAGE_REPLY_LOADED);
         activity.registerReceiver(receiver, filter);
+
+        Bundle b = new Bundle();
+        b.putString(CURRENT_THREAD_KEY, String.valueOf(currentThread));
+        getLoaderManager().restartLoader(REPLY_LOADER_ID, b, this);
     }
 
     @Override
@@ -225,14 +229,17 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
         Log.i(TAG, "setting current thread to : " + thread + ".");
         //((ImageButton)getActivity().findViewById(R.id.button_reply_refresh)).setText(thread);
         currentThread = Integer.valueOf(thread);
+        resetDisplay();
     }
 
     public void resetDisplay() {
         Log.d(TAG, "restarting loader...");
 
-        Bundle b = new Bundle();
-        b.putString(CURRENT_THREAD_KEY,String.valueOf(currentThread));
-        getLoaderManager().restartLoader(REPLY_LOADER_ID,b,this);
+        if (isAdded()) {
+            Bundle b = new Bundle();
+            b.putString(CURRENT_THREAD_KEY, String.valueOf(currentThread));
+            getLoaderManager().restartLoader(REPLY_LOADER_ID, b, this);
+        }
     }
 
     public int getCurrentThread() { return currentThread;}
@@ -394,8 +401,6 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
                                         Toast.makeText(getActivity(),"exiting fullscreen mode...",Toast.LENGTH_SHORT).show();
 
                                         v.setVisibility(View.INVISIBLE);
-                                        v.bringToFront();
-                                        ((ImageView)v).setImageBitmap(null);
                                         break;
                                 }
                             }

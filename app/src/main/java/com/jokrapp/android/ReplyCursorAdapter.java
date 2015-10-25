@@ -11,6 +11,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CursorAdapter;
 import android.widget.ImageView;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.jokrapp.android.SQLiteDbContract.LiveReplies;
@@ -67,14 +68,20 @@ public class ReplyCursorAdapter extends CursorAdapter {
         text.setText(cursor.getString(cursor.getColumnIndexOrThrow(LiveReplies.COLUMN_NAME_DESCRIPTION)));
         date.setText(cursor.getString(cursor.getColumnIndexOrThrow(LiveReplies.COLUMN_NAME_TIME)));
 
-        /*ImageView image = (ImageView) view.findViewById(R.id.reply_detail_row_image);
+        Log.i(TAG,"view toString() : " + view.toString());
+        ImageView image = (ImageView) view.findViewById(R.id.reply_detail_row_image);
+        if (image == null) {
+            Log.e(TAG,"imageView was null... what...");
+            return;
+        }
+
         String path = (cursor.getString(cursor.getColumnIndexOrThrow(LiveReplies.COLUMN_NAME_FILEPATH)));
 
-        if (!path.equals("")) {
+        if(!path.equals("")) {
             Log.d(TAG,"a filepath was provided... " + path + " this must be an image reply");
             new ImageLoadTask(image, null).execute(ctx.getCacheDir() + "/" + path + "s");
         } else {
             Log.d(TAG,"no filepath was supplied... this must be a text reply...");
-        }*/
+        }
     }
 }
