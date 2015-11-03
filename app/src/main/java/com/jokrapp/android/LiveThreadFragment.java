@@ -218,9 +218,10 @@ public class LiveThreadFragment extends Fragment implements View.OnClickListener
             if (file.exists() && imageLoaderThreadReference.get() == null) {
 
                 Log.i(TAG, "filepath exists and no other images are being decoded");
-                imageLoaderThreadReference =
-                        new WeakReference<>(new Thread(new ImageLoaderRunnable(threadFilePath)));
-                imageLoaderThreadReference.get().start();
+                    imageLoaderThreadReference =
+                            new WeakReference<>(new Thread(new ImageLoaderRunnable(threadFilePath)));
+                    imageLoaderThreadReference.get().start();
+
             } else {
                 if (LiveFragment.VERBOSE) {
                     Log.v(TAG,"requested image has not yet been downloaded... requesting: "
@@ -326,17 +327,21 @@ public class LiveThreadFragment extends Fragment implements View.OnClickListener
             if (!Thread.interrupted()) {
                 image = BitmapFactory.decodeFile(getActivity().getCacheDir().toString() + "/" + filepath);
 
-                getActivity().runOnUiThread((new Runnable() {
+                if (isAdded()) {
+                    getActivity().runOnUiThread((new Runnable() {
 
-                            public void run() {
-                                if (isVisible()) {
-                                    progressBar.setVisibility(View.INVISIBLE);
-                                    displayView.setImageBitmap(image);
+                                public void run() {
+                                    if (isVisible()) {
+                                        progressBar.setVisibility(View.INVISIBLE);
+                                        displayView.setImageBitmap(image);
+                                    }
                                 }
-                            }
 
-                        })
-                );
+                            })
+                    );
+                } else  {
+                    Log.e(TAG,"this fragment was not added... what...");
+                }
 
             } else {
                 Log.i(TAG,"thread was interrupted... canceling...");

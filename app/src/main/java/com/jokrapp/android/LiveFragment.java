@@ -129,6 +129,8 @@ public class LiveFragment extends Fragment implements
             currentThread = savedInstanceState.getInt(CURRENT_THREAD_KEY);
         } else {
             currentThread = NO_LIVE_THREADS_ID;
+
+
         }
 
         if (getArguments() != null) {
@@ -139,21 +141,6 @@ public class LiveFragment extends Fragment implements
         } else {
             }
 
-        String[] projection = {
-                LiveThreadEntry.COLUMN_ID,
-                LiveThreadEntry.COLUMN_NAME_NAME,
-                LiveThreadEntry.COLUMN_NAME_TITLE,
-                LiveThreadEntry.COLUMN_NAME_DESCRIPTION,
-                LiveThreadEntry.COLUMN_NAME_FILEPATH,
-                LiveThreadEntry.COLUMN_NAME_THREAD_ID,
-                LiveThreadEntry.COLUMN_NAME_REPLIES,
-                LiveThreadEntry.COLUMN_NAME_UNIQUE
-        };
-
-        mAdapter = new CursorPagerAdapter<>(getChildFragmentManager(),
-                LiveThreadFragment.class,
-                projection,
-                null);
 
         if (VERBOSE) Log.v(TAG,"initializing loader at id " + LIVE_LOADER_ID);
         getLoaderManager().restartLoader(LIVE_LOADER_ID, null, this);
@@ -164,7 +151,6 @@ public class LiveFragment extends Fragment implements
     public void onDestroy() {
         super.onDestroy();
         if (VERBOSE) Log.v(TAG,"entering onDestroy...");
-
 
         if (VERBOSE) Log.v(TAG,"destroying loader at id " + LIVE_LOADER_ID);
         getLoaderManager().destroyLoader(LIVE_LOADER_ID);
@@ -178,6 +164,17 @@ public class LiveFragment extends Fragment implements
         mListener = (onLiveFragmentInteractionListener)context;
         mListener.sendMsgRequestLiveThreads();
 
+
+        String[] projection = {
+                LiveThreadEntry.COLUMN_ID,
+                LiveThreadEntry.COLUMN_NAME_NAME,
+                LiveThreadEntry.COLUMN_NAME_TITLE,
+                LiveThreadEntry.COLUMN_NAME_DESCRIPTION,
+                LiveThreadEntry.COLUMN_NAME_FILEPATH,
+                LiveThreadEntry.COLUMN_NAME_THREAD_ID,
+                LiveThreadEntry.COLUMN_NAME_REPLIES,
+                LiveThreadEntry.COLUMN_NAME_UNIQUE
+        };
 
         receiver = new LiveThreadReceiver();
         IntentFilter filter = new IntentFilter(Constants.ACTION_IMAGE_LIVE_LOADED);
@@ -456,7 +453,7 @@ public class LiveFragment extends Fragment implements
      * buttonlistener to handle all button interactions
      *
      *
-     * @param parent the context in which this functions
+     * s@param parent the context in which this functions
      * @return a ButtonListener to be used by all the buttons in CameraFragment
      */
     private static WeakReference<LiveButtonListener> buttonListenerReference;
@@ -522,6 +519,12 @@ public class LiveFragment extends Fragment implements
         };
 
 
+        mAdapter = new CursorPagerAdapter<>(getChildFragmentManager(),
+                LiveThreadFragment.class,
+                projection,
+                null);
+
+
 
         if (VERBOSE) Log.v(TAG,"loader created.");
         if (VERBOSE) Log.v(TAG,"exit onCreateLoader...");
@@ -558,14 +561,16 @@ public class LiveFragment extends Fragment implements
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
         if (VERBOSE) Log.v(TAG,"enter onLoadFinished...");
 
-        Log.i(TAG, "Live cursor finished loading data");
-        mAdapter.swapCursor(data);
+        if (mAdapter!= null) {
+            Log.i(TAG, "Live cursor finished loading data");
+            mAdapter.swapCursor(data);
 
-        currentThread = getCurrentThreadID();
-        mListener.setCurrentThread(String.valueOf(currentThread));
+            currentThread = getCurrentThreadID();
+            mListener.setCurrentThread(String.valueOf(currentThread));
 
-        Log.d(TAG, "Returned cursor contains: " + data.getCount() + " rows.");
+            Log.d(TAG, "Returned cursor contains: " + data.getCount() + " rows.");
 
+        }
 
         if (VERBOSE) Log.v(TAG,"exit onLoadFinished...");
     }
@@ -612,6 +617,11 @@ public LiveThreadReceiver receiver;
             String path = intent.getExtras()
                     .getString(Constants.KEY_S3_KEY);
             View v = threadPager.findViewWithTag(path);
+
+            if (v==null){
+                Log.e(TAG,"no view matching path : " + path + " was found...");
+                return;
+            }
 
             if (v.isShown()) {
                 if (VERBOSE) Log.v(TAG,"Image loaded from view is visible, decoding and displaying...");

@@ -134,4 +134,10 @@ public final class Constants {
     public static final String ANALYTICS_CATEGORY_MESSAGE = "message";
     public static final String ANALYTICS_CATEGORY_REPLY = "reply";
     public static final String ANALYTICS_CATEGORY_CAMERA = "camera";
+
+    public static final String ANALYTICS_LABEL_MESSAGE ="message";
+    public static final String ANALYTICS_CATEGORY_SCREEN ="screen";
+    public static final String ANALYTICS_ATTRIBUTE_USER_ID="userID";
+
+    public static final String ANALYTICS_CATEGORY_ERROR = "error";
 }

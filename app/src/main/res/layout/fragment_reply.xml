@@ -37,6 +37,8 @@
         android:layout_alignParentBottom="true"
         android:layout_alignParentRight="true"
         android:layout_alignParentEnd="true"
+        android:padding="8dp"
+        android:paddingRight="20dp"
         android:layout_marginRight="@dimen/side_screen_margin"
         android:layout_marginBottom="@dimen/side_screen_margin"
         android:background="@drawable/bg_reply_textbox"
@@ -59,6 +61,19 @@
         android:scaleType="fitXY"
         android:id="@+id/imageView_reply_fullscreen"
         android:visibility="visible"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:text="No Replies Found"
+        android:id="@+id/textView_reply_error"
+        android:layout_centerVertical="true"
+        android:layout_centerHorizontal="true"
+        android:visibility="invisible"
+        android:autoText="false"
+        android:background="@drawable/ic_comment"
+        android:gravity="center" />
 
 
 </RelativeLayout>

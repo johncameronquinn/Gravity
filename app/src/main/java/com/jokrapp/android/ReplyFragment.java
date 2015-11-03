@@ -21,6 +21,7 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.RelativeLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.analytics.Tracker;
@@ -46,7 +47,6 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
 
     private LiveFragment.onLiveFragmentInteractionListener mListener;
 
-    Tracker mTracker;
 
     ReplyCursorAdapter mAdapter;
 
@@ -110,7 +110,7 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
         activity.registerReceiver(receiver, filter);
 
 
-        mTracker = ((AnalyticsApplication)activity.getApplication()).getDefaultTracker();
+
         mListener = (MainActivity)activity;
 
         Bundle b = new Bundle();
@@ -445,6 +445,46 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
                     break;
 
             }
+        }
+    }
+
+    /**
+     * method 'handleErrorCode'
+     *
+     * intended to handle relevant error codes passed by the activity
+     * @param code
+     */
+    public void handleResponseCode(int code) {
+        if (VERBOSE) Log.v(TAG,"Handling response code... " + code);
+
+        switch (code) {
+            case MainActivity.MSG_NOTHING_RETURNED:
+                if (Constants.LOGV) Log.v(TAG, "Handling response message : MSG_NOTHING_RETURNED");
+                if (getView()!=null) {
+                    getView().findViewById(R.id.textView_reply_error).setVisibility(View.VISIBLE);
+                } else {
+                    Log.v(TAG,"View was null");
+                }
+                break;
+            case MainActivity.MSG_NOT_FOUND:
+                if (Constants.LOGV) Log.v(TAG,"Handling response message : MSG_NOT_FOUND");
+                if (getView()!=null) {
+                    Toast.makeText(getActivity(),"404 returned...",Toast.LENGTH_SHORT).show();
+                }
+                break;
+            case MainActivity.MSG_SUCCESS:
+                if (Constants.LOGV) Log.v(TAG,"Handling response message : MSG_SUCCESS");
+                if (getView()!=null) {
+                    getView().findViewById(R.id.textView_reply_error).setVisibility(View.INVISIBLE);
+                }
+                break;
+            case MainActivity.MSG_UPLOAD_SUCCESS:
+                if (Constants.LOGV) Log.v(TAG,"Handling response message : MSG_UPLOAD_SUCCESS");
+                if (getView()!=null) {
+                    Toast.makeText(getActivity(),"Post Successful:3",Toast.LENGTH_SHORT).show();
+                    getView().findViewById(R.id.textView_reply_error).setVisibility(View.INVISIBLE);
+                }
+                break;
         }
     }
 

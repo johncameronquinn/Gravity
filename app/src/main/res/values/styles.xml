@@ -32,6 +32,16 @@
     <style name="liveTextStyle">
         <item name="android:textColor">@color/jpallete_accent_grey</item>
         <item name="android:textSize">12sp</item>
+        <item name="android:padding">8dp</item>
+    </style>
+
+    <style name="commentBoxStyle">
+        <item name="android:padding">8dp</item>
+        <item name="android:background">@drawable/ic_comment</item>
+        <item name="android:layout_marginRight">@dimen/side_screen_margin</item>
+        <item name="android:layout_marginLeft">@dimen/side_screen_margin</item>
+        <item name="android:layout_marginStart">@dimen/side_screen_margin</item>
+        <item name="android:layout_marginEnd">@dimen/side_screen_margin</item>
     </style>
 
     <style name="localCaptionStyle">

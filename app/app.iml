@@ -139,6 +139,7 @@
     <orderEntry type="library" exported="" name="support-v13-23.0.1" level="project" />
     <orderEntry type="library" exported="" name="commons-compress-1.9" level="project" />
     <orderEntry type="library" exported="" name="support-v4-23.0.1" level="project" />
+    <orderEntry type="library" exported="" name="aws-android-sdk-mobileanalytics-2.2.5" level="project" />
     <orderEntry type="library" exported="" name="aws-android-sdk-s3-2.2.6" level="project" />
     <orderEntry type="library" exported="" name="support-annotations-23.0.1" level="project" />
   </component>

@@ -12,6 +12,7 @@
         android:layout_alignParentTop="false" />
 
     <RelativeLayout
+        style="@style/commentBoxStyle"
         android:orientation="vertical"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -19,15 +20,11 @@
         android:layout_alignParentBottom="true"
         android:layout_alignParentLeft="false"
         android:layout_alignParentStart="false"
-        android:background="@drawable/ic_comment"
         android:id="@+id/live_thread_infoLayout"
         android:layout_marginBottom="@dimen/side_screen_margin"
         android:layout_alignParentEnd="true"
         android:layout_alignParentRight="true"
-        android:layout_marginLeft="@dimen/local_card_margin"
-        android:layout_marginRight="@dimen/side_screen_margin"
-        android:padding="8dp">
-
+        android:layout_marginLeft="@dimen/local_card_margin">
         <TextView
             style="@style/nameTextStyle"
             android:layout_width="wrap_content"
@@ -60,10 +57,7 @@
             android:layout_alignParentTop="true"
             android:layout_alignParentRight="true"
             android:layout_alignParentEnd="true"
-            android:password="false"
-            android:phoneNumber="false"
             android:singleLine="false"
-            android:padding="5dp"
             android:text="00" />
 
         <TextView
@@ -75,7 +69,6 @@
             android:password="false"
             android:phoneNumber="false"
             android:singleLine="false"
-            android:padding="5dp"
             android:text="00"
             android:layout_alignParentTop="true"
             android:layout_alignParentRight="false"
@@ -85,22 +78,21 @@
     </RelativeLayout>
 
     <TextView
+        style="@style/liveTextStyle"
+        android:id="@+id/live_thread_text"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:id="@+id/live_thread_text"
         android:gravity="left|top"
-        android:layout_alignWithParentIfMissing="false"
         android:autoLink="all"
         android:autoText="false"
         android:textSize="20dp"
         android:background="@drawable/ic_comment"
-        android:padding="5dp"
         android:visibility="invisible"
         android:textColor="#ffffff"
-        android:layout_alignParentLeft="false"
         android:layout_alignParentStart="true"
         android:layout_alignParentBottom="true"
         android:layout_alignParentRight="true"
+        android:layout_marginRight="@dimen/side_screen_margin"
         android:layout_marginBottom="@dimen/side_screen_margin"
         android:layout_marginLeft="@dimen/local_card_margin" />
 

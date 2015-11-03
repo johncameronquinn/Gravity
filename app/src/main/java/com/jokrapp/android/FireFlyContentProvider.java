@@ -45,6 +45,8 @@ public class FireFlyContentProvider extends ContentProvider {
 
     private static final String REPLY_INFO_BASE_PATH = "replyinfo";
 
+    private static final String REPLY_THUMBNAILS_BASE_PATH = "replythumbs";
+
     // Indicates that the incoming query is for a picture URL
     public static final int IMAGE_URL_QUERY = 1;
 
@@ -91,6 +93,7 @@ public class FireFlyContentProvider extends ContentProvider {
     private static final int LIVE_ID = 40;
     private static final int REPLIES = 70;
     private static final int REPLIES_ID = 80;
+    private static final int REPLIES_IMAGE_ID = 85;
     private static final int REPLIES_INFO = 90;
     private static final int REPLIES_INFO_ID = 100;
     private static final int MESSAGE = 110;
@@ -117,6 +120,7 @@ public class FireFlyContentProvider extends ContentProvider {
 
         sURIMatcher.addURI(AUTHORITY, REPLY_BASE_PATH, REPLIES);
         sURIMatcher.addURI(AUTHORITY, REPLY_INFO_BASE_PATH + "/#", REPLIES_ID);
+        sURIMatcher.addURI(AUTHORITY, REPLY_THUMBNAILS_BASE_PATH + "/*", REPLIES_IMAGE_ID);
 
 
         // Adds a URI "match" entry that maps picture URL content URIs to a numeric code
@@ -141,7 +145,7 @@ public class FireFlyContentProvider extends ContentProvider {
         // Specifies the custom MIME type for a single modification date row
         sMimeTypes.put(
                 URL_DATE_QUERY,
-                "vnd.android.cursor.item/vnd."+
+                "vnd.android.cursor.item/vnd." +
                         AUTHORITY + "." +
                         SQLiteDbContract.StashEntry.DATE_TABLE_NAME);
     }
@@ -180,6 +184,11 @@ public class FireFlyContentProvider extends ContentProvider {
             case REPLIES_ID:
                 Log.d(TAG,"REPLY_ID called");
                 directory = REPLY_INFO_BASE_PATH;
+                break;
+
+            case REPLIES_IMAGE_ID:
+                Log.d(TAG,"reply image id called");
+                directory = REPLY_THUMBNAILS_BASE_PATH;
                 break;
 
 
@@ -227,7 +236,7 @@ public class FireFlyContentProvider extends ContentProvider {
 
 
     @Override
-    public Cursor query(Uri uri, String[] projection, String selection,
+    public synchronized Cursor query(Uri uri, String[] projection, String selection,
                         String[] selectionArgs, String sortOrder) {
         Log.d(TAG,"handling query for " + uri.toString());
         // Using SQLiteQueryBuilder instead of query() method
@@ -328,7 +337,7 @@ public class FireFlyContentProvider extends ContentProvider {
 
 
     @Override
-    public int delete(Uri uri, String selection, String[] selectionArgs) {
+    public synchronized int delete(Uri uri, String selection, String[] selectionArgs) {
         Log.d(TAG,"handling delete from " + uri.toString());
 
         // Implement this to handle requests to delete one or more rows.
@@ -431,7 +440,7 @@ public class FireFlyContentProvider extends ContentProvider {
     }
 
     @Override
-    public Uri insert(Uri uri, ContentValues values) {
+    public synchronized Uri insert(Uri uri, ContentValues values) {
         int uriType = sURIMatcher.match(uri);
 
         SQLiteDatabase sqlDB = database.getWritableDatabase();
@@ -574,7 +583,7 @@ public class FireFlyContentProvider extends ContentProvider {
     }
 
     @Override
-    public int update(Uri uri, ContentValues values, String selection,
+    public synchronized int update(Uri uri, ContentValues values, String selection,
                       String[] selectionArgs) { int uriType = sURIMatcher.match(uri);
         SQLiteDatabase sqlDB = database.getWritableDatabase();
         int rowsUpdated;

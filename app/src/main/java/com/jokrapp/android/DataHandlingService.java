@@ -5,7 +5,6 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.BitmapFactory;
 import android.location.Location;
-import android.net.Network;
 import android.net.Uri;
 import android.os.*;
 
@@ -15,7 +14,8 @@ import android.util.Log;
 import android.widget.Toast;
 
 import com.amazonaws.auth.BasicAWSCredentials;
-import com.amazonaws.mobileconnectors.cognito.exceptions.NetworkException;
+import com.amazonaws.mobileconnectors.amazonmobileanalytics.AnalyticsEvent;
+import com.amazonaws.mobileconnectors.amazonmobileanalytics.MobileAnalyticsManager;
 import com.amazonaws.mobileconnectors.s3.transferutility.TransferListener;
 import com.amazonaws.mobileconnectors.s3.transferutility.TransferObserver;
 import com.amazonaws.mobileconnectors.s3.transferutility.TransferState;
@@ -53,7 +53,6 @@ import java.net.ConnectException;
 import java.net.HttpURLConnection;
 import java.net.InetAddress;
 import java.net.MalformedURLException;
-import java.net.ProtocolException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.net.UnknownHostException;
@@ -121,7 +120,7 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
     private final String BUCKET_NAME = "launch-zone";
 
 
-    private Tracker mTracker;
+    private MobileAnalyticsManager mTracker;
 
     private static String serverAddress = "jokrbackend.ddns.net"; //changes when resolved
     private static UUID userID;
@@ -165,7 +164,7 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
      */
     static TransferUtility transferUtility;
     HashMap<Integer,Bundle> pendingMap = new HashMap<>();
-    private final String PENDING_TRANSFER_TYPE = "what";
+    private final String REQUEST_TYPE = "what";
 
 
     /**
@@ -184,8 +183,8 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
         if (mGoogleApiClient != null) {
             mGoogleApiClient.connect();
         }
-        mTracker = ((AnalyticsApplication) getApplication()).getDefaultTracker();
-        startSession();
+        mTracker = ((AnalyticsApplication) getApplication()).getAnalyticsManager();
+
 
 
         SharedPreferences settings = getSharedPreferences(TAG, MODE_PRIVATE);
@@ -271,7 +270,7 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
         settings.edit().putStringSet(IMAGESSEEN_KEY, new HashSet<>(imagesSeen)).apply();
 
 
-        stopSession();
+
         Log.v(TAG, "exiting onDestroy...");
     }
 
@@ -1050,6 +1049,7 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
         /**pass thread id**/
         Bundle b = new Bundle();
         b.putString(THREAD_ID, String.valueOf(threadID));
+        b.putInt(REQUEST_TYPE, MSG_REQUEST_REPLIES);
         try {
             saveIncomingJsonArray(MSG_REQUEST_REPLIES, conn, b);
         } catch (IOException e) {
@@ -1057,7 +1057,7 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
         }
 
         try {
-            handleResponseCode(conn.getResponseCode(), replyMessenger);
+            handleResponseCode(conn.getResponseCode(), replyMessenger,b);
         } catch (IOException e) {
             Log.e(TAG, "error handling responsecode...", e);
         }
@@ -1074,8 +1074,22 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
         }).start();
     }
 
-    private void saveIncomingJsonArray(int where, URLConnection conn, Bundle extradata) throws IOException {
+    /**
+     * method 'saveIncomingJsonArray'
+     *
+     * uses the provided connection to parse the incoming json object array into individual object
+     * rows, and then insert those rows into their corresponding sqlite database
+     *
+     * @param where table to insert into
+     * @param conn connection to parse from
+     * @param extradata additional data that could be provided
+     * @return amount of rows inserted
+     * @throws IOException
+     */
+    private int saveIncomingJsonArray(int where, URLConnection conn, Bundle extradata) throws IOException {
         if (VERBOSE) Log.v(TAG,"entering saveIncomingJsonArray...");
+
+        int rows;
 
 
         JsonParser jParser = new JsonFactory().createParser(conn.getInputStream());
@@ -1107,7 +1121,7 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
 
                         map.put(SQLiteDbContract.LiveReplies.COLUMN_ID, map.remove("id"));
                         map.put(SQLiteDbContract.LiveReplies.COLUMN_NAME_THREAD_ID, extradata.getString(THREAD_ID));
-                        b.putInt(PENDING_TRANSFER_TYPE, MSG_REQUEST_REPLIES);
+                        b.putInt(REQUEST_TYPE, MSG_REQUEST_REPLIES);
                         break;
                     case MSG_REQUEST_LOCAL_POSTS:
                         if (VERBOSE) Log.v(TAG,"saving json from local/");
@@ -1123,7 +1137,7 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
 
                         map.put(SQLiteDbContract.LiveThreadEntry.COLUMN_ID, map.remove("order"));
                         map.put(SQLiteDbContract.LiveThreadEntry.COLUMN_NAME_THREAD_ID, map.remove("id"));
-                        b.putInt(PENDING_TRANSFER_TYPE, MSG_REQUEST_LIVE_THREADS);
+                        b.putInt(REQUEST_TYPE, MSG_REQUEST_LIVE_THREADS);
                         b.putString(Constants.KEY_S3_DIRECTORY, Constants.KEY_S3_LIVE_DIRECTORY);
                         break;
 
@@ -1131,11 +1145,11 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
                         if (VERBOSE) Log.v(TAG,"saving json from message");
                         map.put(SQLiteDbContract.MessageEntry.COLUMN_ID, map.remove("id"));
                         b.putString(Constants.KEY_S3_DIRECTORY, Constants.KEY_S3_MESSAGE_DIRECTORY);
-                        b.putInt(PENDING_TRANSFER_TYPE, MSG_REQUEST_MESSAGES);
+                        b.putInt(REQUEST_TYPE, MSG_REQUEST_MESSAGES);
                         break;
 
-
                 }
+
                 if (map.containsKey("url")) {
 
                     String cont = (String)map.get("url");
@@ -1191,6 +1205,7 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
 
                 }
             }
+            rows = jsonArray.size();
         } else {
             Log.v(TAG, "nothing was supplied...");
             Message msg = Message.obtain(null,MainActivity.MSG_NOTHING_RETURNED,where,0);
@@ -1199,12 +1214,14 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
             } catch (RemoteException e) {
                 Log.e(TAG,"error notifying main thread of status");
             }
-
+            rows = 0;
         }
 
         jParser.close();
 
-        if (VERBOSE) Log.v(TAG,"exiting saveIncomingJsonArray...");
+
+        if (VERBOSE) Log.v(TAG,"exiting saveIncomingJsonArray... returning " + rows + "rows.");
+        return  rows;
     }
 
 
@@ -1326,12 +1343,12 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
                     //Log.d(TAG, "image is stored at " + filePath);
                     if (messageTarget == null) {
                         Log.d(TAG, "posting to local...");
-                        data.putInt(PENDING_TRANSFER_TYPE, MSG_SEND_IMAGE);
+                        data.putInt(REQUEST_TYPE, MSG_SEND_IMAGE);
                         data.putString(Constants.KEY_S3_DIRECTORY, Constants.KEY_S3_LOCAL_DIRECTORY);
                         //irs.get().createLocalPost(filePath, mLocation);
                     } else {
                         Log.d(TAG, "sending Message to user: " + messageTarget);
-                        data.putInt(PENDING_TRANSFER_TYPE, MSG_SEND_MESSAGE);
+                        data.putInt(REQUEST_TYPE, MSG_SEND_MESSAGE);
                         data.putString(Constants.KEY_S3_DIRECTORY, Constants.KEY_S3_MESSAGE_DIRECTORY);
                         //irs.get().sendImageMessageAsync(filePath, messageTarget, msg.arg1);
                     }
@@ -1385,7 +1402,7 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
                     Log.d(TAG, "received a message to create a thread");
 
                     data = msg.getData();
-                    data.putInt(PENDING_TRANSFER_TYPE, MSG_CREATE_THREAD);
+                    data.putInt(REQUEST_TYPE, MSG_CREATE_THREAD);
                     data.putString(Constants.KEY_S3_DIRECTORY, Constants.KEY_S3_LIVE_DIRECTORY);
                     uploadImageToS3(data);
                     break;
@@ -1395,7 +1412,7 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
 
 
                     data = msg.getData();
-                    data.putInt(PENDING_TRANSFER_TYPE, MSG_REPLY_TO_THREAD);
+                    data.putInt(REQUEST_TYPE, MSG_REPLY_TO_THREAD);
 
                     if (data.getString(Constants.KEY_S3_KEY,"").equals("")){
                         if (Constants.LOGD) Log.d(TAG,"no image filepath was provided," +
@@ -1431,7 +1448,7 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
                     Log.d(TAG, "received a message to download an image...");
 
                     data = msg.getData();
-                    data.putInt(PENDING_TRANSFER_TYPE, msg.what);
+                    data.putInt(REQUEST_TYPE, msg.what);
                     downloadImageFromS3(data);
 
                     break;
@@ -1734,7 +1751,7 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
                     //let the user know
                     msg = Message.obtain(null, MainActivity.MSG_SUCCESS);
                     msg.setData(extradata);
-                    msg.arg1 = extradata.getInt(PENDING_TRANSFER_TYPE,-1);
+                    msg.arg1 = extradata.getInt(REQUEST_TYPE,-1);
                     replyMessenger.send(msg);
                     break;
 
@@ -1759,10 +1776,10 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
                     break;
 
                 case RESPONSE_NOT_FOUND:
+
                     msg = Message.obtain(null, MainActivity.MSG_NOT_FOUND);
                     msg.setData(extradata);
                     replyMessenger.send(msg);
-
                     break;
             }
         } catch (RemoteException e) {
@@ -1934,27 +1951,16 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
      */
     private void sendSignOnEvent(String userID) {
         Log.i(TAG, "sending login event for user: " + userID.toString());
+        mTracker.getEventClient()
+                .recordEvent(mTracker
+                        .getEventClient()
+                        .createEvent(Constants.ANALYTICS_CATEGORY_LIFECYCLE)
+                        .withAttribute(Constants.ANALYTICS_CATEGORY_MESSAGE, userID
+                        ));
+        mTracker.getEventClient().addGlobalAttribute(Constants.ANALYTICS_ATTRIBUTE_USER_ID,userID);
 
-
-        mTracker.set("&uid", userID.toString());
-        mTracker.send(new HitBuilders.EventBuilder()
-                .setCategory(Constants.ANALYTICS_CATEGORY_LIFECYCLE)
-                .setAction("User Sign In").build());
 
     }
-
-    private void startSession() {
-        mTracker.send(new HitBuilders.ScreenViewBuilder()
-                .setNewSession()
-                .build());
-    }
-
-    private void stopSession() {
-                 Map<String, String> hit = new HitBuilders.ScreenViewBuilder().build();
-                 hit.put("&sc", "end");
-        mTracker.send(hit);
-    }
-
 
 
     /**
@@ -1973,19 +1979,18 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
             LogUtils.printBundle(data, TAG);
         }
 
-        HitBuilders.EventBuilder event = new HitBuilders.EventBuilder();
-        event.setCategory(data.getString(Constants.KEY_ANALYTICS_CATEGORY));
-        event.setAction(data.getString(Constants.KEY_ANALYTICS_ACTION));
+        AnalyticsEvent event = mTracker.getEventClient().createEvent(data.getString(Constants.KEY_ANALYTICS_CATEGORY));
+        event.withAttribute(Constants.KEY_ANALYTICS_ACTION, data.getString(Constants.KEY_ANALYTICS_ACTION));
 
         if (data.containsKey(Constants.KEY_ANALYTICS_LABEL)) {
-            event.setLabel(data.getString(Constants.KEY_ANALYTICS_LABEL));
+            event.withAttribute(Constants.KEY_ANALYTICS_LABEL,data.getString(Constants.KEY_ANALYTICS_LABEL));
         }
 
         if (data.containsKey(Constants.KEY_ANALYTICS_VALUE)) {
-            event.setLabel(data.getString(Constants.KEY_ANALYTICS_VALUE));
+            event.withAttribute(Constants.KEY_ANALYTICS_VALUE, data.getString(Constants.KEY_ANALYTICS_VALUE));
         }
 
-        mTracker.send(event.build());
+        mTracker.getEventClient().recordEvent(event);
 
         Log.v(TAG, "exiting reportAnalyticsEvent");
     }
@@ -2020,7 +2025,7 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
             event.setVariable(data.getString(Constants.KEY_ANALYTICS_VARIABLE));
         }
 
-        mTracker.send(event.build());
+        //mTracker.send(event.build()); todo fix this
 
         Log.v(TAG, "exiting reportAnalyticsEvent");
     }
@@ -2033,7 +2038,7 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
     public void uploadImageToS3(Bundle b) {
         if (VERBOSE) {
             Log.v(TAG,"entering uploadImageToS3...");
-            LogUtils.printBundle(b,TAG);
+            LogUtils.printBundle(b, TAG);
         }
 
         if (transferUtility == null) {
@@ -2069,7 +2074,7 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
                     directory + "/" + b.getString(Constants.KEY_S3_KEY)+"s", /* The key for the uploaded object */
                     new File(getCacheDir(),b.getString(Constants.KEY_S3_KEY)+"s") /* The file where the data to upload exists */
             );
-            b.putInt(PENDING_TRANSFER_TYPE,MSG_REPLY_TO_THREAD);
+            b.putInt(REQUEST_TYPE,MSG_REPLY_TO_THREAD);
             pendingMap.put(observer.getId(), b);
             observer.setTransferListener(this);
         }
@@ -2089,10 +2094,15 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
             initializeTransferUtility();
         }
 
-        if (b.getString(Constants.KEY_S3_KEY)==null){
-            return;
+        String directory = b.getString(Constants.KEY_S3_DIRECTORY,"");
+        String key = b.getString(Constants.KEY_S3_KEY,"");
+
+        if (key.equals("") || directory.equals("")){
+            Log.e(TAG,"invalid parameters provided...");
+            throw new RuntimeException("downloadImageFromS3 is missing parameters...");
         }
-        File file = new File(getCacheDir(),b.getString(Constants.KEY_S3_KEY));
+
+        File file = new File(getCacheDir(),key);
 
         if (Constants.LOGD) {
             Log.d(TAG, "downloading image from  s3 with key: " + b.getString(Constants.KEY_S3_KEY));
@@ -2101,20 +2111,18 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
 
         TransferObserver observer = transferUtility.download(
                 BUCKET_NAME,     /* The bucket to upload to */
-                b.getString(Constants.KEY_S3_DIRECTORY) + "/"
-                        + b.getString(Constants.KEY_S3_KEY),/* The key for the uploaded object */
+                directory + "/" + key,/* The key for the uploaded object */
                 file /* The file where the data to upload exists */
         );
 
-
         pendingMap.put(observer.getId(), b);
         observer.setTransferListener(this);
-
 
         if (VERBOSE) {
             Log.v(TAG,"exiting downloadImageFromS3...");
         }
     }
+
 
     public String downloadImageFromURL(String url) {
         if (VERBOSE) {
@@ -2203,7 +2211,7 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
 
                 Intent intent;
 
-                switch (data.getInt(PENDING_TRANSFER_TYPE,-1)) {
+                switch (data.getInt(REQUEST_TYPE,-1)) {
                     case MSG_SEND_IMAGE:
 
                         createLocalPostAsync(data);

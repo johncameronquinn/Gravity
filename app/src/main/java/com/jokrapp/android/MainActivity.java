@@ -49,6 +49,7 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.amazonaws.mobileconnectors.amazonmobileanalytics.MobileAnalyticsManager;
 import com.google.android.gms.analytics.HitBuilders;
 import com.google.android.gms.analytics.Tracker;
 import com.jokrapp.android.user.IdentityManager;
@@ -142,7 +143,7 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
 
     /** ANALYTICS
      */
-    private Tracker mTracker;
+    private MobileAnalyticsManager mTracker;
 
 
     /**
@@ -238,7 +239,7 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
         // [START shared_tracker]
         //obtain the shared Tracker instance
         AnalyticsApplication application = (AnalyticsApplication)getApplication();
-        mTracker = application.getDefaultTracker();
+        mTracker = application.getAnalyticsManager();
         // [END shared_tracker]
     }
 
@@ -291,8 +292,7 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
     protected void onResume() {
         super.onResume();
         Log.d(TAG, "enter onResume...");
-
-
+        mTracker.getSessionClient().resumeSession();
         Log.d(TAG, "exit onResume...");
     }
 
@@ -302,14 +302,15 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
         super.onPause();
         Log.d(TAG, "enter onPause...");
 
-
-
+        mTracker.getSessionClient().pauseSession();
+        mTracker.getEventClient().submitEvents();
         Log.d(TAG, "exit onPause...");
     }
 
     @Override
     protected void onStop() {
         super.onStop();
+
 
         Log.d(TAG, "enter onStop...");
 
@@ -354,9 +355,10 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
 
         Bundle b = new Bundle();
         b.putString(Constants.KEY_ANALYTICS_CATEGORY,Constants.ANALYTICS_CATEGORY_LIFECYCLE);
-        b.putString(Constants.KEY_ANALYTICS_ACTION,"destroyed");
+        b.putString(Constants.KEY_ANALYTICS_ACTION, "destroyed");
         b.putString(Constants.KEY_ANALYTICS_LABEL,"Last open fragment");
-        b.putString(Constants.KEY_ANALYTICS_VALUE,String.valueOf(mAdapter.getPageTitle(mPager.getCurrentItem())));
+        b.putString(Constants.KEY_ANALYTICS_VALUE, String.valueOf(mAdapter.getPageTitle(mPager.getCurrentItem())));
+
 
         try {
             cameraMessenger.send(Message.obtain(null, MSG_ACTIVITY_DESTROYED));
@@ -1372,16 +1374,20 @@ I*/
                                 mCamera.startPreview();
                             } catch (IOException e) {
                                 Log.e(TAG, "error setting preview texture to camera", e);
-                                mTracker.send(new HitBuilders.ExceptionBuilder()
-                                        .setDescription(e.getMessage() + ":" + "onSurfaceTextureAvailable(SurfaceTexture surface, int width, int height)")
-                                        .setFatal(false)
-                                        .build());
+                                mTracker.getEventClient()
+                                        .recordEvent(mTracker
+                                                .getEventClient()
+                                                .createEvent(Constants.ANALYTICS_CATEGORY_ERROR)
+                                                .withAttribute(Constants.ANALYTICS_CATEGORY_MESSAGE,
+                                                        e.getMessage() + ":" + "onSurfaceTextureAvailable(SurfaceTexture surface, int width, int height)"));
                             } catch (NullPointerException e) {
                                 Log.e(TAG, "error setting Preview texture to camera", e);
-                                mTracker.send(new HitBuilders.ExceptionBuilder()
-                                        .setDescription(e.getMessage() + ":" + "onSurfaceTextureAvailable(SurfaceTexture surface, int width, int height)")
-                                        .setFatal(false)
-                                        .build());
+                                mTracker.getEventClient()
+                                        .recordEvent(mTracker
+                                                .getEventClient()
+                                                .createEvent(Constants.ANALYTICS_CATEGORY_ERROR)
+                                                .withAttribute(Constants.ANALYTICS_CATEGORY_MESSAGE,
+                                                        e.getMessage() + ":" + "onSurfaceTextureAvailable(SurfaceTexture surface, int width, int height)"));
                             }
                 } else {
                     Log.d(TAG, "camera was not avaliable, saving surface...");
@@ -1536,11 +1542,13 @@ I*/
                         mCamera.startPreview();
                     } catch (Exception e) {
                         Log.e(TAG, "generic error setting and starting preview", e);
-                        mTracker.send(new HitBuilders.ExceptionBuilder()
-                                .setDescription(e.getMessage() + ":" + "msg_start_preview")
-                                .setFatal(false)
-                                .build());
-                      }
+                        mTracker.getEventClient()
+                                .recordEvent(mTracker
+                                        .getEventClient()
+                                        .createEvent(Constants.ANALYTICS_CATEGORY_ERROR)
+                                        .withAttribute(Constants.ANALYTICS_CATEGORY_MESSAGE,
+                                                e.getMessage() + ":" + "msg_start_preview"));
+                    }
                     break;
                 case MSG_STOP_PREVIEW: //3
                     if (mCamera != null) {
@@ -1578,10 +1586,12 @@ I*/
                             mCamera.setPreviewTexture(mSurface);
                         } catch (IOException e) {
                             Log.e(TAG, "error setting preview texture to camera", e);
-                            mTracker.send(new HitBuilders.ExceptionBuilder()
-                                    .setDescription(e.getMessage() + ":" + "msg_switch_camera")
-                                    .setFatal(false)
-                                    .build());
+                            mTracker.getEventClient()
+                                    .recordEvent(mTracker
+                                            .getEventClient()
+                                            .createEvent(Constants.ANALYTICS_CATEGORY_ERROR)
+                                            .withAttribute(Constants.ANALYTICS_CATEGORY_MESSAGE,
+                                                    e.getMessage() + ":" + "msg_switch_camera"));
                         }
                         mCamera.startPreview();
                     } else {
@@ -1655,18 +1665,21 @@ I*/
             cameraInfo = cInfo;
 
             Camera c = null;
-            Camera.getCameraInfo(whichCamera,cInfo);
             try {
                 c = Camera.open(whichCamera); // attempt to get a Camera instance
+                Camera.getCameraInfo(whichCamera,cInfo);
             }
             catch (Exception e){
                 // Camera is not available (in use or does not exist)
                 Log.e(TAG, "Error opening camera - dialog should show" +
                         "", e);
-                mTracker.send(new HitBuilders.ExceptionBuilder()
-                        .setDescription(e.getMessage() + ":" + "getCameraInstance(int whichCamera)")
-                        .setFatal(false)
-                        .build());
+
+                mTracker.getEventClient()
+                        .recordEvent(mTracker
+                                .getEventClient()
+                                .createEvent(Constants.ANALYTICS_CATEGORY_ERROR)
+                                .withAttribute(Constants.ANALYTICS_CATEGORY_MESSAGE,
+                                        e.getMessage() + ":" + "getCameraInstance(int whichCamera)"));
             }
 
             if (c != null) {
@@ -1690,18 +1703,21 @@ I*/
             parameters.setPictureSize(mDisplaySize.width, mDisplaySize.height);
             parameters.setPreviewSize(mPreviewSize.width, mPreviewSize.height);
 
-            c.setParameters(parameters);
+                c.setParameters(parameters);
 
-           if (mSurface != null) {
-               try {
-                   c.setPreviewTexture(mSurface);
-                   c.startPreview();
-               } catch (IOException e) {
-                   Log.e(TAG, "error setting mSurface as surfacetexture", e);
-                   mTracker.send(new HitBuilders.ExceptionBuilder()
-                           .setDescription(e.getMessage() + ":" + "getCameraInstance(int whichCamera)")
-                           .setFatal(false)
-                           .build());
+                if (mSurface != null) {
+                    try {
+                        c.setPreviewTexture(mSurface);
+                        c.startPreview();
+                    } catch (IOException e) {
+                        Log.e(TAG, "error setting mSurface as surfacetexture", e);
+
+                   mTracker.getEventClient()
+                           .recordEvent(mTracker
+                                   .getEventClient()
+                                   .createEvent(Constants.ANALYTICS_CATEGORY_ERROR)
+                                   .withAttribute(Constants.ANALYTICS_CATEGORY_MESSAGE,
+                                           e.getMessage() + ":" + "getCameraInstance(int whichCamera)"));
                }
            } else {
                Log.e(TAG,"The camera surface texture has yet to be created");
@@ -1790,11 +1806,14 @@ I*/
                 image.compress(Bitmap.CompressFormat.JPEG, COMPRESSION_QUALITY,
                         new FileOutputStream(filePath));
             } catch (FileNotFoundException e) {
-                Log.e(TAG,"error compressing bitmap to filepath" + filePath, e);
-                mTracker.send(new HitBuilders.ExceptionBuilder()
-                        .setDescription(e.getMessage() + ":" + "saveImage(byte[] data, String commentText, int height, int callBack)")
-                        .setFatal(false)
-                        .build());
+                Log.e(TAG, "error compressing bitmap to filepath" + filePath, e);
+
+                mTracker.getEventClient()
+                        .recordEvent(mTracker
+                                .getEventClient()
+                                .createEvent(Constants.ANALYTICS_CATEGORY_ERROR)
+                                .withAttribute(Constants.ANALYTICS_CATEGORY_MESSAGE,
+                                        e.getMessage() + ":" + "saveImage(byte[] data, String commentText, int height, int callBack)"));
 
             }
 
@@ -1809,10 +1828,13 @@ I*/
                             new FileOutputStream(filePath + "s"));
                 } catch (FileNotFoundException e) {
                     Log.e(TAG, "error compressing bitmap to filepath" + filePath, e);
-                    mTracker.send(new HitBuilders.ExceptionBuilder()
-                            .setDescription(e.getMessage() + ":" + "saveImage(byte[] data, String commentText, int height, int callBack)")
-                            .setFatal(false)
-                            .build());
+
+                    mTracker.getEventClient()
+                            .recordEvent(mTracker
+                                    .getEventClient()
+                                    .createEvent(Constants.ANALYTICS_CATEGORY_ERROR)
+                                    .withAttribute(Constants.ANALYTICS_CATEGORY_MESSAGE,
+                                            e.getMessage() + ":" + "saveImage(byte[] data, String commentText, int height, int callBack)"));
                 }
             }
 
@@ -1882,10 +1904,13 @@ I*/
                     mCamera.autoFocus((CameraFragment) mAdapter.getItem(CAMERA_LIST_POSITION));
                 } catch (RuntimeException e) {
                     Log.e(TAG, "Failed to set camera parameters...", e);
-                    mTracker.send(new HitBuilders.ExceptionBuilder()
-                            .setDescription(e.getMessage()+ ":" + "focusOnTouch(float x, float y)")
-                            .setFatal(false)
-                            .build());
+
+                    mTracker.getEventClient()
+                            .recordEvent(mTracker
+                                    .getEventClient()
+                                    .createEvent(Constants.ANALYTICS_CATEGORY_ERROR)
+                                    .withAttribute(Constants.ANALYTICS_CATEGORY_MESSAGE,
+                                            e.getMessage() + ":" + "focusOnTouch(float x, float y)"));
                 }
             }
         }
@@ -2231,6 +2256,7 @@ I*/
     static final int MSG_SUCCESS_LIVE = 16;
 
     static final int MSG_SUCCESS = 50;
+    static final int MSG_UPLOAD_SUCCESS = 56;
 
     static final int MSG_TOO_MANY_REQUESTS = 51;
 
@@ -2247,6 +2273,8 @@ I*/
      * class 'replyHandler'
      *
      * handles responses from the service
+     *
+     * msg.arg1 -> where to forward the error code to
      */
     class UIHandler extends Handler {
 
@@ -2295,12 +2323,27 @@ I*/
                     Toast.makeText(activity.get(),"Live post not implemented...",Toast.LENGTH_SHORT).show();
                     break;
 
+                /**
+                 * TYPE OF REQUEST is sent as msg.arg1
+                 */
                 case MSG_SUCCESS:
 
                     switch (msg.arg1) {
                         case DataHandlingService.MSG_REPLY_TO_THREAD:
-                            Toast.makeText(activity.get(),"reply successful",Toast.LENGTH_SHORT).show();
+                            Log.d(TAG,"MSG_REPLY_TO_THREAD returned successful");
                             sendMsgRequestReplies(msg.getData().getInt("threadID"));
+                            if (MainActivity.ReplyFragReference.get()!=null){
+                                MainActivity.ReplyFragReference.get().handleResponseCode(MSG_UPLOAD_SUCCESS);
+                            }
+                            break;
+
+                        case DataHandlingService.MSG_REQUEST_REPLIES:
+                            Log.d(TAG,"MSG_REQUEST_REPLIES returned successful");
+                            if (MainActivity.ReplyFragReference.get()!=null){
+                                MainActivity
+                                        .ReplyFragReference.get()
+                                        .handleResponseCode(MSG_SUCCESS);
+                            }
                             break;
 
                         case -1:
@@ -2390,7 +2433,6 @@ I*/
                     switch (msg.arg1) {
                         case DataHandlingService.MSG_REQUEST_MESSAGES:
                             Toast.makeText(activity.get(),"No messages received...",Toast.LENGTH_SHORT).show();
-
                             break;
 
                         case DataHandlingService.MSG_REQUEST_LIVE_THREADS:
@@ -2402,7 +2444,10 @@ I*/
                             break;
 
                         case DataHandlingService.MSG_REQUEST_REPLIES:
-                            Toast.makeText(activity.get(),"No replies received...",Toast.LENGTH_SHORT).show();
+                            Toast.makeText(activity.get(), "No replies received...", Toast.LENGTH_SHORT).show();
+                            if (MainActivity.ReplyFragReference.get()!=null) {
+                                MainActivity.ReplyFragReference.get().handleResponseCode(MSG_NOTHING_RETURNED);
+                            }
 
                             break;
                     }
@@ -2522,8 +2567,13 @@ I*/
     public void setAnalyticsScreenName(String name) {
         if (VERBOSE) Log.v(TAG, "Sending screen event for screen name: " + name);
         //   Toast.makeText(this,name,Toast.LENGTH_SHORT).show();
-        mTracker.setScreenName(name);
-        mTracker.send(new HitBuilders.ScreenViewBuilder().build());
+
+        mTracker.getEventClient()
+                .recordEvent(mTracker
+                        .getEventClient()
+                        .createEvent(Constants.ANALYTICS_CATEGORY_SCREEN)
+                        .withAttribute(Constants.ANALYTICS_CATEGORY_MESSAGE,name
+                        ));
     }
 
     public void onDeveloperInteraction(int request, Uri resource) {
