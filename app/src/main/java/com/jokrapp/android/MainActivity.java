@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.FragmentManager;
 import android.content.ComponentName;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -67,6 +68,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+import java.util.Random;
 import java.util.UUID;
 
 /**
@@ -82,7 +84,6 @@ public class MainActivity extends Activity implements CameraFragment.OnCameraFra
 LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInteractionListener, ViewPager.OnPageChangeListener {
     private static String TAG = "MainActivity";
     private static final boolean VERBOSE = true;
-    private static final boolean SAVE_LOCALLY = false;
 
     //private static String imageDir;
 
@@ -588,7 +589,7 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
         Bundle b = new Bundle();
         b.putString(Constants.KEY_ANALYTICS_CATEGORY,Constants.ANALYTICS_CATEGORY_LOCAL);
         b.putString(Constants.KEY_ANALYTICS_ACTION,"block");
-        b.putString(Constants.KEY_ANALYTICS_LABEL,(String)view.getTag());
+        b.putString(Constants.KEY_ANALYTICS_LABEL, (String) view.getTag());
         sendMsgReportAnalyticsEvent(b);
 
         if (isBound) {
@@ -646,6 +647,36 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
      */
     public void sendImageToLocal(String filePath, int currentCamera, String text) {
         if (VERBOSE) Log.v(TAG,"entering sendImageToLocal...");
+
+        if (Constants.client_only_mode) {
+            Random randomgen = new Random(System.currentTimeMillis());
+
+
+            Log.w(TAG, "client only mode is enabled... saving internally");
+            ContentValues values = new ContentValues();
+            values.put(SQLiteDbContract.LocalEntry.COLUMN_ID, randomgen.nextInt());
+            values.put(SQLiteDbContract.LocalEntry.COLUMN_NAME_FILEPATH, filePath);
+            values.put(Constants.KEY_TEXT,text);
+            values.put(SQLiteDbContract.LocalEntry.COLUMN_FROM_USER,"client-only-mode enabled");
+            values.put(SQLiteDbContract.LocalEntry.COLUMN_NAME_TIME, randomgen.nextInt());
+
+            if (messageTarget != null) {
+                Log.d(TAG, "Sending message internally : " + messageTarget);
+
+                getContentResolver().insert(FireFlyContentProvider.CONTENT_URI_MESSAGE,values);
+            } else {
+                Log.d(TAG, "Saving local post...");
+
+                values.put(SQLiteDbContract.LocalEntry.COLUMN_NAME_WEIGHT, randomgen.nextInt());
+                values.put(SQLiteDbContract.LocalEntry.COLUMN_NAME_LATITUDE, String.valueOf(randomgen.nextDouble()));
+                values.put(SQLiteDbContract.LocalEntry.COLUMN_NAME_LONGITUDE, String.valueOf(randomgen.nextDouble()));
+
+                getContentResolver().insert(FireFlyContentProvider.CONTENT_URI_LOCAL,values);
+            }
+
+            return;
+        }
+
 
         if (isBound) {
             Log.d(TAG, "sending message to server containing filepath to load...");
@@ -950,24 +981,32 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
     public void sendMsgCreateThread(Bundle liveData) {
         if (VERBOSE) Log.v(TAG,"entering sendMsgCreateThread...");
 
-        if (SAVE_LOCALLY) {
-       /*     ContentValues values = new ContentValues();
-            values.put(SQLiteDbContract.LiveThreadEntry.COLUMN_ID,((int)(Math.random()*1000)));
-            values.put(SQLiteDbContract.LiveThreadEntry.COLUMN_NAME_TIME,0);
+
+        if (Constants.client_only_mode) {
+            Random randomgen = new Random(System.currentTimeMillis());
+
+            Log.w(TAG, "client only mode is enabled... saving internally");
+            ContentValues values = new ContentValues();
+            values.put(SQLiteDbContract.LiveThreadEntry.COLUMN_ID, randomgen.nextInt());
+            values.put(SQLiteDbContract.LiveThreadEntry.COLUMN_NAME_THREAD_ID,randomgen.nextInt());
+            values.put(SQLiteDbContract.LiveThreadEntry.COLUMN_NAME_TIME, randomgen.nextInt());
+
             values.put(SQLiteDbContract.LiveThreadEntry.COLUMN_NAME_NAME,
-                    liveData.getString("name"));
+                    liveData.getString("name", ""));
             values.put(SQLiteDbContract.LiveThreadEntry.COLUMN_NAME_TITLE,
-                    liveData.getString("title"));
+                    liveData.getString("title",""));
             values.put(SQLiteDbContract.LiveThreadEntry.COLUMN_NAME_FILEPATH,
-                    liveData.getString("filePath"));
+                    liveData.getString(Constants.KEY_S3_KEY,""));
             values.put(SQLiteDbContract.LiveThreadEntry.COLUMN_NAME_DESCRIPTION,
-                    liveData.getString("description"));
+                    liveData.getString("description",""));
+
             getContentResolver().insert(FireFlyContentProvider.CONTENT_URI_LIVE,values);
 
-I*/
-            if (VERBOSE) Log.v(TAG,"exiting sendMsgCreateThread... IMAGE SAVED LOCALLY");
+
+            if (VERBOSE) Log.v(TAG,"exiting sendMsgCreateThread... saved locally");
             return;
         }
+
 
         if (isBound) {
             Message msg = Message.obtain(null, DataHandlingService.MSG_CREATE_THREAD);
@@ -988,6 +1027,35 @@ I*/
             Log.v(TAG,"entering sendMsgCreateReply");
             LogUtils.printBundle(replyData,TAG);
         }
+
+        if (Constants.client_only_mode) {
+            Random randomgen = new Random(System.currentTimeMillis());
+
+            Log.w(TAG, "client only mode is enabled... saving internally");
+            ContentValues values = new ContentValues();
+            values.put(SQLiteDbContract.LiveReplies.COLUMN_ID, randomgen.nextInt());
+            values.put(SQLiteDbContract.LiveReplies.COLUMN_NAME_TIME, randomgen.nextInt());
+
+            values.put(SQLiteDbContract.LiveReplies.COLUMN_NAME_NAME,
+                    replyData.getString("name", ""));
+            values.put(SQLiteDbContract.LiveReplies.COLUMN_NAME_FILEPATH,
+                    replyData.getString(Constants.KEY_S3_KEY));
+            values.put(SQLiteDbContract.LiveReplies.COLUMN_NAME_DESCRIPTION,
+                    replyData.getString("description", ""));
+            values.put(SQLiteDbContract.LiveReplies.COLUMN_NAME_THREAD_ID,
+                    replyData.getInt("threadID"));
+
+                    getContentResolver()
+                            .insert(FireFlyContentProvider
+                                    .CONTENT_URI_REPLY_THREAD_LIST, values);
+
+
+            if (VERBOSE) Log.v(TAG,"exiting sendMsgCreateThread... saved locally");
+            return;
+        }
+
+
+
 
         if (isBound) {
             Toast.makeText(this,"posting a reply to the server.",Toast.LENGTH_SHORT).show();
@@ -1063,7 +1131,7 @@ I*/
         }
 
         replyData.putString("name",name);
-        replyData.putString("description",comment);
+        replyData.putString("description", comment);
         replyData.putInt("threadID", threadID);
 
         if (replyData.size() == 4) {
@@ -1411,13 +1479,19 @@ I*/
             if (VERBOSE) {
                 Log.v(TAG,"enter onSurfaceTextureSizeChanged");
             }
-            mSurface = surface;
-            Camera.Parameters p = mCamera.getParameters();
-            if (p.getMaxNumMeteringAreas() > 0) {
-                this.meteringAreaSupported = true;
+
+            if (mCamera == null ){
+                mCamera = getCameraInstance(0);
+            } else {
+
+                mSurface = surface;
+                Camera.Parameters p = mCamera.getParameters();
+                if (p.getMaxNumMeteringAreas() > 0) {
+                    this.meteringAreaSupported = true;
+                }
+                this.width = width;
+                this.height = height;
             }
-            this.width = width;
-            this.height = height;
 
             if (VERBOSE) {
                 Log.v(TAG,"exit onSurfaceTextureSizeChanged");

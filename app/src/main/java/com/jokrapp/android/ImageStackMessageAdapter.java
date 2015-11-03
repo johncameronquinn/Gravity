@@ -142,7 +142,7 @@ public class ImageStackMessageAdapter extends ImageStackCursorAdapter {
 
 
             /* if the caption is not empty (or null) set and display*/
-        if (!caption_text.equals("")) {
+        if (!"".equals(caption_text)) {
             TextView caption = ((TextView) v.findViewById(R.id.textView_message_caption));
             caption.setText(caption_text);
             caption.setVisibility(View.VISIBLE);
@@ -158,7 +158,7 @@ public class ImageStackMessageAdapter extends ImageStackCursorAdapter {
 
         String[] params = {ctx.getCacheDir() + "/" + sText};
 
-        File f = new File(sText);
+        File f = new File(params[0]);
 
         if (f.exists()) {
             if (VERBOSE) Log.v(TAG,"file exists, decoding image...");

@@ -152,7 +152,7 @@ public class ImageStackCursorAdapter extends CursorAdapter {
 
 
             /* if the caption is not empty (or null) set and display*/
-            if (!caption_text.equals("")) {
+            if (!"".equals(caption_text)) {
                 TextView caption = ((TextView) v.findViewById(R.id.textView_local_caption));
                 caption.setText(caption_text);
                 caption.setVisibility(View.VISIBLE);
@@ -168,7 +168,7 @@ public class ImageStackCursorAdapter extends CursorAdapter {
 
             String[] params = {ctx.getCacheDir() + "/" + sText};
 
-            File f = new File(sText);
+            File f = new File(params[0]);
 
             if (f.exists()) {
                 if (VERBOSE) Log.v(TAG,"file exists, decoding image...");

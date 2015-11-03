@@ -8,6 +8,10 @@ import java.util.Locale;
  */
 
 public final class Constants {
+    //modes
+    public static boolean client_only_mode = true;
+
+
     // Defines a custom Intent action
 
     public static final String IMAGE_COUNT = "count";

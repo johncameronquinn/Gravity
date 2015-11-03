@@ -1310,6 +1310,12 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
         @Override
         public void handleMessage(Message msg) {
             Log.d(TAG, "enter handleMessage");
+
+            if (Constants.client_only_mode) {
+                Log.w(TAG,"client only mode is enabled, discarding request...");
+                return;
+            }
+
             Bundle data;
 
             switch (msg.what) {
