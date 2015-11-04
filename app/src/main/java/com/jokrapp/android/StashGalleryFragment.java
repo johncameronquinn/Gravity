@@ -462,7 +462,7 @@ public class StashGalleryFragment extends Fragment implements FragmentManager.On
                 if (null != photoFragment) {
 
                     // If the incoming URL is not already being displayed
-                    if (!urlString.equals(photoFragment.getURLString())) {
+                    if (!urlString.equals(photoFragment.getImageKeyString())) {
 
                         // Sets the Fragment to use the URL from the Intent for the photo
                         photoFragment.setPhoto(urlString);

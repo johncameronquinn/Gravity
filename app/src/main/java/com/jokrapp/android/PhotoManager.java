@@ -7,6 +7,7 @@ import android.os.Message;
 import android.support.v4.util.LruCache;
 import android.util.Log;
 
+import java.io.File;
 import java.net.URL;
 import java.util.Queue;
 import java.util.concurrent.BlockingQueue;
@@ -43,6 +44,8 @@ public class PhotoManager {
     static final int DECODE_STARTED = 3;
     static final int TASK_COMPLETE = 4;
 
+    static final boolean VERBOSE = true;
+
 
     private static final String TAG = "PhotoManager";
     // Sets the size of the storage that's used to cache images
@@ -73,7 +76,11 @@ public class PhotoManager {
      * Creates a cache of byte arrays indexed by image URLs. As new items are added to the
      * cache, the oldest items are ejected and subject to garbage collection.
      */
-    private final LruCache<URL, byte[]> mPhotoCache;
+    private final LruCache<String, byte[]> mPhotoCache;
+
+    //path to disk cache directory
+    public String diskCachePath;
+
 
     // A queue of Runnables for the image download pool
     private final BlockingQueue<Runnable> mDownloadWorkQueue;
@@ -142,17 +149,17 @@ public class PhotoManager {
                 KEEP_ALIVE_TIME, KEEP_ALIVE_TIME_UNIT, mDecodeWorkQueue);
 
         // Instantiates a new cache based on the cache size estimate
-        mPhotoCache = new LruCache<URL, byte[]>(IMAGE_CACHE_SIZE) {
+        mPhotoCache = new LruCache<String, byte[]>(IMAGE_CACHE_SIZE) {
 
             /*
              * This overrides the default sizeOf() implementation to return the
              * correct size of each cache entry.
              */
-
             @Override
-            protected int sizeOf(URL paramURL, byte[] paramArrayOfByte) {
-                return paramArrayOfByte.length;
+            protected int sizeOf(String key, byte[] value) {
+                return super.sizeOf(key, value);
             }
+
         };
 
         if (Constants.LOGV) Log.v(TAG,"creating anonymous handler to function on UI thread...");
@@ -188,7 +195,7 @@ public class PhotoManager {
                      * ImageView. The weak reference won't have changed, even if
                      * the input ImageView has.
                      */
-                    URL localURL = localView.getLocation();
+                    String localKey = localView.getKey();
 
                     /*
                      * Compares the URL of the input ImageView to the URL of the
@@ -196,7 +203,7 @@ public class PhotoManager {
                      * if this particular Thread is supposed to be serving the
                      * ImageView.
                      */
-                    if (photoTask.getImageURL() == localURL)
+                    if (photoTask.getImageKey() == localKey)
 
                         /*
                          * Chooses the action to take, based on the incoming message
@@ -247,14 +254,22 @@ public class PhotoManager {
         if (Constants.LOGV) Log.v(TAG,"exiting PhotoManager constructor...");
     }
 
+    public static void setCacheDirectory(String diskCachePath) {
+        Log.i(TAG,"setting cache directory to..." + diskCachePath);
+
+        sInstance.diskCachePath = diskCachePath;
+    }
+
+
     /**
      * Returns the PhotoManager object
      * @return The global PhotoManager object
      */
     public static PhotoManager getInstance() {
-
         return sInstance;
     }
+
+
 
     /**
      * Handles state messages for a particular task object
@@ -267,13 +282,14 @@ public class PhotoManager {
 
             // The task finished downloading and decoding the image
             case TASK_COMPLETE:
+                if (VERBOSE) Log.v(TAG,"task is complete...");
 
                 // Puts the image into cache
                 if (photoTask.isCacheEnabled()) {
                     // If the task is set to cache the results, put the buffer
                     // that was
                     // successfully decoded into the cache
-                    mPhotoCache.put(photoTask.getImageURL(), photoTask.getByteBuffer());
+                    mPhotoCache.put(photoTask.getImageKey(), photoTask.getByteBuffer());//todo store in content provider
                 }
 
                 // Gets a Message object, stores the state in it, and sends it to the Handler
@@ -283,6 +299,8 @@ public class PhotoManager {
 
             // The task finished downloading the image
             case DOWNLOAD_COMPLETE:
+
+                if (VERBOSE) Log.v(TAG,"image download is complete... starting decode.");
                 /*
                  * Decodes the image, by queuing the decoder object to run in the decoder
                  * thread pool
@@ -292,6 +310,7 @@ public class PhotoManager {
                 // In all other cases, pass along the message without any other action.
             default:
                 mHandler.obtainMessage(state, photoTask).sendToTarget();
+
                 break;
         }
 
@@ -340,13 +359,13 @@ public class PhotoManager {
      * Stops a download Thread and removes it from the threadpool
      *
      * @param downloaderTask The download task associated with the Thread
-     * @param pictureURL The URL being downloaded
+     * @param imageKey The URL being downloaded
      */
-    static public void removeDownload(PhotoTask downloaderTask, URL pictureURL) {
+    static public void removeDownload(PhotoTask downloaderTask, String imageKey) {
         if (Constants.LOGV) Log.v(TAG,"entering removeDownload...");
         // If the Thread object still exists and the download matches the specified URL
-        if (downloaderTask != null && downloaderTask.getImageURL().equals(pictureURL)) {
-            if (Constants.LOGV) Log.v(TAG,"removing task for url " + pictureURL);
+        if (downloaderTask != null && downloaderTask.getImageKey().equals(imageKey)) {
+            if (Constants.LOGV) Log.v(TAG,"removing task for image key " + imageKey);
             /*
              * Locks on this class to ensure that other processes aren't mutating Threads.
              */
@@ -379,7 +398,9 @@ public class PhotoManager {
     static public PhotoTask startDownload(
             PhotoView imageView,
             boolean cacheFlag) {
-        if (Constants.LOGV)  Log.v(TAG,"entering startDownload...");
+        if (Constants.LOGV) Log.v(TAG, "entering startDownload...");
+
+        //Log.w(TAG,"this is disabled for now, no network operations just yet.");
 
 
         /*
@@ -399,34 +420,47 @@ public class PhotoManager {
          * Provides the download task with the cache buffer corresponding to the URL to be
          * downloaded.
          */
-        downloadTask.setByteBuffer(sInstance.mPhotoCache.get(downloadTask.getImageURL()));
+        //downloadTask.setByteBuffer(null);
 
-        // If the byte buffer was empty, the image wasn't cached
+        downloadTask.setByteBuffer(sInstance.mPhotoCache.get(downloadTask.getImageKey()));
+
+        // If the byte buffer was empty, the image isn't in memory cache
         if (null == downloadTask.getByteBuffer()) {
+
+            //is it in the disk cache?
+            File imagePath = new File(sInstance.diskCachePath+downloadTask.getImageKey());
+            if (imagePath.exists()) {
+                if (VERBOSE) Log.v(TAG,"file is stored in the disk cache...");
+                sInstance.mDownloadThreadPool.execute(downloadTask.getDiskDecodeRunnable());
+
+            } else {
+                if (VERBOSE) Log.v(TAG,"file was not stored in the disk cache...");
 
             /*
              * "Executes" the tasks' download Runnable in order to download the image. If no
              * Threads are available in the thread pool, the Runnable waits in the queue.
              */
-            sInstance.mDownloadThreadPool.execute(downloadTask.getHTTPDownloadRunnable());
+                sInstance.mDownloadThreadPool.execute(downloadTask.getHTTPDownloadRunnable());
 
-            // Sets the display to show that the image is queued for downloading and decoding.
-            imageView.setStatusResource(R.drawable.imagequeued);
+                // Sets the display to show that the image is queued for downloading and decoding.
+                imageView.setStatusResource(R.drawable.imagequeued);
 
-            // The image was cached, so no download is required.
+            }
+
+        // The image was memory cached, so no download is required.
         } else {
 
-            /*
-             * Signals that the download is "complete", because the byte array already contains the
-             * undecoded image. The decoding starts.
-             */
+           /*
+            * Signals that the download is "complete", because the byte array already contains the
+            * undecoded image. The decoding starts.
+            */
+        sInstance.handleState(downloadTask, DOWNLOAD_COMPLETE);
 
-            sInstance.handleState(downloadTask, DOWNLOAD_COMPLETE);
         }
 
         // Returns a task object, either newly-created or one from the task pool
 
-        if (Constants.LOGV)  Log.v(TAG,"exiting startDownload...");
+        if (Constants.LOGV) Log.v(TAG, "exiting startDownload...");
         return downloadTask;
     }
 

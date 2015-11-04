@@ -58,6 +58,9 @@ public class LiveFragment extends Fragment implements
     private final String VIEW_HACK_KEY = "pagerkey";
 
     private final int LIVE_LOADER_ID = 1;
+
+    private final int LIVE_OFFSCREEN_LIMIT = 2;
+
     private int numberOfThreads;
 
     // TODO: Rename and change types of parameters
@@ -245,6 +248,7 @@ public class LiveFragment extends Fragment implements
         threadPager = (VerticalViewPager)view.findViewById(R.id.live_thread_pager);
         threadPager.setOnPageChangeListener(this);
         threadPager.setAdapter(mAdapter);
+        threadPager.setOffscreenPageLimit(LIVE_OFFSCREEN_LIMIT);
 
 
         if (savedInstanceState != null) {
@@ -263,6 +267,11 @@ public class LiveFragment extends Fragment implements
 
     @Override
     public void onDestroyView() {
+
+        threadPager.setAdapter(null);
+        threadPager.setOnPageChangeListener(null);
+        threadPager = null;
+
         super.onDestroyView();
     }
 
@@ -625,8 +634,8 @@ public LiveThreadReceiver receiver;
 
             if (v.isShown()) {
                 if (VERBOSE) Log.v(TAG,"Image loaded from view is visible, decoding and displaying...");
-                ImageView imageView = (ImageView) v.findViewById(R.id.live_thread_imageView);
-                ProgressBar bar = (ProgressBar) v.findViewById(R.id.live_thread_progressbar);
+                ImageView imageView = (ImageView) v.findViewById(R.id.photoView);
+                ProgressBar bar = (ProgressBar) v.findViewById(R.id.photoProgress);
 
                 /* create full path from tag*/
                 String[] params = {getActivity().getCacheDir() + "/" +path};

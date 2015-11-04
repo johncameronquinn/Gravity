@@ -200,9 +200,9 @@ public class PhotoThumbnailFragment extends Fragment implements
          * Creates a new Intent to send to the download IntentService. The Intent contains the
          * URL of the Picasa feature picture RSS feed
          */
-        mServiceIntent =
+       /* mServiceIntent =
                 new Intent(getActivity(), RSSPullService.class)
-                        .setData(Uri.parse(PICASA_RSS_URL));
+                        .setData(Uri.parse(PICASA_RSS_URL));*/
 
         // If there's no pre-existing state for this Fragment
         if (bundle == null) {
@@ -382,24 +382,15 @@ public class PhotoThumbnailFragment extends Fragment implements
             // Converts the URL string to a URL and tries to retrieve the picture
             try {
                 // Gets the URL
-                URL localURL =
-                        new URL(
-                                cursor.getString(IMAGE_THUMBURL_CURSOR_INDEX)
-                        )
-                        ;
+                String imageKey =  cursor.getString(IMAGE_THUMBURL_CURSOR_INDEX);
                 /*
                  * Invokes setImageURL for the View. If the image isn't already available, this
                  * will download and decode it.
                  */
-                localImageDownloaderView.setImageURL(
-                        localURL, true, PhotoThumbnailFragment.this.mEmptyDrawable);
+                localImageDownloaderView.setImageKey(
+                        imageKey, true, PhotoThumbnailFragment.this.mEmptyDrawable);
 
-                // Catches an invalid URL
-            } catch (MalformedURLException localMalformedURLException) {
-                localMalformedURLException.printStackTrace();
-
-                // Catches errors trying to download and decode the picture in a ThreadPool
-            } catch (RejectedExecutionException localRejectedExecutionException) {
+            }  catch (RejectedExecutionException localRejectedExecutionException) {
             }
         }
 

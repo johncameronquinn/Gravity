@@ -166,6 +166,20 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
         return v;
     }
 
+    @Override
+    public void onDestroyView() {
+       //todo maintain active references to avoid the necessity to search
+
+        View view = getView();
+        if(view != null) {
+            view.findViewById(R.id.button_reply_refresh).setOnClickListener(getButtonListener(null));
+            view.findViewById(R.id.button_send_reply).setOnClickListener(getButtonListener(null));
+            view.findViewById(R.id.button_reply_capture).setOnClickListener(getButtonListener(null));
+        }
+
+        super.onDestroyView();
+    }
+
     /**
      * method 'onViewCreated'
      *

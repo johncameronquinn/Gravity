@@ -29,6 +29,8 @@ public class CursorPagerAdapter<F extends Fragment> extends FragmentStatePagerAd
         this.cursor = cursor;
     }
 
+
+
     @Override
     public F getItem(int position) {
         if (cursor == null) // shouldn't happen

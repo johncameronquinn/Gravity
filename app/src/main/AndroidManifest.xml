@@ -73,10 +73,6 @@
             service is only available to this app.
         -->
         <service
-            android:name=".RSSPullService"
-            android:exported="false" />
-
-        <service
             android:name= "com.amazonaws.mobileconnectors.s3.transferutility.TransferService"
             android:process=":ServerConnectProcess"
             android:enabled="true" />

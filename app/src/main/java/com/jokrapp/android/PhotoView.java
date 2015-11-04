@@ -17,6 +17,7 @@ import android.widget.ImageView;
 
 import java.lang.ref.WeakReference;
 import java.net.URL;
+import java.util.UUID;
 
 /**
  * This class extends the standard Android ImageView View class with some features
@@ -30,6 +31,10 @@ public class PhotoView extends ImageView {
 
     // Status flag that indicates if onDraw has completed
     private boolean mIsDrawn;
+
+    private final boolean VERBOSE = true;
+
+    private final String TAG = "PhotoView";
 
     /*
      * Creates a weak reference to the ImageView in this object. The weak
@@ -47,7 +52,7 @@ public class PhotoView extends ImageView {
     private int mHideShowResId = -1;
 
     // The URL that points to the source of the image for this ImageView
-    private URL mImageURL;
+    private String mImageKey;
 
     // The Thread that will be used to download the image for this ImageView
     private PhotoTask mDownloadThread;
@@ -108,8 +113,11 @@ public class PhotoView extends ImageView {
      * @param visState The visibility state (see View.setVisibility)
      */
     private void showView(int visState) {
+        if (VERBOSE) Log.v(TAG,"entering showView...");
+
         // If the View contains something
         if (mThisView != null) {
+            if (VERBOSE) Log.v(TAG,"there was a view to show... so... setting...");
 
             // Gets a local hard reference to the View
             View localView = mThisView.get();
@@ -118,6 +126,8 @@ public class PhotoView extends ImageView {
             if (localView != null)
                 localView.setVisibility(visState);
         }
+
+        if (VERBOSE) Log.v(TAG,"exiting showView...");
     }
 
     /**
@@ -129,11 +139,11 @@ public class PhotoView extends ImageView {
     }
 
     /**
-     * Returns the URL of the picture associated with this ImageView
-     * @return a URL
+     * Returns the key of the picture associated with this ImageView
+     * @return a Key
      */
-    final URL getLocation() {
-        return mImageURL;
+    final String getKey() {
+        return mImageKey;
     }
 
     /*
@@ -144,6 +154,8 @@ public class PhotoView extends ImageView {
     protected void onAttachedToWindow() {
         // Always call the supermethod first
         super.onAttachedToWindow();
+
+        if (VERBOSE) Log.v(TAG,"entering onAttachToWindow...");
 
         // If the sibling View is set and the parent of the ImageView is itself a View
         if ((this.mHideShowResId != -1) && ((getParent() instanceof View))) {
@@ -156,6 +168,8 @@ public class PhotoView extends ImageView {
                 this.mThisView = new WeakReference<View>(localView);
             }
         }
+
+        if (VERBOSE) Log.v(TAG,"exiting onAttachToWindow...");
     }
 
     /*
@@ -164,14 +178,16 @@ public class PhotoView extends ImageView {
      */
     @Override
     protected void onDetachedFromWindow() {
+        if (VERBOSE) Log.v(TAG,"entering onDetachedFromWindow...");
 
+        if (VERBOSE) Log.v(TAG,"clearing drawable, disabling cache, disconnecting view.");
         // Clears out the image drawable, turns off the cache, disconnects the view from a URL
-        setImageURL(null, false, null);
+        setImageKey(null,false,null);
 
         // Gets the current Drawable, or null if no Drawable is attached
         Drawable localDrawable = getDrawable();
 
-        // if the Drawable is null, unbind it from this VIew
+        // if the Drawable is null, unbind it from this View
         if (localDrawable != null)
             localDrawable.setCallback(null);
 
@@ -186,6 +202,8 @@ public class PhotoView extends ImageView {
 
         // Always call the super method last
         super.onDetachedFromWindow();
+
+        if (VERBOSE) Log.v(TAG,"exiting onDetachedFromWindow...");
     }
 
     /*
@@ -195,8 +213,10 @@ public class PhotoView extends ImageView {
      */
     @Override
     protected void onDraw(Canvas canvas) {
+        if (VERBOSE) Log.v(TAG,"entering onDraw...");
         // If the image isn't already drawn, and the URL is set
-        if ((!mIsDrawn) && (mImageURL != null)) {
+        if ((!mIsDrawn) && (mImageKey != null)) {
+            if (VERBOSE) Log.v(TAG,"image is not drawn and has a set key...");
 
             // Starts downloading this View, using the current cache setting
             mDownloadThread = PhotoManager.startDownload(this, mCacheFlag);
@@ -206,6 +226,8 @@ public class PhotoView extends ImageView {
         }
         // Always call the super method last
         super.onDraw(canvas);
+
+        if (VERBOSE) Log.v(TAG,"exiting onDraw...");
     }
 
     /**
@@ -271,25 +293,26 @@ public class PhotoView extends ImageView {
      * If the input URL is the same as the stored URL, then nothing needs to be done.
      * <p>
      * If the stored URL is null, then this method starts a download and decode of the picture
-     * @param pictureURL An incoming URL for a Picasa picture
+     * @param imageKey key to reference the image, either by storage or from s3
      * @param cacheFlag Whether to use caching when doing downloading and decoding
      * @param imageDrawable The Drawable to use for this ImageView
      */
-    public void setImageURL(URL pictureURL, boolean cacheFlag, Drawable imageDrawable) {
+    public void setImageKey(String imageKey, boolean cacheFlag, Drawable imageDrawable) {
+        if (VERBOSE) Log.v(TAG,"enting setImageKey...");
+
         // If the picture URL for this ImageView is already set
         if (Constants.LOGV) {
-            Log.v(VIEW_LOG_TAG,"entering setImageURL with URL " + pictureURL);
+            Log.v(VIEW_LOG_TAG,"entering setImageKey with key: " + imageKey);
         }
 
-        if (mImageURL != null) {
+        if (mImageKey != null) {
 
             // If the stored URL doesn't match the incoming URL, then the picture has changed.
-            if (!mImageURL.equals(pictureURL)) {
+            if (!mImageKey.equals(imageKey)) {
 
                 // Stops any ongoing downloads for this ImageView
-                PhotoManager.removeDownload(mDownloadThread, mImageURL);
+                PhotoManager.removeDownload(mDownloadThread, mImageKey);
             } else {
-
                 // The stored URL matches the incoming URL. Returns without doing any work.
                 return;
             }
@@ -299,10 +322,11 @@ public class PhotoView extends ImageView {
         setImageDrawable(imageDrawable);
 
         // Stores the picture URL for this ImageView
-        mImageURL = pictureURL;
+        mImageKey = imageKey;
 
         // If the draw operation for this ImageVIew has completed, and the picture URL isn't empty
-        if ((mIsDrawn) && (pictureURL != null)) {
+        if ((mIsDrawn) && (imageKey != null)) {
+            if (VERBOSE) Log.v(TAG,"the draw operation has completed, and imagekey isn't null.");
 
             // Sets the cache flag
             mCacheFlag = cacheFlag;
@@ -314,7 +338,7 @@ public class PhotoView extends ImageView {
             mDownloadThread = PhotoManager.startDownload(this, cacheFlag);
         }
 
-        if (Constants.LOGV) Log.v(VIEW_LOG_TAG,"exiting setImageURL...");
+        if (VERBOSE) Log.v(VIEW_LOG_TAG,"exiting setImageKey...");
     }
 
     /**

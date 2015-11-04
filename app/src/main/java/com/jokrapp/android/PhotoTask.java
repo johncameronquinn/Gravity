@@ -19,6 +19,7 @@ import com.jokrapp.android.PhotoDecodeRunnable.TaskRunnableDecodeMethods;
 import com.jokrapp.android.PhotoDownloadRunnable.TaskRunnableDownloadMethods;
 
 import android.graphics.Bitmap;
+import android.util.Log;
 
 import java.lang.ref.WeakReference;
 import java.net.URL;
@@ -48,12 +49,13 @@ public class PhotoTask implements
     private WeakReference<PhotoView> mImageWeakRef;
 
     // The image's URL
-    private URL mImageURL;
+    private String mImageKey;
 
     // The width and height of the decoded image
     private int mTargetHeight;
     private int mTargetWidth;
 
+    private final String TAG = "PhotoTask";
     // Is the cache enabled for this transaction?
     private boolean mCacheEnabled;
 
@@ -68,6 +70,8 @@ public class PhotoTask implements
      */
     private Runnable mDownloadRunnable;
     private Runnable mDecodeRunnable;
+
+    private Runnable mDiskDecodeRunnable;
 
     // A buffer for containing the bytes that make up the image
     byte[] mImageBuffer;
@@ -90,6 +94,8 @@ public class PhotoTask implements
         // Create the runnables
         mDownloadRunnable = new PhotoDownloadRunnable(this);
         mDecodeRunnable = new PhotoDecodeRunnable(this);
+        mDiskDecodeRunnable = new PhotoDiskLoadRunnable(this);
+
         sPhotoManager = PhotoManager.getInstance();
     }
 
@@ -109,7 +115,7 @@ public class PhotoTask implements
         sPhotoManager = photoManager;
 
         // Gets the URL for the View
-        mImageURL = photoView.getLocation();
+        mImageKey = photoView.getKey();
 
         // Instantiates the weak reference to the incoming view
         mImageWeakRef = new WeakReference<PhotoView>(photoView);
@@ -164,10 +170,10 @@ public class PhotoTask implements
         return mCacheEnabled;
     }
 
-    // Implements PhotoDownloadRunnable.getImageURL. Returns the global Image URL.
+    // Implements PhotoDownloadRunnable.getImageKey. Returns the global Image Key.
     @Override
-    public URL getImageURL() {
-        return mImageURL;
+    public String getImageKey() {
+        return mImageKey;
     }
 
     // Implements PhotoDownloadRunnable.setByteBuffer. Sets the image buffer to a buffer object.
@@ -189,6 +195,12 @@ public class PhotoTask implements
     // Returns the instance that downloaded the image
     Runnable getHTTPDownloadRunnable() {
         return mDownloadRunnable;
+    }
+
+
+    // Returns the instance that downloaded the image
+    Runnable getDiskDecodeRunnable() {
+        return mDiskDecodeRunnable;
     }
 
     // Returns the instance that decode the image
@@ -250,12 +262,18 @@ public class PhotoTask implements
         // Converts the download state to the overall state
         switch(state) {
             case PhotoDownloadRunnable.HTTP_STATE_COMPLETED:
+                if (Constants.LOGV) Log.v(TAG, "Download completed...");
+
                 outState = PhotoManager.DOWNLOAD_COMPLETE;
                 break;
             case PhotoDownloadRunnable.HTTP_STATE_FAILED:
+                if (Constants.LOGV) Log.v(TAG, "Download failed...");
+
                 outState = PhotoManager.DOWNLOAD_FAILED;
                 break;
             default:
+                if (Constants.LOGV) Log.v(TAG, "Download started...");
+
                 outState = PhotoManager.DOWNLOAD_STARTED;
                 break;
         }
@@ -280,12 +298,18 @@ public class PhotoTask implements
         // Converts the decode state to the overall state.
         switch(state) {
             case PhotoDecodeRunnable.DECODE_STATE_COMPLETED:
+                if (Constants.LOGV) Log.v(TAG, "Decode completed...");
+
                 outState = PhotoManager.TASK_COMPLETE;
                 break;
             case PhotoDecodeRunnable.DECODE_STATE_FAILED:
+                if (Constants.LOGV) Log.v(TAG, "Decode failed...");
+
                 outState = PhotoManager.DOWNLOAD_FAILED;
                 break;
             default:
+                if (Constants.LOGV) Log.v(TAG, "Decode started...");
+
                 outState = PhotoManager.DECODE_STARTED;
                 break;
         }

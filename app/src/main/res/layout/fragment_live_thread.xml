@@ -1,15 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:image="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent" android:layout_height="match_parent"
     android:background="@color/jpallete_main_grey">
 
-    <ImageView
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:id="@+id/live_thread_imageView"
-        android:layout_gravity="center"
-        android:scaleType="fitXY"
-        android:layout_alignParentTop="false" />
+    <ProgressBar android:id="@+id/photoProgress"
+        android:layout_width="wrap_content" android:layout_height="wrap_content"
+        android:layout_centerInParent="true" />
+    <com.jokrapp.android.PhotoView
+        android:id="@+id/photoView" android:layout_width="match_parent"
+        android:layout_height="match_parent" android:scaleType="fitXY"
+        image:hideShowSibling="@id/photoProgress" />
 
     <RelativeLayout
         style="@style/commentBoxStyle"
@@ -95,13 +96,5 @@
         android:layout_marginRight="@dimen/side_screen_margin"
         android:layout_marginBottom="@dimen/side_screen_margin"
         android:layout_marginLeft="@dimen/local_card_margin" />
-
-    <ProgressBar
-        style="?android:attr/progressBarStyleLarge"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/live_thread_progressbar"
-        android:layout_centerVertical="true"
-        android:layout_centerHorizontal="true" />
 
 </RelativeLayout>

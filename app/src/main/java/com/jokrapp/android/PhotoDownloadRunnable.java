@@ -15,6 +15,8 @@ package com.jokrapp.android;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+        import android.util.Log;
+
         import com.jokrapp.android.PhotoDecodeRunnable.TaskRunnableDecodeMethods;
         import java.io.EOFException;
         import java.io.IOException;
@@ -47,6 +49,7 @@ class PhotoDownloadRunnable implements Runnable {
 
     // Defines a field that contains the calling object of type PhotoTask.
     final TaskRunnableDownloadMethods mPhotoTask;
+
 
     /**
      *
@@ -85,7 +88,7 @@ class PhotoDownloadRunnable implements Runnable {
          * Gets the URL for the image being downloaded
          * @return The image URL
          */
-        URL getImageURL();
+        String getImageKey();
     }
 
     /**
@@ -104,6 +107,9 @@ class PhotoDownloadRunnable implements Runnable {
     @SuppressWarnings("resource")
     @Override
     public void run() {
+        if (Constants.LOGD) {
+            Log.d(LOG_TAG,"entering run...");
+        }
 
         /*
          * Stores the current Thread in the the PhotoTask instance, so that the instance
@@ -148,9 +154,14 @@ class PhotoDownloadRunnable implements Runnable {
                 // Downloads the image and catches IO errors
                 try {
 
+                    Log.w(LOG_TAG,"content downloading is currently disabled...");
                     // Opens an HTTP connection to the image's URL
-                    HttpURLConnection httpConn =
-                            (HttpURLConnection) mPhotoTask.getImageURL().openConnection();
+                    HttpURLConnection httpConn = (HttpURLConnection)
+                            new URL(
+                            "http://www.gettyimages.co.uk/gi-resources/images/Homepage/Category-Creative/UK/UK_Creative_462809583.jpg")
+                            .openConnection();
+
+                            //(HttpURLConnection) mPhotoTask.getImageURL().openConnection();
 
                     // Sets the user agent to report to the server
                     httpConn.setRequestProperty("User-Agent", Constants.USER_AGENT);

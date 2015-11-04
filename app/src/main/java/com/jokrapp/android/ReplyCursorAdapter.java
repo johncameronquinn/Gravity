@@ -27,6 +27,7 @@ public class ReplyCursorAdapter extends CursorAdapter {
 
     private final String TAG = "ReplyCursorAdapter";
 
+    private static final boolean VERBOSE = false;
     private Context ctx;
 
     public ReplyCursorAdapter(Context context, Cursor c, int flags) {
@@ -46,7 +47,7 @@ public class ReplyCursorAdapter extends CursorAdapter {
 
         if (!path.equals("")) {
             view.setTag(path);
-            Log.d(TAG, "applying tag: " + path);
+            if (VERBOSE) Log.v(TAG, "applying tag: " + path);
         }
 
         return view;
@@ -68,20 +69,20 @@ public class ReplyCursorAdapter extends CursorAdapter {
         text.setText(cursor.getString(cursor.getColumnIndexOrThrow(LiveReplies.COLUMN_NAME_DESCRIPTION)));
         date.setText(cursor.getString(cursor.getColumnIndexOrThrow(LiveReplies.COLUMN_NAME_TIME)));
 
-        Log.i(TAG,"view toString() : " + view.toString());
+        if (VERBOSE) Log.v(TAG,"view toString() : " + view.toString());
         ImageView image = (ImageView) view.findViewById(R.id.reply_detail_row_image);
         if (image == null) {
-            Log.e(TAG,"imageView was null... what...");
+            if (VERBOSE) Log.e(TAG,"imageView was null... what...");
             return;
         }
 
         String path = (cursor.getString(cursor.getColumnIndexOrThrow(LiveReplies.COLUMN_NAME_FILEPATH)));
 
         if(!path.equals("")) {
-            Log.d(TAG,"a filepath was provided... " + path + " this must be an image reply");
+            if (VERBOSE) Log.v(TAG,"a filepath was provided... " + path + " this must be an image reply");
             new ImageLoadTask(image, null).execute(ctx.getCacheDir() + "/" + path + "s");
         } else {
-            Log.d(TAG,"no filepath was supplied... this must be a text reply...");
+            if (VERBOSE) Log.v(TAG,"no filepath was supplied... this must be a text reply...");
         }
     }
 }

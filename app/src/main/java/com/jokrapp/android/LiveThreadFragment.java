@@ -47,19 +47,18 @@ public class LiveThreadFragment extends Fragment implements View.OnClickListener
     private String threadName;
     private String threadTitle;
     private String threadText;
-    private String threadFilePath;
     private String threadID;
     private String unique;
     private String replies;
 
-    private ImageView displayView;
-    private Bitmap image;
     private ProgressBar progressBar;
 
-    private static final String IMAGE_KEY = "bitmap";
+    PhotoView mPhotoView;
 
-    public WeakReference<Thread> imageLoaderThreadReference = new WeakReference(null);
+    View textView;
+    View detailView;
 
+    String mImageKey;
 
     static LiveThreadFragment newInstance(String name,
                                           String title,
@@ -106,8 +105,25 @@ public class LiveThreadFragment extends Fragment implements View.OnClickListener
 
     }
 
+    /*
+     * This callback is invoked when the Fragment is no longer attached to its Activity.
+     * Sets the URL for the Fragment to null
+     */
     @Override
     public void onDetach() {
+        // Logs the detach
+        if (LiveFragment.VERBOSE) Log.v(TAG, "onDetach");
+
+        // Removes the reference to the URL
+        mImageKey = null;
+        threadName = null;
+        threadText = null;
+        threadTitle = null;
+        threadID = null;
+        unique = null;
+        replies = null;
+
+        // Always call the super method last
         super.onDetach();
     }
 
@@ -121,11 +137,11 @@ public class LiveThreadFragment extends Fragment implements View.OnClickListener
             threadName = args.getString(LiveThreadEntry.COLUMN_NAME_NAME);
             threadTitle = args.getString(LiveThreadEntry.COLUMN_NAME_TITLE);
             threadText = args.getString(LiveThreadEntry.COLUMN_NAME_DESCRIPTION);
-            threadFilePath = args.getString(LiveThreadEntry.COLUMN_NAME_FILEPATH);
             threadID = args.getString(LiveThreadEntry.COLUMN_NAME_THREAD_ID);
             unique = args.getString(LiveThreadEntry.COLUMN_NAME_UNIQUE);
             replies = args.getString(LiveThreadEntry.COLUMN_NAME_REPLIES);
 
+            mImageKey = args.getString(LiveThreadEntry.COLUMN_NAME_FILEPATH);
 
         }
 
@@ -138,12 +154,14 @@ public class LiveThreadFragment extends Fragment implements View.OnClickListener
             threadName = args.getString(LiveThreadEntry.COLUMN_NAME_NAME);
             threadTitle = args.getString(LiveThreadEntry.COLUMN_NAME_TITLE);
             threadText = args.getString(LiveThreadEntry.COLUMN_NAME_DESCRIPTION);
-            threadFilePath = args.getString(LiveThreadEntry.COLUMN_NAME_FILEPATH);
             threadID = args.getString(LiveThreadEntry.COLUMN_NAME_THREAD_ID);
             unique = args.getString(LiveThreadEntry.COLUMN_NAME_UNIQUE);
             replies = args.getString(LiveThreadEntry.COLUMN_NAME_REPLIES);
+
+            mImageKey = args.getString(LiveThreadEntry.COLUMN_NAME_FILEPATH);
+
             Log.i(TAG,"incoming name: " + threadName);
-            Log.i(TAG,"incoming threadFilePath: " + threadFilePath);
+            Log.i(TAG,"incoming image key: " + mImageKey);
         }
 
         super.setArguments(args);
@@ -156,13 +174,48 @@ public class LiveThreadFragment extends Fragment implements View.OnClickListener
            // image = savedInstanceState.getParcelable(IMAGE_KEY);
         }
 
+        View localView = inflater.inflate(R.layout.fragment_live_thread,container,false);
+        mPhotoView = ((PhotoView) localView.findViewById(R.id.photoView));
+        progressBar = ((ProgressBar) localView.findViewById(R.id.photoProgress));
 
-        return inflater.inflate(R.layout.fragment_live_thread,container,false);
+        textView = localView.findViewById(R.id.live_thread_infoLayout);
+        detailView = localView.findViewById(R.id.live_thread_text);
+
+        /*
+         * The click listener becomes this class (PhotoFragment). The onClick() method in this
+         * class is invoked when users click a photo.
+         */
+        mPhotoView.setOnClickListener(this);
+        textView.setOnClickListener(this);
+        detailView.setOnClickListener(this);
+
+        mPhotoView.setImageKey(mImageKey,true,getResources().getDrawable(R.drawable.imagenotqueued));
+
+        return localView;
     }
 
+
+    /*
+     * This callback is invoked as the Fragment's View is being destroyed
+     */
     @Override
-    public void onActivityCreated(Bundle savedInstanceState) {
-        super.onActivityCreated(savedInstanceState);
+    public void onDestroyView() {
+        // Logs the destroy operation
+        if (LiveFragment.VERBOSE) Log.v(TAG,"onDestroyView");
+
+        // If the View object still exists, delete references to avoid memory leaks
+        if (mPhotoView != null) {
+
+            mPhotoView.setOnClickListener(null);
+            textView.setOnClickListener(null);
+            detailView.setOnClickListener(null);
+            this.mPhotoView = null;
+            this.textView = null;
+            this.detailView = null;
+        }
+
+        // Always call the super method last
+        super.onDestroyView();
     }
 
     @Override
@@ -170,23 +223,13 @@ public class LiveThreadFragment extends Fragment implements View.OnClickListener
         super.onSaveInstanceState(outState);
         if (LiveFragment.VERBOSE) Log.v(TAG, "entering onSaveInstanceState...");
 
-        //outState.putParcelable(IMAGE_KEY, image);
-
+        outState.putString(Constants.KEY_S3_KEY, mImageKey);
         if (LiveFragment.VERBOSE) Log.v(TAG, "exiting onSaveInstanceState...");
     }
 
     @Override
-    public void onViewStateRestored(Bundle savedInstanceState) {
-        super.onViewStateRestored(savedInstanceState);
-        if (LiveFragment.VERBOSE) Log.v(TAG, "entering onViewStateRestored...");
-
-
-        if (LiveFragment.VERBOSE) Log.v(TAG,"exiting onViewStateRestored...");
-    }
-
-    @Override
     public void onViewCreated(View view, Bundle savedInstanceState) {
-        if (LiveFragment.VERBOSE) Log.v(TAG,"entering onViewCreated...");
+        if (LiveFragment.VERBOSE) Log.v(TAG, "entering onViewCreated...");
         super.onViewCreated(view, savedInstanceState);
 
 
@@ -196,19 +239,15 @@ public class LiveThreadFragment extends Fragment implements View.OnClickListener
         ((TextView)view.findViewById(R.id.live_thread_text)).setText(threadText);
         ((TextView)view.findViewById(R.id.live_thread_unique)).setText(unique);
         ((TextView)view.findViewById(R.id.live_thread_replies)).setText(replies);
-        view.findViewById(R.id.live_thread_infoLayout).setOnClickListener(this);
-        view.findViewById(R.id.live_thread_text).setOnClickListener(this);
-        view.setTag(threadFilePath);
+       view.setTag(mImageKey);
 
 
 
-        displayView = ((ImageView) view.findViewById(R.id.live_thread_imageView));
-        progressBar = ((ProgressBar)view.findViewById(R.id.live_thread_progressbar));
 
         /*
          * No saved image was loaded, load from file or request
          */
-        if (image == null) {
+    /*    if (image == null) {
 
             if (LiveFragment.VERBOSE) {
                 Log.v(TAG,"loading image was null, attempting to decode from exposed filepath");
@@ -238,7 +277,7 @@ public class LiveThreadFragment extends Fragment implements View.OnClickListener
             }
             displayView.setImageBitmap(image);
             progressBar.setVisibility(View.INVISIBLE);
-        }
+        }*/
 
         if (LiveFragment.VERBOSE) Log.v(TAG,"exiting onViewCreated...");
     }
@@ -249,7 +288,6 @@ public class LiveThreadFragment extends Fragment implements View.OnClickListener
             case R.id.live_thread_infoLayout:
                 View threadTextView = ((RelativeLayout) v.getParent()).findViewById(R.id.live_thread_text);
 
-                //todo insert threadTextView inside the viewPager, but on top of live buttons
                 threadTextView.setVisibility(View.VISIBLE);
                 threadTextView.bringToFront();
                 v.setVisibility(View.INVISIBLE);
@@ -260,92 +298,6 @@ public class LiveThreadFragment extends Fragment implements View.OnClickListener
                 ((RelativeLayout)v.getParent()).findViewById(R.id.live_thread_infoLayout).setVisibility(View.VISIBLE);
                 v.setVisibility(View.INVISIBLE);
                 break;
-        }
-    }
-
-    private class LiveThreadLoadingTask extends AsyncTask<String,Integer,Bitmap> {
-        ImageView display;
-        ProgressBar progressBar;
-
-        public LiveThreadLoadingTask(ImageView imageView) {
-            display = imageView;
-        }
-
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-            progressBar = new ProgressBar(display.getContext(),null,android.R.attr.progressBarStyleHorizontal);
-        }
-
-        @Override
-        protected Bitmap doInBackground(String... params) {
-            Log.i("LiveThreadFragment","Decoding image in LiveThreadLoadingTask");
-            return BitmapFactory.decodeFile(params[0]);
-        }
-
-        @Override
-        protected void onPostExecute(Bitmap bitmap) {
-            super.onPostExecute(bitmap);
-            display.setImageBitmap(bitmap);
-
-        }
-    }
-
-
-    /*public class LiveThreadReceiver extends BroadcastReceiver {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            if (LiveFragment.VERBOSE) {
-                Log.v(TAG,"received intent...");
-            }
-
-            String path = intent.getExtras().getString(Constants.KEY_S3_KEY);
-
-            if (imageLoaderThreadReference.get() == null) {
-                imageLoaderThreadReference = new WeakReference<>(new Thread(new ImageLoaderRunnable(path)));
-            } else {
-                imageLoaderThreadReference.get().interrupt();
-                imageLoaderThreadReference = new WeakReference<>(new Thread(new ImageLoaderRunnable(path)));
-            }
-
-            imageLoaderThreadReference.get().start();
-        }
-    }*/
-
-
-    private class ImageLoaderRunnable implements Runnable {
-
-        String filepath;
-
-        public ImageLoaderRunnable(String path) {
-            filepath = path;
-        }
-
-        @Override
-        public void run() {
-
-            if (!Thread.interrupted()) {
-                image = BitmapFactory.decodeFile(getActivity().getCacheDir().toString() + "/" + filepath);
-
-                if (isAdded()) {
-                    getActivity().runOnUiThread((new Runnable() {
-
-                                public void run() {
-                                    if (isVisible()) {
-                                        progressBar.setVisibility(View.INVISIBLE);
-                                        displayView.setImageBitmap(image);
-                                    }
-                                }
-
-                            })
-                    );
-                } else  {
-                    Log.e(TAG,"this fragment was not added... what...");
-                }
-
-            } else {
-                Log.i(TAG,"thread was interrupted... canceling...");
-            }
         }
     }
 

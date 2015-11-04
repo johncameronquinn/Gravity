@@ -45,7 +45,7 @@ public class PhotoFragment extends Fragment implements View.OnClickListener {
 
     PhotoView mPhotoView;
 
-    String mURLString;
+    String mImageKey;
 
     ShareCompat.IntentBuilder mShareCompatIntentBuilder;
 
@@ -57,25 +57,16 @@ public class PhotoFragment extends Fragment implements View.OnClickListener {
         if (Constants.LOGV) Log.v(TAG,"entering loadPhoto...");
 
         // If setPhoto() was called to store a URL, proceed
-        if (mURLString != null) {
+        if (mImageKey != null) {
 
-            // Handles invalid URLs
-            try {
 
-                // Converts the URL string to a valid URL
-                URL localURL = new URL(mURLString);
+         /*
+          * setImageURL(url,false,null) attempts to download and decode the picture at
+          * at "url" without caching and without providing a Drawable. The result will be
+          * a BitMap stored in the PhotoView for this Fragment.
+          */
+            mPhotoView.setImageKey(mImageKey, false, null);
 
-                /*
-                 * setImageURL(url,false,null) attempts to download and decode the picture at
-                 * at "url" without caching and without providing a Drawable. The result will be
-                 * a BitMap stored in the PhotoView for this Fragment.
-                 */
-                mPhotoView.setImageURL(localURL, false, null);
-
-                // Catches an invalid URL format
-            } catch (MalformedURLException localMalformedURLException) {
-                localMalformedURLException.printStackTrace();
-            }
         }
 
         if (Constants.LOGV) Log.v(TAG,"exiting loadPhoto...");
@@ -84,8 +75,8 @@ public class PhotoFragment extends Fragment implements View.OnClickListener {
      * Returns the stored URL string
      * @return The URL of the picture being shown by this Fragment, in String format
      */
-    public String getURLString() {
-        return mURLString;
+    public String getImageKeyString() {
+        return mImageKey;
     }
 
     /*
@@ -135,10 +126,10 @@ public class PhotoFragment extends Fragment implements View.OnClickListener {
 
         // If the bundle argument contains data, uses it as a URL for the picture to display
         if (bundle != null) {
-            mURLString = bundle.getString(PHOTO_URL_KEY);
+            mImageKey = bundle.getString(PHOTO_URL_KEY);
         }
 
-        if (mURLString != null)
+        if (mImageKey != null)
             loadPhoto();
 
         // Returns the resulting View
@@ -176,7 +167,7 @@ public class PhotoFragment extends Fragment implements View.OnClickListener {
         Log.d(LOG_TAG, "onDetach");
 
         // Removes the reference to the URL
-        mURLString = null;
+        mImageKey = null;
 
         // Always call the super method last
         super.onDetach();
@@ -192,7 +183,7 @@ public class PhotoFragment extends Fragment implements View.OnClickListener {
         super.onSaveInstanceState(bundle);
         if (Constants.LOGV) Log.v(TAG,"entering onSaveInstanceState...");
         // Puts the current URL for the picture being shown into the saved state
-        bundle.putString(PHOTO_URL_KEY, mURLString);
+        bundle.putString(PHOTO_URL_KEY, mImageKey);
 
         if (Constants.LOGV) Log.v(TAG,"exiting onSaveInstanceState...");
     }
@@ -202,6 +193,6 @@ public class PhotoFragment extends Fragment implements View.OnClickListener {
      * @param urlString A String representation of the URL pointing to the picture
      */
     public void setPhoto(String urlString) {
-        mURLString = urlString;
+        mImageKey = urlString;
     }
 }

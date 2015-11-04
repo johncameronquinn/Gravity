@@ -165,6 +165,9 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
 
         }
         super.onCreate(savedInstanceState);
+
+        PhotoManager.setCacheDirectory(getCacheDir()+"/");
+
         uiHandler.setParent(this);
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
