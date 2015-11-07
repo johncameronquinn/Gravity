@@ -46,6 +46,7 @@ public class PhotoFragment extends Fragment implements View.OnClickListener {
     PhotoView mPhotoView;
 
     String mImageKey;
+    String mImageDirectory;
 
     ShareCompat.IntentBuilder mShareCompatIntentBuilder;
 
@@ -58,6 +59,7 @@ public class PhotoFragment extends Fragment implements View.OnClickListener {
 
         // If setPhoto() was called to store a URL, proceed
         if (mImageKey != null) {
+            Log.d(TAG, "mImageKey is not null: " + mImageKey);
 
 
          /*
@@ -65,9 +67,10 @@ public class PhotoFragment extends Fragment implements View.OnClickListener {
           * at "url" without caching and without providing a Drawable. The result will be
           * a BitMap stored in the PhotoView for this Fragment.
           */
-            mPhotoView.setImageKey(mImageKey, false, null);
+            mPhotoView.setImageKey(mImageDirectory,mImageKey, false, null);
 
         }
+
 
         if (Constants.LOGV) Log.v(TAG,"exiting loadPhoto...");
     }
@@ -126,7 +129,9 @@ public class PhotoFragment extends Fragment implements View.OnClickListener {
 
         // If the bundle argument contains data, uses it as a URL for the picture to display
         if (bundle != null) {
-            mImageKey = bundle.getString(PHOTO_URL_KEY);
+            mImageKey = bundle.getString(Constants.KEY_S3_KEY);
+            mImageDirectory = bundle.getString(Constants.KEY_S3_DIRECTORY);
+            if (Constants.LOGV) Log.v(TAG,"Loaded key: " + mImageKey);
         }
 
         if (mImageKey != null)
@@ -168,6 +173,7 @@ public class PhotoFragment extends Fragment implements View.OnClickListener {
 
         // Removes the reference to the URL
         mImageKey = null;
+        mImageDirectory = null;
 
         // Always call the super method last
         super.onDetach();
@@ -183,16 +189,19 @@ public class PhotoFragment extends Fragment implements View.OnClickListener {
         super.onSaveInstanceState(bundle);
         if (Constants.LOGV) Log.v(TAG,"entering onSaveInstanceState...");
         // Puts the current URL for the picture being shown into the saved state
-        bundle.putString(PHOTO_URL_KEY, mImageKey);
+        bundle.putString(Constants.KEY_S3_KEY, mImageKey);
+        bundle.putString(Constants.KEY_S3_DIRECTORY,mImageDirectory);
 
         if (Constants.LOGV) Log.v(TAG,"exiting onSaveInstanceState...");
     }
 
     /**
      * Sets the photo for this Fragment, by storing a URL that points to a picture
-     * @param urlString A String representation of the URL pointing to the picture
+     * @param imageKey A String representation of the URL pointing to the picture
      */
-    public void setPhoto(String urlString) {
-        mImageKey = urlString;
+    public void setPhoto(String s3Directory, String imageKey) {
+        mImageKey = imageKey;
+        mImageDirectory = s3Directory;
+        if (Constants.LOGV) Log.v(LOG_TAG,"urlString provided is: " + imageKey);
     }
 }

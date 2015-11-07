@@ -8,6 +8,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.nfc.tech.TagTechnology;
 import android.os.AsyncTask;
@@ -50,6 +51,8 @@ public class LiveThreadFragment extends Fragment implements View.OnClickListener
     private String threadID;
     private String unique;
     private String replies;
+
+    private Drawable mEmptyDrawable;
 
     private ProgressBar progressBar;
 
@@ -102,7 +105,6 @@ public class LiveThreadFragment extends Fragment implements View.OnClickListener
         super.onAttach(activity);
 
 
-
     }
 
     /*
@@ -132,6 +134,8 @@ public class LiveThreadFragment extends Fragment implements View.OnClickListener
         super.onCreate(savedInstanceState);
 
 
+        mEmptyDrawable = getResources().getDrawable(R.drawable.imagenotqueued);
+
         if (getArguments() != null) {
             Bundle args = getArguments();
             threadName = args.getString(LiveThreadEntry.COLUMN_NAME_NAME);
@@ -143,6 +147,10 @@ public class LiveThreadFragment extends Fragment implements View.OnClickListener
 
             mImageKey = args.getString(LiveThreadEntry.COLUMN_NAME_FILEPATH);
 
+
+            ((MainActivity)getActivity()).sendMsgDownloadImage(
+                    Constants.KEY_S3_LIVE_DIRECTORY,
+                    args.getString(SQLiteDbContract.LiveReplies.COLUMN_NAME_FILEPATH));
         }
 
     }
@@ -162,6 +170,7 @@ public class LiveThreadFragment extends Fragment implements View.OnClickListener
 
             Log.i(TAG,"incoming name: " + threadName);
             Log.i(TAG,"incoming image key: " + mImageKey);
+
         }
 
         super.setArguments(args);
@@ -175,7 +184,7 @@ public class LiveThreadFragment extends Fragment implements View.OnClickListener
         }
 
         View localView = inflater.inflate(R.layout.fragment_live_thread,container,false);
-        mPhotoView = ((PhotoView) localView.findViewById(R.id.photoView));
+        mPhotoView = ((PhotoView) localView.findViewById(R.id.thumbImage));
         progressBar = ((ProgressBar) localView.findViewById(R.id.photoProgress));
 
         textView = localView.findViewById(R.id.live_thread_infoLayout);
@@ -189,7 +198,7 @@ public class LiveThreadFragment extends Fragment implements View.OnClickListener
         textView.setOnClickListener(this);
         detailView.setOnClickListener(this);
 
-        mPhotoView.setImageKey(mImageKey,true,getResources().getDrawable(R.drawable.imagenotqueued));
+        mPhotoView.setImageKey(Constants.KEY_S3_LIVE_DIRECTORY,mImageKey,true,mEmptyDrawable);
 
         return localView;
     }
@@ -216,6 +225,12 @@ public class LiveThreadFragment extends Fragment implements View.OnClickListener
 
         // Always call the super method last
         super.onDestroyView();
+    }
+
+    @Override
+    public void onDestroy() {
+        mEmptyDrawable = null;
+        super.onDestroy();
     }
 
     @Override

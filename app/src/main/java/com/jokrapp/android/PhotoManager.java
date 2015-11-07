@@ -6,9 +6,11 @@ import android.os.Looper;
 import android.os.Message;
 import android.support.v4.util.LruCache;
 import android.util.Log;
+import android.view.View;
 
 import java.io.File;
 import java.net.URL;
+import java.util.HashMap;
 import java.util.Queue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -43,6 +45,8 @@ public class PhotoManager {
     static final int DOWNLOAD_COMPLETE = 2;
     static final int DECODE_STARTED = 3;
     static final int TASK_COMPLETE = 4;
+
+    static final int AWS_DOWNLOAD_COMPLETE = 5;
 
     static final boolean VERBOSE = true;
 
@@ -195,7 +199,7 @@ public class PhotoManager {
                      * ImageView. The weak reference won't have changed, even if
                      * the input ImageView has.
                      */
-                    String localKey = localView.getKey();
+                    String localKey = localView.getImageKey();
 
                     /*
                      * Compares the URL of the input ImageView to the URL of the
@@ -212,6 +216,7 @@ public class PhotoManager {
 
                             // If the download has started, sets background color to dark green
                             case DOWNLOAD_STARTED:
+                                Log.d(TAG,"Download Started...");
                                 localView.setStatusResource(R.drawable.imagedownloading);
                                 break;
 
@@ -220,8 +225,13 @@ public class PhotoManager {
                              * background color to golden yellow
                              */
                             case DOWNLOAD_COMPLETE:
+                                Log.d(TAG,"Download Complete...");
                                 // Sets background color to golden yellow
                                 localView.setStatusResource(R.drawable.decodequeued);
+                                if (localView.getVisibility()== View.GONE) {
+                                    if (Constants.LOGV) Log.v(TAG, "View was set to GONE, setting to visible");
+                                    localView.setVisibility(View.VISIBLE);
+                                }
                                 break;
                             // If the decode has started, sets background color to orange
                             case DECODE_STARTED:
@@ -243,6 +253,10 @@ public class PhotoManager {
                                 // Attempts to re-use the Task object
                                 recycleTask(photoTask);
                                 break;
+
+                            case AWS_DOWNLOAD_COMPLETE:
+                                break;
+
                             default:
                                 // Otherwise, calls the super method
                                 super.handleMessage(inputMessage);
@@ -270,7 +284,6 @@ public class PhotoManager {
     }
 
 
-
     /**
      * Handles state messages for a particular task object
      * @param photoTask A task object
@@ -278,6 +291,8 @@ public class PhotoManager {
      */
     @SuppressLint("HandlerLeak")
     public void handleState(PhotoTask photoTask, int state) {
+        if (Constants.LOGV) Log.v(TAG,"entering handleState...");
+
         switch (state) {
 
             // The task finished downloading and decoding the image
@@ -307,6 +322,7 @@ public class PhotoManager {
                  */
                 mDecodeThreadPool.execute(photoTask.getPhotoDecodeRunnable());
 
+
                 // In all other cases, pass along the message without any other action.
             default:
                 mHandler.obtainMessage(state, photoTask).sendToTarget();
@@ -314,6 +330,7 @@ public class PhotoManager {
                 break;
         }
 
+        if (Constants.LOGV) Log.v(TAG,"exiting handleState...");
     }
 
     /**
@@ -428,13 +445,14 @@ public class PhotoManager {
         if (null == downloadTask.getByteBuffer()) {
 
             //is it in the disk cache?
-            File imagePath = new File(sInstance.diskCachePath+downloadTask.getImageKey());
+            File imagePath = new File(downloadTask.getCacheDirectory(),downloadTask.getImageKey());
             if (imagePath.exists()) {
                 if (VERBOSE) Log.v(TAG,"file is stored in the disk cache...");
                 sInstance.mDownloadThreadPool.execute(downloadTask.getDiskDecodeRunnable());
+                imageView.setStatusResource(R.drawable.imagequeued);
 
             } else {
-                if (VERBOSE) Log.v(TAG,"file was not stored in the disk cache...");
+                if (VERBOSE) Log.w(TAG,"file was not stored in the disk cache... quit for now");//todo, ask nicer
 
             /*
              * "Executes" the tasks' download Runnable in order to download the image. If no

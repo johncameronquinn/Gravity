@@ -2112,7 +2112,7 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
 
         if (Constants.LOGD) {
             Log.d(TAG, "downloading image from  s3 with key: " + b.getString(Constants.KEY_S3_KEY));
-            Log.d(TAG, "downloading image from file" + file.getPath());
+            Log.d(TAG, "storing downloaded imaged at: " + file.getPath());
         }
 
         TransferObserver observer = transferUtility.download(
@@ -2332,6 +2332,13 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
     public void onError(int id, Exception ex) {
         Toast.makeText(getApplicationContext(), "error occured for transfer: " + id,Toast.LENGTH_SHORT).show();
         Log.e(TAG, "entering onError...", ex);
+        Bundle b = pendingMap.remove(id);
+
+
+        Log.i(TAG,"now discarding data for id : " + id);
+        LogUtils.printBundle(b,TAG);
+
+        Log.e(TAG, "exiting onError...", ex);
     }
 
 

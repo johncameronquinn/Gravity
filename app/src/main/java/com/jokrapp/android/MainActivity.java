@@ -3,11 +3,14 @@ package com.jokrapp.android;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.FragmentManager;
+import android.app.FragmentTransaction;
+import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
@@ -147,6 +150,26 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
     private MobileAnalyticsManager mTracker;
 
 
+    /**IMAGE FULLSCREEN*/
+
+    // A handle to the main screen view
+    View mMainView;
+
+
+    // Tracks whether Fragments are displaying side-by-side
+    boolean mSideBySide;
+
+    // Tracks whether navigation should be hidden
+    boolean mHideNavigation;
+
+    // Tracks whether the app is in full-screen mode
+    boolean mFullScreen;
+
+
+    // Instantiates a new broadcast receiver for handling Fragment state
+    private FragmentDisplayer mFragmentDisplayer = new FragmentDisplayer();
+
+
     /**
      * ********************************************************************************************
      * <p>
@@ -166,8 +189,6 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
         }
         super.onCreate(savedInstanceState);
 
-        PhotoManager.setCacheDirectory(getCacheDir()+"/");
-
         uiHandler.setParent(this);
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
@@ -181,6 +202,23 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
             window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
             window.setStatusBarColor(getResources().getColor(R.color.jpallete_neutral_blue));
         }
+
+        // One filter is for the action ACTION_VIEW_IMAGE
+        IntentFilter displayerIntentFilter = new IntentFilter(
+                Constants.ACTION_VIEW_IMAGE);
+
+        // Registers the receiver
+        LocalBroadcastManager.getInstance(this).registerReceiver(
+                mFragmentDisplayer,
+                displayerIntentFilter);
+
+        // Creates a second filter for ACTION_ZOOM_IMAGE
+        displayerIntentFilter = new IntentFilter(Constants.ACTION_ZOOM_IMAGE);
+
+        // Registers the receiver
+        LocalBroadcastManager.getInstance(this).registerReceiver(
+                mFragmentDisplayer,
+                displayerIntentFilter);
 
         checkForLocationEnabled(this);
 
@@ -354,11 +392,10 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
 
 
     protected void onDestroy() {
-        super.onDestroy();
         Log.d(TAG, "enter onDestroy...");
 
         Bundle b = new Bundle();
-        b.putString(Constants.KEY_ANALYTICS_CATEGORY,Constants.ANALYTICS_CATEGORY_LIFECYCLE);
+        b.putString(Constants.KEY_ANALYTICS_CATEGORY, Constants.ANALYTICS_CATEGORY_LIFECYCLE);
         b.putString(Constants.KEY_ANALYTICS_ACTION, "destroyed");
         b.putString(Constants.KEY_ANALYTICS_LABEL,"Last open fragment");
         b.putString(Constants.KEY_ANALYTICS_VALUE, String.valueOf(mAdapter.getPageTitle(mPager.getCurrentItem())));
@@ -370,6 +407,13 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
             Log.e(TAG,"error notifying that fragment was destroyed",e);
         }
 
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(this.mFragmentDisplayer);
+
+        // Sets the main View to null
+        mMainView = null;
+
+
+        super.onDestroy();
         Log.d(TAG, "exit onDestroy...");
     }
 
@@ -542,7 +586,7 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
     public void onMessageRefresh(View v) {
         Bundle b = new Bundle();
         b.putString(Constants.KEY_ANALYTICS_CATEGORY,Constants.ANALYTICS_CATEGORY_MESSAGE);
-        b.putString(Constants.KEY_ANALYTICS_ACTION,"refresh");
+        b.putString(Constants.KEY_ANALYTICS_ACTION, "refresh");
         sendMsgReportAnalyticsEvent(b);
 
         sendMsgRequestLocalMessages();
@@ -551,7 +595,7 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
     public void onLocalRefresh(View v) {
         Bundle b = new Bundle();
         b.putString(Constants.KEY_ANALYTICS_CATEGORY,Constants.ANALYTICS_CATEGORY_LOCAL);
-        b.putString(Constants.KEY_ANALYTICS_ACTION,"refresh");
+        b.putString(Constants.KEY_ANALYTICS_ACTION, "refresh");
         sendMsgReportAnalyticsEvent(b);
 
 
@@ -847,6 +891,167 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
                 break;
         }
     }
+
+
+    /**
+     * This class uses the broadcast receiver framework to detect incoming broadcast Intents
+     * and change the currently-visible fragment based on the Intent action.
+     * It adds or replaces Fragments as necessary, depending on how much screen real-estate is
+     * available.
+     */
+    private class FragmentDisplayer extends BroadcastReceiver {
+
+        // Default null constructor
+        public FragmentDisplayer() {
+
+            // Calls the constructor for BroadcastReceiver
+            super();
+        }
+        /**
+         * Receives broadcast Intents for viewing or zooming pictures, and displays the
+         * appropriate Fragment.
+         *
+         * @param context The current Context of the callback
+         * @param intent The broadcast Intent that triggered the callback
+         */
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if (Constants.LOGV) Log.v(TAG,"received intent to fullscreen or zoom...");
+
+            // Declares a local FragmentManager instance
+            FragmentManager fragmentManager1;
+
+            // Declares a local instance of the Fragment that displays photos
+            PhotoFragment photoFragment;
+
+            // Stores a string representation of the URL in the incoming Intent
+            String urlString;
+
+            // If the incoming Intent is a request is to view an image
+            if (intent.getAction().equals(Constants.ACTION_VIEW_IMAGE)) {
+
+                // Gets an instance of the support library fragment manager
+                fragmentManager1 = getFragmentManager();
+
+                // Gets a handle to the Fragment that displays photos
+                photoFragment =
+                        (PhotoFragment) fragmentManager1.findFragmentByTag(
+                                Constants.PHOTO_FRAGMENT_TAG
+                        );
+
+                // Gets the URL of the picture to display
+                urlString = intent.getExtras().getString(Constants.KEY_S3_KEY,"");
+
+
+                if (Constants.LOGV) Log.v(TAG,"Received string is: " + urlString);
+
+                // If the photo Fragment exists from a previous display
+                if (null != photoFragment) {
+
+                    // If the incoming URL is not already being displayed
+                    if (!urlString.equals(photoFragment.getImageKeyString())) {
+
+                        // Sets the Fragment to use the URL from the Intent for the photo
+                        photoFragment.setPhoto(Constants.KEY_S3_REPLIES_DIRECTORY,urlString);
+                        Log.w(TAG,"for now, replies is assumed for fullscreened images...");
+
+                        // Loads the photo into the Fragment
+                        photoFragment.loadPhoto();
+                    }
+
+                    // If the Fragment doesn't already exist
+                } else {
+                    // Instantiates a new Fragment
+                    photoFragment = new PhotoFragment();
+
+                    // Sets the Fragment to use the URL from the Intent for the photo
+                    photoFragment.setPhoto(Constants.KEY_S3_REPLIES_DIRECTORY, urlString);
+                    Log.w(TAG,"for now, replies is assumed for fullscreened images...");
+
+                    // Starts a new Fragment transaction
+                    FragmentTransaction localFragmentTransaction2 =
+                            fragmentManager1.beginTransaction();
+
+                    // If the fragments are side-by-side, adds the photo Fragment to the display
+                    if (mSideBySide) {
+                        localFragmentTransaction2.add(
+                                R.id.fragmentHost,
+                                photoFragment,
+                                Constants.PHOTO_FRAGMENT_TAG
+                        );
+                    /*
+                     * If the Fragments are not side-by-side, replaces the current Fragment with
+                     * the photo Fragment
+                     */
+                    } else {
+                        localFragmentTransaction2.replace(
+                                R.id.fragmentHost,
+                                photoFragment,
+                                Constants.PHOTO_FRAGMENT_TAG);
+
+                    }
+
+                    // Don't remember the transaction (sets the Fragment backstack to null)
+                    localFragmentTransaction2.addToBackStack(null);
+
+                    // Commits the transaction
+                    localFragmentTransaction2.commit();
+
+                }
+
+                // If not in side-by-side mode, sets "full screen", so that no controls are visible
+              //  if (!mSideBySide) setFullScreen(true);
+
+            /*
+             * If the incoming Intent is a request to zoom in on an existing image
+             * (Notice that zooming is only supported on large-screen devices)
+             */
+            } else if (intent.getAction().equals(Constants.ACTION_ZOOM_IMAGE)) {
+
+                // If the Fragments are being displayed side-by-side
+                if (mSideBySide) {
+
+                    // Gets another instance of the FragmentManager
+                    FragmentManager localFragmentManager2 = getFragmentManager();
+
+                    // Gets a thumbnail Fragment instance
+                    PhotoThumbnailFragment localThumbnailFragment =
+                            (PhotoThumbnailFragment) localFragmentManager2.findFragmentByTag(
+                                    Constants.THUMBNAIL_FRAGMENT_TAG);
+
+                    // If the instance exists from a previous display
+                    if (null != localThumbnailFragment) {
+
+                        // if the existing instance is visible
+                        if (localThumbnailFragment.isVisible()) {
+
+                            // Starts a fragment transaction
+                            FragmentTransaction localFragmentTransaction2 =
+                                    localFragmentManager2.beginTransaction();
+
+                            /*
+                             * Hides the current thumbnail, clears the backstack, and commits the
+                             * transaction
+                             */
+                            localFragmentTransaction2.hide(localThumbnailFragment);
+                            localFragmentTransaction2.addToBackStack(null);
+                            localFragmentTransaction2.commit();
+
+                            // If the existing instance is not visible, display it by going "Back"
+                        } else {
+
+                            // Pops the back stack to show the previous Fragment state
+                            localFragmentManager2.popBackStack();
+                        }
+                    }
+
+                    // Removes controls from the screen
+               //     setFullScreen(true);
+                }
+            }
+        }
+    }
+
 
     /***********************************************************************************************
      * INITIALIZE
@@ -1242,7 +1447,7 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
     }
 
     public void sendMsgDownloadImage(String s3Directory, String s3Key) {
-        Log.i(TAG,"send a message download image...");
+        Log.i(TAG,"send a message to download image from: " + s3Directory + " / " + s3Key);
         if (isBound) {
             Message msg = Message.obtain(null, DataHandlingService.MSG_DOWNLOAD_IMAGE);
             Bundle b = new Bundle(2);
@@ -2408,9 +2613,9 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
                     switch (msg.arg1) {
                         case DataHandlingService.MSG_REPLY_TO_THREAD:
                             Log.d(TAG,"MSG_REPLY_TO_THREAD returned successful");
-                            sendMsgRequestReplies(msg.getData().getInt("threadID"));
+                             sendMsgRequestReplies(msg.getData().getInt("threadID"));
                             if (MainActivity.ReplyFragReference.get()!=null){
-                                MainActivity.ReplyFragReference.get().handleResponseCode(MSG_UPLOAD_SUCCESS);
+                   //             MainActivity.ReplyFragReference.get().handleResponseCode(MSG_UPLOAD_SUCCESS);
                             }
                             break;
 
@@ -2418,8 +2623,8 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
                             Log.d(TAG,"MSG_REQUEST_REPLIES returned successful");
                             if (MainActivity.ReplyFragReference.get()!=null){
                                 MainActivity
-                                        .ReplyFragReference.get()
-                                        .handleResponseCode(MSG_SUCCESS);
+                                        .ReplyFragReference.get();
+                   //                     .handleResponseCode(MSG_SUCCESS);
                             }
                             break;
 
@@ -2521,9 +2726,9 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
                             break;
 
                         case DataHandlingService.MSG_REQUEST_REPLIES:
-                            Toast.makeText(activity.get(), "No replies received...", Toast.LENGTH_SHORT).show();
+                            //Toast.makeText(activity.get(), "No replies received...", Toast.LENGTH_SHORT).show();
                             if (MainActivity.ReplyFragReference.get()!=null) {
-                                MainActivity.ReplyFragReference.get().handleResponseCode(MSG_NOTHING_RETURNED);
+                                //MainActivity.ReplyFragReference.get().handleResponseCode(MSG_NOTHING_RETURNED);
                             }
 
                             break;

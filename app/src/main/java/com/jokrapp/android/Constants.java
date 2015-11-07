@@ -9,7 +9,7 @@ import java.util.Locale;
 
 public final class Constants {
     //modes
-    public static boolean client_only_mode = true;
+    public static boolean client_only_mode = false;
 
 
     // Defines a custom Intent action

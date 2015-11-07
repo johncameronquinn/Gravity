@@ -17,11 +17,12 @@ package com.jokrapp.android;
  */
 
 
+import android.os.Messenger;
 import android.util.Log;
 
 import com.jokrapp.android.PhotoDecodeRunnable.TaskRunnableDecodeMethods;
 
-import com.jokrapp.android.PhotoDownloadRunnable.TaskRunnableDownloadMethods;
+import com.jokrapp.android.PhotoDiskLoadRunnable.TaskRunnableDiskLoadMethods;
 
 
 import java.io.File;
@@ -29,13 +30,16 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
+
+
+
 /**
  * This task downloads bytes from a resource addressed by a URL.  When the task
  * has finished, it calls handleState to report its results.
  *
  * Objects of this class are instantiated and managed by instances of PhotoTask, which
  * implements the methods of {@link TaskRunnableDecodeMethods}. PhotoTask objects call
- * {@link #PhotoDiskLoadRunnable(TaskRunnableDownloadMethods) PhotoDownloadRunnable()} with
+ * {@link #PhotoDiskLoadRunnable(TaskRunnableDiskLoadMethods)PhotoDownloadRunnable()} with
  * themselves as the argument. In effect, an PhotoTask object and a
  * PhotoDownloadRunnable object communicate through the fields of the PhotoTask.
  */
@@ -53,8 +57,53 @@ class PhotoDiskLoadRunnable implements Runnable {
     static final int HTTP_STATE_COMPLETED = 1;
 
     // Defines a field that contains the calling object of type PhotoTask.
-    final TaskRunnableDownloadMethods mPhotoTask;
+    final TaskRunnableDiskLoadMethods mPhotoTask;
 
+
+
+
+    /**
+     *
+     * An interface that defines methods that PhotoTask implements. An instance of
+     * PhotoTask passes itself to an PhotoDownloadRunnable instance through the
+     * PhotoDownloadRunnable constructor, after which the two instances can access each other's
+     * variables.
+     */
+    interface TaskRunnableDiskLoadMethods {
+
+        /**
+         * Sets the Thread that this instance is running on
+         * @param currentThread the current Thread
+         */
+        void setDownloadThread(Thread currentThread);
+
+        /**
+         * Returns the current contents of the download buffer
+         * @return The byte array downloaded from the URL in the last read
+         */
+        byte[] getByteBuffer();
+
+        /**
+         * Sets the current contents of the download buffer
+         * @param buffer The bytes that were just read
+         */
+        void setByteBuffer(byte[] buffer);
+
+        /**
+         * Defines the actions for each state of the PhotoTask instance.
+         * @param state The current state of the task
+         */
+        void handleDownloadState(int state);
+
+        /**
+         * Gets the URL for the image being downloaded
+         * @return The image URL
+         */
+        String getImageKey();
+
+
+        File getCacheDirectory();
+    }
 
 
     /**
@@ -63,7 +112,7 @@ class PhotoDiskLoadRunnable implements Runnable {
      *
      * @param photoTask The PhotoTask, which implements TaskRunnableDecodeMethods
      */
-    PhotoDiskLoadRunnable(TaskRunnableDownloadMethods photoTask) {
+    PhotoDiskLoadRunnable(TaskRunnableDiskLoadMethods photoTask) {
         mPhotoTask = photoTask;
     }
 
@@ -116,7 +165,7 @@ class PhotoDiskLoadRunnable implements Runnable {
 
                 // Defines a handle for the byte download stream
                 InputStream byteStream = null;
-                File f = new File(PhotoManager.getInstance().diskCachePath+mPhotoTask.getImageKey());
+                File f = new File(mPhotoTask.getCacheDirectory(),mPhotoTask.getImageKey());
 
                 // Downloads the image and catches IO errors
                 try {

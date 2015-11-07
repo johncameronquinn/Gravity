@@ -179,10 +179,7 @@ public class LiveFragment extends Fragment implements
                 LiveThreadEntry.COLUMN_NAME_UNIQUE
         };
 
-        receiver = new LiveThreadReceiver();
-        IntentFilter filter = new IntentFilter(Constants.ACTION_IMAGE_LIVE_LOADED);
-        context.registerReceiver(receiver, filter);
-    }
+      }
 
     //todo, this is a workaround for a bug and can be removed in the future
     public void onAttach(Activity context) {
@@ -191,9 +188,6 @@ public class LiveFragment extends Fragment implements
         mListener.sendMsgRequestLiveThreads();
 
 
-        receiver = new LiveThreadReceiver();
-        IntentFilter filter = new IntentFilter(Constants.ACTION_IMAGE_LIVE_LOADED);
-        context.registerReceiver(receiver, filter);
     }
 
 
@@ -285,7 +279,6 @@ public class LiveFragment extends Fragment implements
     @Override
     public void onDetach() {
         super.onDetach();
-        getActivity().unregisterReceiver(receiver);
     }
 
     public int getCurrentThread() {
@@ -608,47 +601,6 @@ public class LiveFragment extends Fragment implements
         void sendMsgRequestReplies(int threadID);
         void setCurrentThread(String threadID);
     }
-
-
-/***************************************************************************************************
- * DOWNLOAD STATE RECEIVER
- */
-
-public LiveThreadReceiver receiver;
-
-    public class LiveThreadReceiver extends BroadcastReceiver {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            if (LiveFragment.VERBOSE) {
-                Log.v(TAG, "received intent...");
-            }
-
-            String path = intent.getExtras()
-                    .getString(Constants.KEY_S3_KEY);
-            View v = threadPager.findViewWithTag(path);
-
-            if (v==null){
-                Log.e(TAG,"no view matching path : " + path + " was found...");
-                return;
-            }
-
-            if (v.isShown()) {
-                if (VERBOSE) Log.v(TAG,"Image loaded from view is visible, decoding and displaying...");
-                ImageView imageView = (ImageView) v.findViewById(R.id.photoView);
-                ProgressBar bar = (ProgressBar) v.findViewById(R.id.photoProgress);
-
-                /* create full path from tag*/
-                String[] params = {getActivity().getCacheDir() + "/" +path};
-
-                new ImageLoadTask(imageView, bar).execute(
-                        params);
-            } else {
-                if (VERBOSE) Log.v(TAG,"image is now shown do nothing...");
-            }
-
-        }
-    }
-
 
 
 

@@ -12,13 +12,16 @@ import android.content.Loader;
 import android.database.Cursor;
 import android.os.Bundle;
 import android.app.Fragment;
+import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.AdapterView;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
@@ -36,7 +39,7 @@ import java.lang.ref.WeakReference;
  * A simple {@link Fragment} subclass. factory method to
  * create an instance of this fragment.
  */
-public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor>{
+public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
     private static int currentThread = LiveFragment.NO_LIVE_THREADS_ID;
     public static final int REPLY_LOADER_ID = 3;
 
@@ -104,10 +107,10 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
     public void onAttach(Activity activity) {
         super.onAttach(activity);
 
-        receiver = new ReplyReceiver();
-        IntentFilter filter = new IntentFilter(Constants.ACTION_IMAGE_REPLY_THUMBNAIL_LOADED);
-        filter.addAction(Constants.ACTION_IMAGE_REPLY_LOADED);
-        activity.registerReceiver(receiver, filter);
+       // receiver = new ReplyReceiver();
+//        IntentFilter filter = new IntentFilter(Constants.ACTION_IMAGE_REPLY_THUMBNAIL_LOADED);
+//        filter.addAction(Constants.ACTION_IMAGE_REPLY_LOADED);
+      //  activity.registerReceiver(receiver, filter);
 
 
 
@@ -122,8 +125,8 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
     public void onDetach() {
         super.onDetach();
         getLoaderManager().destroyLoader(REPLY_LOADER_ID);
-        getActivity().unregisterReceiver(receiver);
-        receiver = null;
+    //    getActivity().unregisterReceiver(receiver);
+    //    receiver = null;
         mListener = null;
     }
 
@@ -165,6 +168,8 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
         if (VERBOSE) {Log.v(TAG,"exiting onCreateView...");}
         return v;
     }
+
+
 
     @Override
     public void onDestroyView() {
@@ -387,7 +392,7 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
     }
 
 
-    private ReplyReceiver receiver;
+  /*  private ReplyReceiver receiver;
 
     public class ReplyReceiver extends BroadcastReceiver {
         @Override
@@ -439,7 +444,7 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
                         });
 
                         /* create full path from tag - DECODE THUMBNAIL ONLY (so add "s") */
-                        String[] params = {getActivity().getCacheDir() + "/" + path};
+/*                        String[] params = {getActivity().getCacheDir() + "/" + path};
 
 
                         new ImageLoadTask(imageView, null).execute(params);
@@ -460,7 +465,7 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
 
             }
         }
-    }
+    }*/
 
     /**
      * method 'handleErrorCode'
@@ -468,7 +473,7 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
      * intended to handle relevant error codes passed by the activity
      * @param code
      */
-    public void handleResponseCode(int code) {
+  /*  public void handleResponseCode(int code) {
         if (VERBOSE) Log.v(TAG,"Handling response code... " + code);
 
         switch (code) {
@@ -500,7 +505,7 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
                 }
                 break;
         }
-    }
+    }*/
 
 
 }

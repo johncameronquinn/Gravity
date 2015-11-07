@@ -12,7 +12,7 @@
     <ProgressBar android:layout_gravity="center" android:id="@+id/photoProgress"
         android:layout_width="wrap_content" android:layout_height="wrap_content" />
     <com.jokrapp.android.PhotoView
-        android:id="@+id/photoView" android:layout_width="fill_parent"
-        android:layout_height="fill_parent" android:scaleType="centerInside"
+        android:id="@+id/photoView" android:layout_width="match_parent"
+        android:layout_height="match_parent" android:scaleType="fitXY"
         image:hideShowSibling="@id/photoProgress" />
 </FrameLayout>

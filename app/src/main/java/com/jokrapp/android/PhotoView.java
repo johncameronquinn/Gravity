@@ -32,7 +32,7 @@ public class PhotoView extends ImageView {
     // Status flag that indicates if onDraw has completed
     private boolean mIsDrawn;
 
-    private final boolean VERBOSE = true;
+    private final boolean VERBOSE = false;
 
     private final String TAG = "PhotoView";
 
@@ -53,6 +53,8 @@ public class PhotoView extends ImageView {
 
     // The URL that points to the source of the image for this ImageView
     private String mImageKey;
+
+    private String mImageDirectory;
 
     // The Thread that will be used to download the image for this ImageView
     private PhotoTask mDownloadThread;
@@ -118,6 +120,7 @@ public class PhotoView extends ImageView {
         // If the View contains something
         if (mThisView != null) {
             if (VERBOSE) Log.v(TAG,"there was a view to show... so... setting...");
+            if (VERBOSE) Log.v(TAG,"storing view with key :" + mThisView.get().toString());
 
             // Gets a local hard reference to the View
             View localView = mThisView.get();
@@ -142,8 +145,12 @@ public class PhotoView extends ImageView {
      * Returns the key of the picture associated with this ImageView
      * @return a Key
      */
-    final String getKey() {
+    final String getImageKey() {
         return mImageKey;
+    }
+
+    final String getmImageDirectory() {
+        return mImageDirectory;
     }
 
     /*
@@ -182,7 +189,7 @@ public class PhotoView extends ImageView {
 
         if (VERBOSE) Log.v(TAG,"clearing drawable, disabling cache, disconnecting view.");
         // Clears out the image drawable, turns off the cache, disconnects the view from a URL
-        setImageKey(null,false,null);
+        setImageKey(null,null,false,null);
 
         // Gets the current Drawable, or null if no Drawable is attached
         Drawable localDrawable = getDrawable();
@@ -297,22 +304,24 @@ public class PhotoView extends ImageView {
      * @param cacheFlag Whether to use caching when doing downloading and decoding
      * @param imageDrawable The Drawable to use for this ImageView
      */
-    public void setImageKey(String imageKey, boolean cacheFlag, Drawable imageDrawable) {
-        if (VERBOSE) Log.v(TAG,"enting setImageKey...");
-
-        // If the picture URL for this ImageView is already set
-        if (Constants.LOGV) {
-            Log.v(VIEW_LOG_TAG,"entering setImageKey with key: " + imageKey);
+    public void setImageKey(String directory, String imageKey, boolean cacheFlag, Drawable imageDrawable) {
+        if (VERBOSE) Log.v(TAG,"entering setImageKey with key: " + imageKey + " and directory : " + directory);
+        if (imageKey == "null") {
+            Log.v(TAG,imageKey = null);
         }
 
+        // If the picture URL for this ImageView is already set
+
         if (mImageKey != null) {
+            if (VERBOSE) Log.v(TAG,"image key was not null...");
 
             // If the stored URL doesn't match the incoming URL, then the picture has changed.
             if (!mImageKey.equals(imageKey)) {
-
+                if (VERBOSE) Log.v(TAG,"image key has changed, removing and resetting...");
                 // Stops any ongoing downloads for this ImageView
                 PhotoManager.removeDownload(mDownloadThread, mImageKey);
             } else {
+                if (VERBOSE) Log.v(TAG,"image key is the same as prior. Do nothing.");
                 // The stored URL matches the incoming URL. Returns without doing any work.
                 return;
             }
@@ -323,6 +332,8 @@ public class PhotoView extends ImageView {
 
         // Stores the picture URL for this ImageView
         mImageKey = imageKey;
+
+        mImageDirectory = directory;
 
         // If the draw operation for this ImageVIew has completed, and the picture URL isn't empty
         if ((mIsDrawn) && (imageKey != null)) {
@@ -336,6 +347,9 @@ public class PhotoView extends ImageView {
              * file's contents may be taken from the cache.
              */
             mDownloadThread = PhotoManager.startDownload(this, cacheFlag);
+        } else {
+            if (VERBOSE) Log.v(TAG,"incoming image was null so do nothing");
+
         }
 
         if (VERBOSE) Log.v(VIEW_LOG_TAG,"exiting setImageKey...");
@@ -346,9 +360,10 @@ public class PhotoView extends ImageView {
      * @param drawable A Drawable to use for the ImageView
      */
     public void setStatusDrawable(Drawable drawable) {
-
+        if (Constants.LOGV) Log.v(TAG,"entering setStatusDrawable..");
         // If the View is empty, sets a Drawable as its content
         if (mThisView == null) {
+            if (Constants.LOGV) Log.v(TAG,"setting drawable now...");
             setImageDrawable(drawable);
         }
     }
@@ -358,9 +373,10 @@ public class PhotoView extends ImageView {
      * @param resId
      */
     public void setStatusResource(int resId) {
-
+        if (Constants.LOGV) Log.v(TAG,"entering setStatusResource..");
         // If the View is empty, provides it with a Drawable resource as its content
         if (mThisView == null) {
+            if (Constants.LOGV) Log.v(TAG,"setting resource now...");
             setImageResource(resId);
         }
     }

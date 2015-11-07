@@ -17,10 +17,15 @@
 package com.jokrapp.android;
 import com.jokrapp.android.PhotoDecodeRunnable.TaskRunnableDecodeMethods;
 import com.jokrapp.android.PhotoDownloadRunnable.TaskRunnableDownloadMethods;
+import com.jokrapp.android.PhotoDiskLoadRunnable.TaskRunnableDiskLoadMethods;
 
 import android.graphics.Bitmap;
+import android.os.*;
+import android.os.Process;
 import android.util.Log;
+import android.view.View;
 
+import java.io.File;
 import java.lang.ref.WeakReference;
 import java.net.URL;
 
@@ -33,7 +38,7 @@ import java.net.URL;
  * run a decode, and then start over again. This class can be pooled and reused as necessary.
  */
 public class PhotoTask implements
-        TaskRunnableDownloadMethods, TaskRunnableDecodeMethods {
+        TaskRunnableDiskLoadMethods, TaskRunnableDecodeMethods, TaskRunnableDownloadMethods {
 
     /*
      * Creates a weak reference to the ImageView that this Task will populate.
@@ -51,6 +56,10 @@ public class PhotoTask implements
     // The image's URL
     private String mImageKey;
 
+    private String mImageDirectory;
+
+    private File mCacheDirectory;
+
     // The width and height of the decoded image
     private int mTargetHeight;
     private int mTargetWidth;
@@ -59,6 +68,8 @@ public class PhotoTask implements
     // Is the cache enabled for this transaction?
     private boolean mCacheEnabled;
 
+    private HandlerThread handlerThread = new HandlerThread(
+            "DownloadStateHandlerThread");
     /*
      * Field containing the Thread this task is running on.
      */
@@ -73,6 +84,7 @@ public class PhotoTask implements
 
     private Runnable mDiskDecodeRunnable;
 
+
     // A buffer for containing the bytes that make up the image
     byte[] mImageBuffer;
 
@@ -86,6 +98,8 @@ public class PhotoTask implements
      * An object that contains the ThreadPool singleton.
      */
     private static PhotoManager sPhotoManager;
+
+    private Messenger mMessenger;
 
     /**
      * Creates an PhotoTask containing a download object and a decoder object.
@@ -115,10 +129,14 @@ public class PhotoTask implements
         sPhotoManager = photoManager;
 
         // Gets the URL for the View
-        mImageKey = photoView.getKey();
+        mImageKey = photoView.getImageKey();
+        mImageDirectory = photoView.getmImageDirectory();
+
+
 
         // Instantiates the weak reference to the incoming view
-        mImageWeakRef = new WeakReference<PhotoView>(photoView);
+        mImageWeakRef = new WeakReference<>(photoView);
+        mCacheDirectory = photoView.getContext().getCacheDir();
 
         // Sets the cache flag to the input argument
         mCacheEnabled = cacheFlag;
@@ -126,6 +144,7 @@ public class PhotoTask implements
         // Gets the width and height of the provided ImageView
         mTargetWidth = photoView.getWidth();
         mTargetHeight = photoView.getHeight();
+
     }
 
     // Implements HTTPDownloaderRunnable.getByteBuffer
@@ -176,6 +195,16 @@ public class PhotoTask implements
         return mImageKey;
     }
 
+    @Override
+    public String getImageDirectory() {
+        return mImageDirectory;
+    }
+
+    @Override
+    public File getCacheDirectory() {
+        return mCacheDirectory;
+    }
+
     // Implements PhotoDownloadRunnable.setByteBuffer. Sets the image buffer to a buffer object.
     @Override
     public void setByteBuffer(byte[] imageBuffer) {
@@ -207,6 +236,22 @@ public class PhotoTask implements
     Runnable getPhotoDecodeRunnable() {
         return mDecodeRunnable;
     }
+
+
+    public Messenger getResponseMessenger() {
+        return mMessenger;
+    }
+
+
+    public void setResponseMessenger(Messenger messenger) {
+        mMessenger = messenger;
+    }
+
+    @Override
+    public Messenger getmService() {
+        return ((MainActivity)mImageWeakRef.get().getContext()).getMessenger();
+    }
+
 
     // Returns the ImageView that's being constructed.
     public PhotoView getPhotoView() {
@@ -299,8 +344,8 @@ public class PhotoTask implements
         switch(state) {
             case PhotoDecodeRunnable.DECODE_STATE_COMPLETED:
                 if (Constants.LOGV) Log.v(TAG, "Decode completed...");
-
                 outState = PhotoManager.TASK_COMPLETE;
+
                 break;
             case PhotoDecodeRunnable.DECODE_STATE_FAILED:
                 if (Constants.LOGV) Log.v(TAG, "Decode failed...");
@@ -317,4 +362,5 @@ public class PhotoTask implements
         // Passes the state to the ThreadPool object.
         handleState(outState);
     }
+
 }

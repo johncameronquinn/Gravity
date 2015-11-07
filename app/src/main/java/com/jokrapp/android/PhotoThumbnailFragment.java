@@ -387,7 +387,7 @@ public class PhotoThumbnailFragment extends Fragment implements
                  * Invokes setImageURL for the View. If the image isn't already available, this
                  * will download and decode it.
                  */
-                localImageDownloaderView.setImageKey(
+                localImageDownloaderView.setImageKey(Constants.KEY_S3_STASH_DIRECTORY,
                         imageKey, true, PhotoThumbnailFragment.this.mEmptyDrawable);
 
             }  catch (RejectedExecutionException localRejectedExecutionException) {

@@ -1,16 +1,20 @@
 package com.jokrapp.android;
 import android.content.Context;
 import android.database.Cursor;
+import android.graphics.drawable.Drawable;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AbsListView;
 import android.widget.CursorAdapter;
 import android.widget.ImageView;
 
 import android.net.Uri;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+
+import com.jokrapp.android.view.ImageCursorAdapterView;
 
 import java.io.File;
 import java.util.Hashtable;
@@ -32,7 +36,10 @@ public class ImageStackCursorAdapter extends CursorAdapter {
         private MainActivity context;
         private int layout;
         private Uri table;
-        private Map<String,ViewHolder> viewKey = new Hashtable<>();
+
+    private Drawable mEmptyDrawable;
+
+
 
     private LayoutInflater mLayoutInflater;
 
@@ -44,13 +51,14 @@ public class ImageStackCursorAdapter extends CursorAdapter {
          */
         private class ViewHolder {
             //TextView textView;
-            ImageView imageView;
-            ProgressBar progressBar;
+            PhotoView photoView;
+            String path;
 
             ViewHolder(View v, String s) {
-                progressBar = (ProgressBar) v.findViewById(R.id.local_post_progressbar);
-                progressBar.setTag(s);
-                imageView = (ImageView) v.findViewById(R.id.local_post_imageView);
+                photoView = (PhotoView) v.findViewById(R.id.photoView);
+                path = s;
+
+
             }
         }
 
@@ -73,6 +81,9 @@ public class ImageStackCursorAdapter extends CursorAdapter {
         this.layout = layout;
         mLayoutInflater = LayoutInflater.from(context);
         this.table = table;
+
+        mEmptyDrawable = activity.getResources().getDrawable(R.drawable.imagenotqueued);
+
     }
 
     /**
@@ -95,17 +106,15 @@ public class ImageStackCursorAdapter extends CursorAdapter {
                View vView =  mLayoutInflater.inflate(layout, parent, false);
         if (VERBOSE) {
             Log.v(TAG,"entering newView...");
-            Log.v(TAG,"Cursor used for newView is: " + cursor.toString());
-
-            String[] names = cursor.getColumnNames();
-            for (int i = 0; i < names.length; i++) {
-                Log.v(TAG,"column: " + i + " name: " + names[i]);
-            }
         }
 
         vView.setTag(new ViewHolder(vView, cursor.getString
                 (cursor.getColumnIndex(SQLiteDbContract.LocalEntry.COLUMN_NAME_FILEPATH))));
 
+        vView.setLayoutParams(new ImageCursorAdapterView.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.MATCH_PARENT)
+        );
             /*
              * sets tags of the buttons, so then when they are clicked, the method in mainactivity
              * knows which card they were attached to.
@@ -114,8 +123,6 @@ public class ImageStackCursorAdapter extends CursorAdapter {
         String UUID = cursor.getString(cursor.getColumnIndex(SQLiteDbContract.MessageEntry.COLUMN_FROM_USER));
 
         ((TextView)vView.findViewById(R.id.userID)).setText(UUID);
-
-
 
         context.findViewById(R.id.button_local_message).setTag(UUID);
         context.findViewById(R.id.button_local_block).setTag(UUID);
@@ -143,13 +150,11 @@ public class ImageStackCursorAdapter extends CursorAdapter {
                 Log.v(TAG,"entering bindView...");
             }
 
-
             /* grab the caption from incoming files*/
             String caption_text = c.getString(
                     c.getColumnIndex(
                             SQLiteDbContract.LocalEntry.COLUMN_NAME_TEXT)
             );
-
 
             /* if the caption is not empty (or null) set and display*/
             if (!"".equals(caption_text)) {
@@ -158,27 +163,9 @@ public class ImageStackCursorAdapter extends CursorAdapter {
                 caption.setVisibility(View.VISIBLE);
             }
 
-
-            // you might want to cache these too
-            int iCol_filepath = c.getColumnIndex(SQLiteDbContract.LocalEntry.COLUMN_NAME_FILEPATH);
-            String sText = c.getString(iCol_filepath);
-
-
             ViewHolder vh = (ViewHolder) v.getTag();
-
-            String[] params = {ctx.getCacheDir() + "/" + sText};
-
-            File f = new File(params[0]);
-
-            if (f.exists()) {
-                if (VERBOSE) Log.v(TAG,"file exists, decoding image...");
-                new ImageLoadTask(vh.imageView, vh.progressBar).execute(params);
-            } else {
-                Log.i(TAG,"file did not exist at path: " + sText + " not decoding...");
-                ((MainActivity)ctx).sendMsgDownloadImage(Constants.KEY_S3_LOCAL_DIRECTORY,sText);
-            }
-
-            v.setTag(params[0]);
+            if (VERBOSE) Log.v(TAG,"incoming filepath is: " + vh.path);
+            vh.photoView.setImageKey(Constants.KEY_S3_LOCAL_DIRECTORY,vh.path,true,this.mEmptyDrawable);
 
             if (VERBOSE) {
                 Log.v(TAG,"exiting bindView...");
@@ -217,7 +204,6 @@ public class ImageStackCursorAdapter extends CursorAdapter {
             Log.e(TAG,"there was no image to pop");
             return "huh";
         }
-
 
         String filePath = c.getString(c.getColumnIndex(SQLiteDbContract.LocalEntry.
                 COLUMN_NAME_FILEPATH));

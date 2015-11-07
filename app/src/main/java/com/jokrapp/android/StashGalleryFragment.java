@@ -465,7 +465,7 @@ public class StashGalleryFragment extends Fragment implements FragmentManager.On
                     if (!urlString.equals(photoFragment.getImageKeyString())) {
 
                         // Sets the Fragment to use the URL from the Intent for the photo
-                        photoFragment.setPhoto(urlString);
+                        photoFragment.setPhoto(Constants.KEY_S3_STASH_DIRECTORY,urlString);
 
                         // Loads the photo into the Fragment
                         photoFragment.loadPhoto();
@@ -477,7 +477,7 @@ public class StashGalleryFragment extends Fragment implements FragmentManager.On
                     photoFragment = new PhotoFragment();
 
                     // Sets the Fragment to use the URL from the Intent for the photo
-                    photoFragment.setPhoto(urlString);
+                    photoFragment.setPhoto(Constants.KEY_S3_STASH_DIRECTORY,urlString);
 
                     // Starts a new Fragment transaction
                     FragmentTransaction localFragmentTransaction2 =
@@ -627,9 +627,9 @@ public class StashGalleryFragment extends Fragment implements FragmentManager.On
 
             // If the user requests a full-screen view, hides the Action Bar.
             if ( fullscreen ) {
-                 getActivity().getActionBar().hide();
+                getActivity().getActionBar().hide();
             } else {
-                 getActivity().getActionBar().show();
+                getActivity().getActionBar().show();
             }
         }
     }

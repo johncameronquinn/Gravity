@@ -4,6 +4,7 @@
     android:id="@+id/rootlayout"
     tools:context=".MainActivity">
 
+
     <com.jokrapp.android.CustomViewPager
         android:id="@+id/pager"
         android:layout_width="match_parent"
@@ -21,10 +22,15 @@
             android:paddingTop="4dp"
             android:paddingBottom="4dp"
           />
-
     </com.jokrapp.android.CustomViewPager>
 
 
+    <LinearLayout
+        android:orientation="horizontal"
+        android:id="@+id/fragmentHost"
+        android:layout_width="fill_parent" android:layout_height="fill_parent"
+        android:animateLayoutChanges="true"
+        xmlns:android="http://schemas.android.com/apk/res/android" />
 
 
 </FrameLayout>

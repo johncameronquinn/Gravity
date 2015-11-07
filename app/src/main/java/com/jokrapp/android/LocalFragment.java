@@ -73,9 +73,6 @@ public class LocalFragment extends Fragment implements
         }
 
 
-        receiver = new LocalPostReceiver();
-        IntentFilter filter = new IntentFilter(Constants.ACTION_IMAGE_LOCAL_LOADED);
-        activity.registerReceiver(receiver, filter);
     }
 
     @Override
@@ -94,22 +91,19 @@ public class LocalFragment extends Fragment implements
                     + " must implement OnFragmentInteractionListener");
         }
 
-        receiver = new LocalPostReceiver();
-        IntentFilter filter = new IntentFilter(Constants.ACTION_IMAGE_LOCAL_LOADED);
-        activity.registerReceiver(receiver, filter);
     }
 
     @Override
     public void onDestroy() {
-        super.onDestroy();
         if (VERBOSE) {
             Log.v(TAG,"enter onDestroy...");
         }
-        mListener = null;
 
-        getActivity().unregisterReceiver(receiver);
-        receiver = null;
         getLoaderManager().destroyLoader(LOCAL_LOADER_ID);
+
+        adapter = null;
+        mListener = null;
+        super.onDestroy();
         if (VERBOSE) {
             Log.v(TAG,"exit onDestroy...");
         }
@@ -131,6 +125,14 @@ public class LocalFragment extends Fragment implements
     }
 
     @Override
+    public void onDestroyView() {
+
+        imageAdapterView = null;
+
+        super.onDestroyView();
+    }
+
+    @Override
     public void onViewCreated(View cat, Bundle savedInstanceState) {
         super.onViewCreated(cat, savedInstanceState);
         if (VERBOSE) {
@@ -149,11 +151,11 @@ public class LocalFragment extends Fragment implements
 
         // Fields from the database (projection)
         // Must include the _id column for the adapter to work
-        String[] from = new String[] {SQLiteDbContract.LocalEntry.COLUMN_NAME_FILEPATH};
-        // Fields on the UI to which we map
+
+         // Fields on the UI to which we map
        // int[] to = new int[] { R.id.imageID};
 
-        getLoaderManager().initLoader(LOCAL_LOADER_ID, null, this);
+        getLoaderManager().restartLoader(LOCAL_LOADER_ID, null, this);
 
         adapter = new ImageStackCursorAdapter((MainActivity)getActivity(),
                 R.layout.std_card_inner,
@@ -237,44 +239,6 @@ public class LocalFragment extends Fragment implements
 
         if (VERBOSE) {
             Log.v(TAG,"exit onLoaderReset...");
-        }
-    }
-
-    private LocalPostReceiver receiver;
-
-    public class LocalPostReceiver extends BroadcastReceiver {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            if (LiveFragment.VERBOSE) {
-                Log.v(TAG, "received local intent...");
-            }
-
-            Bundle data = intent.getExtras();
-            String path = data.getString(Constants.KEY_S3_KEY);
-
-            View v = imageAdapterView.findViewWithTag(path);
-            if (v==null){
-                Log.e(TAG,"no image was found with the tag: " + path + " doing nothing");
-                return;
-            } else {
-                v = (RelativeLayout)v.getParent();
-            }
-
-            if (v.isShown()) {
-                if (VERBOSE) Log.v(TAG,"Image loaded from view is visible, decoding and displaying...");
-                ImageView imageView = (ImageView) v.findViewById(R.id.local_post_imageView);
-                ProgressBar bar = (ProgressBar) v.findViewById(R.id.local_post_progressbar);
-
-                /* create full path from tag*/
-                String[] params = {getActivity().getCacheDir() + "/" + path};
-
-
-                new ImageLoadTask(imageView, bar).execute(params);
-
-            } else {
-                if (VERBOSE) Log.v(TAG,"image is now shown do nothing...");
-            }
-
         }
     }
 

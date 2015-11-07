@@ -18,6 +18,7 @@ package com.jokrapp.android;
 
         import android.graphics.Bitmap;
         import android.graphics.BitmapFactory;
+        import android.os.Messenger;
         import android.util.Log;
 
 /**
@@ -83,6 +84,7 @@ class PhotoDecodeRunnable implements Runnable {
         int getTargetWidth();
 
         /**
+        Messenger getmService();
          * Returns the desired height of the image, based on the ImageView being created.
          * @return The target height.
          */
@@ -111,6 +113,7 @@ class PhotoDecodeRunnable implements Runnable {
     @Override
     public void run() {
 
+
         /*
          * Stores the current Thread in the the PhotoTask instance, so that the instance
          * can interrupt the Thread.
@@ -131,12 +134,12 @@ class PhotoDecodeRunnable implements Runnable {
          *
          */
         try {
-
             /*
              * Calls the PhotoTask implementation of {@link #handleDecodeState} to
              * set the state of the download
              */
             mPhotoTask.handleDecodeState(DECODE_STATE_STARTED);
+
 
             // Sets up options for creating a Bitmap object from the
             // downloaded image.
