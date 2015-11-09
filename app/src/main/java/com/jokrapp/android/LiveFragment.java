@@ -152,13 +152,14 @@ public class LiveFragment extends Fragment implements
 
     @Override
     public void onDestroy() {
-        super.onDestroy();
         if (VERBOSE) Log.v(TAG,"entering onDestroy...");
 
         if (VERBOSE) Log.v(TAG,"destroying loader at id " + LIVE_LOADER_ID);
         getLoaderManager().destroyLoader(LIVE_LOADER_ID);
 
+        PhotoManager.cancelDirectory(Constants.KEY_S3_LIVE_DIRECTORY);
         if (VERBOSE) Log.v(TAG,"exiting onDestroy...");
+        super.onDestroy();
     }
 
     @Override

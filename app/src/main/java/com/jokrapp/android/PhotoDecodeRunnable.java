@@ -165,6 +165,11 @@ class PhotoDecodeRunnable implements Runnable {
              */
             bitmapOptions.inJustDecodeBounds = true;
 
+            if (imageBuffer == null) {
+                Log.e(LOG_TAG,"image buffer should not be null");
+                return;
+            }
+
             /*
              * First pass of decoding to get scaling and sampling
              * parameters from the image

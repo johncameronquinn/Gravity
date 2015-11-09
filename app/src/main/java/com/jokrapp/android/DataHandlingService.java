@@ -1245,6 +1245,8 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
 
     private Messenger replyMessenger;
 
+    private Messenger imageResponseMessenger;
+
     public void setReplyMessenger(Messenger messenger) {
         replyMessenger = messenger;
     }
@@ -1453,6 +1455,7 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
                 case MSG_DOWNLOAD_IMAGE:
                     Log.d(TAG, "received a message to download an image...");
 
+                    imageResponseMessenger = msg.replyTo;
                     data = msg.getData();
                     data.putInt(REQUEST_TYPE, msg.what);
                     downloadImageFromS3(data);
@@ -1758,7 +1761,11 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
                     msg = Message.obtain(null, MainActivity.MSG_SUCCESS);
                     msg.setData(extradata);
                     msg.arg1 = extradata.getInt(REQUEST_TYPE,-1);
-                    replyMessenger.send(msg);
+                    if (replyMessenger != null) {
+                        replyMessenger.send(msg);
+                    } else {
+                        Log.e(TAG,"replyMessenger was null for Response_Success");
+                    }
                     break;
 
                 case RESPONSE_BLOCK_CONFLICT:
@@ -2092,8 +2099,8 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
 
     public void downloadImageFromS3(Bundle b) {
         if (VERBOSE) {
-            Log.v(TAG,"entering downloadImageFromS3...");
-            LogUtils.printBundle(b,TAG);
+            Log.v(TAG, "entering downloadImageFromS3...");
+            LogUtils.printBundle(b, TAG);
         }
 
         if (transferUtility == null) {
@@ -2111,7 +2118,7 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
         File file = new File(getCacheDir(),key);
 
         if (Constants.LOGD) {
-            Log.d(TAG, "downloading image from  s3 with key: " + b.getString(Constants.KEY_S3_KEY));
+            Log.d(TAG, "downloading image from  s3 path:  " + directory + " / " + key);
             Log.d(TAG, "storing downloaded imaged at: " + file.getPath());
         }
 
@@ -2185,16 +2192,35 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
         if (VERBOSE) {
             Log.v(TAG,"AWS TransferState: " + state.name() + " for id " + id);
         }
+        Bundle data;
 
         switch (state) {
 
             case CANCELED:
             case UNKNOWN:
             case FAILED:
-                Toast.makeText(getApplicationContext(),
-                        "s3 transfer failed... removing content",
-                        Toast.LENGTH_SHORT)
-                        .show();
+                data = pendingMap.get(id);
+                switch (data.getInt(REQUEST_TYPE,-1)) {
+                    case MSG_DOWNLOAD_IMAGE:
+                        if (VERBOSE) Log.d(TAG,"an image failed to download. notifying photoManager..");
+
+                        Message msg = Message.obtain(null,PhotoManager.DOWNLOAD_FAILED);
+                        msg.setData(data);
+
+                        try {
+                            imageResponseMessenger.send(msg);
+                        } catch (RemoteException e) {
+                            Log.e(TAG,"error responding that an image has finished downloading...");
+                        }
+                        break;
+
+
+                    default:
+                        Toast.makeText(getApplicationContext(),
+                                "s3 transfer failed... removing content",
+                                Toast.LENGTH_SHORT)
+                                .show();
+                }
 
                 //remove pending dynamic data
                 pendingMap.remove(id);
@@ -2206,7 +2232,7 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
                     Log.v(TAG,"static content successfully transferred");
                 }
                 //get the data pending data for this transfer ID
-                Bundle data = pendingMap.get(id);
+                data = pendingMap.get(id);
                 //Depending on what the pending post was... handle it
                 if (data == null) {
                     Log.e(TAG,"incoming bundle was null");
@@ -2260,52 +2286,26 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
 
                     case MSG_DOWNLOAD_IMAGE:
 
-                        if (VERBOSE) Log.d(TAG,"image finished downloading... broadcasting...");
+                        if (VERBOSE) Log.d(TAG,"an image successfully downloaded. notifying photoManager..");
 
+                        Message msg = Message.obtain(null,PhotoManager.DOWNLOAD_COMPLETE);
+                        msg.setData(data);
 
-                        switch (data.getString(Constants.KEY_S3_DIRECTORY,"")) {
-
-                            case Constants.KEY_S3_LIVE_DIRECTORY:
-                                Log.i(TAG,"notifying UI of Live download finish");
-                                intent = new Intent(Constants.ACTION_IMAGE_LIVE_LOADED);
-                                intent.putExtras(data);
-                                sendBroadcast(intent);
-                                break;
-
-                            case Constants.KEY_S3_LOCAL_DIRECTORY:
-                                Log.i(TAG,"notifying UI of Local download finish");
-                                intent = new Intent(Constants.ACTION_IMAGE_LOCAL_LOADED);
-                                intent.putExtras(data);
-                                sendBroadcast(intent);
-                                break;
-
-
-                            case Constants.KEY_S3_MESSAGE_DIRECTORY:
-                                Log.i(TAG,"notifying UI of Message download finish");
-                                intent = new Intent(Constants.ACTION_IMAGE_MESSAGE_LOADED);
-                                intent.putExtras(data);
-                                sendBroadcast(intent);
-                                break;
-
-
-                            case Constants.KEY_S3_REPLIES_DIRECTORY:
-                                Log.i(TAG,"notifying UI that the non-thumbnail" +
-                                        " Reply image has finished downloading");
-                                intent = new Intent(Constants.ACTION_IMAGE_REPLY_LOADED);
-                                intent.putExtras(data);
-                                sendBroadcast(intent);
-                                break;
-
-
-                            default:
-                                Log.e(TAG, "no directory was provided, not broadcasting");
-                                break;
+                        if (imageResponseMessenger != null) {
+                            try {
+                                imageResponseMessenger.send(msg);
+                            } catch (RemoteException e) {
+                                Log.e(TAG, "error responding that an image has finished downloading...");
+                            }
+                        } else {
+                            Log.e(TAG,"imageResponseMessenger was null, cannot send.");
                         }
+
                         break;
 
 
                     default:
-                        Log.e(TAG,"no dynamic transfer type was provided... discarding...");
+                        Log.e(TAG, "no dynamic transfer type was provided... discarding...");
                         pendingMap.remove(id);
 
                 }

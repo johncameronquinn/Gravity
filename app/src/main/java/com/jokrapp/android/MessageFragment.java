@@ -36,6 +36,8 @@ public class MessageFragment extends Fragment implements
     private ImageStackMessageAdapter adapter;
     private ImageCursorAdapterView imageAdapterView;
 
+    private int MESSAGE_LOADER_ID = 10;
+
     private onMessageFragmentInteractionListener mListener;
 
     public MessageFragment() {
@@ -69,8 +71,13 @@ public class MessageFragment extends Fragment implements
         if (VERBOSE) {
             Log.v(TAG,"enter onDestroy...");
         }
-        mListener = null;
 
+        getLoaderManager().destroyLoader(MESSAGE_LOADER_ID);
+
+        mListener = null;
+        adapter = null;
+
+        PhotoManager.cancelDirectory(Constants.KEY_S3_MESSAGE_DIRECTORY);
         if (VERBOSE) {
             Log.v(TAG,"exit onDestroy...");
         }
@@ -114,7 +121,7 @@ public class MessageFragment extends Fragment implements
         // Fields on the UI to which we map
         // int[] to = new int[] { R.id.imageID};
 
-        getLoaderManager().initLoader(0, null, this);
+        getLoaderManager().initLoader(MESSAGE_LOADER_ID, null, this);
 
         adapter = new ImageStackMessageAdapter((MainActivity)getActivity(),
                 R.layout.std_msg_inner,

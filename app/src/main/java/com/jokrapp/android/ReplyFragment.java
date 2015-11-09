@@ -94,6 +94,10 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
 
     @Override
     public void onDestroy() {
+        getLoaderManager().destroyLoader(REPLY_LOADER_ID);
+
+        mAdapter = null;
+        PhotoManager.cancelDirectory(Constants.KEY_S3_REPLIES_DIRECTORY);
         super.onDestroy();
     }
 

@@ -104,13 +104,15 @@ public class PhotoTask implements
     /**
      * Creates an PhotoTask containing a download object and a decoder object.
      */
-    PhotoTask() {
+    PhotoTask(Handler responseHandler) {
         // Create the runnables
         mDownloadRunnable = new PhotoDownloadRunnable(this);
         mDecodeRunnable = new PhotoDecodeRunnable(this);
         mDiskDecodeRunnable = new PhotoDiskLoadRunnable(this);
 
         sPhotoManager = PhotoManager.getInstance();
+
+        mMessenger = new Messenger(responseHandler);
     }
 
     /**
@@ -356,6 +358,33 @@ public class PhotoTask implements
                 if (Constants.LOGV) Log.v(TAG, "Decode started...");
 
                 outState = PhotoManager.DECODE_STARTED;
+                break;
+        }
+
+        // Passes the state to the ThreadPool object.
+        handleState(outState);
+    }
+
+    @Override
+    public void handleDiskloadState(int state) {
+        int outState;
+
+        // Converts the decode state to the overall state.
+        switch(state) {
+            case PhotoDiskLoadRunnable.DISKLOAD_STATE_COMPLETED:
+                if (Constants.LOGV) Log.v(TAG, "Diskload completed...");
+                outState = PhotoManager.DISKLOAD_COMPLETE;
+
+                break;
+            case PhotoDiskLoadRunnable.DISKLOAD_STATE_FAILED:
+                if (Constants.LOGV) Log.v(TAG, "Diskload failed...");
+
+                outState = PhotoManager.DOWNLOAD_FAILED;
+                break;
+            default:
+                if (Constants.LOGV) Log.v(TAG, "Diskload started...");
+
+                outState = PhotoManager.DISKLOAD_STARTED;
                 break;
         }
 

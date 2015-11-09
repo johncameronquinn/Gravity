@@ -98,15 +98,15 @@ public class LocalFragment extends Fragment implements
         if (VERBOSE) {
             Log.v(TAG,"enter onDestroy...");
         }
-
         getLoaderManager().destroyLoader(LOCAL_LOADER_ID);
 
         adapter = null;
         mListener = null;
-        super.onDestroy();
+        PhotoManager.cancelDirectory(Constants.KEY_S3_REPLIES_DIRECTORY);
         if (VERBOSE) {
             Log.v(TAG,"exit onDestroy...");
         }
+        super.onDestroy();
     }
 
     @Override

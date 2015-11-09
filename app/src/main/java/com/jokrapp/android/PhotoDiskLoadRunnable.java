@@ -52,9 +52,9 @@ class PhotoDiskLoadRunnable implements Runnable {
     private static final String LOG_TAG = "PhotoDownloadRunnable";
 
     // Constants for indicating the state of the download
-    static final int HTTP_STATE_FAILED = -1;
-    static final int HTTP_STATE_STARTED = 0;
-    static final int HTTP_STATE_COMPLETED = 1;
+    static final int DISKLOAD_STATE_FAILED = -1;
+    static final int DISKLOAD_STATE_STARTED = 0;
+    static final int DISKLOAD_STATE_COMPLETED = 1;
 
     // Defines a field that contains the calling object of type PhotoTask.
     final TaskRunnableDiskLoadMethods mPhotoTask;
@@ -93,7 +93,7 @@ class PhotoDiskLoadRunnable implements Runnable {
          * Defines the actions for each state of the PhotoTask instance.
          * @param state The current state of the task
          */
-        void handleDownloadState(int state);
+        void handleDiskloadState(int state);
 
         /**
          * Gets the URL for the image being downloaded
@@ -161,7 +161,7 @@ class PhotoDiskLoadRunnable implements Runnable {
                  * Calls the PhotoTask implementation of {@link #handleDownloadState} to
                  * set the state of the download
                  */
-                mPhotoTask.handleDownloadState(HTTP_STATE_STARTED);
+                mPhotoTask.handleDiskloadState(DISKLOAD_STATE_STARTED);
 
                 // Defines a handle for the byte download stream
                 InputStream byteStream = null;
@@ -218,7 +218,7 @@ class PhotoDiskLoadRunnable implements Runnable {
              * ImageView background to indicate that the image is being
              * decoded.
              */
-            mPhotoTask.handleDownloadState(HTTP_STATE_COMPLETED);
+            mPhotoTask.handleDiskloadState(DISKLOAD_STATE_COMPLETED);
 
             // Catches exceptions thrown in response to a queued interrupt
         } catch (InterruptedException e1) {
@@ -230,7 +230,7 @@ class PhotoDiskLoadRunnable implements Runnable {
 
             // If the byteBuffer is null, reports that the download failed.
             if (null == byteBuffer) {
-                mPhotoTask.handleDownloadState(HTTP_STATE_FAILED);
+                mPhotoTask.handleDiskloadState(DISKLOAD_STATE_FAILED);
             }
 
             /*

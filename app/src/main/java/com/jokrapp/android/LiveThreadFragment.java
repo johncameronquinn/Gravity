@@ -147,10 +147,6 @@ public class LiveThreadFragment extends Fragment implements View.OnClickListener
 
             mImageKey = args.getString(LiveThreadEntry.COLUMN_NAME_FILEPATH);
 
-
-            ((MainActivity)getActivity()).sendMsgDownloadImage(
-                    Constants.KEY_S3_LIVE_DIRECTORY,
-                    args.getString(SQLiteDbContract.LiveReplies.COLUMN_NAME_FILEPATH));
         }
 
     }

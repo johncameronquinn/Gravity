@@ -1,10 +1,12 @@
 package com.jokrapp.android;
 
 import android.annotation.SuppressLint;
+import android.nfc.Tag;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
-import android.support.v4.util.LruCache;
+import android.os.Messenger;
+import android.util.LruCache;
 import android.util.Log;
 import android.view.View;
 
@@ -45,6 +47,8 @@ public class PhotoManager {
     static final int DOWNLOAD_COMPLETE = 2;
     static final int DECODE_STARTED = 3;
     static final int TASK_COMPLETE = 4;
+    static final int DISKLOAD_STARTED = 6;
+    static final int DISKLOAD_COMPLETE = 5;
 
     static final int AWS_DOWNLOAD_COMPLETE = 5;
 
@@ -53,7 +57,7 @@ public class PhotoManager {
 
     private static final String TAG = "PhotoManager";
     // Sets the size of the storage that's used to cache images
-    private static final int IMAGE_CACHE_SIZE = 1024 * 1024 * 4;
+    private static final int IMAGE_CACHE_SIZE = 1024 * 1024 * 8; //8MiB
 
     // Sets the amount of time an idle thread will wait for a task before terminating
     private static final int KEEP_ALIVE_TIME = 1;
@@ -82,9 +86,6 @@ public class PhotoManager {
      */
     private final LruCache<String, byte[]> mPhotoCache;
 
-    //path to disk cache directory
-    public String diskCachePath;
-
 
     // A queue of Runnables for the image download pool
     private final BlockingQueue<Runnable> mDownloadWorkQueue;
@@ -95,6 +96,8 @@ public class PhotoManager {
     // A queue of PhotoManager tasks. Tasks are handed to a ThreadPool.
     private final Queue<PhotoTask> mPhotoTaskWorkQueue;
 
+
+
     // A managed pool of background download threads
     private final ThreadPoolExecutor mDownloadThreadPool;
 
@@ -103,6 +106,9 @@ public class PhotoManager {
 
     // An object that manages Messages in a Thread
     private Handler mHandler;
+
+
+    private final HashMap<String,PhotoTask> mWaitingPhotoTasks;
 
     // A single instance of PhotoManager, used to implement the singleton pattern
     private static PhotoManager sInstance = null;
@@ -121,6 +127,12 @@ public class PhotoManager {
      */
     private PhotoManager() {
         if (Constants.LOGV) Log.v(TAG,"entering PhotoManager constructor...");
+
+        /*
+         * Creates a list of waiting photoTasks that will hold all phototasks still
+         * waiting for the download to finish
+         */
+        mWaitingPhotoTasks = new HashMap<>();
 
         /*
          * Creates a work queue for the pool of Thread objects used for downloading, using a linked
@@ -187,6 +199,18 @@ public class PhotoManager {
                 // Gets the image task from the incoming Message object.
                 PhotoTask photoTask = (PhotoTask) inputMessage.obj;
 
+                if (inputMessage.obj == null) {
+                    photoTask = mWaitingPhotoTasks.get(
+                            inputMessage.getData().getString
+                                    (Constants.KEY_S3_KEY)
+                    );
+                }
+
+                if (photoTask == null) {
+                    Log.d(TAG,"No phototask was grabbable, exiting...");
+                    return;
+                }
+
                 // Sets an PhotoView that's a weak reference to the
                 // input ImageView
                 PhotoView localView = photoTask.getPhotoView();
@@ -225,7 +249,8 @@ public class PhotoManager {
                              * background color to golden yellow
                              */
                             case DOWNLOAD_COMPLETE:
-                                Log.d(TAG,"Download Complete...");
+                                Log.d(TAG, "Download Complete...");
+                                handleState(photoTask, DOWNLOAD_COMPLETE);
                                 // Sets background color to golden yellow
                                 localView.setStatusResource(R.drawable.decodequeued);
                                 if (localView.getVisibility()== View.GONE) {
@@ -234,6 +259,13 @@ public class PhotoManager {
                                 }
                                 break;
                             // If the decode has started, sets background color to orange
+                            case DISKLOAD_STARTED:
+                                Log.d(TAG, "Diskload Started...");
+                                break;
+                            case DISKLOAD_COMPLETE:
+                                Log.d(TAG, "Diskload Complete...");
+                                break;
+
                             case DECODE_STARTED:
                                 localView.setStatusResource(R.drawable.decodedecoding);
                                 break;
@@ -245,16 +277,16 @@ public class PhotoManager {
                             case TASK_COMPLETE:
                                 localView.setImageBitmap(photoTask.getImage());
                                 recycleTask(photoTask);
+
+                                mWaitingPhotoTasks.remove(photoTask.getImageKey());
                                 break;
                             // The download failed, sets the background color to dark red
                             case DOWNLOAD_FAILED:
+                                handleState(photoTask,DOWNLOAD_FAILED);
                                 localView.setStatusResource(R.drawable.imagedownloadfailed);
 
                                 // Attempts to re-use the Task object
                                 recycleTask(photoTask);
-                                break;
-
-                            case AWS_DOWNLOAD_COMPLETE:
                                 break;
 
                             default:
@@ -268,19 +300,20 @@ public class PhotoManager {
         if (Constants.LOGV) Log.v(TAG,"exiting PhotoManager constructor...");
     }
 
-    public static void setCacheDirectory(String diskCachePath) {
-        Log.i(TAG,"setting cache directory to..." + diskCachePath);
-
-        sInstance.diskCachePath = diskCachePath;
-    }
-
-
     /**
      * Returns the PhotoManager object
      * @return The global PhotoManager object
      */
     public static PhotoManager getInstance() {
         return sInstance;
+    }
+
+    public static Handler getMainHandler() {
+        if (sInstance!=null) {
+            return sInstance.mHandler;
+        } else {
+            return null;
+        }
     }
 
 
@@ -303,8 +336,15 @@ public class PhotoManager {
                 if (photoTask.isCacheEnabled()) {
                     // If the task is set to cache the results, put the buffer
                     // that was
+
+                    if (photoTask.getImageKey() == null || photoTask.getByteBuffer() == null) {
+                        Log.e(TAG,"unable to cache image, key or buffer null.");
+                    } else {
+                        if (VERBOSE) Log.v(TAG,"Storing key " + photoTask.getImageKey() + " in mPhotoCache");
+                        mPhotoCache.put(photoTask.getImageKey(), photoTask.getByteBuffer());//todo store in content provider
+                    }
                     // successfully decoded into the cache
-                    mPhotoCache.put(photoTask.getImageKey(), photoTask.getByteBuffer());//todo store in content provider
+
                 }
 
                 // Gets a Message object, stores the state in it, and sends it to the Handler
@@ -315,14 +355,48 @@ public class PhotoManager {
             // The task finished downloading the image
             case DOWNLOAD_COMPLETE:
 
-                if (VERBOSE) Log.v(TAG,"image download is complete... starting decode.");
+                if (VERBOSE) Log.v(TAG,"image download is complete... starting diskload.");
                 /*
                  * Decodes the image, by queuing the decoder object to run in the decoder
                  * thread pool
                  */
-                mDecodeThreadPool.execute(photoTask.getPhotoDecodeRunnable());
+                mDownloadThreadPool.execute(photoTask.getDiskDecodeRunnable());
+                //mHandler.obtainMessage(state, photoTask).sendToTarget();
+                break;
+            case DOWNLOAD_FAILED:
+                if (VERBOSE) Log.v(TAG,"image download failed, removing task from waiting queue," +
+                        " and passing.");
+                mWaitingPhotoTasks.remove(photoTask.getImageKey());
+
+                break;
+
+            // The task finished downloading the image
+            case DISKLOAD_COMPLETE:
+
+                if (VERBOSE) Log.v(TAG,"image diskload is complete... starting decode.");
+                /*
+                 * Decodes the image, by queuing the decoder object to run in the decoder
+                 * thread pool
+                 */
+
+                if (photoTask.getByteBuffer() != null) {
+                    mDecodeThreadPool.execute(photoTask.getPhotoDecodeRunnable());
+                } else {
+                    Log.e(TAG,"diskload failed to successfully load byte array");
+                }
+
+                mHandler.obtainMessage(state, photoTask).sendToTarget();
+                break;
 
 
+            case DOWNLOAD_STARTED:
+                if (VERBOSE) Log.v(TAG,"image download started... saving task");
+
+                //add it to waiting tasks map
+                mWaitingPhotoTasks.put(photoTask.getImageKey(), photoTask);
+
+                mHandler.obtainMessage(state, photoTask).sendToTarget();
+                break;
                 // In all other cases, pass along the message without any other action.
             default:
                 mHandler.obtainMessage(state, photoTask).sendToTarget();
@@ -369,7 +443,56 @@ public class PhotoManager {
             }
         }
 
+        /*
+         * Clears all waiting photoTasks
+         */
+        sInstance.mWaitingPhotoTasks.clear();
+
         if (Constants.LOGV) Log.v(TAG,"exiting... cancelAll");
+    }
+
+    public static void cancelDirectory(String directory) {
+        if (VERBOSE) Log.v(TAG,"entering cancelCategory, with: " + directory);
+
+        /*
+         * Creates an array of tasks that's the same size as the task work queue
+         */
+        PhotoTask[] taskArray = new PhotoTask[sInstance.mDownloadWorkQueue.size()];
+
+        // Populates the array with the task objects in the queue
+        sInstance.mDownloadWorkQueue.toArray(taskArray);
+
+        // Stores the array length in order to iterate over the array
+        int taskArraylen = taskArray.length;
+
+        /*
+         * Locks on the singleton to ensure that other processes aren't mutating Threads, then
+         * iterates over the array of tasks and interrupts the task's current Thread.
+         */
+        synchronized (sInstance) {
+
+            // Iterates over the array of tasks
+            for (int taskArrayIndex = 0; taskArrayIndex < taskArraylen; taskArrayIndex++) {
+
+                PhotoTask task = taskArray[taskArrayIndex];
+                //ensures the tasks directory is the directory being cancelled
+                if (task.getImageDirectory().equals(directory)) {
+                    // Gets the task's current thread
+                    Thread thread = task.mThreadThis;
+                    // if the Thread exists, post an interrupt to it
+                    if (null != thread) {
+                        thread.interrupt();
+                    }
+
+
+                    //if its waiting to be downloaded, remove it
+                    sInstance.mWaitingPhotoTasks.remove(task.getImageKey());
+                }
+            }
+        }
+
+
+        if (VERBOSE) Log.v(TAG,"exiting cancelCategory...");
     }
 
     /**
@@ -400,10 +523,20 @@ public class PhotoManager {
              * ThreadPool's work queue, allowing a task in the queue to start.
              */
             sInstance.mDownloadThreadPool.remove(downloaderTask.getHTTPDownloadRunnable());
+
+            /*
+             * Removes the photoTask that is waiting
+             */
+            sInstance.mWaitingPhotoTasks.remove(imageKey);
         }
+
+
+
 
         if (Constants.LOGV) Log.v(TAG,"exiting removeDownload...");
     }
+
+
 
     /**
      * Starts an image download and decode
@@ -417,6 +550,7 @@ public class PhotoManager {
             boolean cacheFlag) {
         if (Constants.LOGV) Log.v(TAG, "entering startDownload...");
 
+
         //Log.w(TAG,"this is disabled for now, no network operations just yet.");
 
 
@@ -427,7 +561,7 @@ public class PhotoManager {
 
         // If the queue was empty, create a new task instead.
         if (null == downloadTask) {
-            downloadTask = new PhotoTask();
+            downloadTask = new PhotoTask(getMainHandler());
         }
 
         // Initializes the task
@@ -452,8 +586,8 @@ public class PhotoManager {
                 imageView.setStatusResource(R.drawable.imagequeued);
 
             } else {
-                if (VERBOSE) Log.w(TAG,"file was not stored in the disk cache... quit for now");//todo, ask nicer
-
+                if (VERBOSE) Log.w(TAG,"file was not stored in the disk cache..." +
+                        " requesting to download");
             /*
              * "Executes" the tasks' download Runnable in order to download the image. If no
              * Threads are available in the thread pool, the Runnable waits in the queue.
@@ -497,4 +631,6 @@ public class PhotoManager {
 
         if (Constants.LOGV)  Log.v(TAG,"exiting recycleTask...");
     }
+
+
 }
