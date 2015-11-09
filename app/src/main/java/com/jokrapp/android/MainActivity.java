@@ -1629,7 +1629,6 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
             this.width = width;
             this.height = height;
 
-//            Log.d(TAG, "thread is : " + getLooper().getThread().toString());
 
             if (mSurface != null) {
                 Log.i(TAG,"surface was created and saved");
@@ -1643,11 +1642,11 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
             if (isConnected) {
 
                 if (mCamera != null) {
-                    Log.d(TAG, "Camera is not connected and is available, setting and starting " +
+                    Log.d(TAG, "Camera is connected and is available, setting and starting " +
                             "preview.");
                             try {
                                 mCamera.setPreviewTexture(mSurface);
-                                mCamera.startPreview();
+                                //mCamera.startPreview();
                             } catch (IOException e) {
                                 Log.e(TAG, "error setting preview texture to camera", e);
                                 mTracker.getEventClient()

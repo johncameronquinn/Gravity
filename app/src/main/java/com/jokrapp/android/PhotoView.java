@@ -373,11 +373,15 @@ public class PhotoView extends ImageView {
      * @param resId
      */
     public void setStatusResource(int resId) {
-        if (Constants.LOGV) Log.v(TAG,"entering setStatusResource..");
+        if (VERBOSE) Log.v(TAG,"entering setStatusResource..");
         // If the View is empty, provides it with a Drawable resource as its content
         if (mThisView == null) {
-            if (Constants.LOGV) Log.v(TAG,"setting resource now...");
+            if (VERBOSE) Log.v(TAG,"setting resource now...");
             setImageResource(resId);
+        } else {
+            if (VERBOSE) Log.v(TAG,"mThisView was not null, not setting status...");
         }
+
+        if (VERBOSE) Log.v(TAG,"exiting setStatusResource..");
     }
 }

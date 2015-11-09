@@ -42,7 +42,7 @@ import java.util.UUID;
  *
  */
 public class CameraFragment extends Fragment implements Camera.AutoFocusCallback{
-    private static final boolean VERBOSE = false;
+    private static final boolean VERBOSE = true;
     private static final String TAG = "CameraFragment";
 
     private GestureDetector gestureDetector;
@@ -62,6 +62,10 @@ public class CameraFragment extends Fragment implements Camera.AutoFocusCallback
 
     private static final String CAMERA_MODE_KEY = "ckey";
     private static final String KEY_PREVIEW = "pkey";
+
+    TextureView mPreview;
+
+    View container;
 
 
     private OnCameraFragmentInteractionListener mListener;
@@ -96,22 +100,19 @@ n  */
         LocalBroadcastManager.getInstance(activity).registerReceiver(
                 cameraReceiver,
                 new IntentFilter(ACTION_PICTURE_TAKEN));
-        try {
-            mListener = (OnCameraFragmentInteractionListener) activity;
-        } catch (ClassCastException e) {
-            throw new ClassCastException(activity.toString()
-                    + " must implement OnFragmentInteractionListener");
-        }
+
+        mListener = (OnCameraFragmentInteractionListener) activity;
+
     }
 
     @Override
     public void onDetach() {
-        super.onDetach();
         LocalBroadcastManager.getInstance(getActivity()).unregisterReceiver(cameraReceiver);
         mListener = null;
         gestureDetector = null;
         cameraReceiver = null;
 
+        super.onDetach();
     }
 
 
@@ -225,16 +226,16 @@ n  */
 
     @Override
     public void onDestroy() {
-        super.onDestroy();
+
         if (VERBOSE) {
             Log.v(TAG, "enter onDestroy...");
         }
 
-        gestureDetector = null;
+
         if (VERBOSE) {
             Log.v(TAG, "exit onDestroy...");
         }
-
+        super.onDestroy();
     }
 
     /**
@@ -250,17 +251,19 @@ n  */
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        Log.d(TAG,"parent is: " + container.toString());
         // Inflate the layout for this fragment
         if (VERBOSE) {
             Log.v(TAG, "enter onCreateView...");
         }
         CommentListener listener = new CommentListener();
-        container.setOnTouchListener(listener);
 
+        this.container = container;
+        this.container.setOnTouchListener(listener);
 
-      //creates the camera preview, adds to
-        return inflater.inflate(R.layout.fragment_camera, container, false);
+        View view = inflater.inflate(R.layout.fragment_camera, container, false);
+        mPreview = (TextureView) view.findViewById(R.id.cameraSurfaceView);
+
+        return view;
     }
 
 
@@ -352,7 +355,7 @@ n  */
         @Override
         public boolean onTouch(View v, MotionEvent event) {
             if (VERBOSE) {
-                Log.v(TAG,"Event: " + event.toString());
+//                Log.v(TAG,"Event: " + event.toString());
             }
 
             if (gestureDetector.onTouchEvent(event)) {
@@ -385,11 +388,12 @@ n  */
         if (savedInstanceState != null) {
             if (VERBOSE) {
                 Log.v(TAG, "onViewCreated had a saved instance.");
+
             }
         }
 
 
-        TextureView mPreview = (TextureView) view.findViewById(R.id.cameraSurfaceView);
+
         Log.d(TAG, "setting surface texture listener to cameraHandler");
 
         MainActivity activity = (MainActivity) getActivity();
@@ -420,25 +424,32 @@ n  */
             startMessageMode(messageTarget);
         }
 
-
-
+        mListener.sendMsgStartPreview();
         if (VERBOSE) {
             Log.v(TAG, "exit onViewCreated...");
         }
 
     }
 
+
     @Override
     public void onDestroyView() {
-        super.onDestroyView();
+
         if (VERBOSE) {
             Log.v(TAG,"enter onDestroyView...");
         }
-        getActivity().findViewById(R.id.pager).setOnTouchListener(null);
+        container.setOnTouchListener(null);
+        container = null;
         gestureDetector = null;
+        mPreview = null;
+        commentText = null;
+
+
         if (VERBOSE) {
             Log.v(TAG,"exit onDestroyView...");
         }
+
+        super.onDestroyView();
     }
     /***********************************************************************************************
      *
@@ -488,7 +499,7 @@ n  */
             Bundle b = new Bundle();
             b.putString(Constants.KEY_ANALYTICS_CATEGORY,Constants.ANALYTICS_CATEGORY_CAMERA);
 
-            if (Constants.LOGD) Log.d(TAG,"click " + v.toString());
+
             switch (v.getId()) {
                 case R.id.button_capture:
                     b.putString(Constants.KEY_ANALYTICS_ACTION,"camera capture");

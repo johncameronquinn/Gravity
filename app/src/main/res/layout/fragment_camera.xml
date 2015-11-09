@@ -9,6 +9,7 @@
         android:layout_height="match_parent"
         android:id="@+id/cameraSurfaceView"
         android:layout_gravity="center_horizontal|bottom"
+        android:saveEnabled="false"
         android:visibility="visible" />
 
     <Button

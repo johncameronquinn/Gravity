@@ -8,13 +8,10 @@
     android:background="@color/jpallete_main_grey"
     android:orientation="horizontal">
 
-    <ProgressBar android:layout_gravity="center" android:id="@+id/photoProgress"
-        android:layout_width="wrap_content" android:layout_height="wrap_content" />
     <com.jokrapp.android.PhotoView
         android:id="@+id/photoView" android:layout_width="match_parent"
         android:layout_height="match_parent" android:scaleType="fitXY"
-        android:background="@color/jpallete_main_blue"
-        image:hideShowSibling="@id/photoProgress" />
+        android:background="@color/jpallete_main_blue" />
 
 
     <TextView
