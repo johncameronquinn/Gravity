@@ -108,6 +108,7 @@ public class ReplyCursorAdapter extends CursorAdapter implements PhotoView.OnCli
                     path+"s", true, mEmptyDrawable
             );
             localImageDownloaderView.setTag(path);
+            localImageDownloaderView.setVisibility(View.VISIBLE);
         }
     }
 

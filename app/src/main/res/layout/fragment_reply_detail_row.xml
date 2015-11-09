@@ -55,6 +55,6 @@
     <com.jokrapp.android.PhotoView
         android:id="@+id/thumbImage" android:layout_width="100dp"
         android:layout_height="100dp" android:scaleType="fitXY"
-        android:visibility="visible"/>
+        android:visibility="gone"/>
 
 </RelativeLayout>

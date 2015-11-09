@@ -8,7 +8,6 @@ import android.content.IntentFilter;
 import android.hardware.Camera;
 import android.os.Bundle;
 import android.app.Fragment;
-import android.os.Looper;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import android.view.GestureDetector;
@@ -22,7 +21,6 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.FrameLayout;
 
-import com.jokrapp.android.view.ExpandableLayout;
 
 import java.lang.ref.WeakReference;
 import java.util.UUID;
@@ -133,7 +131,7 @@ n  */
 
         GestureDoubleTap gestureDoubleTap = new GestureDoubleTap();
         gestureDetector = new GestureDetector(getActivity(), gestureDoubleTap);
-
+        cameraButtonInstance = new CameraButtonManager();
 
         Log.d(TAG, "Setting CameraFragment to default mode");
         currentCameraMode = 0;
@@ -231,7 +229,7 @@ n  */
             Log.v(TAG, "enter onDestroy...");
         }
 
-
+        cameraButtonInstance = null;
         if (VERBOSE) {
             Log.v(TAG, "exit onDestroy...");
         }
@@ -405,17 +403,17 @@ n  */
 
         final Button switchButton = (Button) view.findViewById(R.id.switch_camera);
 
-        switchButton.setOnClickListener(getButtonListener(this));
+        switchButton.setOnClickListener(cameraButtonInstance);
 
         Button captureButton = (Button) view.findViewById(R.id.button_capture);
-        captureButton.setOnClickListener(getButtonListener(this));
+        captureButton.setOnClickListener(cameraButtonInstance);
         captureButton.bringToFront();
 
         commentText = (EditText)view.findViewById(R.id.commentText);
         commentText.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-             showSoftKeyboard(commentText);
+                showSoftKeyboard(commentText);
             }
         });
 
@@ -457,8 +455,6 @@ n  */
      *
      */
 
-    private static WeakReference<cameraButtonManager> buttonListenerReference;
-
     /**
      * static method getButtonListener
      *
@@ -469,18 +465,14 @@ n  */
      * @param parent the context in which this functions
      * @return a ButtonListener to be used by all the buttons in CameraFragment
      */
-    public static cameraButtonManager getButtonListener(CameraFragment parent) {
-        if (buttonListenerReference == null) {
-            buttonListenerReference = new WeakReference<>(parent.new cameraButtonManager());
-        }
-        return buttonListenerReference.get();
-    }
+
+    private static CameraButtonManager cameraButtonInstance;
 
     /**
-     * class 'cameraButtonManager'
+     * class 'CameraButtonManager'
      *
      */
-    private class cameraButtonManager implements View.OnClickListener {
+    private class CameraButtonManager implements View.OnClickListener {
 
         private Button captureButton;
         private Button switchButton;
@@ -824,7 +816,7 @@ n  */
          if (VERBOSE) {
              Log.v(TAG, "enter onPictureTaken... ");
          }
-         getButtonListener(this).setCameraUI(currentCameraMode);
+         cameraButtonInstance.setCameraUI(currentCameraMode);
          if (VERBOSE) {
              Log.v(TAG, "exit onPictureTaken...");
          }
@@ -886,7 +878,7 @@ n  */
        Button cancel;
        cancel = (Button)getView().findViewById(R.id.button_cancel_message);
        cancel.setVisibility(View.VISIBLE);
-       cancel.setOnClickListener(getButtonListener(this));
+       cancel.setOnClickListener(cameraButtonInstance);
        messageTarget = id;
        currentCameraMode = CAMERA_MESSAGE_MODE;
    }
@@ -955,7 +947,7 @@ n  */
                     imm.hideSoftInputFromWindow(createThreadView.getWindowToken(), 0);
                     activity.enableScrolling();
 
-                    CameraFragment.getButtonListener(parent).resetCameraUI();
+                    cameraButtonInstance.resetCameraUI();
                     buttonPostListenerReference = null;
                     break;
                 case R.id.button_camera_live_mode_confirm:
@@ -968,7 +960,7 @@ n  */
 
                     activity.enableScrolling();
 
-                    CameraFragment.getButtonListener(parent).resetCameraUI();
+                    cameraButtonInstance.resetCameraUI();
                     buttonPostListenerReference = null;
                     break;
             }
@@ -1052,7 +1044,7 @@ n  */
                     imm.hideSoftInputFromWindow(createReplyView.getWindowToken(), 0);
                     activity.enableScrolling();
 
-                    CameraFragment.getButtonListener(parent).resetCameraUI();
+                    cameraButtonInstance.resetCameraUI();
                     buttonReplyListenerReference = null;
                     break;
                 case R.id.button_camera_live_mode_confirm:
@@ -1064,7 +1056,7 @@ n  */
 
                     activity.enableScrolling();
 
-                    CameraFragment.getButtonListener(parent).resetCameraUI();
+                    cameraButtonInstance.resetCameraUI();
                     buttonReplyListenerReference = null;
                     break;
             }
@@ -1119,7 +1111,7 @@ n  */
        Button cancel;
        cancel = (Button)getView().findViewById(R.id.button_cancel_message);
        cancel.setVisibility(View.VISIBLE);
-       cancel.setOnClickListener(getButtonListener(this));
+       cancel.setOnClickListener(cameraButtonInstance);
        currentCameraMode = CAMERA_REPLY_MODE;
    }
 

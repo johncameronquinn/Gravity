@@ -50,6 +50,8 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
 
     private LiveFragment.onLiveFragmentInteractionListener mListener;
 
+    private static ReplyButtonListener replyButtonListener;
+
 
     ReplyCursorAdapter mAdapter;
 
@@ -90,12 +92,15 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
         }
 
 
+        replyButtonListener = new ReplyButtonListener();
+
     }
 
     @Override
     public void onDestroy() {
         getLoaderManager().destroyLoader(REPLY_LOADER_ID);
 
+        replyButtonListener = null;
         mAdapter = null;
         PhotoManager.cancelDirectory(Constants.KEY_S3_REPLIES_DIRECTORY);
         super.onDestroy();
@@ -181,9 +186,9 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
 
         View view = getView();
         if(view != null) {
-            view.findViewById(R.id.button_reply_refresh).setOnClickListener(getButtonListener(null));
-            view.findViewById(R.id.button_send_reply).setOnClickListener(getButtonListener(null));
-            view.findViewById(R.id.button_reply_capture).setOnClickListener(getButtonListener(null));
+            view.findViewById(R.id.button_reply_refresh).setOnClickListener(null);
+            view.findViewById(R.id.button_send_reply).setOnClickListener(null);
+            view.findViewById(R.id.button_reply_capture).setOnClickListener(null);
         }
 
         super.onDestroyView();
@@ -199,9 +204,9 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
     public void onViewCreated(View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         if (VERBOSE) Log.v(TAG,"entering onViewCreated...");
-        view.findViewById(R.id.button_reply_refresh).setOnClickListener(getButtonListener(this));
-        view.findViewById(R.id.button_send_reply).setOnClickListener(getButtonListener(this));
-        view.findViewById(R.id.button_reply_capture).setOnClickListener(getButtonListener(this));
+        view.findViewById(R.id.button_reply_refresh).setOnClickListener(replyButtonListener);
+        view.findViewById(R.id.button_send_reply).setOnClickListener(replyButtonListener);
+        view.findViewById(R.id.button_reply_capture).setOnClickListener(replyButtonListener);
         setCurrentThread(String.valueOf(currentThread));
         //anything that requires the UI to already exist goes here
         if (VERBOSE) Log.v(TAG,"exiting onViewCreated...");
@@ -214,9 +219,9 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
         View view = getView();
 
         if(view != null) {
-            view.findViewById(R.id.button_reply_refresh).setOnClickListener(getButtonListener(this));
-            view.findViewById(R.id.button_send_reply).setOnClickListener(getButtonListener(this));
-            view.findViewById(R.id.button_reply_capture).setOnClickListener(getButtonListener(this));
+            view.findViewById(R.id.button_reply_refresh).setOnClickListener(replyButtonListener);
+            view.findViewById(R.id.button_send_reply).setOnClickListener(replyButtonListener);
+            view.findViewById(R.id.button_reply_capture).setOnClickListener(replyButtonListener);
             setCurrentThread(String.valueOf(currentThread));
         }
     }
@@ -228,16 +233,7 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
 
     @Override
     public void onResume() {
-
-        View view = getView();
-
         super.onResume();
-        if(view != null) {
-            view.findViewById(R.id.button_reply_refresh).setOnClickListener(getButtonListener(this));
-            view.findViewById(R.id.button_send_reply).setOnClickListener(getButtonListener(this));
-            view.findViewById(R.id.button_reply_capture).setOnClickListener(getButtonListener(this));
-            setCurrentThread(String.valueOf(currentThread));
-        }
     }
 
     @Override
@@ -269,14 +265,6 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
 
     public int getCurrentThread() { return currentThread;}
 
-    private static WeakReference<ReplyButtonListener> buttonListenerReference;
-
-    public static ReplyButtonListener getButtonListener(ReplyFragment parent) {
-        if (buttonListenerReference == null) {
-            buttonListenerReference = new WeakReference<>(parent.new ReplyButtonListener());
-        }
-        return buttonListenerReference.get();
-    }
 
     /**
      * class 'replyButtonListener

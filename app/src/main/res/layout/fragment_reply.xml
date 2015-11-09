@@ -5,7 +5,6 @@
     android:layout_height="match_parent"
     android:background="@color/jpallete_main_grey"
     android:id="@+id/layout_reply_root"
-    android:descendantFocusability="blocksDescendants"
     tools:context="com.jokrapp.android.ReplyFragment">
 
 
