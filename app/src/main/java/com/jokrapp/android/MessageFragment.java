@@ -47,6 +47,7 @@ public class MessageFragment extends Fragment implements
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         if (VERBOSE) {
             Log.v(TAG, "enter onCreate...");
         }
@@ -89,13 +90,15 @@ public class MessageFragment extends Fragment implements
         if (VERBOSE) {
             Log.v(TAG,"enter onCreateView...");
         }
+        // Inflate the layout for this fragment
+        View cat = inflater.inflate(R.layout.fragment_message, container, false);
 
+        imageAdapterView = (ImageCursorAdapterView)cat.findViewById(R.id.imageMessageAdapter);
 
         if (VERBOSE) {
             Log.v(TAG,"exit onCreateView...");
         }
-        // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_message, container, false);
+        return cat;
     }
 
     @Override
@@ -105,7 +108,6 @@ public class MessageFragment extends Fragment implements
             Log.v(TAG,"enter onViewCreated...");
         }
 
-        imageAdapterView = (ImageCursorAdapterView)cat.findViewById(R.id.imageMessageAdapter);
         imageAdapterView.setAdapter(adapter);
 
         if (VERBOSE) {

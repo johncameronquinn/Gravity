@@ -59,13 +59,17 @@ import java.net.UnknownHostException;
 import java.nio.channels.FileChannel;
 import java.nio.channels.NotYetConnectedException;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
+import com.google.android.gms.maps.model.LatLng;
 import com.jokrapp.android.util.LogUtils;
 
 /**
@@ -84,7 +88,9 @@ import com.jokrapp.android.util.LogUtils;
  * Communication is managed via a broadcastManager
  */
 public class DataHandlingService extends Service implements GoogleApiClient.ConnectionCallbacks,
-        GoogleApiClient.OnConnectionFailedListener, LocationListener, TransferListener {
+        GoogleApiClient.OnConnectionFailedListener, LocationListener, TransferListener,
+        InitializeUserRunnable.initializeUserMethods,
+        RequestRepliesRunnable.RequestRepliesMethods {
     private static final String TAG = "DataHandlingService";
     private static final boolean VERBOSE = true;
     private static final boolean ALLOW_DUPLICATES = false;
@@ -112,7 +118,7 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
     private final String CREATE_LIVE_THREAD_PATH = "/live/upload/"; //does not change
     private final String GET_LIVE_THREAD_LIST = "/live/get/"; //does not change
     private final String REPLY_LIVE_THREAD_PATH = "/reply/upload/"; //does not change
-    private final String GET_LIVE_THREAD_REPLIES = "/reply/get/"; //does not change
+    final String GET_LIVE_THREAD_REPLIES = "/reply/get/"; //does not change
 
     /**
      * S3 INFO
@@ -140,7 +146,7 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
      */
     private final String FROM_USER = "from";
     private final String USER_ID = "id";
-    private final String THREAD_ID = "threadID";
+    static final String THREAD_ID = "threadID";
     private final String TO = "to";
     private final String IMAGE_URL = "url";
     private final String TITLE = "title";
@@ -152,7 +158,8 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
      */
     private static Location mLocation;
 
-    private static ArrayList<String> imagesSeen = new ArrayList<>();
+    ////private static  = new ArrayList<>();
+    private static List<String> imagesSeen = Collections.synchronizedList(new ArrayList<String>());
     private static final String IMAGESSEEN_KEY = "images";
     private final String ISFIRSTRUN_KEY = "firstrun";
     private final String UUID_KEY = "uuidkey";
@@ -185,8 +192,6 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
         }
         mTracker = ((AnalyticsApplication) getApplication()).getAnalyticsManager();
 
-
-
         SharedPreferences settings = getSharedPreferences(TAG, MODE_PRIVATE);
         boolean isFirstRun = settings.getBoolean(ISFIRSTRUN_KEY, true);
 
@@ -198,7 +203,7 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
             editor.apply();*/
 
             try {
-                mMessenger.send(Message.obtain(null, new initializeUserWithServer()));
+                mMessenger.send(Message.obtain(null, new InitializeUserRunnable(this)));
             } catch (RemoteException e) {
                 Log.e(TAG, "initializing user with server failed...", e);
             }
@@ -290,68 +295,81 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
         if (VERBOSE) Log.v(TAG,"exiting initializeTransferUtility...");
     }
 
-    public class initializeUserWithServer implements Runnable {
+    private Thread initializeUserThread;
 
-        private Thread currentThread;
+    public void setUserID(UUID userID) {
+        if (VERBOSE) Log.v(TAG,"entering setUserID : " + userID);
 
-        @Override
-        public void run() {
-            if (VERBOSE) {
-                Log.v(TAG, "enter InitializeUser...");
-            }
-            android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_BACKGROUND);
-            currentThread = Thread.currentThread();
+        SharedPreferences settings = getSharedPreferences(TAG, MODE_PRIVATE);
+        SharedPreferences.Editor editor = settings.edit();
+        editor.putString(UUID_KEY, userID.toString());
+        editor.putBoolean(ISFIRSTRUN_KEY, false);
+        editor.apply();
 
-            try {
+        DataHandlingService.userID = userID;
 
-                HttpURLConnection conn = (HttpURLConnection) new URL(CONNECTION_PROTOCOL, serverAddress, SERVER_SOCKET, INITIALIZE_USER_PATH).openConnection();
-                conn.setRequestMethod("POST");
-                conn.setRequestProperty("Accept", "application/json");
-                conn.setRequestProperty("Content-Type", "application/json");
-                conn.setRequestProperty("X-Client-UserID", "");
-                JsonFactory jsonFactory = new JsonFactory();
-                JsonGenerator jGen = jsonFactory.createGenerator(conn.getOutputStream());
-                jGen.writeStartObject();
-                jGen.writeEndObject();
-                jGen.flush();
-                jGen.close();
+        sendSignOnEvent(userID.toString());
 
-                InputStream responseStream = conn.getInputStream();
-                if (responseStream == null) {
-                    Log.e(TAG, "No input stream was retrieved from the connection... exiting...");
-                    return;
-                }
+        if (VERBOSE) Log.v(TAG,"exiting setUserID...");
+    }
 
-                ObjectMapper objectMapper = new ObjectMapper();
-                Map<String, Object> asMap = objectMapper.readValue(conn.getInputStream(), Map.class);
+    public void handleInitializeState(int state) {
+        switch (state) {
+            case InitializeUserRunnable.INITIALIZE_STARTED:
+                Log.d(TAG,"initialize started...");
+                break;
 
-                if (VERBOSE) {
-                    LogUtils.printMapToVerbose(asMap, TAG);
-                }
+            case InitializeUserRunnable.INITIALIZE_FAILED:
+                Log.d(TAG,"initialize failed!");
+                break;
 
-                userID = UUID.fromString(String.valueOf(asMap.get("id")));
+            case InitializeUserRunnable.INITIALIZE_SUCCESS:
+                Log.d(TAG,"initialize success :)");
+                break;
+        }
+    }
 
-                SharedPreferences settings = getSharedPreferences(TAG, MODE_PRIVATE);
-                SharedPreferences.Editor editor = settings.edit();
-                editor.putString(UUID_KEY, userID.toString());
-                editor.putBoolean(ISFIRSTRUN_KEY, false);
-                editor.apply();
-            } catch (Exception e) {
-                Log.d(TAG, "Error executing initialize user...", e);
-                //Toast.makeText(getApplicationContext(),"Error initializing new user with the server...",Toast.LENGTH_SHORT).show();
-            }
+    public void handleReplyState(int state) {
+        switch (state) {
+            case RequestRepliesRunnable.REQUEST_REPLIES_FAILED:
+                Log.d(TAG,"request replies failed...");
+                break;
 
-            if (userID == null) {
-                Log.e(TAG, "userID was not successfully retreived... trying again...");
-                return;
-            }
-            sendSignOnEvent(userID.toString());
+            case RequestRepliesRunnable.REQUEST_REPLIES_STARTED:
+                Log.d(TAG,"request replies started...");
+                break;
 
-            if (VERBOSE) {
-                Log.v(TAG, "exiting InitializeUser...");
-            }
+            case RequestRepliesRunnable.REQUEST_REPLIES_SUCCESS:
+                Log.d(TAG,"request replies success...");
+                break;
         }
 
+    }
+
+
+    private Bundle replyBundle;
+    @Override
+    public Bundle getDataBundle() {
+        return replyBundle;
+    }
+
+    Thread requestRepliesThread;
+
+    @Override
+    public void setRequestRepliesThread(Thread thread) {
+        requestRepliesThread = thread;
+    }
+
+    public String getRequestRepliesPath() {
+        return GET_LIVE_THREAD_REPLIES;
+    }
+
+    public String getInitializeUserPath() {
+        return INITIALIZE_USER_PATH;
+    }
+
+    public void setInitializeUserThread(Thread initializeUserThread) {
+        this.initializeUserThread = initializeUserThread;
     }
 
 
@@ -652,7 +670,7 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
     }
 
     public void sendImageMessageAsync(Bundle b) {
-        sendImageMessageAsync(b.getString(Constants.KEY_S3_KEY), b.getString(Constants.MESSAGE_TARGET), b.getString(Constants.KEY_TEXT,""));
+        sendImageMessageAsync(b.getString(Constants.KEY_S3_KEY), b.getString(Constants.MESSAGE_TARGET), b.getString(Constants.KEY_TEXT, ""));
     }
 
     public void sendImageMessageAsync(final String filePath, final String messageTarget, final String text) {
@@ -1074,6 +1092,7 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
         }).start();
     }
 
+
     /**
      * method 'saveIncomingJsonArray'
      *
@@ -1086,7 +1105,7 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
      * @return amount of rows inserted
      * @throws IOException
      */
-    private int saveIncomingJsonArray(int where, URLConnection conn, Bundle extradata) throws IOException {
+    public int saveIncomingJsonArray(int where, URLConnection conn, Bundle extradata) throws IOException {
         if (VERBOSE) Log.v(TAG,"entering saveIncomingJsonArray...");
 
         int rows;
@@ -1120,7 +1139,7 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
                         if (VERBOSE) Log.v(TAG,"saving json from replies");
 
                         map.put(SQLiteDbContract.LiveReplies.COLUMN_ID, map.remove("id"));
-                        map.put(SQLiteDbContract.LiveReplies.COLUMN_NAME_THREAD_ID, extradata.getString(THREAD_ID));
+                        map.put(SQLiteDbContract.LiveReplies.COLUMN_NAME_THREAD_ID, extradata.getInt(THREAD_ID));
                         b.putInt(REQUEST_TYPE, MSG_REQUEST_REPLIES);
                         break;
                     case MSG_REQUEST_LOCAL_POSTS:
@@ -1187,8 +1206,8 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
 
                     case MSG_REQUEST_REPLIES:
                         //swap id for _ID, to allow listview loading, and add the thread ID
-
-                        getContentResolver().insert(FireFlyContentProvider.CONTENT_URI_REPLY_THREAD_LIST, values);
+                        Log.d(TAG,"saving to replies...");
+                        getContentResolver().insert(FireFlyContentProvider.CONTENT_URI_REPLY_LIST, values);
                         break;
 
                     case MSG_REQUEST_LIVE_THREADS:
@@ -1208,12 +1227,6 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
             rows = jsonArray.size();
         } else {
             Log.v(TAG, "nothing was supplied...");
-            Message msg = Message.obtain(null,MainActivity.MSG_NOTHING_RETURNED,where,0);
-            try {
-                replyMessenger.send(msg);
-            } catch (RemoteException e) {
-                Log.e(TAG,"error notifying main thread of status");
-            }
             rows = 0;
         }
 
@@ -1249,6 +1262,10 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
 
     public void setReplyMessenger(Messenger messenger) {
         replyMessenger = messenger;
+    }
+
+    public Messenger getReplyMessenger() {
+        return replyMessenger;
     }
 
     static final int MSG_BUILD_CLIENT = 1;
@@ -1318,7 +1335,10 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
                 return;
             }
 
-            Bundle data;
+
+
+            Bundle data = msg.getData();
+            data.putInt(REQUEST_TYPE, msg.what);
 
             switch (msg.what) {
                 case MSG_BUILD_CLIENT:
@@ -1345,7 +1365,6 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
                     Log.d(TAG, "request to send an image received");
 
                     //store the type of request this is in the bundle object
-                    data = msg.getData();
 
                     String messageTarget = data.getString(Constants.MESSAGE_TARGET);
                     //Log.d(TAG, "image is stored at " + filePath);
@@ -1393,7 +1412,7 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
                 case MSG_DELETE_IMAGE:
                     Log.d(TAG, "received a message to delete image from database");
 
-                    String s = msg.getData().getString(Constants.IMAGE_FILEPATH);
+                    String s = data.getString(Constants.IMAGE_FILEPATH);
                     throw new NotYetConnectedException();
 
                 case MSG_REQUEST_MESSAGES:
@@ -1409,7 +1428,6 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
                 case MSG_CREATE_THREAD:
                     Log.d(TAG, "received a message to create a thread");
 
-                    data = msg.getData();
                     data.putInt(REQUEST_TYPE, MSG_CREATE_THREAD);
                     data.putString(Constants.KEY_S3_DIRECTORY, Constants.KEY_S3_LIVE_DIRECTORY);
                     uploadImageToS3(data);
@@ -1418,8 +1436,6 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
                 case MSG_REPLY_TO_THREAD:
                     Log.d(TAG, "received a message to reply to a thread");
 
-
-                    data = msg.getData();
                     data.putInt(REQUEST_TYPE, MSG_REPLY_TO_THREAD);
 
                     if (data.getString(Constants.KEY_S3_KEY,"").equals("")){
@@ -1443,7 +1459,9 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
 
                 case MSG_REQUEST_REPLIES:
                     Log.d(TAG, "received a message to request replies.");
-                    requestLiveRepliesAsync(msg.arg1);
+                    irs.get().replyBundle = data;
+                    data.putInt("threadID",msg.arg1);
+                    new Thread(new RequestRepliesRunnable(irs.get())).start();
 
                     break;
 
@@ -1456,8 +1474,6 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
                     Log.d(TAG, "received a message to download an image...");
 
                     imageResponseMessenger = msg.replyTo;
-                    data = msg.getData();
-                    data.putInt(REQUEST_TYPE, msg.what);
                     downloadImageFromS3(data);
 
                     break;
@@ -1654,7 +1670,11 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
         conn.setDoOutput(true);
         conn.setRequestProperty("Accept", "application/json");
         conn.setRequestProperty("Content-Type", "application/json");
-        conn.setRequestProperty("X-Client-UserID", userID.toString());
+        if (userID == null) {
+            conn.setRequestProperty("X-Client-UserID", "");
+        } else {
+            conn.setRequestProperty("X-Client-UserID", userID.toString());
+        }
         conn.setUseCaches(false);
 
 
@@ -1662,7 +1682,7 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
     }
 
 
-    private HttpURLConnection connectToServer(String serverPath) throws ConnectException {
+    public HttpURLConnection connectToServer(String serverPath) throws ConnectException {
         return connectToServer(serverPath,0);
     }
 
@@ -1742,6 +1762,10 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
         return handleResponseCode(responseCode,replyMessenger,new Bundle());
     }
 
+    public boolean handleResponseCode(int code) {
+        return handleResponseCode(code,replyMessenger,new Bundle());
+    }
+
     /**
      * method "handleResponseCode"
      *
@@ -1784,7 +1808,7 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
                 case RESPONSE_UNAUTHORIZED:
                     Log.i(TAG, "Unauthorized...");
 
-                    mMessenger.send(Message.obtain(null, new initializeUserWithServer()));
+                    mMessenger.send(Message.obtain(null, new InitializeUserRunnable(this)));
                     replyMessenger.send(Message.obtain(null, MainActivity.MSG_UNAUTHORIZED));
                     break;
 

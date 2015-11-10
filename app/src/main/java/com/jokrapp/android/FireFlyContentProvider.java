@@ -67,7 +67,7 @@ public class FireFlyContentProvider extends ContentProvider {
     public static final Uri CONTENT_URI_LIVE = Uri.parse("content://" + AUTHORITY
             + "/" + LIVE_BASE_PATH);
 
-    public static final Uri CONTENT_URI_REPLY_THREAD_LIST = Uri.parse("content://" + AUTHORITY
+    public static final Uri CONTENT_URI_REPLY_LIST = Uri.parse("content://" + AUTHORITY
             + "/" + REPLY_BASE_PATH);
 
     public static final Uri CONTENT_URI_REPLY_THREAD_INFO = Uri.parse("content://" + AUTHORITY
@@ -283,7 +283,7 @@ public class FireFlyContentProvider extends ContentProvider {
 
 
             case REPLIES:
-                Log.d(TAG,"REPLY_INFO called");
+                Log.d(TAG,"REPLIES called");
                 queryBuilder.setTables(SQLiteDbContract.LiveReplies.TABLE_NAME);
                 break;
             case REPLIES_ID:
@@ -325,6 +325,7 @@ public class FireFlyContentProvider extends ContentProvider {
                 throw new IllegalArgumentException("Unknown URI: " + uri);
         }
 
+        Log.d(TAG,"executing query...");
         SQLiteDatabase dba = database.getWritableDatabase();
         Cursor cursor = queryBuilder.query(dba, projection, selection,
                 selectionArgs, null, null, sortOrder);
@@ -462,6 +463,7 @@ public class FireFlyContentProvider extends ContentProvider {
 
             case REPLIES:
 
+                Log.d(TAG,"inserting into replies...");
                 id = sqlDB.insertWithOnConflict(SQLiteDbContract.LiveReplies.TABLE_NAME, null, values,SQLiteDatabase.CONFLICT_IGNORE);
                 break;
 

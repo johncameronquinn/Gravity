@@ -168,7 +168,6 @@ class PhotoDownloadRunnable implements Runnable {
                 b.putString(Constants.KEY_S3_KEY, mPhotoTask.getImageKey());
                 msg.setData(b);
 
-
                 serviceMessenger.send(msg);
 
                 LogUtils.printBundle(b,LOG_TAG);

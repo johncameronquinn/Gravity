@@ -31,6 +31,8 @@ import com.google.android.gms.analytics.Tracker;
 
 import java.lang.ref.WeakReference;
 
+import com.jokrapp.android.SQLiteDbContract.LiveReplies;
+
 
 /**
  * Author/Copyright John C. Quinn All Rights Reserved
@@ -43,10 +45,8 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
     private static int currentThread = LiveFragment.NO_LIVE_THREADS_ID;
     public static final int REPLY_LOADER_ID = 3;
 
-    private final boolean VERBOSE = false;
+    private final boolean VERBOSE = true;
     private final String TAG = "ReplyFragment";
-
-    private static final String CURRENT_THREAD_KEY = "threadkey";
 
     private LiveFragment.onLiveFragmentInteractionListener mListener;
 
@@ -57,7 +57,7 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
 
     public static ReplyFragment newInstance(int currentThread) {
         Bundle args = new Bundle();
-        args.putInt(CURRENT_THREAD_KEY, currentThread);
+        args.putInt(LiveReplies.COLUMN_NAME_THREAD_ID, currentThread);
 
         ReplyFragment fragment = new ReplyFragment();
         fragment.setArguments(args);
@@ -81,12 +81,12 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
             if (VERBOSE) Log.v(TAG,"initializing loader at id " + ReplyFragment.REPLY_LOADER_ID);
 
             if (currentThread == LiveFragment.NO_LIVE_THREADS_ID) {
-                currentThread = b.getInt(CURRENT_THREAD_KEY);
+                currentThread = b.getInt(LiveReplies.COLUMN_NAME_THREAD_ID);
                 Bundle args = new Bundle();
-                args.putString(CURRENT_THREAD_KEY, String.valueOf(currentThread));
+                args.putString(LiveReplies.COLUMN_NAME_THREAD_ID, String.valueOf(currentThread));
                 getLoaderManager().restartLoader(ReplyFragment.REPLY_LOADER_ID, args, this);
             } else {
-                currentThread = b.getInt(CURRENT_THREAD_KEY);
+                currentThread = b.getInt(LiveReplies.COLUMN_NAME_THREAD_ID);
             }
 
         }
@@ -126,7 +126,7 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
         mListener = (MainActivity)activity;
 
         Bundle b = new Bundle();
-        b.putString(CURRENT_THREAD_KEY, String.valueOf(currentThread));
+        b.putString(LiveReplies.COLUMN_NAME_THREAD_ID, String.valueOf(currentThread));
         getLoaderManager().restartLoader(REPLY_LOADER_ID, b, this);
     }
 
@@ -254,11 +254,10 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
     }
 
     public void resetDisplay() {
-        Log.d(TAG, "restarting loader...");
-
         if (isAdded()) {
+            Log.d(TAG, "restarting loader...");
             Bundle b = new Bundle();
-            b.putString(CURRENT_THREAD_KEY, String.valueOf(currentThread));
+            b.putString(LiveReplies.COLUMN_NAME_THREAD_ID, String.valueOf(currentThread));
             getLoaderManager().restartLoader(REPLY_LOADER_ID, b, this);
         }
     }
@@ -355,15 +354,18 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
     public CursorLoader onCreateLoader(int id, Bundle args) {
         if (VERBOSE) Log.v(TAG,"entering onCreateLoader...");
 
-        String[] selectionArgs = {args.getString(CURRENT_THREAD_KEY)};
+        String[] selectionArgs = {args.getString(LiveReplies.COLUMN_NAME_THREAD_ID)};
+
+        Log.d(TAG,"current selection args = " + args.getString(LiveReplies.COLUMN_NAME_THREAD_ID));
 
             CursorLoader loader = new CursorLoader(
                     this.getActivity(),
-                    FireFlyContentProvider.CONTENT_URI_REPLY_THREAD_LIST,
+                    FireFlyContentProvider.CONTENT_URI_REPLY_LIST,
                     null,
-                    SQLiteDbContract.LiveReplies.COLUMN_NAME_THREAD_ID + "= ?" ,
+                    LiveReplies.COLUMN_NAME_THREAD_ID + " = ?" ,
                     selectionArgs,
-                    SQLiteDbContract.LiveReplies.COLUMN_ID);
+                    LiveReplies.COLUMN_ID
+            );
 
         if (VERBOSE) Log.v(TAG,"exiting onCreateLoader...");
             return loader;
@@ -372,6 +374,7 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
         if (VERBOSE) Log.v(TAG,"entering onLoadFinished...");
+        if (data!= null) Log.v(TAG,"data returned " + data.getCount() + " rows.");
         mAdapter.swapCursor(data);
         if (VERBOSE) Log.v(TAG,"exiting onLoadFinished...");
     }

@@ -6,10 +6,12 @@
     <string name="message">Message</string>
     <string name="action_settings">Settings</string>
     <string name="title_activity_live">LiveActivity</string>
-    <string name="gps_network_not_enabled">Location Services must be enabled in order to use Proxi, please
-        enable them now. Information as to how we use your location is available online at our website www.proxi.com</string>
-    <string name="open_location_settings">Open Settings</string>
-    <string name="Cancel">Close</string>
+    <string name="gps_network_not_enabled_title">Location Services not enabled</string>
+    <string name="gps_network_not_enabled_message">You don’t have location services on, so, right now your
+        GPS isn’t giving us any information. Out of fairness, we’ve set you to 0,0. Somewhere in
+        the middle of the atlantic. You probably want to go turn that on.</string>
+    <string name="open_location_settings">Enable Location Services</string>
+    <string name="Cancel">Enjoy the pirate folk</string>
 
 
     <string name="capture_button_desc">Press this button to capture a picture</string>

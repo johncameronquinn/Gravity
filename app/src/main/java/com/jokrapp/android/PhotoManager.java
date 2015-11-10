@@ -107,7 +107,6 @@ public class PhotoManager {
     // An object that manages Messages in a Thread
     private Handler mHandler;
 
-
     private final HashMap<String,PhotoTask> mWaitingPhotoTasks;
 
     // A single instance of PhotoManager, used to implement the singleton pattern

@@ -1083,17 +1083,17 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
 
         if (!gps_enabled && !network_enabled) {
             final AlertDialog.Builder dialog = new AlertDialog.Builder(context); //todo make this nicer
-            dialog.setMessage(context.getResources().getString(R.string.gps_network_not_enabled));
-            dialog.setPositiveButton(context.getResources().getString(R.string.open_location_settings), new DialogInterface.OnClickListener() {
+            dialog.setTitle(R.string.gps_network_not_enabled_title);
+            dialog.setMessage(R.string.gps_network_not_enabled_message);
+            dialog.setPositiveButton(R.string.open_location_settings, new DialogInterface.OnClickListener() {
 
                 @Override
                 public void onClick(DialogInterface paramDialogInterface, int paramInt) {
                     Intent myIntent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
                     context.startActivity(myIntent);
-                    //get gps
                 }
             });
-            dialog.setNegativeButton(context.getString(R.string.Cancel), new DialogInterface.OnClickListener() {
+            dialog.setNegativeButton(R.string.Cancel, new DialogInterface.OnClickListener() {
 
                 @Override
                 public void onClick(DialogInterface paramDialogInterface, int paramInt) {
@@ -1255,7 +1255,7 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
 
                     getContentResolver()
                             .insert(FireFlyContentProvider
-                                    .CONTENT_URI_REPLY_THREAD_LIST, values);
+                                    .CONTENT_URI_REPLY_LIST, values);
 
 
             if (VERBOSE) Log.v(TAG,"exiting sendMsgCreateThread... saved locally");
@@ -2051,7 +2051,7 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
          */
         public void saveImage(byte[] data, String commentText, int height, int callBack) {
             int TEXT_BOX_HEIGHT = 55;
-            int COMPRESSION_QUALITY = 100;
+            int COMPRESSION_QUALITY = 80;
 
             Log.d(TAG, "saving image...");
             Log.d(TAG,"incoming string comment " + commentText);
@@ -2693,7 +2693,7 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
 
                                     getContentResolver()
                                             .delete(FireFlyContentProvider
-                                                            .CONTENT_URI_REPLY_THREAD_LIST,
+                                                            .CONTENT_URI_REPLY_LIST,
                                                     null,
                                                     null
                                             );
