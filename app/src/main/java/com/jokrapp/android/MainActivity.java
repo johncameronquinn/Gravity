@@ -15,8 +15,6 @@ import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.Canvas;
-import android.graphics.Color;
 import android.graphics.Matrix;
 import android.graphics.Rect;
 import android.graphics.RectF;
@@ -42,7 +40,6 @@ import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.view.ViewPager;
 import android.util.AttributeSet;
 import android.util.Log;
-import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.TextureView;
 import android.view.View;
@@ -50,16 +47,11 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.widget.CheckBox;
 import android.widget.EditText;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.amazonaws.mobileconnectors.amazonmobileanalytics.MobileAnalyticsManager;
-import com.google.android.gms.analytics.HitBuilders;
-import com.google.android.gms.analytics.Tracker;
 import com.jokrapp.android.user.IdentityManager;
 import com.jokrapp.android.util.LogUtils;
-
-import org.w3c.dom.Text;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -1692,12 +1684,17 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
             } else {
 
                 mSurface = surface;
-                Camera.Parameters p = mCamera.getParameters();
-                if (p.getMaxNumMeteringAreas() > 0) {
-                    this.meteringAreaSupported = true;
+                try {
+                    Camera.Parameters p = mCamera.getParameters();
+                    if (p.getMaxNumMeteringAreas() > 0) {
+                        this.meteringAreaSupported = true;
+                    }
+                } catch (Exception e) {
+                    Log.e(TAG,"Exception logged in camera parameters... ",e);
                 }
-                this.width = width;
-                this.height = height;
+                    this.width = width;
+                    this.height = height;
+
             }
 
             if (VERBOSE) {

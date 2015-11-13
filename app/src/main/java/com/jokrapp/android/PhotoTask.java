@@ -15,22 +15,21 @@
  */
 
 package com.jokrapp.android;
+import com.amazonaws.services.s3.AmazonS3Client;
 import com.jokrapp.android.PhotoDecodeRunnable.TaskRunnableDecodeMethods;
 import com.jokrapp.android.PhotoDownloadRunnable.TaskRunnableDownloadMethods;
 import com.jokrapp.android.PhotoDiskLoadRunnable.TaskRunnableDiskLoadMethods;
+import com.jokrapp.android.PhotoRequestDownloadRunnable.TaskRunnableRequestMethods;
 
 import android.graphics.Bitmap;
 import android.os.*;
-import android.os.Process;
 import android.util.Log;
-import android.view.View;
 
 import java.io.File;
 import java.lang.ref.WeakReference;
-import java.net.URL;
 
 /**
- * This class manages PhotoDownloadRunnable and PhotoDownloadRunnable objects.  It does't perform
+ * This class manages PhotoRequestDownloadRunnable and PhotoRequestDownloadRunnable objects.  It does't perform
  * the download or decode; instead, it manages persistent storage for the tasks that do the work.
  * It does this by implementing the interfaces that the download and decode classes define, and
  * then passing itself as an argument to the constructor of a download or decode object. In effect,
@@ -38,7 +37,7 @@ import java.net.URL;
  * run a decode, and then start over again. This class can be pooled and reused as necessary.
  */
 public class PhotoTask implements
-        TaskRunnableDiskLoadMethods, TaskRunnableDecodeMethods, TaskRunnableDownloadMethods {
+        TaskRunnableDiskLoadMethods, TaskRunnableDecodeMethods, TaskRunnableDownloadMethods, TaskRunnableRequestMethods {
 
     /*
      * Creates a weak reference to the ImageView that this Task will populate.
@@ -79,14 +78,18 @@ public class PhotoTask implements
      * Fields containing references to the two runnable objects that handle downloading and
      * decoding of the image.
      */
-    private Runnable mDownloadRunnable;
+    private Runnable mPhotoDownloadRunnable;
     private Runnable mDecodeRunnable;
-
+    private Runnable mRequestRunnable;
     private Runnable mDiskDecodeRunnable;
 
+    private Runnable mDownloadRunnable;
 
     // A buffer for containing the bytes that make up the image
     byte[] mImageBuffer;
+
+    // the Amazon s3 client required for security
+    AmazonS3Client mS3Client;
 
     // The decoded image
     private Bitmap mDecodedImage;
@@ -106,9 +109,7 @@ public class PhotoTask implements
      */
     PhotoTask(Handler responseHandler) {
         // Create the runnables
-        mDownloadRunnable = new PhotoDownloadRunnable(this);
         mDecodeRunnable = new PhotoDecodeRunnable(this);
-        mDiskDecodeRunnable = new PhotoDiskLoadRunnable(this);
 
         sPhotoManager = PhotoManager.getInstance();
 
@@ -125,7 +126,8 @@ public class PhotoTask implements
     void initializeDownloaderTask(
             PhotoManager photoManager,
             PhotoView photoView,
-            boolean cacheFlag)
+            boolean cacheFlag,
+            AmazonS3Client s3Client)
     {
         // Sets this object's ThreadPool field to be the input argument
         sPhotoManager = photoManager;
@@ -133,6 +135,14 @@ public class PhotoTask implements
         // Gets the URL for the View
         mImageKey = photoView.getImageKey();
         mImageDirectory = photoView.getmImageDirectory();
+
+        if (mImageDirectory.equals(Constants.KEY_S3_LOCAL_DIRECTORY) ||
+                mImageDirectory.equals(Constants.KEY_S3_MESSAGE_DIRECTORY)) {
+            mPhotoDownloadRunnable = new PhotoDownloadRunnable(this);
+        } else {
+            mRequestRunnable = new PhotoRequestDownloadRunnable(this);
+            mDiskDecodeRunnable = new PhotoDiskLoadRunnable(this);
+        }
 
 
 
@@ -146,6 +156,8 @@ public class PhotoTask implements
         // Gets the width and height of the provided ImageView
         mTargetWidth = photoView.getWidth();
         mTargetHeight = photoView.getHeight();
+
+        mS3Client = s3Client;
 
     }
 
@@ -174,13 +186,13 @@ public class PhotoTask implements
         mDecodedImage = null;
     }
 
-    // Implements PhotoDownloadRunnable.getTargetWidth. Returns the global target width.
+    // Implements PhotoRequestDownloadRunnable.getTargetWidth. Returns the global target width.
     @Override
     public int getTargetWidth() {
         return mTargetWidth;
     }
 
-    // Implements PhotoDownloadRunnable.getTargetHeight. Returns the global target height.
+    // Implements PhotoRequestDownloadRunnable.getTargetHeight. Returns the global target height.
     @Override
     public int getTargetHeight() {
         return mTargetHeight;
@@ -191,7 +203,7 @@ public class PhotoTask implements
         return mCacheEnabled;
     }
 
-    // Implements PhotoDownloadRunnable.getImageKey. Returns the global Image Key.
+    // Implements PhotoRequestDownloadRunnable.getImageKey. Returns the global Image Key.
     @Override
     public String getImageKey() {
         return mImageKey;
@@ -203,11 +215,20 @@ public class PhotoTask implements
     }
 
     @Override
+    public String getImageBucket() {
+        return "launch-zone"; //todo add multi-bucket support
+    }
+
+
+    @Override
+    public AmazonS3Client getS3Client() { return mS3Client; }
+
+    @Override
     public File getCacheDirectory() {
         return mCacheDirectory;
     }
 
-    // Implements PhotoDownloadRunnable.setByteBuffer. Sets the image buffer to a buffer object.
+    // Implements PhotoRequestDownloadRunnable.setByteBuffer. Sets the image buffer to a buffer object.
     @Override
     public void setByteBuffer(byte[] imageBuffer) {
         mImageBuffer = imageBuffer;
@@ -224,19 +245,30 @@ public class PhotoTask implements
     }
 
     // Returns the instance that downloaded the image
-    Runnable getHTTPDownloadRunnable() {
-        return mDownloadRunnable;
+    Runnable getS3DownloadRunnable() {
+        mDownloadRunnable = mPhotoDownloadRunnable;
+        return mPhotoDownloadRunnable;
     }
 
+    // Returns the runnable to request a download from the service
+    Runnable getDownloadRequestRunnable() {
+        mDownloadRunnable = mRequestRunnable;
+        return mRequestRunnable; }
 
     // Returns the instance that downloaded the image
-    Runnable getDiskDecodeRunnable() {
+    Runnable getDiskloadRunnable() {
+        mDownloadRunnable = mDiskDecodeRunnable;
         return mDiskDecodeRunnable;
     }
 
     // Returns the instance that decode the image
     Runnable getPhotoDecodeRunnable() {
         return mDecodeRunnable;
+    }
+
+    // Returns the instance that downloaded the image
+    Runnable getDownloadRunnable() {
+        return mDownloadRunnable;
     }
 
 
@@ -291,14 +323,14 @@ public class PhotoTask implements
         mDecodedImage = decodedImage;
     }
 
-    // Implements PhotoDownloadRunnable.setHTTPDownloadThread(). Calls setCurrentThread().
+    // Implements PhotoRequestDownloadRunnable.setHTTPDownloadThread(). Calls setCurrentThread().
     @Override
     public void setDownloadThread(Thread currentThread) {
         setCurrentThread(currentThread);
     }
 
     /*
-     * Implements PhotoDownloadRunnable.handleHTTPState(). Passes the download state to the
+     * Implements PhotoRequestDownloadRunnable.handleHTTPState(). Passes the download state to the
      * ThreadPool object.
      */
 
@@ -308,13 +340,13 @@ public class PhotoTask implements
 
         // Converts the download state to the overall state
         switch(state) {
-            case PhotoDownloadRunnable.HTTP_STATE_COMPLETED:
-                if (Constants.LOGV) Log.v(TAG, "Download completed...");
+            case PhotoDownloadRunnable.S3_STATE_COMPLETED:
+                if (Constants.LOGV) Log.v(TAG, "S3 Download completed...");
 
                 outState = PhotoManager.DOWNLOAD_COMPLETE;
                 break;
-            case PhotoDownloadRunnable.HTTP_STATE_FAILED:
-                if (Constants.LOGV) Log.v(TAG, "Download failed...");
+            case PhotoDownloadRunnable.S3_STATE_FAILED:
+                if (Constants.LOGV) Log.v(TAG, "S3 Download failed...");
 
                 outState = PhotoManager.DOWNLOAD_FAILED;
                 break;
@@ -322,6 +354,32 @@ public class PhotoTask implements
                 if (Constants.LOGV) Log.v(TAG, "Download started...");
 
                 outState = PhotoManager.DOWNLOAD_STARTED;
+                break;
+        }
+        // Passes the state to the ThreadPool object.
+        handleState(outState);
+    }
+
+    @Override
+    public void handleRequestState(int state) {
+        int outState;
+
+        // Converts the download state to the overall state
+        switch(state) {
+            case PhotoRequestDownloadRunnable.REQUEST_STATE_COMPLETED:
+                if (Constants.LOGV) Log.v(TAG, "Request completed...");
+
+                outState = PhotoManager.REQUEST_COMPLETE;
+                break;
+            case PhotoRequestDownloadRunnable.REQUEST_STATE_FAILED:
+                if (Constants.LOGV) Log.v(TAG, "Request failed...");
+
+                outState = PhotoManager.REQUEST_FAILED;
+                break;
+            default:
+                if (Constants.LOGV) Log.v(TAG, "Request started...");
+
+                outState = PhotoManager.REQUEST_STARTED;
                 break;
         }
         // Passes the state to the ThreadPool object.

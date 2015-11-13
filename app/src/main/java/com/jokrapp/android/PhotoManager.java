@@ -10,6 +10,9 @@ import android.util.LruCache;
 import android.util.Log;
 import android.view.View;
 
+import com.amazonaws.auth.BasicAWSCredentials;
+import com.amazonaws.services.s3.AmazonS3Client;
+
 import java.io.File;
 import java.net.URL;
 import java.util.HashMap;
@@ -49,6 +52,9 @@ public class PhotoManager {
     static final int TASK_COMPLETE = 4;
     static final int DISKLOAD_STARTED = 6;
     static final int DISKLOAD_COMPLETE = 5;
+    static final int REQUEST_FAILED = 7;
+    static final int REQUEST_STARTED = 8;
+    static final int REQUEST_COMPLETE = 9;
 
     static final int AWS_DOWNLOAD_COMPLETE = 5;
 
@@ -57,7 +63,7 @@ public class PhotoManager {
 
     private static final String TAG = "PhotoManager";
     // Sets the size of the storage that's used to cache images
-    private static final int IMAGE_CACHE_SIZE = 1024 * 1024 * 8; //8MiB
+    private static final int IMAGE_CACHE_SIZE = 1024 * 1024 * 10; //10MiB
 
     // Sets the amount of time an idle thread will wait for a task before terminating
     private static final int KEEP_ALIVE_TIME = 1;
@@ -112,6 +118,8 @@ public class PhotoManager {
     // A single instance of PhotoManager, used to implement the singleton pattern
     private static PhotoManager sInstance = null;
 
+    private final AmazonS3Client s3Client;
+
     // A static block that sets class fields
     static {
 
@@ -126,6 +134,16 @@ public class PhotoManager {
      */
     private PhotoManager() {
         if (Constants.LOGV) Log.v(TAG,"entering PhotoManager constructor...");
+
+        /*
+         * Creates an amazon s3 client for allowing get requests from the server
+         */
+        s3Client = new AmazonS3Client( //todo this is so bad security-wise
+                new BasicAWSCredentials(
+                        "AKIAIZ42NH277ZC764XQ",
+                        "pMYCGMq+boy6858OfITL4CTXWgdkVbVreyROHckG"
+                )
+        );
 
         /*
          * Creates a list of waiting photoTasks that will hold all phototasks still
@@ -239,7 +257,6 @@ public class PhotoManager {
 
                             // If the download has started, sets background color to dark green
                             case DOWNLOAD_STARTED:
-                                Log.d(TAG,"Download Started...");
                                 localView.setStatusResource(R.drawable.imagedownloading);
                                 break;
 
@@ -248,7 +265,26 @@ public class PhotoManager {
                              * background color to golden yellow
                              */
                             case DOWNLOAD_COMPLETE:
-                                Log.d(TAG, "Download Complete...");
+                                // Sets background color to golden yellow
+                                localView.setStatusResource(R.drawable.decodequeued);
+                                break;
+
+                            case DOWNLOAD_FAILED:
+                                localView.setStatusResource(R.drawable.imagedownloadfailed);
+                                break;
+
+                            // If the download has started, sets background color to dark green
+                            case REQUEST_STARTED:
+                                Log.d(TAG, "Request Started...");
+                                localView.setStatusResource(R.drawable.imagedownloading);
+                                break;
+
+                            /*
+                             * If the download is complete, but the decode is waiting, sets the
+                             * background color to golden yellow
+                             */
+                            case REQUEST_COMPLETE:
+                                Log.d(TAG, "Request Complete...");
                                 handleState(photoTask, DOWNLOAD_COMPLETE);
                                 // Sets background color to golden yellow
                                 localView.setStatusResource(R.drawable.decodequeued);
@@ -257,6 +293,16 @@ public class PhotoManager {
                                     localView.setVisibility(View.VISIBLE);
                                 }
                                 break;
+
+                            case REQUEST_FAILED:
+                                handleState(photoTask,DOWNLOAD_FAILED);
+                                localView.setStatusResource(R.drawable.imagedownloadfailed);
+
+                                // Attempts to re-use the Task object
+                                recycleTask(photoTask);
+                                break;
+
+
                             // If the decode has started, sets background color to orange
                             case DISKLOAD_STARTED:
                                 Log.d(TAG, "Diskload Started...");
@@ -268,11 +314,13 @@ public class PhotoManager {
                             case DECODE_STARTED:
                                 localView.setStatusResource(R.drawable.decodedecoding);
                                 break;
+
                             /*
                              * The decoding is done, so this sets the
                              * ImageView's bitmap to the bitmap in the
                              * incoming message
                              */
+
                             case TASK_COMPLETE:
                                 localView.setImageBitmap(photoTask.getImage());
                                 recycleTask(photoTask);
@@ -280,13 +328,8 @@ public class PhotoManager {
                                 mWaitingPhotoTasks.remove(photoTask.getImageKey());
                                 break;
                             // The download failed, sets the background color to dark red
-                            case DOWNLOAD_FAILED:
-                                handleState(photoTask,DOWNLOAD_FAILED);
-                                localView.setStatusResource(R.drawable.imagedownloadfailed);
 
-                                // Attempts to re-use the Task object
-                                recycleTask(photoTask);
-                                break;
+
 
                             default:
                                 // Otherwise, calls the super method
@@ -351,22 +394,31 @@ public class PhotoManager {
                 completeMessage.sendToTarget();
                 break;
 
-            // The task finished downloading the image
-            case DOWNLOAD_COMPLETE:
 
-                if (VERBOSE) Log.v(TAG,"image download is complete... starting diskload.");
+            case REQUEST_COMPLETE:
+
+                if (VERBOSE) Log.v(TAG,"received download_complete message from service... " +
+                        "starting diskload.");
                 /*
                  * Decodes the image, by queuing the decoder object to run in the decoder
                  * thread pool
                  */
-                mDownloadThreadPool.execute(photoTask.getDiskDecodeRunnable());
-                //mHandler.obtainMessage(state, photoTask).sendToTarget();
+                mDownloadThreadPool.execute(photoTask.getDiskloadRunnable());
                 break;
-            case DOWNLOAD_FAILED:
-                if (VERBOSE) Log.v(TAG,"image download failed, removing task from waiting queue," +
-                        " and passing.");
+            case REQUEST_FAILED:
+                if (VERBOSE) Log.v(TAG, "received message from the service that the s3 download failed, " +
+                        "removing task from waiting queue, and passing.");
                 mWaitingPhotoTasks.remove(photoTask.getImageKey());
+                break;
 
+
+            case REQUEST_STARTED:
+                if (VERBOSE) Log.v(TAG,"image download started... saving task");
+
+                //add it to waiting tasks map
+                mWaitingPhotoTasks.put(photoTask.getImageKey(), photoTask);
+
+                mHandler.obtainMessage(state, photoTask).sendToTarget();
                 break;
 
             // The task finished downloading the image
@@ -387,15 +439,13 @@ public class PhotoManager {
                 mHandler.obtainMessage(state, photoTask).sendToTarget();
                 break;
 
+            case DOWNLOAD_COMPLETE:
+                /*
+                 * Decodes the image, by queuing the decoder object to run in the decoder
+                 * thread pool
+                 */
+                mDecodeThreadPool.execute(photoTask.getPhotoDecodeRunnable());
 
-            case DOWNLOAD_STARTED:
-                if (VERBOSE) Log.v(TAG,"image download started... saving task");
-
-                //add it to waiting tasks map
-                mWaitingPhotoTasks.put(photoTask.getImageKey(), photoTask);
-
-                mHandler.obtainMessage(state, photoTask).sendToTarget();
-                break;
                 // In all other cases, pass along the message without any other action.
             default:
                 mHandler.obtainMessage(state, photoTask).sendToTarget();
@@ -521,7 +571,7 @@ public class PhotoManager {
              * Removes the download Runnable from the ThreadPool. This opens a Thread in the
              * ThreadPool's work queue, allowing a task in the queue to start.
              */
-            sInstance.mDownloadThreadPool.remove(downloaderTask.getHTTPDownloadRunnable());
+            sInstance.mDownloadThreadPool.remove(downloaderTask.getDownloadRunnable());
 
             /*
              * Removes the photoTask that is waiting
@@ -564,7 +614,8 @@ public class PhotoManager {
         }
 
         // Initializes the task
-        downloadTask.initializeDownloaderTask(PhotoManager.sInstance, imageView, cacheFlag);
+        downloadTask.initializeDownloaderTask(PhotoManager.sInstance, imageView, cacheFlag,
+                sInstance.s3Client);
 
         /*
          * Provides the download task with the cache buffer corresponding to the URL to be
@@ -577,25 +628,36 @@ public class PhotoManager {
         // If the byte buffer was empty, the image isn't in memory cache
         if (null == downloadTask.getByteBuffer()) {
 
-            //is it in the disk cache?
-            File imagePath = new File(downloadTask.getCacheDirectory(),downloadTask.getImageKey());
-            if (imagePath.exists()) {
-                if (VERBOSE) Log.v(TAG,"file is stored in the disk cache...");
-                sInstance.mDownloadThreadPool.execute(downloadTask.getDiskDecodeRunnable());
-                imageView.setStatusResource(R.drawable.imagequeued);
 
+            if (downloadTask.getImageDirectory().equals(Constants.KEY_S3_LOCAL_DIRECTORY) ||
+                    downloadTask.getImageDirectory().equals(Constants.KEY_S3_MESSAGE_DIRECTORY)) {
+                if (VERBOSE) Log.w(TAG, "file is from local or message, direct downloading...");
+
+                sInstance.mDownloadThreadPool.execute(downloadTask.getS3DownloadRunnable());
+                imageView.setStatusResource(R.drawable.imagequeued);
             } else {
-                if (VERBOSE) Log.w(TAG,"file was not stored in the disk cache..." +
-                        " requesting to download");
+
+                //is it in the disk cache?
+                File imagePath = new File(downloadTask.getCacheDirectory(), downloadTask.getImageKey());
+                if (imagePath.exists()) {
+                    if (VERBOSE) Log.v(TAG, "file is stored in the disk cache, loading...");
+                    sInstance.mDownloadThreadPool.execute(downloadTask.getDiskloadRunnable());
+                    imageView.setStatusResource(R.drawable.imagequeued);
+
+                //it was not,
+                } else {
+                    if (VERBOSE) Log.w(TAG, "file was not stored in the disk cache, and is not" +
+                            " local or message. Requesting to download.");
             /*
              * "Executes" the tasks' download Runnable in order to download the image. If no
              * Threads are available in the thread pool, the Runnable waits in the queue.
              */
-                sInstance.mDownloadThreadPool.execute(downloadTask.getHTTPDownloadRunnable());
+                    sInstance.mDownloadThreadPool.execute(downloadTask.getDownloadRequestRunnable());
 
-                // Sets the display to show that the image is queued for downloading and decoding.
-                imageView.setStatusResource(R.drawable.imagequeued);
+                    // Sets the display to show that the image has been requested
+                    imageView.setStatusResource(R.drawable.imagequeued);
 
+                }
             }
 
         // The image was memory cached, so no download is required.

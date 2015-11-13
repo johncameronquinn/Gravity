@@ -17,7 +17,7 @@ import java.net.URLConnection;
 /**
  * Created by ev0x on 11/9/15.
  */
-public class RequestRepliesRunnable implements Runnable {
+class RequestRepliesRunnable implements Runnable {
 
     private boolean VERBOSE = true;
 

@@ -15,20 +15,14 @@ package com.jokrapp.android;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+        import android.os.Bundle;
+        import android.os.Message;
+        import android.os.Messenger;
+        import android.os.RemoteException;
+        import android.util.Log;
 
-
-import android.util.Log;
-
-import com.jokrapp.android.PhotoDecodeRunnable.TaskRunnableDecodeMethods;
-
-
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-
-
-
+        import com.jokrapp.android.PhotoDecodeRunnable.TaskRunnableDecodeMethods;
+        import com.jokrapp.android.util.LogUtils;
 
 /**
  * This task downloads bytes from a resource addressed by a URL.  When the task
@@ -36,27 +30,25 @@ import java.io.InputStream;
  *
  * Objects of this class are instantiated and managed by instances of PhotoTask, which
  * implements the methods of {@link TaskRunnableDecodeMethods}. PhotoTask objects call
- * {@link #PhotoDiskLoadRunnable(TaskRunnableDiskLoadMethods) PhotoRequestDownloadRunnable ()} with
+ * {@link #PhotoRequestDownloadRunnable(TaskRunnableRequestMethods) PhotoRequestDownloadRunnable()} with
  * themselves as the argument. In effect, an PhotoTask object and a
  * PhotoRequestDownloadRunnable object communicate through the fields of the PhotoTask.
  */
-class PhotoDiskLoadRunnable implements Runnable {
+class PhotoRequestDownloadRunnable implements Runnable {
     // Sets the size for each read action (bytes)
     private static final int READ_SIZE = 1024 * 2;
 
     // Sets a tag for this class
     @SuppressWarnings("unused")
-    private static final String LOG_TAG = "PhotoDiskloadRunnable";
+    private static final String LOG_TAG = "PhotoRequestRunnable";
 
     // Constants for indicating the state of the download
-    static final int DISKLOAD_STATE_FAILED = -1;
-    static final int DISKLOAD_STATE_STARTED = 0;
-    static final int DISKLOAD_STATE_COMPLETED = 1;
+    static final int REQUEST_STATE_FAILED = -1;
+    static final int REQUEST_STATE_STARTED = 0;
+    static final int REQUEST_STATE_COMPLETED = 1;
 
     // Defines a field that contains the calling object of type PhotoTask.
-    final TaskRunnableDiskLoadMethods mPhotoTask;
-
-
+    final TaskRunnableRequestMethods mPhotoTask;
 
 
     /**
@@ -66,7 +58,7 @@ class PhotoDiskLoadRunnable implements Runnable {
      * PhotoRequestDownloadRunnable constructor, after which the two instances can access each other's
      * variables.
      */
-    interface TaskRunnableDiskLoadMethods {
+    interface TaskRunnableRequestMethods {
 
         /**
          * Sets the Thread that this instance is running on
@@ -90,7 +82,7 @@ class PhotoDiskLoadRunnable implements Runnable {
          * Defines the actions for each state of the PhotoTask instance.
          * @param state The current state of the task
          */
-        void handleDiskloadState(int state);
+        void handleRequestState(int state);
 
         /**
          * Gets the URL for the image being downloaded
@@ -98,10 +90,12 @@ class PhotoDiskLoadRunnable implements Runnable {
          */
         String getImageKey();
 
+        String getImageDirectory();
 
-        File getCacheDirectory();
+        Messenger getmService();
+
+        Messenger getResponseMessenger();
     }
-
 
     /**
      * This constructor creates an instance of PhotoRequestDownloadRunnable and stores in it a reference
@@ -109,7 +103,7 @@ class PhotoDiskLoadRunnable implements Runnable {
      *
      * @param photoTask The PhotoTask, which implements TaskRunnableDecodeMethods
      */
-    PhotoDiskLoadRunnable(TaskRunnableDiskLoadMethods photoTask) {
+    PhotoRequestDownloadRunnable(TaskRunnableRequestMethods photoTask) {
         mPhotoTask = photoTask;
     }
 
@@ -122,6 +116,11 @@ class PhotoDiskLoadRunnable implements Runnable {
         if (Constants.LOGD) {
             Log.d(LOG_TAG,"entering run...");
         }
+
+        Messenger serviceMessenger = mPhotoTask.getmService();
+
+
+        Log.w(LOG_TAG,"Downloading from PhotoRequestDownloadRunnable is not available... please try again...");
 
         /*
          * Stores the current Thread in the the PhotoTask instance, so that the instance
@@ -146,88 +145,45 @@ class PhotoDiskLoadRunnable implements Runnable {
         try {
             // Before continuing, checks to see that the Thread hasn't been
             // interrupted
-            if (Thread.interrupted()) {
-
-                throw new InterruptedException();
-            }
 
             // If there's no cache buffer for this image
             if (null == byteBuffer) {
+                mPhotoTask.handleRequestState(REQUEST_STATE_STARTED);
+                Message msg = Message.obtain(null,DataHandlingService.MSG_DOWNLOAD_IMAGE);
+                msg.replyTo = mPhotoTask.getResponseMessenger();
 
-                /*
-                 * Calls the PhotoTask implementation of {@link #handleDownloadState} to
-                 * set the state of the download
-                 */
-                mPhotoTask.handleDiskloadState(DISKLOAD_STATE_STARTED);
+                if (Constants.LOGV) Log.v(LOG_TAG,"printing bundle for message about to be sent.");
 
-                // Defines a handle for the byte download stream
-                InputStream byteStream = null;
-                File f = new File(mPhotoTask.getCacheDirectory(),mPhotoTask.getImageKey());
+                Bundle b = new Bundle();
+                b.putString(Constants.KEY_S3_DIRECTORY,mPhotoTask.getImageDirectory());
+                b.putString(Constants.KEY_S3_KEY, mPhotoTask.getImageKey());
+                msg.setData(b);
 
-                // Downloads the image and catches IO errors
-                try {
-                    // Before continuing, checks to see that the Thread
-                    // hasn't been interrupted
-                    if (Thread.interrupted()) {
+                serviceMessenger.send(msg);
 
-                        throw new InterruptedException();
-                    }
-                    // Gets the input stream containing the image
-                    byteStream = new FileInputStream(f);
+                LogUtils.printBundle(b,LOG_TAG);
 
-                    if (Thread.interrupted()) {
-
-                        throw new InterruptedException();
-                    }
-
-                    byteBuffer = com.amazonaws.util.IOUtils.toByteArray(byteStream);
-
-                    if (Thread.interrupted()) {
-                        throw new InterruptedException();
-                    }
-
-                    // If an IO error occurs, returns immediately
-                } catch (IOException e) {
-                    e.printStackTrace();
-                    return;
-
-                    /*
-                     * If the input stream is still open, close it
-                     */
-                } finally {
-                    if (null != byteStream) {
-                        try {
-                            byteStream.close();
-                        } catch (Exception e) {
-
-                        }
-                    }
-                }
+                if (Constants.LOGV) Log.v(LOG_TAG,"Message sent.");
             }
-
-            /*
-             * Stores the downloaded bytes in the byte buffer in the PhotoTask instance.
-             */
-            mPhotoTask.setByteBuffer(byteBuffer);
 
             /*
              * Sets the status message in the PhotoTask instance. This sets the
              * ImageView background to indicate that the image is being
              * decoded.
              */
-            mPhotoTask.handleDiskloadState(DISKLOAD_STATE_COMPLETED);
 
             // Catches exceptions thrown in response to a queued interrupt
-        } catch (InterruptedException e1) {
-
+        } catch (RemoteException e) {
             // Does nothing
-
+            mPhotoTask.handleRequestState(REQUEST_STATE_FAILED);
             // In all cases, handle the results
-        } finally {
+        }finally {
 
             // If the byteBuffer is null, reports that the download failed.
             if (null == byteBuffer) {
-                mPhotoTask.handleDiskloadState(DISKLOAD_STATE_FAILED);
+
+//                mPhotoTask.handleDownloadState(HTTP_STATE_COMPLETED);
+  //              mPhotoTask.handleDownloadState(HTTP_STATE_FAILED);
             }
 
             /*

@@ -98,7 +98,7 @@ class PhotoDecodeRunnable implements Runnable {
     }
 
     /**
-     * This constructor creates an instance of PhotoDownloadRunnable and stores in it a reference
+     * This constructor creates an instance of PhotoRequestDownloadRunnable and stores in it a reference
      * to the PhotoTask instance that instantiated it.
      *
      * @param downloadTask The PhotoTask, which implements ImageDecoderRunnableCallback
@@ -122,7 +122,7 @@ class PhotoDecodeRunnable implements Runnable {
 
         /*
          * Gets the image cache buffer object from the PhotoTask instance. This makes the
-         * to both PhotoDownloadRunnable and PhotoTask.
+         * to both PhotoRequestDownloadRunnable and PhotoTask.
          */
         byte[] imageBuffer = mPhotoTask.getByteBuffer();
 

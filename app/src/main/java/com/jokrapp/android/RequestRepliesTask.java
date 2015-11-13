@@ -7,7 +7,7 @@ import android.os.Bundle;
  *
  * Attempts to send a particular thread to the server, and request
  */
-public class RequestRepliesTask extends ServerTask {
+class RequestRepliesTask extends ServerTask {
 
     public RequestRepliesTask(DataHandlingService mService, Bundle dataBundle) {
         super(mService,dataBundle);
