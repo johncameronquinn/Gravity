@@ -337,7 +337,6 @@ public class LiveFragment extends Fragment implements
             switch (v.getId()) {
 
                 case R.id.button_live_refresh:
-
                     ((MainActivity)getActivity()).sendMsgRequestLiveThreads();
                     break;
 

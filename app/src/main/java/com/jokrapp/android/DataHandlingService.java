@@ -90,7 +90,8 @@ import com.jokrapp.android.util.LogUtils;
 public class DataHandlingService extends Service implements GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener, LocationListener, TransferListener,
         InitializeUserRunnable.initializeUserMethods,
-        RequestRepliesRunnable.RequestRepliesMethods {
+        RequestRepliesRunnable.ReplyRequestMethods,
+        RequestLiveThreadsRunnable.ThreadRequestMethods {
     private static final String TAG = "DataHandlingService";
     private static final boolean VERBOSE = true;
     private static final boolean ALLOW_DUPLICATES = false;
@@ -329,7 +330,24 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
         }
     }
 
-    public void handleReplyState(int state) {
+    public void handleRepliesRequestState(int state) {
+        switch (state) {
+            case RequestRepliesRunnable.REQUEST_REPLIES_FAILED:
+                Log.d(TAG,"request replies failed...");
+                break;
+
+            case RequestRepliesRunnable.REQUEST_REPLIES_STARTED:
+                Log.d(TAG,"request replies started...");
+                break;
+
+            case RequestRepliesRunnable.REQUEST_REPLIES_SUCCESS:
+                Log.d(TAG,"request replies success...");
+                break;
+        }
+
+    }
+
+    public void handleThreadsRequestState(int state) {
         switch (state) {
             case RequestRepliesRunnable.REQUEST_REPLIES_FAILED:
                 Log.d(TAG,"request replies failed...");
@@ -362,6 +380,11 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
 
     public String getRequestRepliesPath() {
         return GET_LIVE_THREAD_REPLIES;
+    }
+
+
+    public String getRequestThreadsPath() {
+        return GET_LIVE_THREAD_LIST;
     }
 
     public String getInitializeUserPath() {
@@ -682,7 +705,7 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
             @Override
             public void run() {
                 android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_BACKGROUND);
-                sendImageMessage(filePath, messageTarget,text);
+                sendImageMessage(filePath, messageTarget, text);
             }
         }).start();
     }
@@ -958,142 +981,6 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
 
 
     /**
-     * method 'requestLocalMessages'
-     * <p/>
-     * requests the current thread list from the server
-     */
-    private void requestLiveThreads() {
-        if (VERBOSE) {
-            Log.v(TAG, "enter requestLiveThreads...");
-        }
-
-        HttpURLConnection conn;
-        try {
-            conn = connectToServer(GET_LIVE_THREAD_LIST);
-        } catch (ConnectException e) {
-            Log.e(TAG,"failed to connect to the server... quitting...");
-            throw new RuntimeException();
-        }
-
-
-        try {
-            if (VERBOSE) Log.v(TAG, "opening outputStream to send JSON...");
-            JsonFactory jsonFactory = new JsonFactory();
-            JsonGenerator jGen = jsonFactory.
-                    createGenerator(conn.getOutputStream());
-            if (VERBOSE) {
-                Log.v(TAG, "from : " + userID.toString());
-            }
-
-            jGen.writeStartObject();
-            jGen.writeEndObject();
-            jGen.flush();
-            jGen.close();
-
-        } catch (IOException e) {
-            Log.e(TAG, "error handling JSON", e);
-        }
-
-        try {
-            saveIncomingJsonArray(MSG_REQUEST_LIVE_THREADS, conn, null);
-        } catch (IOException e) {
-            Log.d(TAG, "error receiving and storing messages...", e);
-        }
-
-        try {
-            handleResponseCode(conn.getResponseCode(), replyMessenger);
-        } catch (IOException e) {
-            Log.e(TAG, "error handling responsecode...", e);
-        }
-
-        if (Constants.LOGD)
-            Log.d(TAG, "Notifying client that thread list has been requested loading...");
-        try {
-            replyMessenger.send(Message.obtain(null, MainActivity.MSG_LIVE_REFRESH_DONE));
-        } catch (RemoteException e) {
-            Log.e(TAG, "error notifying client...", e);
-        }
-
-
-        if (VERBOSE) Log.v(TAG, "exiting requestLiveThreads...");
-    }
-
-    private void requestLiveThreadsAsync() {
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                requestLiveThreads();
-            }
-        }).start();
-    }
-
-    /**
-     * method 'requestLiveReplies'
-     * <p/>
-     * requests the current reply list from the server
-     */
-    private void requestLiveReplies(int threadID) {
-        if (VERBOSE) {
-            Log.v(TAG, "enter requestLiveReplies...");
-        }
-
-        HttpURLConnection conn;
-        try {
-            conn = connectToServer(GET_LIVE_THREAD_REPLIES);
-        } catch (ConnectException e) {
-            Log.e(TAG,"failed to connect to the server... quitting...");
-            throw new RuntimeException();
-        }
-
-        try {
-            if (VERBOSE) Log.v(TAG, "opening outputStream to send JSON...");
-            JsonFactory jsonFactory = new JsonFactory();
-            JsonGenerator jGen = jsonFactory.
-                    createGenerator(conn.getOutputStream());
-            if (VERBOSE) {
-                Log.v(TAG, "thread id: " + threadID);
-            }
-
-            jGen.writeStartObject();
-            jGen.writeNumberField(THREAD_ID, threadID);
-            jGen.writeEndObject();
-            jGen.flush();
-            jGen.close();
-
-        } catch (IOException e) {
-            Log.e(TAG, "error handling JSON", e);
-        }
-
-        /**pass thread id**/
-        Bundle b = new Bundle();
-        b.putString(THREAD_ID, String.valueOf(threadID));
-        b.putInt(REQUEST_TYPE, MSG_REQUEST_REPLIES);
-        try {
-            saveIncomingJsonArray(MSG_REQUEST_REPLIES, conn, b);
-        } catch (IOException e) {
-            Log.e(TAG, "error receiving and storing messages...", e);
-        }
-
-        try {
-            handleResponseCode(conn.getResponseCode(), replyMessenger,b);
-        } catch (IOException e) {
-            Log.e(TAG, "error handling responsecode...", e);
-        }
-
-        if (VERBOSE) Log.v(TAG, "exiting requestLiveReplies...");
-    }
-
-    private void requestLiveRepliesAsync(final int threadID) {
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                requestLiveReplies(threadID);
-            }
-        }).start();
-    }
-
-
-    /**
      * method 'saveIncomingJsonArray'
      *
      * uses the provided connection to parse the incoming json object array into individual object
@@ -1122,6 +1009,14 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
 
             if (VERBOSE)
                 Log.v(TAG, "printing verbose output...");
+
+
+            if (where == MSG_REQUEST_LIVE_THREADS) {
+
+                if (VERBOSE) Log.v(TAG, "first empty the live table, then insert...");
+                getContentResolver().delete(FireFlyContentProvider.CONTENT_URI_LIVE, null, null);
+
+            }
 
             for (int i = 0; i < jsonArray.size(); i++) {
                 map = jsonArray.get(i);
@@ -1454,7 +1349,7 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
 
                 case MSG_REQUEST_LIVE_THREADS:
                     Log.d(TAG, "received a message to request the thread list");
-                    irs.get().requestLiveThreadsAsync();
+                    new Thread(new RequestLiveThreadsRunnable(irs.get())).start();
                     break;
 
                 case MSG_REQUEST_REPLIES:

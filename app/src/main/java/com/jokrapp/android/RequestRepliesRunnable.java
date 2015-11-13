@@ -1,10 +1,8 @@
 package com.jokrapp.android;
 
 import android.os.Bundle;
-import android.os.Messenger;
 import android.util.Log;
 
-import com.amazonaws.util.IOUtils;
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.jokrapp.android.util.LogUtils;
@@ -23,18 +21,18 @@ class RequestRepliesRunnable implements Runnable {
 
     private String TAG = "RequestRepliesRunnable";
 
-    private final RequestRepliesMethods mService;
+    private final ReplyRequestMethods mService;
 
     static final int REQUEST_REPLIES_FAILED = -1;
     static final int REQUEST_REPLIES_STARTED = 0;
     static final int REQUEST_REPLIES_SUCCESS = 1;
 
-    interface RequestRepliesMethods {
+    interface ReplyRequestMethods {
 
 
         HttpURLConnection connectToServer(String ServerPath) throws ConnectException;
 
-        void handleReplyState(int state);
+        void handleRepliesRequestState(int state);
 
 
         void setRequestRepliesThread(Thread thread);
@@ -51,7 +49,7 @@ class RequestRepliesRunnable implements Runnable {
     }
 
 
-    public RequestRepliesRunnable(RequestRepliesMethods methods) {
+    public RequestRepliesRunnable(ReplyRequestMethods methods) {
         mService = methods;
     }
 
@@ -74,14 +72,14 @@ class RequestRepliesRunnable implements Runnable {
                 return;
             }
 
-            mService.handleReplyState(REQUEST_REPLIES_STARTED);
+            mService.handleRepliesRequestState(REQUEST_REPLIES_STARTED);
 
             HttpURLConnection conn;
             try {
                 conn = mService.connectToServer(mService.getRequestRepliesPath());
             } catch (ConnectException e) {
                 Log.e(TAG, "failed to connect to the server... quitting...");
-                mService.handleReplyState(REQUEST_REPLIES_FAILED);
+                mService.handleRepliesRequestState(REQUEST_REPLIES_FAILED);
                 return;
             }
 
@@ -112,14 +110,14 @@ class RequestRepliesRunnable implements Runnable {
             mService.handleResponseCode(conn.getResponseCode());
         } catch (IOException e) {
             Log.e(TAG, "IOException when retrieving replies...", e);
-            mService.handleReplyState(REQUEST_REPLIES_FAILED);
+            mService.handleRepliesRequestState(REQUEST_REPLIES_FAILED);
         } finally {
             if (rows > -1) {
                 Log.d(TAG, "success retrieving replies...");
-                mService.handleReplyState(REQUEST_REPLIES_SUCCESS);
+                mService.handleRepliesRequestState(REQUEST_REPLIES_SUCCESS);
             } else {
                 Log.d(TAG, "failure retrieving replies...");
-                mService.handleReplyState(REQUEST_REPLIES_FAILED);
+                mService.handleRepliesRequestState(REQUEST_REPLIES_FAILED);
             }
         }
 
