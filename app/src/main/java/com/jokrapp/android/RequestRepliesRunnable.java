@@ -1,16 +1,24 @@
 package com.jokrapp.android;
 
+import android.content.ContentValues;
+import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jokrapp.android.util.LogUtils;
 
 import java.io.IOException;
 import java.net.ConnectException;
 import java.net.HttpURLConnection;
 import java.net.URLConnection;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.LinkedHashMap;
+import java.util.List;
 
 /**
  * Created by ev0x on 11/9/15.
@@ -29,23 +37,18 @@ class RequestRepliesRunnable implements Runnable {
 
     interface ReplyRequestMethods {
 
-
-        HttpURLConnection connectToServer(String ServerPath) throws ConnectException;
-
         void handleRepliesRequestState(int state);
 
 
         void setRequestRepliesThread(Thread thread);
 
-        int saveIncomingJsonArray(int where, URLConnection conn, Bundle extradata)
-                throws IOException;
-
-
         String getRequestRepliesPath();
 
         Bundle getDataBundle();
 
-        boolean handleResponseCode(int code);
+        HttpURLConnection getURLConnection();
+
+        void insert(Uri uri, ContentValues values);
     }
 
 
@@ -61,11 +64,11 @@ class RequestRepliesRunnable implements Runnable {
 
         mService.setRequestRepliesThread(Thread.currentThread());
 
-
+        HttpURLConnection conn = null;
         Bundle b = mService.getDataBundle();
         LogUtils.printBundle(b,TAG);
-        int rows = -1;
 
+        int responsecode = -1;
 
         try {
             if (Thread.interrupted()) {
@@ -74,14 +77,7 @@ class RequestRepliesRunnable implements Runnable {
 
             mService.handleRepliesRequestState(REQUEST_REPLIES_STARTED);
 
-            HttpURLConnection conn;
-            try {
-                conn = mService.connectToServer(mService.getRequestRepliesPath());
-            } catch (ConnectException e) {
-                Log.e(TAG, "failed to connect to the server... quitting...");
-                mService.handleRepliesRequestState(REQUEST_REPLIES_FAILED);
-                return;
-            }
+            conn = mService.getURLConnection();
 
             if (Thread.interrupted()) {
                 return;
@@ -102,22 +98,54 @@ class RequestRepliesRunnable implements Runnable {
             jGen.flush();
             jGen.close();
 
+            if (Thread.currentThread().isInterrupted()) {
+                if (VERBOSE)Log.v(TAG,"current thread is interrupted, not storing...");
+                return;
+            }
 
-            /**pass thread id**/
-            rows = mService.saveIncomingJsonArray(DataHandlingService.MSG_REQUEST_REPLIES, conn, b);
-            if (VERBOSE) Log.v(TAG,"number of replies returned : " + rows);
+            if (VERBOSE) Log.v(TAG, "opening inputStream to receive JSON..");
+            JsonParser jParser = new JsonFactory().createParser(conn.getInputStream());
+            ObjectMapper objectMapper = new ObjectMapper();
 
-            mService.handleResponseCode(conn.getResponseCode());
+            ArrayList<LinkedHashMap<String, Object>> jsonArray =
+                    objectMapper.readValue(jParser, ArrayList.class);
+
+            List<ContentValues> valuesList = new ArrayList<>();
+
+            if (!jsonArray.isEmpty()) {
+                LinkedHashMap<String, Object> map;
+
+                for (int i = 0; i < jsonArray.size(); i++) {
+                    map = jsonArray.get(i);
+                    map.put(SQLiteDbContract.LiveReplies.COLUMN_ID, map.remove("id"));
+                    map.put(SQLiteDbContract.LiveReplies.COLUMN_NAME_THREAD_ID, b.getInt("threadID"));
+                    android.os.Parcel myParcel = android.os.Parcel.obtain();
+                    myParcel.writeMap(map);
+                    myParcel.setDataPosition(0);
+                    android.content.ContentValues values = android.content.ContentValues.CREATOR.createFromParcel(myParcel);
+                    valuesList.add(values);
+                }
+            }
+
+
+            if (VERBOSE) Log.v(TAG, "now saving JSON...");
+            for (ContentValues row : valuesList) {
+                mService.insert(FireFlyContentProvider.CONTENT_URI_REPLY_LIST,row); //todo implement bulkinsert
+            }
+
+            responsecode = conn.getResponseCode();
         } catch (IOException e) {
             Log.e(TAG, "IOException when retrieving replies...", e);
             mService.handleRepliesRequestState(REQUEST_REPLIES_FAILED);
         } finally {
-            if (rows > -1) {
-                Log.d(TAG, "success retrieving replies...");
+            if (responsecode == HttpURLConnection.HTTP_OK) {
                 mService.handleRepliesRequestState(REQUEST_REPLIES_SUCCESS);
             } else {
-                Log.d(TAG, "failure retrieving replies...");
                 mService.handleRepliesRequestState(REQUEST_REPLIES_FAILED);
+            }
+
+            if (conn != null) {
+                conn.disconnect();
             }
         }
 

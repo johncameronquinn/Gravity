@@ -33,7 +33,6 @@ public class ServerTask {
     public ServerTask(DataHandlingService mService, Bundle dataBundle) {
         this.dataBundle = dataBundle;
         this.mService = mService;
-
     }
 
     public Bundle getDataBundle() {

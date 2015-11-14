@@ -1,6 +1,7 @@
 package com.jokrapp.android;
 
 import android.app.Service;
+import android.content.ContentValues;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.BitmapFactory;
@@ -90,7 +91,6 @@ import com.jokrapp.android.util.LogUtils;
 public class DataHandlingService extends Service implements GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener, LocationListener, TransferListener,
         InitializeUserRunnable.initializeUserMethods,
-        RequestRepliesRunnable.ReplyRequestMethods,
         RequestLiveThreadsRunnable.ThreadRequestMethods {
     private static final String TAG = "DataHandlingService";
     private static final boolean VERBOSE = true;
@@ -103,11 +103,6 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
      * NETWORK COMMUNICATION
      */
     private static GoogleApiClient mGoogleApiClient;
-    private final int SERVER_SOCKET = 80; //does not change
-    private final String CONNECTION_PROTOCOL = "http";
-    private final int READ_TIMEOUT = 10000;
-    private final int CONNECT_TIMEOUT = 20000;
-
 
     private final String UPLOAD_LOCAL_POST_PATH = "/local/upload/"; //does not change
     private final String GET_LOCAL_POST_PATH = "/local/get/"; //does not change
@@ -364,35 +359,19 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
 
     }
 
-
-    private Bundle replyBundle;
-    @Override
-    public Bundle getDataBundle() {
-        return replyBundle;
-    }
-
-    Thread requestRepliesThread;
-
-    @Override
-    public void setRequestRepliesThread(Thread thread) {
-        requestRepliesThread = thread;
-    }
-
-    public String getRequestRepliesPath() {
-        return GET_LIVE_THREAD_REPLIES;
-    }
-
-
-    public String getRequestThreadsPath() {
-        return GET_LIVE_THREAD_LIST;
-    }
-
     public String getInitializeUserPath() {
         return INITIALIZE_USER_PATH;
     }
 
     public void setInitializeUserThread(Thread initializeUserThread) {
         this.initializeUserThread = initializeUserThread;
+    }
+
+    public String getRequestThreadsPath() {
+        return GET_LIVE_THREAD_LIST;
+    }
+
+    public void setRequestRepliesThread(Thread thread) {
     }
 
 
@@ -1132,6 +1111,10 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
         return  rows;
     }
 
+    public void insert(Uri uri, ContentValues values) {
+        getContentResolver().insert(uri, values);
+    }
+
 
     /***********************************************************************************************
      * SERVICE - ACTIVITY COMMUNICATION
@@ -1354,9 +1337,14 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
 
                 case MSG_REQUEST_REPLIES:
                     Log.d(TAG, "received a message to request replies.");
-                    irs.get().replyBundle = data;
-                    data.putInt("threadID",msg.arg1);
-                    new Thread(new RequestRepliesRunnable(irs.get())).start();
+                    //irs.get().replyBundle = data;
+                    data.putInt("threadID", msg.arg1);
+
+                    RequestRepliesTask task = new RequestRepliesTask();
+                    task.initializeRepliesTask(irs.get(),data,userID);
+                    new Thread(task.getServerConnectRunnable()).start();
+
+                    //new Thread(new RequestRepliesTask()).start();
 
                     break;
 
@@ -1556,8 +1544,8 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
         if (VERBOSE) Log.v(TAG, "connection opened to " + urlconn.toString());
 
         HttpURLConnection conn = (HttpURLConnection) urlconn;
-        conn.setReadTimeout(READ_TIMEOUT);
-        conn.setConnectTimeout(CONNECT_TIMEOUT);
+        conn.setReadTimeout(10000);
+        conn.setConnectTimeout(20000);
 
 
         conn.setRequestMethod("POST");
@@ -1650,7 +1638,7 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
      */
     private URL createURLtoServer(String path) throws MalformedURLException {
         if (VERBOSE) Log.v(TAG, "creating to " + path);
-        return new URL(CONNECTION_PROTOCOL, serverAddress, SERVER_SOCKET, path);
+        return new URL("http", serverAddress, 80, path);
     }
 
     private boolean handleResponseCode(int responseCode, Messenger replyMessenger) {
@@ -1828,55 +1816,7 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
         }
     }
 
-    /***********************************************************************************************
-     *
-     *  IMAGE STORAGE
-     *
-     */
-    /**
-     * internal file filter for deleting all stored image files
-     */
-    public class ImageFileFilter implements FileFilter {
-        private final String[] okFileExtensions =
-                new String[]{"jpg", "bmp", "png"};
 
-        public boolean accept(File file) {
-            for (String extension : okFileExtensions) {
-                if (file.getName().toLowerCase().endsWith(extension)) {
-                    return true;
-                }
-            }
-            return false;
-        }
-    }
-
-    /**
-     * copies content from source file to destination file
-     *
-     * @param sourceFile
-     * @param destFile
-     * @throws IOException
-     */
-    private void copyFile(File sourceFile, File destFile) throws IOException {
-        if (!sourceFile.exists()) {
-            return;
-        }
-
-        FileChannel source = null;
-        FileChannel destination = null;
-        source = new FileInputStream(sourceFile).getChannel();
-        destination = new FileOutputStream(destFile).getChannel();
-        if (destination != null && source != null) {
-            destination.transferFrom(source, 0, source.size());
-        }
-        if (source != null) {
-            source.close();
-        }
-        if (destination != null) {
-            destination.close();
-        }
-
-    }
 
     /***************************************************************************************************
      * ANALYTICS

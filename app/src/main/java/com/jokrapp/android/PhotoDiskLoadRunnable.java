@@ -130,7 +130,7 @@ class PhotoDiskLoadRunnable implements Runnable {
         mPhotoTask.setDownloadThread(Thread.currentThread());
 
         // Moves the current Thread into the background
-        android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_BACKGROUND);
+        //android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_BACKGROUND);
 
         /*
          * Gets the image cache buffer object from the PhotoTask instance. This makes the

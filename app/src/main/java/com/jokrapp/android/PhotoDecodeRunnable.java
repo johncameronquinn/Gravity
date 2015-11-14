@@ -112,8 +112,6 @@ class PhotoDecodeRunnable implements Runnable {
      */
     @Override
     public void run() {
-
-
         /*
          * Stores the current Thread in the the PhotoTask instance, so that the instance
          * can interrupt the Thread.
