@@ -4,17 +4,21 @@ import android.content.ContentValues;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
-import java.net.HttpURLConnection;
-import java.util.UUID;
-import com.jokrapp.android.RequestRepliesRunnable.ReplyRequestMethods;
+
+import com.jokrapp.android.RequestLocalRunnable.RequestLocalMethods;
 import com.jokrapp.android.ServerConnectRunnable.ServerConnectMethods;
+
+import java.net.HttpURLConnection;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
 
 /**
  * Created by John Quinn on 11/9/15.
  *
  * Attempts to send a particular thread to the server, and request
  */
-class RequestRepliesTask extends ServerTask implements ReplyRequestMethods, ServerConnectMethods{
+class RequestLocalTask extends ServerTask implements RequestLocalMethods, ServerConnectMethods{
 
 
     Bundle dataBundle;
@@ -27,27 +31,21 @@ class RequestRepliesTask extends ServerTask implements ReplyRequestMethods, Serv
     private HttpURLConnection mConnection;
 
     private Runnable mServerConnectRunnable;
-    private Runnable mRequestRepliesRunnable;
+    private Runnable mRequestRunnable;
     private Runnable mSaveIncomingRunnable;
-
-    private Thread mThread;
     private UUID userID;
-    private final String urlString = "/reply/get/";
+    private final String urlString = "/local/get/";
 
-    public RequestRepliesTask() {
+    public RequestLocalTask() {
         mServerConnectRunnable = new ServerConnectRunnable(this);
-        mRequestRepliesRunnable = new RequestRepliesRunnable(this);
+        mRequestRunnable = new RequestLocalRunnable(this);
     }
 
     public void initializeTask(DataHandlingService mService, Bundle dataBundle, UUID userID) {
-        if (VERBOSE) Log.v(TAG,"entering initializeRepliesTask...");
+        if (VERBOSE) Log.v(TAG,"entering initializeLocalTask...");
         this.mService = mService;
         this.dataBundle = dataBundle;
         this.userID = userID;
-    }
-
-    public void setRequestRepliesThread(Thread thread) {
-        mThread = thread;
     }
 
     public void setServerConnection(HttpURLConnection connection) {
@@ -63,12 +61,17 @@ class RequestRepliesTask extends ServerTask implements ReplyRequestMethods, Serv
     }
 
     public Runnable getRequestRunnable() {
-        return mRequestRepliesRunnable;
+        return mRequestRunnable;
+    }
+
+    public List<String> getImagesSeen() {
+        return mService.getImagesSeen();
     }
 
     public void insert(Uri uri, ContentValues values) {
-        mService.insert(uri,values);
+        mService.insert(uri, values);
     }
+
 
     public void handleServerConnectState(int state) {
         int outState = -10;
@@ -93,22 +96,22 @@ class RequestRepliesTask extends ServerTask implements ReplyRequestMethods, Serv
         mService.handleDownloadState(outState,this);
     }
 
-    public void handleRepliesRequestState(int state) {
+    public void handleLocalRequestState(int state) {
         int outState = -1;
 
         switch (state) {
-            case RequestRepliesRunnable.REQUEST_REPLIES_FAILED:
+            case RequestLocalRunnable.REQUEST_FAILED:
                 Log.d(TAG, "request replies failed...");
                 outState = DataHandlingService.REQUEST_FAILED;
                 break;
 
-            case RequestRepliesRunnable.REQUEST_REPLIES_STARTED:
+            case RequestLocalRunnable.REQUEST_STARTED:
                 Log.d(TAG,"request replies started...");
                 outState = DataHandlingService.REQUEST_STARTED;
                 break;
 
-            case RequestRepliesRunnable.REQUEST_REPLIES_SUCCESS:
-                Log.d(TAG,"request replies success...");
+            case RequestLocalRunnable.REQUEST_SUCCESS:
+                Log.d(TAG, "request replies success...");
                 outState = DataHandlingService.TASK_COMPLETED;
                 break;
         }

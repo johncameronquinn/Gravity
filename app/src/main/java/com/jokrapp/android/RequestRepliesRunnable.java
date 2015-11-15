@@ -4,19 +4,14 @@ import android.content.ContentValues;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
-
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jokrapp.android.util.LogUtils;
-
 import java.io.IOException;
-import java.net.ConnectException;
 import java.net.HttpURLConnection;
-import java.net.URLConnection;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
 
@@ -41,8 +36,6 @@ class RequestRepliesRunnable implements Runnable {
 
 
         void setRequestRepliesThread(Thread thread);
-
-        String getRequestRepliesPath();
 
         Bundle getDataBundle();
 

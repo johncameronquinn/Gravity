@@ -35,6 +35,8 @@ public final class Constants {
     public static final String ACTION_IMAGE_LOCAL_LOADED = "com.jokrapp.android.local.LOADED";
     public static final String ACTION_IMAGE_MESSAGE_LOADED = "com.jokrapp.android.message.LOADED";
     public static final String LOCAL_KEY_PATH = "pkl";
+    public static final String KEY_USER_ID = "userID";
+
 
     /** threadSample
      */

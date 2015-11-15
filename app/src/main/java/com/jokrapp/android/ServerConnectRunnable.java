@@ -6,9 +6,7 @@ import android.util.Log;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
-import java.net.ProtocolException;
 import java.net.URL;
-import java.net.URLConnection;
 import java.util.UUID;
 
 /**
@@ -20,15 +18,13 @@ public class ServerConnectRunnable implements Runnable {
 
         void handleServerConnectState(int state);
 
-        String getRequestRepliesPath();
-
         Bundle getDataBundle();
 
         UUID getUserID();
 
         String getURLPath();
 
-        void setServerConnectThread(Thread connectThread);
+        void setTaskThread(Thread connectThread);
 
         void setServerConnection(HttpURLConnection serverConnection);
     }
@@ -62,7 +58,7 @@ public class ServerConnectRunnable implements Runnable {
     @Override
     public void run() {
 
-        mTask.setServerConnectThread(Thread.currentThread());
+        mTask.setTaskThread(Thread.currentThread());
         android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_BACKGROUND);
         HttpURLConnection conn = null;
             try {
@@ -155,6 +151,7 @@ public class ServerConnectRunnable implements Runnable {
                 Thread.interrupted();
             }
 
+        mTask.setTaskThread(null);
     }
 
 }

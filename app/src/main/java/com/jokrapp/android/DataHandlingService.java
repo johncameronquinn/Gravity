@@ -4,16 +4,12 @@ import android.app.Service;
 import android.content.ContentValues;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.graphics.BitmapFactory;
 import android.location.Location;
 import android.net.Uri;
 import android.os.*;
-
 import android.util.Base64;
-import android.util.Base64InputStream;
 import android.util.Log;
 import android.widget.Toast;
-
 import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.mobileconnectors.amazonmobileanalytics.AnalyticsEvent;
 import com.amazonaws.mobileconnectors.amazonmobileanalytics.MobileAnalyticsManager;
@@ -24,27 +20,19 @@ import com.amazonaws.mobileconnectors.s3.transferutility.TransferUtility;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.android.gms.analytics.HitBuilders;
-import com.google.android.gms.analytics.Tracker;
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
-
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
-
-import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream;
-
 import org.apache.commons.compress.utils.IOUtils;
-
 import java.io.BufferedOutputStream;
-import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileFilter;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -57,20 +45,15 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.net.UnknownHostException;
-import java.nio.channels.FileChannel;
 import java.nio.channels.NotYetConnectedException;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
-
-import com.google.android.gms.maps.model.LatLng;
 import com.jokrapp.android.util.LogUtils;
 
 /**
@@ -90,20 +73,16 @@ import com.jokrapp.android.util.LogUtils;
  */
 public class DataHandlingService extends Service implements GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener, LocationListener, TransferListener,
-        InitializeUserRunnable.initializeUserMethods,
-        RequestLiveThreadsRunnable.ThreadRequestMethods {
+        InitializeUserRunnable.initializeUserMethods {
     private static final String TAG = "DataHandlingService";
     private static final boolean VERBOSE = true;
     private static final boolean ALLOW_DUPLICATES = false;
-
     private boolean isLocalRequesting = false;
-
 
     /**
      * NETWORK COMMUNICATION
      */
     private static GoogleApiClient mGoogleApiClient;
-
     private final String UPLOAD_LOCAL_POST_PATH = "/local/upload/"; //does not change
     private final String GET_LOCAL_POST_PATH = "/local/get/"; //does not change
     private final String SEND_LOCAL_MESSAGE_PATH = "/message/upload/";
@@ -120,10 +99,7 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
      * S3 INFO
      */
     private final String BUCKET_NAME = "launch-zone";
-
-
     private MobileAnalyticsManager mTracker;
-
     private static String serverAddress = "jokrbackend.ddns.net"; //changes when resolved
     private static UUID userID;
 
@@ -153,13 +129,11 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
      * DATA HANDLING
      */
     private static Location mLocation;
-
     ////private static  = new ArrayList<>();
     private static List<String> imagesSeen = Collections.synchronizedList(new ArrayList<String>());
     private static final String IMAGESSEEN_KEY = "images";
     private final String ISFIRSTRUN_KEY = "firstrun";
     private final String UUID_KEY = "uuidkey";
-
     private static final int OLDEST_ALLOWED_IMAGE = 3600 * 1000; // two hours
 
     /**
@@ -169,7 +143,6 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
     HashMap<Integer,Bundle> pendingMap = new HashMap<>();
     private final String REQUEST_TYPE = "what";
 
-
     /**
      * method 'onCreate'
      * <p/>
@@ -177,10 +150,7 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
      */
     @Override
     public void onCreate() {
-        if (VERBOSE)
-            Log.v(TAG, "entering onCreate...");
-
-
+        if (VERBOSE) Log.v(TAG, "entering onCreate...");
 
         buildGoogleApiClient();
         if (mGoogleApiClient != null) {
@@ -212,9 +182,7 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
 
         if (!ALLOW_DUPLICATES) {
 
-
-            if (VERBOSE)
-                Log.v(TAG, "Duplicates are not allowed, loading imagesSeen");
+            if (VERBOSE) Log.v(TAG, "Duplicates are not allowed, loading imagesSeen");
 
             Set<String> loaded = settings.getStringSet(IMAGESSEEN_KEY, null);
 
@@ -235,26 +203,13 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
             //todo this should use a more secure system involving amazon cognito
             initializeTransferUtility();
 
-
-
         } else {
-            if (VERBOSE)
-                Log.v(TAG, "Duplicates are allowed, not loaded imagesSeen");
+            if (VERBOSE) Log.v(TAG, "Duplicates are allowed, not loaded imagesSeen");
             imagesSeen = new ArrayList<>();
         }
 
-        if (VERBOSE)
-            Log.v(TAG, "exiting onCreate...");
+        if (VERBOSE) Log.v(TAG, "exiting onCreate...");
     }
-
-
-    //@Override
-    //public int onStartCommand(Intent intent, int flags, int startId) {
-    //    Log.i("LocalService", "Received start id " + startId + ": " + intent);
-    //    // We want this service to continue running until it is explicitly
-    //    // stopped, so return sticky.
-    //    return START_STICKY;
-    // }
 
     @Override
     public void onDestroy() {
@@ -264,13 +219,8 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
             Log.v(TAG, "saving ImagesSeen to sharedPreferences, size: " + imagesSeen.size());
         }
 
-
-
         SharedPreferences settings = getSharedPreferences(TAG, MODE_PRIVATE);
-
         settings.edit().putStringSet(IMAGESSEEN_KEY, new HashSet<>(imagesSeen)).apply();
-
-
 
         Log.v(TAG, "exiting onDestroy...");
     }
@@ -325,40 +275,6 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
         }
     }
 
-    public void handleRepliesRequestState(int state) {
-        switch (state) {
-            case RequestRepliesRunnable.REQUEST_REPLIES_FAILED:
-                Log.d(TAG,"request replies failed...");
-                break;
-
-            case RequestRepliesRunnable.REQUEST_REPLIES_STARTED:
-                Log.d(TAG,"request replies started...");
-                break;
-
-            case RequestRepliesRunnable.REQUEST_REPLIES_SUCCESS:
-                Log.d(TAG,"request replies success...");
-                break;
-        }
-
-    }
-
-    public void handleThreadsRequestState(int state) {
-        switch (state) {
-            case RequestRepliesRunnable.REQUEST_REPLIES_FAILED:
-                Log.d(TAG,"request replies failed...");
-                break;
-
-            case RequestRepliesRunnable.REQUEST_REPLIES_STARTED:
-                Log.d(TAG,"request replies started...");
-                break;
-
-            case RequestRepliesRunnable.REQUEST_REPLIES_SUCCESS:
-                Log.d(TAG,"request replies success...");
-                break;
-        }
-
-    }
-
     public String getInitializeUserPath() {
         return INITIALIZE_USER_PATH;
     }
@@ -372,6 +288,10 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
     }
 
     public void setRequestRepliesThread(Thread thread) {
+    }
+
+    public List<String> getImagesSeen() {
+        return imagesSeen;
     }
 
 
@@ -490,132 +410,6 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
      *   IMAGE RECEIVING
      *
      */
-    /**
-     * method 'requestLocalPosts'
-     * <p/>
-     * requests images from the server
-     * <p/>
-     * first sends - the current client location, the count desired
-     * and finally an array of images already seen.
-     * <p/>
-     * the client then waits for a reply of images, saving each one
-     * - the reply comes in the form of a JSONArray, with position 0 as the count
-     * of images incoming. Each image and associated data is its own json objec
-     * the array is decoded, and the objects are saved to separate files in the internal storage
-     * based on ID of the image.
-     *
-     * @param numberOfImages image count to request
-     * @param location       current location of the client
-     */
-    private synchronized void requestLocalPosts(int numberOfImages, Location location) {
-        Log.d(TAG, "entering requestLocalPosts...");
-
-        if (mLocation == null) {
-            Log.e(TAG, "Location was null in requestLocalPosts... canceling...");
-            return;
-            //todo readd request to message queue
-        }
-
-        if (numberOfImages == 0) {
-            Log.e(TAG, "zero images requested, exiting");
-            return;
-        }
-
-        double lat = location.getLatitude();
-        double lon = location.getLongitude();
-
-        Log.d(TAG, "requesting " + numberOfImages + " images, with lat " + lat + " and lng " + lon);
-
-        int responseCode = 0;
-
-
-        HttpURLConnection conn;
-        try {
-            conn = connectToServer(GET_LOCAL_POST_PATH);
-        } catch (ConnectException e) {
-            Log.e(TAG,"failed to connect to the server... quitting...");
-            throw new RuntimeException();
-        }
-
-        try {
-            //continuing...
-            Log.d(TAG, "now writing with JacksonsJSON");
-            JsonFactory jsonFactory = new JsonFactory();
-            JsonGenerator jGen = jsonFactory.createGenerator(conn.getOutputStream());
-
-            jGen.writeStartObject();
-            jGen.writeNumberField("latitude", lat);
-            jGen.writeNumberField("longitude", lon);
-            jGen.writeNumberField("count", numberOfImages);
-
-
-            String[] imageSeenArray = new String[imagesSeen.size()];
-            imagesSeen.toArray(imageSeenArray);
-            jGen.writeFieldName("seen");
-            jGen.writeStartArray(imagesSeen.size());
-            if (imagesSeen != null) {
-                for (int i = 0; i < imagesSeen.size(); i++) {
-                    jGen.writeNumber(imageSeenArray[i]);
-                }
-            }
-            jGen.writeEndArray();
-
-            jGen.writeEndObject();
-            jGen.flush();
-            jGen.close(); //closes the conn.getOutputStream as well
-
-            try {
-                saveIncomingJsonArray(MSG_REQUEST_LOCAL_POSTS, conn, null);
-                handleResponseCode(conn.getResponseCode(), replyMessenger);
-            } catch (IOException e) {
-                Log.e(TAG,"error saving incoming json...");
-                //todo handle this
-            }
-
-            //awesome, now get the final respnose
-            responseCode = conn.getResponseCode();
-            conn.disconnect();
-
-            Log.d(TAG, "server returned successful response");
-            if (responseCode == HttpURLConnection.HTTP_OK) {
-            } else {
-                Log.w(TAG, "sending failed, response: " + responseCode);
-                //todo Notify UI thread
-            }
-
-
-        } catch (IOException e) {
-            Log.d(TAG, "IOException");
-            Log.d(TAG, "response code " + responseCode);
-
-            Log.e(TAG, "error requesting images", e);
-        } catch (Exception e) {
-            //Toast.makeText(getApplicationContext(),"Exception! response code: " + responseCode,Toast.LENGTH_LONG).show();
-            Log.d(TAG, "response code " + responseCode);
-            Log.e(TAG, "Error sending image to server", e);
-        }
-
-        Log.d(TAG, "exiting requestLocalPosts...");
-    }
-
-    private void requestLocalPostsAsync(final int numberOfImages, final Location location) {
-        if (isLocalRequesting) {
-            if (VERBOSE)
-                Log.v(TAG, "requestLocal is already currently requesting from the server, canceling...");
-            return;
-        }
-        if (VERBOSE) Log.v(TAG, "requestLocal is not currently requesting... starting...");
-        isLocalRequesting = true;
-
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_BACKGROUND);
-                requestLocalPosts(numberOfImages, location);
-                isLocalRequesting = false;
-            }
-        }).start();
-    }
 
 
     /**
@@ -745,64 +539,6 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
             @Override
             public void run() {
                 requestLocalMessages();
-            }
-        }).start();
-    }
-
-    /**
-     * method 'blockLocalUser'
-     * <p/>
-     * sends a request to the server, to add a user to this client's blocklist
-     *
-     * @param userToBlock stringified UUID of the user to block
-     */
-    public void blockLocalUser(String userToBlock) {
-        if (VERBOSE) {
-            Log.v(TAG, "enter blockLocalUser...");
-        }
-        Log.d(TAG, "Received a request to block user " + userToBlock);
-
-
-        HttpURLConnection conn;
-        try {
-            conn = connectToServer(BLOCK_LOCAL_USER_PATH);
-        } catch (ConnectException e) {
-            Log.e(TAG,"failed to connect to the server... quitting...");
-            throw new RuntimeException();
-        }
-
-
-        int responseCode;
-        try {
-            if (VERBOSE) Log.v(TAG, "opening outputStream to send JSON...");
-            JsonFactory jsonFactory = new JsonFactory();
-            JsonGenerator jGen = jsonFactory.
-                    createGenerator(conn.getOutputStream());
-            if (VERBOSE) {
-                Log.v(TAG, "from: " + userID.toString());
-                Log.v(TAG, "blocking: " + userToBlock);
-            }
-            jGen.writeStartObject();
-            jGen.writeStringField("block", userToBlock);
-            jGen.writeEndObject();
-            jGen.flush();
-            jGen.close();
-
-        } catch (IOException e) {
-            Log.e(TAG, "error handling JSON", e);
-        }
-
-
-        if (VERBOSE) {
-            Log.v(TAG, "exiting blockLocalUser...");
-        }
-    }
-
-    public void blockLocalUserAsync(final String userToBlock) {
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                blockLocalUser(userToBlock);
             }
         }).start();
     }
@@ -1112,7 +848,7 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
     }
 
     public void insert(Uri uri, ContentValues values) {
-        getContentResolver().insert(uri, values);
+       getContentResolver().insert(uri, values);
     }
 
 
@@ -1213,6 +949,8 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
                 return;
             }
 
+            ServerTask task;
+
 
 
             Bundle data = msg.getData();
@@ -1262,11 +1000,14 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
                     break;
 
                 case MSG_REQUEST_LOCAL_POSTS:
-                    Log.d(TAG, "received a message to request images.");
-
-                    int count = msg.getData().getInt(Constants.IMAGE_COUNT);
-                    irs.get().requestLocalPostsAsync(count, mLocation);
-
+                    if (Constants.LOGD) Log.d(TAG, "received a message to request local posts");
+                    task = new RequestLocalTask();
+                    if (mLocation!=null) {
+                        data.putDouble(SQLiteDbContract.LocalEntry.COLUMN_NAME_LONGITUDE, mLocation.getLongitude());
+                        data.putDouble(SQLiteDbContract.LocalEntry.COLUMN_NAME_LATITUDE, mLocation.getLatitude());
+                    }
+                    task.initializeTask(irs.get(),data,userID);
+                    new Thread(task.getServerConnectRunnable()).start();
                     break;
 
                 case MSG_RESOLVE_HOST:
@@ -1300,7 +1041,10 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
 
                 case MSG_BLOCK_USER:
                     Log.d(TAG, "received a message to block a user");
-                    irs.get().blockLocalUserAsync(msg.getData().getString(Constants.MESSAGE_TARGET));
+
+                    task = new SendLocalBlockTask();
+                    task.initializeTask(irs.get(),data,userID);
+                    new Thread(task.getServerConnectRunnable()).start();
                     break;
 
                 case MSG_CREATE_THREAD:
@@ -1332,20 +1076,19 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
 
                 case MSG_REQUEST_LIVE_THREADS:
                     Log.d(TAG, "received a message to request the thread list");
-                    new Thread(new RequestLiveThreadsRunnable(irs.get())).start();
+
+                    task = new RequestLiveTask();
+                    task.initializeTask(irs.get(), data, userID);
+                    new Thread(task.getServerConnectRunnable()).start();
                     break;
 
                 case MSG_REQUEST_REPLIES:
                     Log.d(TAG, "received a message to request replies.");
-                    //irs.get().replyBundle = data;
+
                     data.putInt("threadID", msg.arg1);
-
-                    RequestRepliesTask task = new RequestRepliesTask();
-                    task.initializeRepliesTask(irs.get(),data,userID);
+                    task = new RequestRepliesTask();
+                    task.initializeTask(irs.get(), data, userID);
                     new Thread(task.getServerConnectRunnable()).start();
-
-                    //new Thread(new RequestRepliesTask()).start();
-
                     break;
 
                 case MSG_SET_CALLBACK_MESSENGER:
@@ -1403,129 +1146,6 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
      * <p/>
      * these methods are created to perform common tasks throughout the service
      */
-    /**
-     * method 'loadImageForTransit'
-     * <p/>
-     * loads bitmap at selected filePath from storage, gzips and base64's it, so that it may be
-     * sent as part of a JSON object
-     *
-     * @param filePath location of the image to load
-     * @return processed image ready to be sent to the server
-     */
-    public String loadImageForTransit(String filePath) {
-        if (VERBOSE) {
-            Log.v(TAG, "loading image for transit from filePath " + filePath);
-        }
-        String image = null;
-        try {
-            //create the data into an input stream
-            InputStream is = new FileInputStream(filePath);
-            ByteArrayOutputStream bos = new ByteArrayOutputStream();
-            GzipCompressorOutputStream gos = new GzipCompressorOutputStream(bos);
-
-
-            byte[] readData = IOUtils.toByteArray(is);
-
-            gos.write(readData);
-            gos.flush();
-            gos.close();
-
-            image = Base64.encodeToString(bos.toByteArray(), Base64.DEFAULT);
-
-        } catch (IOException e) {
-            Log.e(TAG, "file was not found", e);
-        }
-        return image;
-    }
-
-    /**
-     * method 'saveIncomingImage'
-     *
-     * @param fileName file name for the image to be saved to
-     * @param theImage the base64'd stringified image
-     * @return whether or not the save was successful
-     */
-    public boolean saveIncomingImage(String fileName, String theImage) {
-        if (VERBOSE) Log.v(TAG, "Saving incoming with file name: " + fileName);
-
-        try {
-            FileOutputStream fos = openFileOutput(fileName, MODE_PRIVATE);
-            if (VERBOSE) {
-                Log.v(TAG, "saving image to file " + fos.getFD());
-            }
-
-            byte[] data = theImage.getBytes();
-            ByteArrayInputStream byis = new ByteArrayInputStream(data);
-            Base64InputStream bos = new Base64InputStream(byis, Base64.DEFAULT);
-            GzipCompressorInputStream gzis = new GzipCompressorInputStream(bos);
-            IOUtils.copy(gzis, fos);
-            fos.flush();
-            fos.close();
-
-            if (VERBOSE) Log.v(TAG, "validating image...");
-            BitmapFactory.Options options = new BitmapFactory.Options();
-            options.inJustDecodeBounds = true;
-            BitmapFactory.decodeFile(fileName, options);
-            if (options.outWidth == -1 && options.outHeight == -1) {
-                Log.e(TAG, "incoming image was not valid...");
-                deleteFile(fileName);
-                return false;
-            }
-
-        } catch (IOException e) {
-            Log.e(TAG, "error saving incoming image to internal storage...", e);
-            return false;
-
-        }
-
-        if (VERBOSE) Log.v(TAG, "image successfully saved");
-        return true;
-    }
-
-    /**
-     * method 'saveLiveImage'
-     */
-    private boolean saveLiveImage(int imageID, String theImage) {
-        return saveIncomingImage(Uri.withAppendedPath(FireFlyContentProvider
-                .CONTENT_URI_LIVE, String.valueOf(imageID)), theImage);
-    }
-
-
-    /**
-     * method 'saveIncomingImage'
-     *
-     * @param destination the location uri for the image to be stored
-     * @param theImage    the base64'd stringified image
-     * @return whether or not the save was successful
-     */
-    public boolean saveIncomingImage(Uri destination, String theImage) {
-        if (VERBOSE) Log.v(TAG, "Saving incoming to uri" + destination.toString());
-
-        try {
-            FileOutputStream fos = (FileOutputStream) getContentResolver()
-                    .openOutputStream(destination, "w");
-            if (VERBOSE) {
-                Log.v(TAG, "saving image to file " + fos.getFD());
-            }
-
-            byte[] data = theImage.getBytes();
-            ByteArrayInputStream byis = new ByteArrayInputStream(data);
-            Base64InputStream bos = new Base64InputStream(byis, Base64.DEFAULT);
-            GzipCompressorInputStream gzis = new GzipCompressorInputStream(bos);
-            IOUtils.copy(gzis, fos);
-            fos.flush();
-            fos.close();
-
-        } catch (IOException e) {
-            Log.e(TAG, "error saving incoming image to internal storage...", e);
-            return false;
-
-        }
-
-        if (VERBOSE) Log.v(TAG, "image successfully saved");
-        return true;
-    }
-
     /**
      * method 'openConnectionToURL'
      * <p/>
@@ -1625,6 +1245,49 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
         return conn;
     }
 
+    static final int CONNECTION_FAILED = 0;
+    static final int CONNECTION_STARTED = 1;
+    static final int CONNECTION_COMPLETED = 2;
+    static final int REQUEST_FAILED = 3;
+    static final int REQUEST_STARTED = 4;
+    static final int TASK_COMPLETED = 5;
+
+    /**
+     * method 'handleDownloadState'
+     *
+     * handles the responses passed upwards from each respective serverTask
+     *
+     * @param state the state of the content being downloaded
+     */
+    public void handleDownloadState(int state, ServerTask task) {
+        switch (state) {
+            case CONNECTION_FAILED:
+                Log.i(TAG, "Connection failed...");
+                break;
+
+            case CONNECTION_STARTED:
+                Log.i(TAG,"Connection started...");
+                break;
+
+            case CONNECTION_COMPLETED:
+                Log.i(TAG,"Connection completed...");
+                new Thread(task.getRequestRunnable()).start();
+                break;
+
+            case REQUEST_FAILED:
+                Log.i(TAG,"Request failed...");
+                break;
+
+            case REQUEST_STARTED:
+                Log.i(TAG,"Request started...");
+                break;
+
+            case TASK_COMPLETED:
+                Log.i(TAG,"Task completed... by name: " + task.toString());
+                break;
+        }
+
+    }
 
     /**
      * method "createURLtoServer"

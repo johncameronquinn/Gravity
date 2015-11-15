@@ -1,48 +1,29 @@
 package com.jokrapp.android;
 
-import android.content.ContentValues;
 import android.os.Bundle;
-import android.util.Log;
-
-import com.fasterxml.jackson.core.JsonFactory;
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.jokrapp.android.util.LogUtils;
-
-import java.io.IOException;
-import java.net.ConnectException;
-import java.net.HttpURLConnection;
-import java.net.URLConnection;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-
+import java.util.UUID;
 
 
 /**
  * Created by ev0x on 11/9/15.
  */
-public class ServerTask {
+public abstract class ServerTask {
 
-    Bundle dataBundle;
 
-    protected DataHandlingService mService;
+    private Thread mThread;
 
-    private boolean VERBOSE = true;
-    private final String TAG = "ServerTask";
+    public abstract Runnable getRequestRunnable();
 
-    public ServerTask(DataHandlingService mService, Bundle dataBundle) {
-        this.dataBundle = dataBundle;
-        this.mService = mService;
+    public abstract Runnable getServerConnectRunnable();
+
+    public abstract void initializeTask(DataHandlingService mService, Bundle dataSendBundle, UUID userID);
+
+    public void setTaskThread(Thread thread) {
+        this.mThread = thread;
     }
 
-    public Bundle getDataBundle() {
-        return dataBundle;
+    public Thread getTaskThread() {
+        return this.mThread;
     }
-
-       public HttpURLConnection connectToServer(String ServerPath) throws ConnectException {
-        return mService.connectToServer(ServerPath);
-    }
-
-
 
 }

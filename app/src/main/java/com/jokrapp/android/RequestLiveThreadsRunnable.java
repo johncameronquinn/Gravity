@@ -1,5 +1,7 @@
 package com.jokrapp.android;
 
+import android.content.ContentValues;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Message;
 import android.os.RemoteException;
@@ -7,12 +9,15 @@ import android.util.Log;
 
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
-import java.net.ConnectException;
 import java.net.HttpURLConnection;
-import java.net.URLConnection;
-import java.util.UUID;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+
 
 /**
  * Created by ev0x on 11/12/15.
@@ -31,21 +36,13 @@ public class RequestLiveThreadsRunnable implements Runnable {
 
     interface ThreadRequestMethods {
 
-
-        HttpURLConnection connectToServer(String ServerPath) throws ConnectException;
-
         void handleThreadsRequestState(int state);
 
+        void setTaskThread(Thread thread);
 
-        void setRequestRepliesThread(Thread thread);
+        HttpURLConnection getURLConnection();
 
-        int saveIncomingJsonArray(int where, URLConnection conn, Bundle extradata)
-                throws IOException;
-
-
-        String getRequestThreadsPath();
-
-        boolean handleResponseCode(int code);
+        void insert(Uri uri, ContentValues values);
     }
 
     public RequestLiveThreadsRunnable(ThreadRequestMethods methods) {
@@ -59,21 +56,20 @@ public class RequestLiveThreadsRunnable implements Runnable {
             Log.v(TAG, "enter requestLiveThreads...");
         }
 
+        mService.setTaskThread(Thread.currentThread());
         mService.handleThreadsRequestState(REQUEST_THREADS_STARTED);
 
-        HttpURLConnection conn;
-        try {
-            conn = mService.connectToServer(mService.getRequestThreadsPath());
-        } catch (ConnectException e) {
-            Log.e(TAG,"failed to connect to the server... quitting...");
-            mService.handleThreadsRequestState(REQUEST_THREADS_FAILED);
-            return;
-        }
+        HttpURLConnection conn = null;
+        int responseCode = -10;
 
-        if (VERBOSE) Log.v(TAG,"now emptying live table prior to insertion...");
-
-        int rows = -1;
         try {
+            if (Thread.interrupted()) {
+                if (VERBOSE)Log.v(TAG,"current thread is interrupted, not sending...");
+                return;
+            }
+
+            conn = mService.getURLConnection();
+
             if (VERBOSE) Log.v(TAG, "opening outputStream to send JSON...");
             JsonFactory jsonFactory = new JsonFactory();
             JsonGenerator jGen = jsonFactory.createGenerator(conn.getOutputStream());
@@ -82,23 +78,58 @@ public class RequestLiveThreadsRunnable implements Runnable {
             jGen.flush();
             jGen.close();
 
-            rows = mService.saveIncomingJsonArray(
-                    DataHandlingService.MSG_REQUEST_LIVE_THREADS,
-                    conn,
-                    null
-            );
+            if (Thread.currentThread().isInterrupted()) {
+                if (VERBOSE)Log.v(TAG,"current thread is interrupted, not downloading.");
+                return;
+            }
 
-            mService.handleResponseCode(conn.getResponseCode());
+            JsonParser jParser = new JsonFactory().createParser(conn.getInputStream());
+            ObjectMapper objectMapper = new ObjectMapper();
+
+            ArrayList<LinkedHashMap<String, Object>> jsonArray =
+                    objectMapper.readValue(jParser, ArrayList.class);
+
+            List<ContentValues> valuesList = new ArrayList<>();
+
+            if (!jsonArray.isEmpty()) {
+                LinkedHashMap<String, Object> map;
+
+                for (int i = 0; i < jsonArray.size(); i++) {
+                    map = jsonArray.get(i);
+                    map.put(SQLiteDbContract.LiveThreadEntry.COLUMN_ID, map.remove("order"));
+                    map.put(SQLiteDbContract.LiveThreadEntry.COLUMN_NAME_THREAD_ID, map.remove("id"));
+
+                    android.os.Parcel myParcel = android.os.Parcel.obtain();
+                    myParcel.writeMap(map);
+                    myParcel.setDataPosition(0);
+                    android.content.ContentValues values = android.content.ContentValues.CREATOR.createFromParcel(myParcel);
+                    valuesList.add(values);
+                }
+
+                responseCode = conn.getResponseCode();
+
+                for (ContentValues row : valuesList) {
+                     mService.insert(FireFlyContentProvider.CONTENT_URI_LIVE, row); //todo implement bulkinsert
+                }
+            }
+
         } catch (IOException e) {
-            Log.e(TAG, "error handling JSON", e);
+            Log.e(TAG, "IOException when retrieving replies...", e);
+            mService.handleThreadsRequestState(REQUEST_THREADS_FAILED);
         } finally {
-            if (rows >= 0) {
+            if (responseCode == HttpURLConnection.HTTP_OK) {
                 mService.handleThreadsRequestState(REQUEST_THREADS_SUCCESS);
             } else {
                 mService.handleThreadsRequestState(REQUEST_THREADS_FAILED);
             }
+
+            if (conn != null) {
+                conn.disconnect();
+            }
         }
 
+        mService.setTaskThread(null);
         if (VERBOSE) Log.v(TAG, "exiting requestLiveThreads...");
+
     }
 }
