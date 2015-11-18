@@ -82,19 +82,8 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
      * NETWORK COMMUNICATION
      */
     private static GoogleApiClient mGoogleApiClient;
-    private final String UPLOAD_LOCAL_POST_PATH = "/local/upload/"; //does not change
-    private final String GET_LOCAL_POST_PATH = "/local/get/"; //does not change
-    private final String SEND_LOCAL_MESSAGE_PATH = "/message/upload/";
-    private final String GET_LOCAL_MESSAGES_PATH = "/message/get/"; //does not change
-    private final String BLOCK_LOCAL_USER_PATH = "/moderation/block/";
-    private final String REPORT_USER_PATH = "/moderation/report/";
-    private final String INITIALIZE_USER_PATH = "/security/create/";
-    private final String CREATE_LIVE_THREAD_PATH = "/live/upload/"; //does not change
-//    private final String GET_LIVE_THREAD_LIST = "/live/get/"; //does not change
-    private final String REPLY_LIVE_THREAD_PATH = "/reply/upload/"; //does not change
-    final String GET_LIVE_THREAD_REPLIES = "/reply/get/"; //does not change
 
-    /**
+    /*
      * S3 INFO
      */
     private final String BUCKET_NAME = "launch-zone";
@@ -277,6 +266,7 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
 
         SharedPreferences settings = getSharedPreferences(TAG, MODE_PRIVATE);
         settings.edit().putStringSet(IMAGESSEEN_KEY, new HashSet<>(imagesSeen)).apply();
+        mConnectionThreadPool.shutdown();
 
         Log.v(TAG, "exiting onDestroy...");
     }
@@ -297,31 +287,6 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
         if (VERBOSE) Log.v(TAG,"exiting initializeTransferUtility...");
     }
 
-    private Thread initializeUserThread;
-
-    public void handleInitializeState(int state) {
-        switch (state) {
-            case InitializeUserRunnable.INITIALIZE_STARTED:
-                Log.d(TAG,"initialize started...");
-                break;
-
-            case InitializeUserRunnable.INITIALIZE_FAILED:
-                Log.d(TAG,"initialize failed!");
-                break;
-
-            case InitializeUserRunnable.INITIALIZE_SUCCESS:
-                Log.d(TAG,"initialize success :)");
-                break;
-        }
-    }
-
-    public String getInitializeUserPath() {
-        return INITIALIZE_USER_PATH;
-    }
-
-    public void setInitializeUserThread(Thread initializeUserThread) {
-        this.initializeUserThread = initializeUserThread;
-    }
 
     public List<String> getImagesSeen() {
         return imagesSeen;

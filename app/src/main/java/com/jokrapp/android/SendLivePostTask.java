@@ -16,7 +16,7 @@ import java.util.UUID;
  *
  * Attempts to send a particular thread to the server, and request
  */
-class SendLivePostTask extends ServerTask implements LivePostMethods, ServerConnectMethods{
+class SendLivePostTask extends ServerTask implements LivePostMethods {
 
     private Runnable mRequestRunnable;
 
@@ -29,36 +29,12 @@ class SendLivePostTask extends ServerTask implements LivePostMethods, ServerConn
         mRequestRunnable = new SendLivePostRunnable(this);
     }
 
-    public void initializeTask(DataHandlingService mService, Bundle dataBundle, UUID userID) {
-        if (VERBOSE) Log.v(TAG,"entering initializeSendLivePostTask...");
-        this.mService = mService;
-        this.userID = userID;
-        this.dataBundle = dataBundle;
-    }
-
-    public void setServerConnection(HttpURLConnection connection) {
-        mConnection = connection;
-    }
-
-    public HttpURLConnection getURLConnection() {
-        return mConnection;
-    }
-
     public Runnable getServerConnectRunnable() {
         return mServerConnectRunnable;
     }
 
     public Runnable getRequestRunnable() {
         return mRequestRunnable;
-    }
-
-
-    public Bundle getDataBundle() {
-        return dataBundle;
-    }
-
-    public UUID getUserID() {
-        return userID;
     }
 
     public String getURLPath() {
@@ -85,7 +61,7 @@ class SendLivePostTask extends ServerTask implements LivePostMethods, ServerConn
 
         }
 
-        mService.handleDownloadState(outState, this);
+        handleDownloadState(outState, this);
     }
 
     public void handleLivePostState(int state) {
@@ -108,7 +84,7 @@ class SendLivePostTask extends ServerTask implements LivePostMethods, ServerConn
                 break;
         }
 
-        mService.handleDownloadState(outState,this);
+        handleDownloadState(outState,this);
     }
 
 }

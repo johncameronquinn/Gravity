@@ -1,55 +1,24 @@
 package com.jokrapp.android;
 
-import android.content.ContentValues;
-import android.net.Uri;
-import android.os.Bundle;
 import android.util.Log;
 
 import com.jokrapp.android.RequestLiveThreadsRunnable.ThreadRequestMethods;
-import com.jokrapp.android.ServerConnectRunnable.ServerConnectMethods;
-
-import java.net.HttpURLConnection;
-import java.util.List;
-import java.util.UUID;
-
 /**
  * Created by John Quinn on 11/9/15.
  *
  * Attempts to send a particular thread to the server, and request
  */
-class RequestLiveTask extends ServerTask implements ThreadRequestMethods, ServerConnectMethods{
-
-    Bundle dataBundle;
-
-    private DataHandlingService mService;
+class RequestLiveTask extends ServerTask implements ThreadRequestMethods {
 
     private boolean VERBOSE = true;
     private final String TAG = "RequestLiveTask";
 
-    private HttpURLConnection mConnection;
-    private Runnable mServerConnectRunnable;
     private Runnable mRequestRunnable;
-
-    private UUID userID;
     private final String urlString = "/live/get/";
 
     public RequestLiveTask() {
         mServerConnectRunnable = new ServerConnectRunnable(this);
         mRequestRunnable = new RequestLiveThreadsRunnable(this);
-    }
-
-    public void initializeTask(DataHandlingService mService, Bundle dataBundle, UUID userID) {
-        if (VERBOSE) Log.v(TAG,"entering initializeLocalTask...");
-        this.mService = mService;
-        this.userID = userID;
-    }
-
-    public void setServerConnection(HttpURLConnection connection) {
-        mConnection = connection;
-    }
-
-    public HttpURLConnection getURLConnection() {
-        return mConnection;
     }
 
     public Runnable getServerConnectRunnable() {
@@ -58,18 +27,6 @@ class RequestLiveTask extends ServerTask implements ThreadRequestMethods, Server
 
     public Runnable getRequestRunnable() {
         return mRequestRunnable;
-    }
-
-    public void insert(Uri uri, ContentValues values) {
-        mService.insert(uri, values);
-    }
-
-    public Bundle getDataBundle() {
-        return dataBundle;
-    }
-
-    public UUID getUserID() {
-        return userID;
     }
 
     public String getURLPath() {
@@ -96,7 +53,7 @@ class RequestLiveTask extends ServerTask implements ThreadRequestMethods, Server
 
         }
 
-        mService.handleDownloadState(outState, this);
+        handleDownloadState(outState, this);
     }
 
     public void handleThreadsRequestState(int state) {
@@ -118,7 +75,7 @@ class RequestLiveTask extends ServerTask implements ThreadRequestMethods, Server
                 outState = DataHandlingService.TASK_COMPLETED;
                 break;
         }
-        mService.handleDownloadState(outState,this);
+        handleDownloadState(outState,this);
     }
 
 

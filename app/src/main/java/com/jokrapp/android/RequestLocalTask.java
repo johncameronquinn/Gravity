@@ -18,42 +18,17 @@ import java.util.UUID;
  *
  * Attempts to send a particular thread to the server, and request
  */
-class RequestLocalTask extends ServerTask implements RequestLocalMethods, ServerConnectMethods{
-
-
-    Bundle dataBundle;
-
-    private DataHandlingService mService;
+class RequestLocalTask extends ServerTask implements RequestLocalMethods {
 
     private boolean VERBOSE = true;
     private final String TAG = "RequestRepliesTask";
 
-    private HttpURLConnection mConnection;
-
-    private Runnable mServerConnectRunnable;
     private Runnable mRequestRunnable;
-    private Runnable mSaveIncomingRunnable;
-    private UUID userID;
     private final String urlString = "/local/get/";
 
     public RequestLocalTask() {
         mServerConnectRunnable = new ServerConnectRunnable(this);
         mRequestRunnable = new RequestLocalRunnable(this);
-    }
-
-    public void initializeTask(DataHandlingService mService, Bundle dataBundle, UUID userID) {
-        if (VERBOSE) Log.v(TAG,"entering initializeLocalTask...");
-        this.mService = mService;
-        this.dataBundle = dataBundle;
-        this.userID = userID;
-    }
-
-    public void setServerConnection(HttpURLConnection connection) {
-        mConnection = connection;
-    }
-
-    public HttpURLConnection getURLConnection() {
-        return mConnection;
     }
 
     public Runnable getServerConnectRunnable() {
@@ -65,13 +40,8 @@ class RequestLocalTask extends ServerTask implements RequestLocalMethods, Server
     }
 
     public List<String> getImagesSeen() {
-        return mService.getImagesSeen();
+        return getService().getImagesSeen();
     }
-
-    public void insert(Uri uri, ContentValues values) {
-        mService.insert(uri, values);
-    }
-
 
     public void handleServerConnectState(int state) {
         int outState = -10;
@@ -93,7 +63,7 @@ class RequestLocalTask extends ServerTask implements RequestLocalMethods, Server
 
         }
 
-        mService.handleDownloadState(outState,this);
+        handleDownloadState(outState,this);
     }
 
     public void handleLocalRequestState(int state) {
@@ -115,15 +85,7 @@ class RequestLocalTask extends ServerTask implements RequestLocalMethods, Server
                 outState = DataHandlingService.TASK_COMPLETED;
                 break;
         }
-        mService.handleDownloadState(outState,this);
-    }
-
-    public Bundle getDataBundle() {
-        return dataBundle;
-    }
-
-    public UUID getUserID() {
-        return userID;
+        handleDownloadState(outState,this);
     }
 
     public String getURLPath() {

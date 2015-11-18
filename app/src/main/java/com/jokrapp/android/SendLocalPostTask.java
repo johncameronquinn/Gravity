@@ -16,7 +16,7 @@ import java.util.UUID;
  *
  * Attempts to send a particular thread to the server, and request
  */
-class SendLocalPostTask extends ServerTask implements LocalPostMethods, ServerConnectMethods{
+class SendLocalPostTask extends ServerTask implements LocalPostMethods {
 
     private final boolean VERBOSE = true;
     private final String TAG = "SendLocalPostTask";
@@ -25,29 +25,12 @@ class SendLocalPostTask extends ServerTask implements LocalPostMethods, ServerCo
     private Runnable mRequestRunnable;
 
     public SendLocalPostTask() {
-
-        if(mServerConnectRunnable == null) {
+        if (mServerConnectRunnable == null) {
             mServerConnectRunnable = new ServerConnectRunnable(this);
         } else {
-            Log.d(TAG,"mServerConnectRunnable is being reused...");
+            Log.d(TAG, "mServerConnectRunnable is being reused...");
         }
-
         mRequestRunnable = new SendLocalPostRunnable(this);
-    }
-
-    public void initializeTask(DataHandlingService mService, Bundle dataBundle, UUID userID) {
-        if (VERBOSE) Log.v(TAG,"entering initializeLocalPostTask...");
-        this.mService = mService;
-        this.userID = userID;
-        this.dataBundle = dataBundle;
-    }
-
-    public void setServerConnection(HttpURLConnection connection) {
-        mConnection = connection;
-    }
-
-    public HttpURLConnection getURLConnection() {
-        return mConnection;
     }
 
     public Runnable getServerConnectRunnable() {
@@ -56,18 +39,6 @@ class SendLocalPostTask extends ServerTask implements LocalPostMethods, ServerCo
 
     public Runnable getRequestRunnable() {
         return mRequestRunnable;
-    }
-
-    public void insert(Uri uri, ContentValues values) {
-        mService.insert(uri, values);
-    }
-
-    public Bundle getDataBundle() {
-        return dataBundle;
-    }
-
-    public UUID getUserID() {
-        return userID;
     }
 
     public String getURLPath() {
@@ -94,7 +65,7 @@ class SendLocalPostTask extends ServerTask implements LocalPostMethods, ServerCo
                 Log.d(TAG, "successfully connected to server :3");
                 break;
         }
-        mService.handleDownloadState(outState, this);
+        handleDownloadState(outState, this);
     }
 
     public void handleLocalPostState(int state) {
@@ -116,7 +87,7 @@ class SendLocalPostTask extends ServerTask implements LocalPostMethods, ServerCo
                 outState = DataHandlingService.TASK_COMPLETED;
                 break;
         }
-        mService.handleDownloadState(outState,this);
+        handleDownloadState(outState, this);
     }
 
 }

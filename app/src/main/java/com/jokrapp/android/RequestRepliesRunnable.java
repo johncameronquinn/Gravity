@@ -35,7 +35,7 @@ class RequestRepliesRunnable implements Runnable {
         void handleRepliesRequestState(int state);
 
 
-        void setRequestRepliesThread(Thread thread);
+        void setTaskThread(Thread thread);
 
         Bundle getDataBundle();
 
@@ -55,7 +55,7 @@ class RequestRepliesRunnable implements Runnable {
             Log.v(TAG, "enter requestLiveReplies...");
         }
 
-        mService.setRequestRepliesThread(Thread.currentThread());
+        mService.setTaskThread(Thread.currentThread());
 
         HttpURLConnection conn = null;
         Bundle b = mService.getDataBundle();
@@ -142,7 +142,7 @@ class RequestRepliesRunnable implements Runnable {
             }
         }
 
-        mService.setRequestRepliesThread(null);
+        mService.setTaskThread(null);
         Thread.interrupted();
         if (VERBOSE) Log.v(TAG, "exiting requestLiveReplies...");
     }

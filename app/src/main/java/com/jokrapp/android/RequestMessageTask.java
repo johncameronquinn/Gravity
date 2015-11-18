@@ -15,21 +15,13 @@ import com.jokrapp.android.ServerConnectRunnable.ServerConnectMethods;
  *
  * Attempts to send a particular thread to the server, and request
  */
-class RequestMessageTask extends ServerTask implements RequestMessagesMethods, ServerConnectMethods{
+class RequestMessageTask extends ServerTask implements RequestMessagesMethods {
 
-    Bundle dataBundle;
-
-    private DataHandlingService mService;
 
     private boolean VERBOSE = true;
     private final String TAG = "RequestRepliesTask";
 
-    private HttpURLConnection mConnection;
-
-    private Runnable mServerConnectRunnable;
     private Runnable mRequestRunnable;
-    private Runnable mSaveIncomingRunnable;
-    private UUID userID;
     private final String urlString = "/message/get/";
 
     public RequestMessageTask() {
@@ -37,19 +29,8 @@ class RequestMessageTask extends ServerTask implements RequestMessagesMethods, S
         mRequestRunnable = new RequestMessagesRunnable(this);
     }
 
-    public void initializeTask(DataHandlingService mService, Bundle dataBundle, UUID userID) {
-        if (VERBOSE) Log.v(TAG,"entering initializeLocalTask...");
-        this.mService = mService;
-        this.dataBundle = dataBundle;
-        this.userID = userID;
-    }
-
-    public void setServerConnection(HttpURLConnection connection) {
-        mConnection = connection;
-    }
-
-    public HttpURLConnection getURLConnection() {
-        return mConnection;
+    public String getURLPath() {
+        return urlString;
     }
 
     public Runnable getServerConnectRunnable() {
@@ -58,10 +39,6 @@ class RequestMessageTask extends ServerTask implements RequestMessagesMethods, S
 
     public Runnable getRequestRunnable() {
         return mRequestRunnable;
-    }
-
-    public void insert(Uri uri, ContentValues values) {
-        mService.insert(uri, values);
     }
 
     public void handleServerConnectState(int state) {
@@ -84,7 +61,7 @@ class RequestMessageTask extends ServerTask implements RequestMessagesMethods, S
 
         }
 
-        mService.handleDownloadState(outState,this);
+        handleDownloadState(outState,this);
     }
 
     public void handleRequestMessagesState(int state) {
@@ -106,19 +83,8 @@ class RequestMessageTask extends ServerTask implements RequestMessagesMethods, S
                 outState = DataHandlingService.TASK_COMPLETED;
                 break;
         }
-        mService.handleDownloadState(outState,this);
+        handleDownloadState(outState,this);
     }
 
-    public Bundle getDataBundle() {
-        return dataBundle;
-    }
-
-    public UUID getUserID() {
-        return userID;
-    }
-
-    public String getURLPath() {
-        return urlString;
-    }
 
 }

@@ -14,48 +14,21 @@ import com.jokrapp.android.ServerConnectRunnable.ServerConnectMethods;
  *
  * Attempts to send a particular thread to the server, and request
  */
-class RequestRepliesTask extends ServerTask implements ReplyRequestMethods, ServerConnectMethods{
-
-
-    Bundle dataBundle;
-
-    private DataHandlingService mService;
+class RequestRepliesTask extends ServerTask implements ReplyRequestMethods {
 
     private boolean VERBOSE = true;
     private final String TAG = "RequestRepliesTask";
 
-    private HttpURLConnection mConnection;
 
     private Runnable mServerConnectRunnable;
     private Runnable mRequestRepliesRunnable;
     private Runnable mSaveIncomingRunnable;
 
-    private Thread mThread;
-    private UUID userID;
     private final String urlString = "/reply/get/";
 
     public RequestRepliesTask() {
         mServerConnectRunnable = new ServerConnectRunnable(this);
         mRequestRepliesRunnable = new RequestRepliesRunnable(this);
-    }
-
-    public void initializeTask(DataHandlingService mService, Bundle dataBundle, UUID userID) {
-        if (VERBOSE) Log.v(TAG,"entering initializeRepliesTask...");
-        this.mService = mService;
-        this.dataBundle = dataBundle;
-        this.userID = userID;
-    }
-
-    public void setRequestRepliesThread(Thread thread) {
-        mThread = thread;
-    }
-
-    public void setServerConnection(HttpURLConnection connection) {
-        mConnection = connection;
-    }
-
-    public HttpURLConnection getURLConnection() {
-        return mConnection;
     }
 
     public Runnable getServerConnectRunnable() {
@@ -66,8 +39,8 @@ class RequestRepliesTask extends ServerTask implements ReplyRequestMethods, Serv
         return mRequestRepliesRunnable;
     }
 
-    public void insert(Uri uri, ContentValues values) {
-        mService.insert(uri,values);
+    public String getURLPath() {
+        return urlString;
     }
 
     public void handleServerConnectState(int state) {
@@ -90,7 +63,7 @@ class RequestRepliesTask extends ServerTask implements ReplyRequestMethods, Serv
 
         }
 
-        mService.handleDownloadState(outState,this);
+        handleDownloadState(outState,this);
     }
 
     public void handleRepliesRequestState(int state) {
@@ -112,19 +85,8 @@ class RequestRepliesTask extends ServerTask implements ReplyRequestMethods, Serv
                 outState = DataHandlingService.TASK_COMPLETED;
                 break;
         }
-        mService.handleDownloadState(outState,this);
+        handleDownloadState(outState,this);
     }
 
-    public Bundle getDataBundle() {
-        return dataBundle;
-    }
-
-    public UUID getUserID() {
-        return userID;
-    }
-
-    public String getURLPath() {
-        return urlString;
-    }
 
 }

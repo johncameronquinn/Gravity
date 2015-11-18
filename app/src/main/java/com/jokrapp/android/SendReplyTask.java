@@ -14,41 +14,16 @@ import com.jokrapp.android.ServerConnectRunnable.ServerConnectMethods;
  *
  * Attempts to send a particular thread to the server, and request
  */
-class SendReplyTask extends ServerTask implements SendReplyMethods, ServerConnectMethods{
-
-    Bundle dataBundle;
-
-    private DataHandlingService mService;
+class SendReplyTask extends ServerTask implements SendReplyMethods {
 
     private boolean VERBOSE = true;
     private final String TAG = "SendLivePostTask";
-
-    private HttpURLConnection mConnection;
-
-    private Runnable mServerConnectRunnable;
     private Runnable mRequestRunnable;
-
-    private UUID userID;
     private final String urlString = "/reply/upload/";
 
     public SendReplyTask() {
         mServerConnectRunnable = new ServerConnectRunnable(this);
         mRequestRunnable = new SendReplyRunnable(this);
-    }
-
-    public void initializeTask(DataHandlingService mService, Bundle dataBundle, UUID userID) {
-        if (VERBOSE) Log.v(TAG,"entering initializeSendLivePostTask...");
-        this.mService = mService;
-        this.userID = userID;
-        this.dataBundle = dataBundle;
-    }
-
-    public void setServerConnection(HttpURLConnection connection) {
-        mConnection = connection;
-    }
-
-    public HttpURLConnection getURLConnection() {
-        return mConnection;
     }
 
     public Runnable getServerConnectRunnable() {
@@ -57,18 +32,6 @@ class SendReplyTask extends ServerTask implements SendReplyMethods, ServerConnec
 
     public Runnable getRequestRunnable() {
         return mRequestRunnable;
-    }
-
-    public void insert(Uri uri, ContentValues values) {
-        mService.insert(uri, values);
-    }
-
-    public Bundle getDataBundle() {
-        return dataBundle;
-    }
-
-    public UUID getUserID() {
-        return userID;
     }
 
     public String getURLPath() {
@@ -96,7 +59,7 @@ class SendReplyTask extends ServerTask implements SendReplyMethods, ServerConnec
 
         }
 
-        mService.handleDownloadState(outState, this);
+        handleDownloadState(outState, this);
     }
 
     public void handleLivePostState(int state) {
@@ -119,7 +82,7 @@ class SendReplyTask extends ServerTask implements SendReplyMethods, ServerConnec
                 break;
         }
 
-        mService.handleDownloadState(outState,this);
+        handleDownloadState(outState,this);
     }
 
 }
