@@ -4,46 +4,44 @@ import android.content.ContentValues;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
-
-import com.jokrapp.android.SendLocalBlockRunnable.LocalBlockMethods;
-import com.jokrapp.android.ServerConnectRunnable.ServerConnectMethods;
-
 import java.net.HttpURLConnection;
-import java.util.List;
 import java.util.UUID;
+
+import com.jokrapp.android.RequestMessagesRunnable.RequestMessagesMethods;
+import com.jokrapp.android.ServerConnectRunnable.ServerConnectMethods;
 
 /**
  * Created by John Quinn on 11/9/15.
  *
  * Attempts to send a particular thread to the server, and request
  */
-class SendLocalBlockTask extends ServerTask implements LocalBlockMethods, ServerConnectMethods{
+class RequestMessageTask extends ServerTask implements RequestMessagesMethods, ServerConnectMethods{
 
     Bundle dataBundle;
 
     private DataHandlingService mService;
 
     private boolean VERBOSE = true;
-    private final String TAG = "SendLocalBlockTask";
+    private final String TAG = "RequestRepliesTask";
 
     private HttpURLConnection mConnection;
 
     private Runnable mServerConnectRunnable;
     private Runnable mRequestRunnable;
-
+    private Runnable mSaveIncomingRunnable;
     private UUID userID;
-    private final String urlString = "/moderation/block/";
+    private final String urlString = "/message/get/";
 
-    public SendLocalBlockTask() {
+    public RequestMessageTask() {
         mServerConnectRunnable = new ServerConnectRunnable(this);
-        mRequestRunnable = new SendLocalBlockRunnable(this);
+        mRequestRunnable = new RequestMessagesRunnable(this);
     }
 
     public void initializeTask(DataHandlingService mService, Bundle dataBundle, UUID userID) {
         if (VERBOSE) Log.v(TAG,"entering initializeLocalTask...");
         this.mService = mService;
-        this.userID = userID;
         this.dataBundle = dataBundle;
+        this.userID = userID;
     }
 
     public void setServerConnection(HttpURLConnection connection) {
@@ -86,25 +84,25 @@ class SendLocalBlockTask extends ServerTask implements LocalBlockMethods, Server
 
         }
 
-        mService.handleDownloadState(outState, this);
+        mService.handleDownloadState(outState,this);
     }
 
-    public void handleLocalBlockState(int state) {
+    public void handleRequestMessagesState(int state) {
         int outState = -1;
 
         switch (state) {
-            case SendLocalBlockRunnable.REQUEST_FAILED:
-                Log.d(TAG, "send block failed...");
+            case RequestMessagesRunnable.REQUEST_FAILED:
+                Log.d(TAG, "request messages failed...");
                 outState = DataHandlingService.REQUEST_FAILED;
                 break;
 
-            case SendLocalBlockRunnable.REQUEST_STARTED:
-                Log.d(TAG,"send block started...");
+            case RequestMessagesRunnable.REQUEST_STARTED:
+                Log.d(TAG,"request messages started...");
                 outState = DataHandlingService.REQUEST_STARTED;
                 break;
 
-            case SendLocalBlockRunnable.REQUEST_SUCCESS:
-                Log.d(TAG, "send block success...");
+            case RequestMessagesRunnable.REQUEST_SUCCESS:
+                Log.d(TAG, "request messages started...");
                 outState = DataHandlingService.TASK_COMPLETED;
                 break;
         }

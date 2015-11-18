@@ -102,8 +102,6 @@ public class PhotoManager {
     // A queue of PhotoManager tasks. Tasks are handed to a ThreadPool.
     private final Queue<PhotoTask> mPhotoTaskWorkQueue;
 
-
-
     // A managed pool of background download threads
     private final ThreadPoolExecutor mDownloadThreadPool;
 
@@ -271,6 +269,7 @@ public class PhotoManager {
 
                             case DOWNLOAD_FAILED:
                                 localView.setStatusResource(R.drawable.imagedownloadfailed);
+                                recycleTask(photoTask);
                                 break;
 
                             // If the download has started, sets background color to dark green
@@ -295,7 +294,7 @@ public class PhotoManager {
                                 break;
 
                             case REQUEST_FAILED:
-                                handleState(photoTask,DOWNLOAD_FAILED);
+                                handleState(photoTask, DOWNLOAD_FAILED);
                                 localView.setStatusResource(R.drawable.imagedownloadfailed);
 
                                 // Attempts to re-use the Task object
@@ -322,6 +321,7 @@ public class PhotoManager {
                              */
 
                             case TASK_COMPLETE:
+                                Log.d(TAG,"setting image bitmap");
                                 localView.setImageBitmap(photoTask.getImage());
                                 recycleTask(photoTask);
 
@@ -598,10 +598,6 @@ public class PhotoManager {
             PhotoView imageView,
             boolean cacheFlag) {
         if (Constants.LOGV) Log.v(TAG, "entering startDownload...");
-
-
-        //Log.w(TAG,"this is disabled for now, no network operations just yet.");
-
 
         /*
          * Gets a task from the pool of tasks, returning null if the pool is empty

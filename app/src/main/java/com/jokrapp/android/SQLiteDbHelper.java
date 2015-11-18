@@ -9,7 +9,7 @@ import com.jokrapp.android.SQLiteDbContract.LocalEntry;
 
 import com.jokrapp.android.SQLiteDbContract.MessageEntry;
 
-import com.jokrapp.android.SQLiteDbContract.LiveThreadEntry;
+import com.jokrapp.android.SQLiteDbContract.LiveRepliesEntry;
 
 import com.jokrapp.android.SQLiteDbContract.LiveReplies;
 
@@ -71,16 +71,16 @@ public class SQLiteDbHelper extends SQLiteOpenHelper {
 
     private static final String SQL_CREATE_LIVE =
 
-            "CREATE TABLE " + LiveThreadEntry.TABLE_NAME + " (" +
-                    LiveThreadEntry._ID + PRIMARY_KEY + COMMA_SEP +
-                    LiveThreadEntry.COLUMN_NAME_THREAD_ID  + INT_TYPE + UNIQUE_KEY + COMMA_SEP +
-                    LiveThreadEntry.COLUMN_NAME_TIME + INT_TYPE + COMMA_SEP +
-                    LiveThreadEntry.COLUMN_NAME_TITLE + TEXT_TYPE + COMMA_SEP +
-                    LiveThreadEntry.COLUMN_NAME_NAME + TEXT_TYPE + COMMA_SEP +
-                    LiveThreadEntry.COLUMN_NAME_DESCRIPTION + TEXT_TYPE + COMMA_SEP +
-                    LiveThreadEntry.COLUMN_NAME_FILEPATH + TEXT_TYPE + COMMA_SEP +
-                    LiveThreadEntry.COLUMN_NAME_REPLIES + INT_TYPE + COMMA_SEP +
-                    LiveThreadEntry.COLUMN_NAME_UNIQUE + INT_TYPE +
+            "CREATE TABLE " + LiveRepliesEntry.TABLE_NAME + " (" +
+                    LiveRepliesEntry._ID + PRIMARY_KEY + COMMA_SEP +
+                    LiveRepliesEntry.COLUMN_NAME_THREAD_ID  + INT_TYPE + UNIQUE_KEY + COMMA_SEP +
+                    LiveRepliesEntry.COLUMN_NAME_TIME + INT_TYPE + COMMA_SEP +
+                    LiveRepliesEntry.COLUMN_NAME_TITLE + TEXT_TYPE + COMMA_SEP +
+                    LiveRepliesEntry.COLUMN_NAME_NAME + TEXT_TYPE + COMMA_SEP +
+                    LiveRepliesEntry.COLUMN_NAME_DESCRIPTION + TEXT_TYPE + COMMA_SEP +
+                    LiveRepliesEntry.COLUMN_NAME_FILEPATH + TEXT_TYPE + COMMA_SEP +
+                    LiveRepliesEntry.COLUMN_NAME_REPLIES + INT_TYPE + COMMA_SEP +
+                    LiveRepliesEntry.COLUMN_NAME_UNIQUE + INT_TYPE +
                     " )";
 
 
@@ -121,7 +121,7 @@ public class SQLiteDbHelper extends SQLiteOpenHelper {
     private final String SQL_DELETE_MESSAGE =
             "DROP TABLE IF EXISTS " + MessageEntry.TABLE_NAME;
     private final String SQL_DELETE_LIVE =
-            "DROP TABLE IF EXISTS " + LiveThreadEntry.TABLE_NAME;
+            "DROP TABLE IF EXISTS " + LiveRepliesEntry.TABLE_NAME;
     private final String SQL_DELETE_REPLIES =
             "DROP TABLE IF EXISTS " + LiveReplies.TABLE_NAME;
     private final String SQL_DELETE_STASH_PICTUREURL =

@@ -1,17 +1,13 @@
 package com.jokrapp.android;
 
-import android.content.SharedPreferences;
 import android.util.Log;
-
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jokrapp.android.util.LogUtils;
-
 import java.io.InputStream;
 import java.net.ConnectException;
 import java.net.HttpURLConnection;
-import java.net.URL;
 import java.util.Map;
 import java.util.UUID;
 
@@ -21,7 +17,7 @@ import java.util.UUID;
  * class 'InitializeUserRunnable'
  *
  * connects to the server, and attempts to get a userID, for use in future connections.
- * requires {@link com.jokrapp.android.InitializeUserRunnable.initializeUserMethods} to be
+ * requires {@link com.jokrapp.android.InitializeUserRunnable.InitializeUserMethods} to be
  * implemented in the calling class.
  *
  * passes the state, success or fail, back to its caller
@@ -36,23 +32,21 @@ public class InitializeUserRunnable implements Runnable {
     static final int INITIALIZE_STARTED = 0;
     static final int INITIALIZE_SUCCESS = 1;
 
-    interface initializeUserMethods {
+    interface InitializeUserMethods {
 
-        String getInitializeUserPath();
-
-        HttpURLConnection connectToServer(String ServerPath) throws ConnectException;
+        HttpURLConnection getURLConnection();
 
         void handleInitializeState(int state);
 
         void setUserID(UUID userID);
 
-        void setInitializeUserThread(Thread thread);
+        void setTaskThread(Thread thread);
 
     }
 
-    final initializeUserMethods mService;
+    final InitializeUserMethods mService;
 
-    public InitializeUserRunnable(initializeUserMethods methods ) {
+    public InitializeUserRunnable(InitializeUserMethods methods ) {
         mService = methods;
     }
 
@@ -63,7 +57,7 @@ public class InitializeUserRunnable implements Runnable {
             Log.v(TAG, "enter InitializeUser...");
         }
 
-        mService.setInitializeUserThread(Thread.currentThread());
+        mService.setTaskThread(Thread.currentThread());
         android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_BACKGROUND);
 
         if (Thread.interrupted()) {
@@ -72,13 +66,7 @@ public class InitializeUserRunnable implements Runnable {
 
         mService.handleInitializeState(INITIALIZE_STARTED);
         HttpURLConnection conn;
-        try {
-            conn = mService.connectToServer(mService.getInitializeUserPath());
-        } catch (ConnectException e) {
-            Log.e(TAG, "failed to connect to server", e);
-            mService.handleInitializeState(INITIALIZE_FAILED);
-            return;
-        }
+        conn = mService.getURLConnection();
 
         UUID userID = null;
 
@@ -105,12 +93,12 @@ public class InitializeUserRunnable implements Runnable {
                 LogUtils.printMapToVerbose(asMap, TAG);
             }
         } catch (Exception e) {
-            Log.d(TAG, "Error executing initialize user...", e);
+            Log.e(TAG, "Error executing initialize user...", e);
             //Toast.makeText(getApplicationContext(),"Error initializing new user with the server...",Toast.LENGTH_SHORT).show();
         }
 
         if (userID == null) {
-            Log.e(TAG, "userID was not successfully retreived... trying again...");
+            Log.e(TAG, "userID was not successfully retrieved...");
             mService.handleInitializeState(INITIALIZE_FAILED);
         } else {
             Log.i(TAG,"userID retrieved : " + userID.toString());
@@ -119,7 +107,7 @@ public class InitializeUserRunnable implements Runnable {
             mService.handleInitializeState(INITIALIZE_SUCCESS);
         }
 
-        mService.setInitializeUserThread(null);
+        mService.setTaskThread(null);
         Thread.interrupted();
         if (VERBOSE) {
             Log.v(TAG, "exiting InitializeUser...");

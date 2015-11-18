@@ -44,8 +44,6 @@ public class SendLocalBlockRunnable implements Runnable{
         mTask = methods;
     }
 
-
-
     public void run() {
         if (VERBOSE) {
             Log.v(TAG, "enter SendLocalBlockRunnable...");

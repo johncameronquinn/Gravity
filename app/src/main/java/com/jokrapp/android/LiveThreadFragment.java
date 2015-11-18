@@ -2,35 +2,16 @@ package com.jokrapp.android;
 
 import android.app.Activity;
 import android.app.Fragment;
-import android.content.BroadcastReceiver;
-import android.content.Context;
-import android.content.Intent;
-import android.content.IntentFilter;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.drawable.Drawable;
-import android.net.Uri;
-import android.nfc.tech.TagTechnology;
-import android.os.AsyncTask;
-import android.os.Build;
 import android.os.Bundle;
-import android.os.Handler;
 import android.util.Log;
-import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.FrameLayout;
-import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
-import com.jokrapp.android.SQLiteDbContract.LiveThreadEntry;
-import android.widget.Toast;
-
-import java.io.File;
-import java.io.IOException;
-import java.lang.ref.WeakReference;
+import com.jokrapp.android.SQLiteDbContract.LiveRepliesEntry;
 
 /**
  * fragment 'LiveThreadFragment'
@@ -75,13 +56,13 @@ public class LiveThreadFragment extends Fragment implements View.OnClickListener
 
         // Supply num input as an argument.
         Bundle args = new Bundle();
-        args.putString(LiveThreadEntry.COLUMN_NAME_NAME, name);
-        args.putString(LiveThreadEntry.COLUMN_NAME_TITLE,title);
-        args.putString(LiveThreadEntry.COLUMN_NAME_DESCRIPTION,text);
-        args.putString(LiveThreadEntry.COLUMN_NAME_FILEPATH,filePath);
-        args.putString(LiveThreadEntry.COLUMN_NAME_THREAD_ID,threadID);
-        args.putString(LiveThreadEntry.COLUMN_NAME_UNIQUE,unique);
-        args.putString(LiveThreadEntry.COLUMN_NAME_REPLIES,replies);
+        args.putString(LiveRepliesEntry.COLUMN_NAME_NAME, name);
+        args.putString(LiveRepliesEntry.COLUMN_NAME_TITLE,title);
+        args.putString(LiveRepliesEntry.COLUMN_NAME_DESCRIPTION,text);
+        args.putString(LiveRepliesEntry.COLUMN_NAME_FILEPATH,filePath);
+        args.putString(LiveRepliesEntry.COLUMN_NAME_THREAD_ID,threadID);
+        args.putString(LiveRepliesEntry.COLUMN_NAME_UNIQUE,unique);
+        args.putString(LiveRepliesEntry.COLUMN_NAME_REPLIES,replies);
         f.setArguments(args);
 
         return f;
@@ -138,14 +119,14 @@ public class LiveThreadFragment extends Fragment implements View.OnClickListener
 
         if (getArguments() != null) {
             Bundle args = getArguments();
-            threadName = args.getString(LiveThreadEntry.COLUMN_NAME_NAME);
-            threadTitle = args.getString(LiveThreadEntry.COLUMN_NAME_TITLE);
-            threadText = args.getString(LiveThreadEntry.COLUMN_NAME_DESCRIPTION);
-            threadID = args.getString(LiveThreadEntry.COLUMN_NAME_THREAD_ID);
-            unique = args.getString(LiveThreadEntry.COLUMN_NAME_UNIQUE);
-            replies = args.getString(LiveThreadEntry.COLUMN_NAME_REPLIES);
+            threadName = args.getString(LiveRepliesEntry.COLUMN_NAME_NAME);
+            threadTitle = args.getString(LiveRepliesEntry.COLUMN_NAME_TITLE);
+            threadText = args.getString(LiveRepliesEntry.COLUMN_NAME_DESCRIPTION);
+            threadID = args.getString(LiveRepliesEntry.COLUMN_NAME_THREAD_ID);
+            unique = args.getString(LiveRepliesEntry.COLUMN_NAME_UNIQUE);
+            replies = args.getString(LiveRepliesEntry.COLUMN_NAME_REPLIES);
 
-            mImageKey = args.getString(LiveThreadEntry.COLUMN_NAME_FILEPATH);
+            mImageKey = args.getString(LiveRepliesEntry.COLUMN_NAME_FILEPATH);
 
         }
 
@@ -155,14 +136,14 @@ public class LiveThreadFragment extends Fragment implements View.OnClickListener
     public void setArguments(Bundle args) {
 
         if (args != null) {
-            threadName = args.getString(LiveThreadEntry.COLUMN_NAME_NAME);
-            threadTitle = args.getString(LiveThreadEntry.COLUMN_NAME_TITLE);
-            threadText = args.getString(LiveThreadEntry.COLUMN_NAME_DESCRIPTION);
-            threadID = args.getString(LiveThreadEntry.COLUMN_NAME_THREAD_ID);
-            unique = args.getString(LiveThreadEntry.COLUMN_NAME_UNIQUE);
-            replies = args.getString(LiveThreadEntry.COLUMN_NAME_REPLIES);
+            threadName = args.getString(LiveRepliesEntry.COLUMN_NAME_NAME);
+            threadTitle = args.getString(LiveRepliesEntry.COLUMN_NAME_TITLE);
+            threadText = args.getString(LiveRepliesEntry.COLUMN_NAME_DESCRIPTION);
+            threadID = args.getString(LiveRepliesEntry.COLUMN_NAME_THREAD_ID);
+            unique = args.getString(LiveRepliesEntry.COLUMN_NAME_UNIQUE);
+            replies = args.getString(LiveRepliesEntry.COLUMN_NAME_REPLIES);
 
-            mImageKey = args.getString(LiveThreadEntry.COLUMN_NAME_FILEPATH);
+            mImageKey = args.getString(LiveRepliesEntry.COLUMN_NAME_FILEPATH);
 
             Log.i(TAG,"incoming name: " + threadName);
             Log.i(TAG,"incoming image key: " + mImageKey);

@@ -7,6 +7,10 @@ import android.util.Log;
 
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.jokrapp.android.SQLiteDbContract.LocalEntry;
+import com.jokrapp.android.util.LogUtils;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
@@ -14,27 +18,20 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.jokrapp.android.SQLiteDbContract.LocalEntry;
-import com.jokrapp.android.util.LogUtils;
-
 /**
  * Created by ev0x on 11/14/15.
  */
-public class RequestLocalRunnable implements Runnable {
+public class RequestMessagesRunnable implements Runnable {
 
-    interface RequestLocalMethods {
+    interface RequestMessagesMethods {
 
-        void handleLocalRequestState(int state);
+        void handleRequestMessagesState(int state);
 
         void setTaskThread(Thread thread);
 
         Bundle getDataBundle();
 
         HttpURLConnection getURLConnection();
-
-        List<String> getImagesSeen();
 
         void insert(Uri uri, ContentValues values);
     }
@@ -47,62 +44,46 @@ public class RequestLocalRunnable implements Runnable {
 
     private final boolean VERBOSE = true;
 
-    RequestLocalMethods mTask;
+    RequestMessagesMethods mTask;
 
-    public RequestLocalRunnable(RequestLocalMethods methods) {
+    public RequestMessagesRunnable(RequestMessagesMethods methods) {
         mTask = methods;
     }
 
     @Override
     public void run() {
-        Log.d(TAG, "entering requestLocalPosts...");
+        Log.d(TAG, "entering requestLocalMessages...");
 
 
         mTask.setTaskThread(Thread.currentThread());
 
         HttpURLConnection conn = null;
         Bundle b = mTask.getDataBundle();
-        if (VERBOSE) LogUtils.printBundle(b, TAG);
+        LogUtils.printBundle(b, TAG);
 
-        int responseCode = -1;
-
-
-        double lat = b.getDouble(LocalEntry.COLUMN_NAME_LATITUDE, 0.0);
-        double lon = b.getDouble(LocalEntry.COLUMN_NAME_LONGITUDE, 0.0);
-        int numberOfImages = b.getInt(Constants.IMAGE_COUNT);
-
-        Log.d(TAG, "requesting " + numberOfImages + " images, with lat " + lat + " and lng " + lon);
-
+        int responseCode = -10;
 
         try {
             if (Thread.interrupted()) {
                 return;
             }
 
-            mTask.handleLocalRequestState(REQUEST_STARTED);
+            mTask.handleRequestMessagesState(REQUEST_STARTED);
 
             conn = mTask.getURLConnection();
 
-            if (Thread.interrupted()) {
+            if (Thread.currentThread().isInterrupted()) {
+                if (VERBOSE)Log.v(TAG,"current thread is interrupted, not sending...");
                 return;
             }
 
-            if (VERBOSE) Log.v(TAG,"sending local data...");
+            if (VERBOSE) Log.v(TAG,"opening request...");
             JsonFactory jsonFactory = new JsonFactory();
             JsonGenerator jGen = jsonFactory.createGenerator(conn.getOutputStream());
             jGen.writeStartObject();
-            jGen.writeNumberField("latitude", lat);
-            jGen.writeNumberField("longitude", lon);
-            jGen.writeNumberField("count", numberOfImages);
-            jGen.writeFieldName("seen");
-            jGen.writeStartArray(mTask.getImagesSeen().size());
-            for (String i : mTask.getImagesSeen()) {
-                jGen.writeNumber(i);
-            }
-            jGen.writeEndArray();
             jGen.writeEndObject();
             jGen.flush();
-            jGen.close(); //closes the conn.getOutputStream as well
+            jGen.close();
 
             if (Thread.currentThread().isInterrupted()) {
                 if (VERBOSE)Log.v(TAG,"current thread is interrupted, not receiving...");
@@ -123,15 +104,12 @@ public class RequestLocalRunnable implements Runnable {
 
                 for (int i = 0; i < jsonArray.size(); i++) {
                     map = jsonArray.get(i);
-                    //swap id for _ID, to allow listview loading, and add the thread ID
-                    Object id = map.remove("id");
-                    mTask.getImagesSeen().add(String.valueOf(id));
-                    map.put(SQLiteDbContract.LiveReplies.COLUMN_ID, id);
-                    b.putString(Constants.KEY_S3_DIRECTORY, Constants.KEY_S3_LOCAL_DIRECTORY);
+                    map.put(SQLiteDbContract.LiveReplies.COLUMN_ID, map.remove("id"));
+                    b.putString(Constants.KEY_S3_DIRECTORY, Constants.KEY_S3_MESSAGE_DIRECTORY);
                     android.os.Parcel myParcel = android.os.Parcel.obtain();
                     myParcel.writeMap(map);
                     myParcel.setDataPosition(0);
-                    android.content.ContentValues values = android.content.ContentValues.CREATOR.createFromParcel(myParcel);
+                    ContentValues values = ContentValues.CREATOR.createFromParcel(myParcel);
                     valuesList.add(values);
                 }
             }
@@ -143,21 +121,19 @@ public class RequestLocalRunnable implements Runnable {
 
             if (VERBOSE) Log.v(TAG, "now saving JSON...");
             for (ContentValues row : valuesList) {
-                mTask.insert(FireFlyContentProvider.CONTENT_URI_LOCAL,row); //todo implement bulkinsert
+                mTask.insert(FireFlyContentProvider.CONTENT_URI_MESSAGE,row); //todo implement bulkinsert
             }
 
             responseCode = conn.getResponseCode();
 
-
         } catch (IOException e) {
-            Log.d(TAG, "IOException");
             Log.d(TAG, "response code " + responseCode);
             Log.e(TAG, "error requesting images", e);
         } finally {
             if (responseCode == HttpURLConnection.HTTP_OK) {
-                mTask.handleLocalRequestState(REQUEST_SUCCESS);
+                mTask.handleRequestMessagesState(REQUEST_SUCCESS);
             } else {
-                mTask.handleLocalRequestState(REQUEST_FAILED);
+                mTask.handleRequestMessagesState(REQUEST_FAILED);
             }
 
             if (conn != null) {
@@ -168,6 +144,6 @@ public class RequestLocalRunnable implements Runnable {
         mTask.setTaskThread(null);
         Thread.interrupted();
 
-        Log.d(TAG, "exiting requestLocalPosts...");
+        Log.d(TAG, "exiting requestLocalMessages...");
     }
 }

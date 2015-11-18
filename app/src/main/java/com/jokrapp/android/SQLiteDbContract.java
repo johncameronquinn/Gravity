@@ -36,7 +36,7 @@ public final class SQLiteDbContract {
         public static final String COLUMN_NAME_FILEPATH = "url";
     }
 
-    public static abstract class LiveThreadEntry implements BaseColumns {
+    public static abstract class LiveRepliesEntry implements BaseColumns {
         public static final String TABLE_NAME = "live_entries";
         public static final String COLUMN_ID = "_ID";
         public static final String COLUMN_NAME_THREAD_ID = "threadID";

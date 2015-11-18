@@ -18,6 +18,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.channels.NotYetConnectedException;
+import java.util.concurrent.ExecutorService;
 
 /**
  * class 'FireFlyContentProvider'
@@ -85,7 +86,6 @@ public class FireFlyContentProvider extends ContentProvider {
 
 
     SQLiteDbHelper database;
-
 
     private static final int LOCAL = 10;
     private static final int LOCAL_ID = 20;
@@ -273,11 +273,11 @@ public class FireFlyContentProvider extends ContentProvider {
 
             case LIVE:
                 Log.d(TAG,"LIVE called");
-                queryBuilder.setTables(SQLiteDbContract.LiveThreadEntry.TABLE_NAME);
+                queryBuilder.setTables(SQLiteDbContract.LiveRepliesEntry.TABLE_NAME);
                 break;
             case LIVE_ID:
                 Log.d(TAG, "LIVE_ID called");
-                queryBuilder.appendWhere(SQLiteDbContract.LiveThreadEntry.COLUMN_ID + "="
+                queryBuilder.appendWhere(SQLiteDbContract.LiveRepliesEntry.COLUMN_ID + "="
                         + uri.getLastPathSegment());
                 break;
 
@@ -387,19 +387,19 @@ public class FireFlyContentProvider extends ContentProvider {
                 break;
 
             case LIVE:
-                rowsDeleted = sqlDB.delete(SQLiteDbContract.LiveThreadEntry.TABLE_NAME, selection,
+                rowsDeleted = sqlDB.delete(SQLiteDbContract.LiveRepliesEntry.TABLE_NAME, selection,
                         selectionArgs);
                 break;
 
             case LIVE_ID:
                 id = uri.getLastPathSegment();
                 if (TextUtils.isEmpty(selection)) {
-                    rowsDeleted = sqlDB.delete(SQLiteDbContract.LiveThreadEntry.TABLE_NAME,
-                            SQLiteDbContract.LiveThreadEntry.COLUMN_ID + "=" + id,
+                    rowsDeleted = sqlDB.delete(SQLiteDbContract.LiveRepliesEntry.TABLE_NAME,
+                            SQLiteDbContract.LiveRepliesEntry.COLUMN_ID + "=" + id,
                             null);
                 } else {
-                    rowsDeleted = sqlDB.delete(SQLiteDbContract.LiveThreadEntry.TABLE_NAME,
-                            SQLiteDbContract.LiveThreadEntry.COLUMN_ID + "=" + id
+                    rowsDeleted = sqlDB.delete(SQLiteDbContract.LiveRepliesEntry.TABLE_NAME,
+                            SQLiteDbContract.LiveRepliesEntry.COLUMN_ID + "=" + id
                                     + " and " + selection,
                             selectionArgs);
                 }
@@ -456,7 +456,7 @@ public class FireFlyContentProvider extends ContentProvider {
                 break;
 
             case LIVE:
-                id = sqlDB.insertWithOnConflict(SQLiteDbContract.LiveThreadEntry.TABLE_NAME,null,values,SQLiteDatabase.CONFLICT_REPLACE);
+                id = sqlDB.insertWithOnConflict(SQLiteDbContract.LiveRepliesEntry.TABLE_NAME,null,values,SQLiteDatabase.CONFLICT_REPLACE);
                 break;
 
 

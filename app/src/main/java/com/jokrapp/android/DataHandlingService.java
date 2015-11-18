@@ -7,7 +7,6 @@ import android.content.SharedPreferences;
 import android.location.Location;
 import android.net.Uri;
 import android.os.*;
-import android.util.Base64;
 import android.util.Log;
 import android.widget.Toast;
 import com.amazonaws.auth.BasicAWSCredentials;
@@ -18,22 +17,17 @@ import com.amazonaws.mobileconnectors.s3.transferutility.TransferObserver;
 import com.amazonaws.mobileconnectors.s3.transferutility.TransferState;
 import com.amazonaws.mobileconnectors.s3.transferutility.TransferUtility;
 import com.amazonaws.services.s3.AmazonS3Client;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.android.gms.analytics.HitBuilders;
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.core.JsonParser;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
-import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream;
 import org.apache.commons.compress.utils.IOUtils;
 import java.io.BufferedOutputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -50,10 +44,16 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Queue;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+
 import com.jokrapp.android.util.LogUtils;
 
 /**
@@ -72,8 +72,7 @@ import com.jokrapp.android.util.LogUtils;
  * Communication is managed via a broadcastManager
  */
 public class DataHandlingService extends Service implements GoogleApiClient.ConnectionCallbacks,
-        GoogleApiClient.OnConnectionFailedListener, LocationListener, TransferListener,
-        InitializeUserRunnable.initializeUserMethods {
+        GoogleApiClient.OnConnectionFailedListener, LocationListener, TransferListener {
     private static final String TAG = "DataHandlingService";
     private static final boolean VERBOSE = true;
     private static final boolean ALLOW_DUPLICATES = false;
@@ -91,7 +90,7 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
     private final String REPORT_USER_PATH = "/moderation/report/";
     private final String INITIALIZE_USER_PATH = "/security/create/";
     private final String CREATE_LIVE_THREAD_PATH = "/live/upload/"; //does not change
-    private final String GET_LIVE_THREAD_LIST = "/live/get/"; //does not change
+//    private final String GET_LIVE_THREAD_LIST = "/live/get/"; //does not change
     private final String REPLY_LIVE_THREAD_PATH = "/reply/upload/"; //does not change
     final String GET_LIVE_THREAD_REPLIES = "/reply/get/"; //does not change
 
@@ -119,8 +118,6 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
     private final String FROM_USER = "from";
     private final String USER_ID = "id";
     static final String THREAD_ID = "threadID";
-    private final String TO = "to";
-    private final String IMAGE_URL = "url";
     private final String TITLE = "title";
     private final String TEXT = "text";
     private final String NAME = "name";
@@ -129,7 +126,6 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
      * DATA HANDLING
      */
     private static Location mLocation;
-    ////private static  = new ArrayList<>();
     private static List<String> imagesSeen = Collections.synchronizedList(new ArrayList<String>());
     private static final String IMAGESSEEN_KEY = "images";
     private final String ISFIRSTRUN_KEY = "firstrun";
@@ -142,6 +138,69 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
     static TransferUtility transferUtility;
     HashMap<Integer,Bundle> pendingMap = new HashMap<>();
     private final String REQUEST_TYPE = "what";
+
+    /**
+     * Thread management
+     */
+
+    // A queue of Runnables for the image download pool
+    private final BlockingQueue<Runnable> mConnectionWorkQueue;
+
+    // A queue of Runnables for the image decoding pool
+    private final BlockingQueue<Runnable> mRequestWorkQueue;
+
+    // A queue of PhotoManager tasks. Tasks are handed to a ThreadPool.
+    private final Queue<ServerTask> mServerTaskWorkQueue;
+
+    // A managed pool of background download threads
+    private final ThreadPoolExecutor mConnectionThreadPool;
+
+    // A managed pool of background decoder threads
+    private final ThreadPoolExecutor mRequestThreadPool;
+
+    // The time unit for "keep alive" is in seconds
+    public static final TimeUnit KEEP_ALIVE_TIME_UNIT = TimeUnit.SECONDS;
+
+    // Sets the amount of time an idle thread will wait for a task before terminating
+    private static final int KEEP_ALIVE_TIME = 1;
+
+    // Sets the initial threadpool size to 8
+    private static final int CORE_POOL_SIZE = 8;
+
+    // Sets the maximum threadpool size to 8
+    private static final int MAXIMUM_POOL_SIZE = 8;
+
+    public DataHandlingService() {
+           /*
+         * Creates a work queue for the pool of Thread objects used for downloading, using a linked
+         * list queue that blocks when the queue is empty.
+         */
+        mConnectionWorkQueue = new LinkedBlockingQueue<>();
+
+        /*
+         * Creates a work queue for the pool of Thread objects used for decoding, using a linked
+         * list queue that blocks when the queue is empty.
+         */
+        mRequestWorkQueue = new LinkedBlockingQueue<>();
+
+        /*
+         * Creates a work queue for the set of of task objects that control downloading and
+         * decoding, using a linked list queue that blocks when the queue is empty.
+         */
+        mServerTaskWorkQueue = new LinkedBlockingQueue<>();
+
+        /*
+         * Creates a new pool of Thread objects for the download work queue
+         */
+        mConnectionThreadPool = new ThreadPoolExecutor(CORE_POOL_SIZE, MAXIMUM_POOL_SIZE,
+                KEEP_ALIVE_TIME, KEEP_ALIVE_TIME_UNIT, mConnectionWorkQueue);
+
+        /*
+         * Creates a new pool of Thread objects for the decoding work queue
+         */
+        mRequestThreadPool = new ThreadPoolExecutor(CORE_POOL_SIZE, MAXIMUM_POOL_SIZE,
+                KEEP_ALIVE_TIME, KEEP_ALIVE_TIME_UNIT, mRequestWorkQueue);
+    }
 
     /**
      * method 'onCreate'
@@ -167,12 +226,9 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
             editor.putString(UUID_KEY, userID.toString());
             editor.putBoolean(ISFIRSTRUN_KEY, false);
             editor.apply();*/
-
-            try {
-                mMessenger.send(Message.obtain(null, new InitializeUserRunnable(this)));
-            } catch (RemoteException e) {
-                Log.e(TAG, "initializing user with server failed...", e);
-            }
+            InitializeUserTask task = new InitializeUserTask();
+            task.initializeTask(this,null,userID);
+            mConnectionThreadPool.execute(task.getServerConnectRunnable());
 
         } else {
             Log.d(TAG, "loading userID from storage...");
@@ -243,22 +299,6 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
 
     private Thread initializeUserThread;
 
-    public void setUserID(UUID userID) {
-        if (VERBOSE) Log.v(TAG,"entering setUserID : " + userID);
-
-        SharedPreferences settings = getSharedPreferences(TAG, MODE_PRIVATE);
-        SharedPreferences.Editor editor = settings.edit();
-        editor.putString(UUID_KEY, userID.toString());
-        editor.putBoolean(ISFIRSTRUN_KEY, false);
-        editor.apply();
-
-        DataHandlingService.userID = userID;
-
-        sendSignOnEvent(userID.toString());
-
-        if (VERBOSE) Log.v(TAG,"exiting setUserID...");
-    }
-
     public void handleInitializeState(int state) {
         switch (state) {
             case InitializeUserRunnable.INITIALIZE_STARTED:
@@ -283,568 +323,8 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
         this.initializeUserThread = initializeUserThread;
     }
 
-    public String getRequestThreadsPath() {
-        return GET_LIVE_THREAD_LIST;
-    }
-
-    public void setRequestRepliesThread(Thread thread) {
-    }
-
     public List<String> getImagesSeen() {
         return imagesSeen;
-    }
-
-
-    private void createLocalPostAsync(final Bundle b) {
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                createLocalPost(b.getString(Constants.KEY_S3_KEY), mLocation, b.getString(Constants.KEY_TEXT, ""));
-            }
-        }).start();
-
-    }
-
-    /***********************************************************************************************
-     *
-     *   IMAGE SENDING
-     *
-     */
-    /**
-     * Handle action send images in the provided background thread with the provided
-     * parameters.
-     * <p/>
-     * the client sends the latitude and longitude stored in the location passed in the arguments
-     * and the image stored at the filepath provided
-     * the sending process uses URLConnection to create the connection
-     * the apache commons library and jackson's json parser are both utilized
-     * <p/>
-     * the server marks the time the image is received, and gives the image an ID
-     *
-     * @param imageKey file name of the location of the image to send
-     * @param location  current location of the device
-     */
-    private synchronized void createLocalPost(final String imageKey,
-                                 final Location location,
-                                 final String text) {
-        Log.d(TAG, "entering handleActionSendImages...");
-
-        new Thread(new Runnable() {
-            public void run() {
-                android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_BACKGROUND);
-
-
-                if (location == null) {
-                    Log.e(TAG, "location was null, not sending image");
-                    return;
-                }
-                Log.d(TAG, "grabbing stored lat and long...");
-                double lat = location.getLatitude();
-                double lon = location.getLongitude();
-
-                if (VERBOSE) {
-                    Log.v(TAG, "grabbing stored lat and long...");
-                    Log.d(TAG, "Latitude: " + lat + " Longitude: " + lon);
-                }
-
-               // String image = loadImageForTransit(imageData);
-                //todo not sure which method is best to read from image to byte array
-                //read the image, send to server
-
-                int status = -1; //status of the image sent
-
-                HttpURLConnection conn;
-                try {
-                    conn = connectToServer(UPLOAD_LOCAL_POST_PATH);
-                } catch (ConnectException e) {
-                    Log.e(TAG,"failed to connect to the server... quitting...");
-                    throw new RuntimeException();
-                }
-
-
-                try {
-
-                    JsonFactory jsonFactory = new JsonFactory();
-                    JsonGenerator jGen = jsonFactory.
-                            createGenerator(conn.getOutputStream()); //tcp connection to server
-
-                    jGen.writeStartObject();
-                    jGen.writeNumberField("latitude", lat);
-                    jGen.writeNumberField("longitude", lon);
-                    jGen.writeStringField(Constants.KEY_TEXT, text);
-                    jGen.writeStringField(IMAGE_URL, imageKey);
-                    jGen.writeEndObject();
-                    jGen.flush();
-                    jGen.close();
-
-                    handleResponseCode(conn.getResponseCode(), replyMessenger);
-
-                    deleteFile(imageKey.substring(imageKey.lastIndexOf("/") + 1, imageKey.length()));
-            /*if (responseCode == HttpURLConnection.HTTP_OK) {
-                Log.d(TAG, "server returned successful response" + responseCode);
-                Log.d(TAG, "now deleting image from internal storage...");
-                rMessenger.send(Message.obtain(null, MainActivity.MSG_SUCCESS_LOCAL));
-
-            }*/
-
-                } catch (IOException e) {
-                    Log.d(TAG, "IOException");
-                    Log.e(TAG, "Error sending image to server", e);
-                } catch (Exception e) {
-                    Log.e(TAG, "Error sending image to server", e);
-                }
-
-                /**
-                 * Report status back to the main thread
-                 */
-
-                Log.d(TAG, "exiting handleActionSendImages...");
-
-            }
-        }).start();
-
-    }
-
-    /***********************************************************************************************
-     *
-     *   IMAGE RECEIVING
-     *
-     */
-
-
-    /**
-     * method 'sendImageMessage'
-     * <p/>
-     * sends a message to a specific user specified by UUID
-     *
-     * @param filePath      the location the image is stored which is to be sent
-     * @param messageTarget the UUID of the user to send the message to
-     */
-    private void sendImageMessage(String filePath, String messageTarget, String text) {
-        if (VERBOSE) {
-            Log.v(TAG, "entering sendImageMessage...");
-        }
-
-        if (VERBOSE) Log.v(TAG, "creating url...");
-
-
-        HttpURLConnection conn;
-        try {
-            conn = connectToServer(SEND_LOCAL_MESSAGE_PATH);
-        } catch (ConnectException e) {
-            Log.e(TAG,"failed to connect to the server... quitting...");
-            throw new RuntimeException();
-        }
-
-
-        int responseCode = -1;
-
-        try {
-            JsonFactory jsonFactory = new JsonFactory();
-            JsonGenerator jGen = jsonFactory.
-                    createGenerator(conn.getOutputStream()); //tcp connection to server
-
-            if (VERBOSE) {
-                Log.v(TAG, "sending Image message:");
-                Log.v(TAG, "to : " + messageTarget);
-                Log.v(TAG, "filePath : " + filePath);
-            }
-
-            jGen.writeStartObject();
-            jGen.writeStringField(TO, messageTarget);
-            jGen.writeStringField(IMAGE_URL, filePath);
-            jGen.writeStringField(Constants.KEY_TEXT, text);
-            jGen.writeEndObject();
-            jGen.flush();
-            jGen.close();
-
-            handleResponseCode(conn.getResponseCode(),replyMessenger);
-            deleteFile(filePath.substring(filePath.lastIndexOf("/") + 1, filePath.length()));
-        } catch (IOException e) {
-            Log.e(TAG, "IOException", e);
-        }
-    }
-
-    public void sendImageMessageAsync(Bundle b) {
-        sendImageMessageAsync(b.getString(Constants.KEY_S3_KEY), b.getString(Constants.MESSAGE_TARGET), b.getString(Constants.KEY_TEXT, ""));
-    }
-
-    public void sendImageMessageAsync(final String filePath, final String messageTarget, final String text) {
-        if (VERBOSE) {
-            Log.v(TAG,"entering sendImageMessageAsync with: " + filePath + ", " + messageTarget);
-        }
-
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_BACKGROUND);
-                sendImageMessage(filePath, messageTarget, text);
-            }
-        }).start();
-    }
-
-    /**
-     * method 'requestLocalMessages'
-     * <p/>
-     * sends the current UUID to the server, querying if any new messages are available.
-     * <p/>
-     * all incoming images are saved to the contentprovider's "message_entries" table
-     */
-    private void requestLocalMessages() {
-        if (VERBOSE) {
-            Log.v(TAG, "enter requestLocalMessages...");
-        }
-
-        HttpURLConnection conn;
-        try {
-            conn = connectToServer(GET_LOCAL_MESSAGES_PATH);
-        } catch (ConnectException e) {
-            Log.e(TAG,"failed to connect to the server... quitting...");
-            throw new RuntimeException();
-        }
-
-
-
-        try {
-            if (VERBOSE) Log.v(TAG, "opening outputStream to send JSON...");
-            JsonFactory jsonFactory = new JsonFactory();
-            JsonGenerator jGen = jsonFactory.
-                    createGenerator(conn.getOutputStream());
-            jGen.writeStartObject();
-            jGen.writeEndObject();
-            jGen.flush();
-            jGen.close();
-
-        } catch (IOException e) {
-            Log.e(TAG, "error handling JSON", e);
-        }
-
-        try {
-            saveIncomingJsonArray(MSG_REQUEST_MESSAGES, conn, null);
-        } catch (IOException e) {
-            Log.e(TAG, "error receiving and storing messages...", e);
-        }
-
-        try {
-            handleResponseCode(conn.getResponseCode(), replyMessenger);
-        } catch (IOException e) {
-            Log.e(TAG, "error handling responsecode...", e);
-        }
-
-        if (VERBOSE) Log.v(TAG, "exiting requestLocalMessages...");
-    }
-
-    public void requestLocalMessagesAsync() {
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                requestLocalMessages();
-            }
-        }).start();
-    }
-
-    /**
-     * method 'createLiveThread'
-     * <p/>
-     * opens a connection to the server, and sends the information required to create a thread in
-     * live
-     *
-     * @param name        of the poster
-     * @param title       the title of the thread
-     * @param description the description of the thread
-     * @param filePath    the path of the thread image
-     */
-    private void createLiveThread(String name, String title, String description, String filePath) {
-        if (VERBOSE) {
-            Log.v(TAG, "entering createLiveThread...");
-        }
-
-
-        HttpURLConnection conn;
-        try {
-            conn = connectToServer(CREATE_LIVE_THREAD_PATH);
-        } catch (ConnectException e) {
-            Log.e(TAG,"failed to connect to the server... quitting...");
-            throw new RuntimeException();
-        }
-
-        try {
-            JsonFactory jsonFactory = new JsonFactory();
-            JsonGenerator jGen = jsonFactory.
-                    createGenerator(conn.getOutputStream()); //tcp connection to server
-
-            if (VERBOSE) {
-                Log.v(TAG, "sending thread to server:");
-                Log.v(TAG, "from : " + userID.toString());
-                Log.v(TAG, "title : " + title);
-                Log.v(TAG, "name : " + name);
-                Log.v(TAG, "text : " + description);
-                Log.v(TAG, "filePath : " + filePath);
-            }
-
-            jGen.writeStartObject();
-            jGen.writeStringField(TITLE, title);
-            jGen.writeStringField(NAME, name);
-            jGen.writeStringField(TEXT, description);
-            jGen.writeStringField(IMAGE_URL, filePath);
-            jGen.writeEndObject();
-            jGen.flush();
-            jGen.close();
-
-            handleResponseCode(conn.getResponseCode(), replyMessenger);
-        } catch (IOException e) {
-            Log.e(TAG, "IOException", e);
-        }
-        deleteFile(filePath.substring(filePath.lastIndexOf("/") + 1, filePath.length()));
-    }
-    private void createLiveThreadAsync(final Bundle b) {
-        if (VERBOSE) {
-            Log.v(TAG, "entering createLiveThreadAsync...");
-            com.jokrapp.android.util.LogUtils.printBundle(b, TAG);
-        }
-
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                createLiveThread(
-                        b.getString("name"),
-                        b.getString("title"),
-                        b.getString("description"),
-                        b.getString(Constants.KEY_S3_KEY)
-                );
-            }
-        }).start();
-
-        if (VERBOSE) Log.v(TAG,"exiting createLiveThreadAsync...");
-    }
-
-    private void createLiveThreadAsync(final String name, final String title, final String description, final String filePath) {
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                createLiveThread(name, title, description, filePath);
-            }
-        }).start();
-    }
-
-
-    /**
-     * method 'replyToLiveThread'
-     * <p/>
-     * opens a connection to the server, and sends the information to reply to a thread in live
-     *
-     * @param data the incoming data
-     */
-    private void replyToLiveThread(Bundle data) {
-        if (VERBOSE) Log.v(TAG, "creating reply to live thread...");
-
-        int threadID = data.getInt("threadID");
-        String name = data.getString("name");
-        String description = data.getString("description");
-        String filePath = data.getString(Constants.KEY_S3_KEY,"");
-
-        HttpURLConnection conn;
-        try {
-            conn = connectToServer(REPLY_LIVE_THREAD_PATH);
-        } catch (ConnectException e) {
-            Log.e(TAG,"failed to connect to the server... quitting...");
-            throw new RuntimeException();
-        }
-
-        try {
-            JsonFactory jsonFactory = new JsonFactory();
-            JsonGenerator jGen = jsonFactory.
-                    createGenerator(conn.getOutputStream()); //tcp connection to server
-
-            if (VERBOSE) {
-                Log.v(TAG, "sending reply to server:");
-                Log.v(TAG, "from : " + userID.toString());
-                Log.v(TAG, "thread number : " + threadID);
-                Log.v(TAG, "name : " + name);
-                Log.v(TAG, "text : " + description);
-                Log.v(TAG, "url : " + filePath);
-            }
-
-            jGen.writeStartObject();
-            jGen.writeNumberField(THREAD_ID, threadID);
-            jGen.writeStringField(NAME, name);
-            jGen.writeStringField(TEXT, description);
-            jGen.writeStringField("url", filePath);
-            jGen.writeEndObject();
-            jGen.flush();
-            jGen.close();
-
-            handleResponseCode(conn.getResponseCode(), replyMessenger,data);
-        } catch (IOException e) {
-            Log.e(TAG, "IOException", e);
-        }
-
-        if (filePath != null) {
-            deleteFile(filePath.substring(filePath.lastIndexOf("/") + 1, filePath.length()));
-        }
-    }
-
-
-    private void replyToLiveThreadAsync(final Bundle indata) {
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                replyToLiveThread(indata);
-            }
-        }).start();
-    }
-
-
-    /**
-     * method 'saveIncomingJsonArray'
-     *
-     * uses the provided connection to parse the incoming json object array into individual object
-     * rows, and then insert those rows into their corresponding sqlite database
-     *
-     * @param where table to insert into
-     * @param conn connection to parse from
-     * @param extradata additional data that could be provided
-     * @return amount of rows inserted
-     * @throws IOException
-     */
-    public int saveIncomingJsonArray(int where, URLConnection conn, Bundle extradata) throws IOException {
-        if (VERBOSE) Log.v(TAG,"entering saveIncomingJsonArray...");
-
-        int rows;
-
-
-        JsonParser jParser = new JsonFactory().createParser(conn.getInputStream());
-        ObjectMapper objectMapper = new ObjectMapper();
-
-        ArrayList<LinkedHashMap<String,Object>>jsonArray =
-                objectMapper.readValue(jParser,ArrayList.class);
-
-        if (!jsonArray.isEmpty()) {
-            LinkedHashMap<String,Object> map;
-
-            if (VERBOSE)
-                Log.v(TAG, "printing verbose output...");
-
-
-            if (where == MSG_REQUEST_LIVE_THREADS) {
-
-                if (VERBOSE) Log.v(TAG, "first empty the live table, then insert...");
-                getContentResolver().delete(FireFlyContentProvider.CONTENT_URI_LIVE, null, null);
-
-            }
-
-            for (int i = 0; i < jsonArray.size(); i++) {
-                map = jsonArray.get(i);
-
-                /*
-                 TAMPERING
-                  - this is where we tamper with the incoming data based on where it is intended
-                 */
-
-
-                Bundle b = new Bundle();
-                switch (where) {
-
-                    case MSG_REQUEST_REPLIES:
-                        if (VERBOSE) Log.v(TAG,"saving json from replies");
-
-                        map.put(SQLiteDbContract.LiveReplies.COLUMN_ID, map.remove("id"));
-                        map.put(SQLiteDbContract.LiveReplies.COLUMN_NAME_THREAD_ID, extradata.getInt(THREAD_ID));
-                        b.putInt(REQUEST_TYPE, MSG_REQUEST_REPLIES);
-                        break;
-                    case MSG_REQUEST_LOCAL_POSTS:
-                        if (VERBOSE) Log.v(TAG,"saving json from local/");
-
-                        //swap id for _ID, to allow listview loading, and add the thread ID
-                        Object id = map.remove("id");
-                        imagesSeen.add(String.valueOf(id));
-                        map.put(SQLiteDbContract.LiveReplies.COLUMN_ID, id);
-                        b.putString(Constants.KEY_S3_DIRECTORY, Constants.KEY_S3_LOCAL_DIRECTORY);
-                        break;
-                    case MSG_REQUEST_LIVE_THREADS:
-                        if (VERBOSE) Log.v(TAG,"saving json from live");
-
-                        map.put(SQLiteDbContract.LiveThreadEntry.COLUMN_ID, map.remove("order"));
-                        map.put(SQLiteDbContract.LiveThreadEntry.COLUMN_NAME_THREAD_ID, map.remove("id"));
-                        b.putInt(REQUEST_TYPE, MSG_REQUEST_LIVE_THREADS);
-                        b.putString(Constants.KEY_S3_DIRECTORY, Constants.KEY_S3_LIVE_DIRECTORY);
-                        break;
-
-                    case MSG_REQUEST_MESSAGES:
-                        if (VERBOSE) Log.v(TAG,"saving json from message");
-                        map.put(SQLiteDbContract.MessageEntry.COLUMN_ID, map.remove("id"));
-                        b.putString(Constants.KEY_S3_DIRECTORY, Constants.KEY_S3_MESSAGE_DIRECTORY);
-                        b.putInt(REQUEST_TYPE, MSG_REQUEST_MESSAGES);
-                        break;
-
-                }
-
-                if (map.containsKey("url")) {
-
-                    String cont = (String)map.get("url");
-                    if (VERBOSE)Log.d(TAG,"url is: " + cont);
-
-                    if (!cont.equals("")) {
-                        if (cont.contains("http://")) {
-                            map.put("url",downloadImageFromURL(cont));
-                            Log.i(TAG,"this was a url, and not from AWS... lets just get it");
-                        } else {
-
-                            if (where == MSG_REQUEST_REPLIES) {
-                                b.putString("url", cont);
-                                b.putString(Constants.KEY_S3_KEY, cont+"s");
-                                b.putString(Constants.KEY_S3_DIRECTORY, Constants.KEY_S3_REPLIES_DIRECTORY);
-                                downloadImageFromS3(b);
-                            }
-                        }
-                    }
-                }
-
-                if (VERBOSE) {
-                    LogUtils.printMapToVerbose(map, TAG);
-                }
-
-                //parcels map and reads as contentValues set, then passes to the content provider for insertion
-                android.os.Parcel myParcel = android.os.Parcel.obtain();
-                myParcel.writeMap(map);
-                myParcel.setDataPosition(0);
-                android.content.ContentValues values = android.content.ContentValues.CREATOR.createFromParcel(myParcel);
-
-
-
-                switch (where) {
-
-                    case MSG_REQUEST_REPLIES:
-                        //swap id for _ID, to allow listview loading, and add the thread ID
-                        Log.d(TAG,"saving to replies...");
-                        getContentResolver().insert(FireFlyContentProvider.CONTENT_URI_REPLY_LIST, values);
-                        break;
-
-                    case MSG_REQUEST_LIVE_THREADS:
-                        getContentResolver().insert(FireFlyContentProvider.CONTENT_URI_LIVE, values);
-                        break;
-
-                    case MSG_REQUEST_LOCAL_POSTS:
-                        getContentResolver().insert(FireFlyContentProvider.CONTENT_URI_LOCAL, values);
-                        break;
-
-                    case MSG_REQUEST_MESSAGES:
-                        getContentResolver().insert(FireFlyContentProvider.CONTENT_URI_MESSAGE, values);
-                        break;
-
-                }
-            }
-            rows = jsonArray.size();
-        } else {
-            Log.v(TAG, "nothing was supplied...");
-            rows = 0;
-        }
-
-        jParser.close();
-
-
-        if (VERBOSE) Log.v(TAG,"exiting saveIncomingJsonArray... returning " + rows + "rows.");
-        return  rows;
     }
 
     public void insert(Uri uri, ContentValues values) {
@@ -949,9 +429,7 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
                 return;
             }
 
-            ServerTask task;
-
-
+            ServerTask task = null;
 
             Bundle data = msg.getData();
             data.putInt(REQUEST_TYPE, msg.what);
@@ -980,44 +458,33 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
                 case MSG_SEND_IMAGE:
                     Log.d(TAG, "request to send an image received");
 
-                    //store the type of request this is in the bundle object
-
                     String messageTarget = data.getString(Constants.MESSAGE_TARGET);
-                    //Log.d(TAG, "image is stored at " + filePath);
                     if (messageTarget == null) {
                         Log.d(TAG, "posting to local...");
                         data.putInt(REQUEST_TYPE, MSG_SEND_IMAGE);
                         data.putString(Constants.KEY_S3_DIRECTORY, Constants.KEY_S3_LOCAL_DIRECTORY);
-                        //irs.get().createLocalPost(filePath, mLocation);
                     } else {
                         Log.d(TAG, "sending Message to user: " + messageTarget);
                         data.putInt(REQUEST_TYPE, MSG_SEND_MESSAGE);
                         data.putString(Constants.KEY_S3_DIRECTORY, Constants.KEY_S3_MESSAGE_DIRECTORY);
-                        //irs.get().sendImageMessageAsync(filePath, messageTarget, msg.arg1);
                     }
 
                     uploadImageToS3(data);
                     break;
 
-                case MSG_REQUEST_LOCAL_POSTS:
-                    if (Constants.LOGD) Log.d(TAG, "received a message to request local posts");
-                    task = new RequestLocalTask();
-                    if (mLocation!=null) {
-                        data.putDouble(SQLiteDbContract.LocalEntry.COLUMN_NAME_LONGITUDE, mLocation.getLongitude());
-                        data.putDouble(SQLiteDbContract.LocalEntry.COLUMN_NAME_LATITUDE, mLocation.getLatitude());
-                    }
-                    task.initializeTask(irs.get(),data,userID);
-                    new Thread(task.getServerConnectRunnable()).start();
+                case MSG_CREATE_THREAD:
+                    Log.d(TAG, "received a message to create a thread");
+                    data.putInt(REQUEST_TYPE, MSG_CREATE_THREAD);
+                    data.putString(Constants.KEY_S3_DIRECTORY, Constants.KEY_S3_LIVE_DIRECTORY);
+                    uploadImageToS3(data);
                     break;
 
                 case MSG_RESOLVE_HOST:
                     Log.d(TAG, "request to resolve host received");
                     String address = msg.getData().getString("hostname");
-
                     if (VERBOSE) {
                         Log.v(TAG, "attempting to resolve: " + address);
                     }
-
                     try {
                         InetAddress addr = InetAddress.getByName(address);
                         serverAddress = address;
@@ -1030,29 +497,11 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
 
                 case MSG_DELETE_IMAGE:
                     Log.d(TAG, "received a message to delete image from database");
-
-                    String s = data.getString(Constants.IMAGE_FILEPATH);
                     throw new NotYetConnectedException();
-
-                case MSG_REQUEST_MESSAGES:
-                    Log.d(TAG, "received a message to message a user");
-                    irs.get().requestLocalMessagesAsync();
-                    break;
 
                 case MSG_BLOCK_USER:
                     Log.d(TAG, "received a message to block a user");
-
                     task = new SendLocalBlockTask();
-                    task.initializeTask(irs.get(),data,userID);
-                    new Thread(task.getServerConnectRunnable()).start();
-                    break;
-
-                case MSG_CREATE_THREAD:
-                    Log.d(TAG, "received a message to create a thread");
-
-                    data.putInt(REQUEST_TYPE, MSG_CREATE_THREAD);
-                    data.putString(Constants.KEY_S3_DIRECTORY, Constants.KEY_S3_LIVE_DIRECTORY);
-                    uploadImageToS3(data);
                     break;
 
                 case MSG_REPLY_TO_THREAD:
@@ -1063,32 +512,40 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
                     if (data.getString(Constants.KEY_S3_KEY,"").equals("")){
                         if (Constants.LOGD) Log.d(TAG,"no image filepath was provided," +
                                 " this must be a text reply, so uploading straight to the server.");
-                        irs.get().replyToLiveThreadAsync(data);
+                        task = new SendReplyTask();
                     } else {
-                        if (Constants.LOGD) Log.d(TAG,"contained an image filepath," +
-                            "uploading the image there to s3 first...");
+                        if (Constants.LOGD) Log.d(TAG,"contained an image filepath, uploading " +
+                                "the image there to s3 first...");
 
                         data.putString(Constants.KEY_S3_DIRECTORY, Constants.KEY_S3_REPLIES_DIRECTORY);
                         uploadImageToS3(data);
                     }
+                    break;
 
+                case MSG_REQUEST_LOCAL_POSTS:
+                    if (Constants.LOGD) Log.d(TAG, "received a message to request local posts");
+                    task = new RequestLocalTask();
+                    if (mLocation!=null) {
+                        data.putDouble(SQLiteDbContract.LocalEntry.COLUMN_NAME_LONGITUDE, mLocation.getLongitude());
+                        data.putDouble(SQLiteDbContract.LocalEntry.COLUMN_NAME_LATITUDE, mLocation.getLatitude());
+                    }
+                    break;
+
+                case MSG_REQUEST_MESSAGES:
+                    Log.d(TAG, "received a message to message a user");
+
+                    task = new RequestMessageTask();
                     break;
 
                 case MSG_REQUEST_LIVE_THREADS:
                     Log.d(TAG, "received a message to request the thread list");
-
                     task = new RequestLiveTask();
-                    task.initializeTask(irs.get(), data, userID);
-                    new Thread(task.getServerConnectRunnable()).start();
                     break;
 
                 case MSG_REQUEST_REPLIES:
                     Log.d(TAG, "received a message to request replies.");
-
                     data.putInt("threadID", msg.arg1);
                     task = new RequestRepliesTask();
-                    task.initializeTask(irs.get(), data, userID);
-                    new Thread(task.getServerConnectRunnable()).start();
                     break;
 
                 case MSG_SET_CALLBACK_MESSENGER:
@@ -1098,10 +555,8 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
 
                 case MSG_DOWNLOAD_IMAGE:
                     Log.d(TAG, "received a message to download an image...");
-
                     imageResponseMessenger = msg.replyTo;
                     downloadImageFromS3(data);
-
                     break;
 
                 case MSG_REPORT_ANALYTICS:
@@ -1110,7 +565,6 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
                     break;
 
                 case MSG_REPORT_ANALYTIC_TIMING:
-
                     if (Constants.LOGD) Log.d(TAG, "Received a message to report timing events");
                     reportAnalyticsTimingEvent(msg.getData());
                     break;
@@ -1119,13 +573,16 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
                     super.handleMessage(msg);
             }
 
+            if (task != null) {
+                task.initializeTask(irs.get(),data,userID);
+                mConnectionThreadPool.execute(task.getServerConnectRunnable());
+            }
+
 
             Log.d(TAG, "exit handleMessage...");
         }
     }
 
-
-    //final Messenger mMessenger = new Messenger(new IncomingHandler().setParent(this));
     final Messenger mMessenger = new Messenger(new ServiceHandlerThread(this).getIncomingHandler());
 
     @Override
@@ -1142,108 +599,10 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
     }
 
     /**********************************************************************************************
-     * Helper Methods
-     * <p/>
-     * these methods are created to perform common tasks throughout the service
-     */
-    /**
-     * method 'openConnectionToURL'
-     * <p/>
-     * opens and sets the parameters to the given URL
+     * Task Callbacks and ThreadPooling
      *
-     * @param url the url to connect to
-     * @return the prepared URL for input and output, or null if an error occurred
+     * these methods perform functions related to the threadpools and their respective servertasks
      */
-    private HttpURLConnection openConnectionToURL(URL url) throws IOException {
-
-        URLConnection urlconn;
-
-        urlconn = url.openConnection();
-
-
-        if (VERBOSE) Log.v(TAG, "connection opened to " + urlconn.toString());
-
-        HttpURLConnection conn = (HttpURLConnection) urlconn;
-        conn.setReadTimeout(10000);
-        conn.setConnectTimeout(20000);
-
-
-        conn.setRequestMethod("POST");
-        conn.setDoInput(true);
-        conn.setDoOutput(true);
-        conn.setRequestProperty("Accept", "application/json");
-        conn.setRequestProperty("Content-Type", "application/json");
-        if (userID == null) {
-            conn.setRequestProperty("X-Client-UserID", "");
-        } else {
-            conn.setRequestProperty("X-Client-UserID", userID.toString());
-        }
-        conn.setUseCaches(false);
-
-
-        return conn;
-    }
-
-
-    public HttpURLConnection connectToServer(String serverPath) throws ConnectException {
-        return connectToServer(serverPath,0);
-    }
-
-
-    /**
-     * method 'connectToServer'
-     *
-     * attempts to open up a connection to the server with the provided path
-     *
-     * @param serverPath the path to connect to
-     * @return the open connection, ready for JSON transmission
-     */
-    private HttpURLConnection connectToServer(String serverPath, int attempt) throws ConnectException {
-        if (VERBOSE) {
-            Log.v(TAG,"attempting to connect to: " + serverPath + " attempt " + attempt);
-        }
-
-        final int MAX_CONNECTION_ATTEMPTS = 5;
-
-        attempt = attempt + 1;
-
-        HttpURLConnection conn;
-
-        URL url;
-        try {
-            url = createURLtoServer(serverPath);
-        } catch (MalformedURLException e) {
-            throw new RuntimeException();
-        }
-
-        try {
-            conn = openConnectionToURL(url);
-        } catch (IOException e) {
-            Log.e(TAG,"attempt failed, attempt number: " + attempt,e);
-            if (attempt <= MAX_CONNECTION_ATTEMPTS) {
-                Double delay = (Math.pow(attempt, 2) * 1000);
-
-                Log.w(TAG," waiting " + delay + " milliseconds before retry...");
-                try {
-                    Thread.sleep(delay.longValue());
-                } catch (InterruptedException es) {
-                    throw new NetworkOnMainThreadException();
-                }
-
-                return connectToServer(serverPath, attempt + 1);
-            } else {
-                Log.e(TAG, "attempt count exceeded maximum allowed: " + attempt + " cancelling.");
-                throw new ConnectException();
-            }
-
-
-        }
-
-        if (VERBOSE) {
-            Log.v(TAG,"connection opened successfully :-)");
-        }
-        return conn;
-    }
 
     static final int CONNECTION_FAILED = 0;
     static final int CONNECTION_STARTED = 1;
@@ -1251,6 +610,7 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
     static final int REQUEST_FAILED = 3;
     static final int REQUEST_STARTED = 4;
     static final int TASK_COMPLETED = 5;
+    static final int INITIALIZE_TASK_COMPLETED = 6;
 
     /**
      * method 'handleDownloadState'
@@ -1266,12 +626,12 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
                 break;
 
             case CONNECTION_STARTED:
-                Log.i(TAG,"Connection started...");
+                Log.i(TAG, "Connection started...");
                 break;
 
             case CONNECTION_COMPLETED:
-                Log.i(TAG,"Connection completed...");
-                new Thread(task.getRequestRunnable()).start();
+                Log.i(TAG, "Connection completed...");
+                mRequestThreadPool.execute(task.getRequestRunnable());
                 break;
 
             case REQUEST_FAILED:
@@ -1282,96 +642,44 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
                 Log.i(TAG,"Request started...");
                 break;
 
+            case INITIALIZE_TASK_COMPLETED:
+                userID = ((InitializeUserTask)task).getUserID();
+
+                Log.i(TAG,"saving userID to SharedPreferences..." + userID);
+                SharedPreferences settings = getSharedPreferences(TAG, MODE_PRIVATE);
+                SharedPreferences.Editor editor = settings.edit();
+                editor.putString(UUID_KEY, userID.toString());
+                editor.putBoolean(ISFIRSTRUN_KEY, false);
+                editor.apply();
+
+                sendSignOnEvent(userID.toString());
+
             case TASK_COMPLETED:
                 Log.i(TAG,"Task completed... by name: " + task.toString());
                 break;
+
         }
 
     }
 
-    /**
-     * method "createURLtoServer"
-     * <p/>
-     * creates a URL to the server with the provided directory
-     * this is used because all the urls have the same protocol address and socket
-     *
-     * @param path the serverDirectory path to point to
-     * @return the created URL
-     * @throws MalformedURLException
-     */
-    private URL createURLtoServer(String path) throws MalformedURLException {
-        if (VERBOSE) Log.v(TAG, "creating to " + path);
-        return new URL("http", serverAddress, 80, path);
-    }
-
-    private boolean handleResponseCode(int responseCode, Messenger replyMessenger) {
-        return handleResponseCode(responseCode,replyMessenger,new Bundle());
-    }
-
-    public boolean handleResponseCode(int code) {
-        return handleResponseCode(code,replyMessenger,new Bundle());
-    }
 
     /**
-     * method "handleResponseCode"
-     *
-     * @param responseCode
-     * @param replyMessenger
-     * @return success - whether or not to retry to request
+     * Recycles tasks by calling their internal recycle() method and then putting them back into
+     * the task queue.
+     * @param task The task to recycle
      */
-    private boolean handleResponseCode(int responseCode, Messenger replyMessenger, Bundle extradata) {
-        boolean success = true;
-        if (VERBOSE) Log.v(TAG, "handling responseCode: " + responseCode);
-        Message msg;
-        try {
+    void recycleTask(ServerTask task) {
+        if (Constants.LOGV)  Log.v(TAG,"entering recycleTask...");
+        // Frees up memory in the task
+        task.recycle();
 
-            switch (responseCode) {
-                case RESPONSE_SUCCESS:
-                    //let the user know
-                    msg = Message.obtain(null, MainActivity.MSG_SUCCESS);
-                    msg.setData(extradata);
-                    msg.arg1 = extradata.getInt(REQUEST_TYPE,-1);
-                    if (replyMessenger != null) {
-                        replyMessenger.send(msg);
-                    } else {
-                        Log.e(TAG,"replyMessenger was null for Response_Success");
-                    }
-                    break;
+        // Puts the task object back into the queue for re-use.
+        mServerTaskWorkQueue.offer(task);
 
-                case RESPONSE_BLOCK_CONFLICT:
-                    //Why did this happen?
-                    Log.i(TAG, "Block already existed in the database... quitting...");
-                    break;
-
-                case RESPONSE_TOO_MANY_REQUESTS:
-                    replyMessenger.send(Message.obtain(null, MainActivity.MSG_TOO_MANY_REQUESTS));
-                    break;
-
-                case RESPONSE_UNPROCESSABLE_ENTITY:
-                    Log.i(TAG, "something bad happened.... fix this...");
-                    break;
-
-                case RESPONSE_UNAUTHORIZED:
-                    Log.i(TAG, "Unauthorized...");
-
-                    mMessenger.send(Message.obtain(null, new InitializeUserRunnable(this)));
-                    replyMessenger.send(Message.obtain(null, MainActivity.MSG_UNAUTHORIZED));
-                    break;
-
-                case RESPONSE_NOT_FOUND:
-
-                    msg = Message.obtain(null, MainActivity.MSG_NOT_FOUND);
-                    msg.setData(extradata);
-                    replyMessenger.send(msg);
-                    break;
-            }
-        } catch (RemoteException e) {
-            Log.e(TAG, "error sending message to Mainactivity...", e);
-            success = false;
-        }
-
-        return success;
+        if (Constants.LOGV)  Log.v(TAG,"exiting recycleTask...");
     }
+
+
 
     /***********************************************************************************************
      * LOCATION HANDLING
@@ -1580,7 +888,6 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
             initializeTransferUtility();
         }
 
-
         String directory = b.getString(Constants.KEY_S3_DIRECTORY);
 
         File file = new File(getCacheDir(),b.getString(Constants.KEY_S3_KEY));
@@ -1595,12 +902,11 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
                 file /* The file where the data to upload exists */
         );
 
-
         pendingMap.put(observer.getId(), b);
         observer.setTransferListener(this);
 
         if (directory.equals(Constants.KEY_S3_REPLIES_DIRECTORY)) {
-            Log.i(TAG,"now uploading reply thumbnail");
+            Log.i(TAG, "now uploading reply thumbnail");
             pendingMap.remove(observer.getId());
             observer.cleanTransferListener();
 
@@ -1658,42 +964,6 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
         }
     }
 
-
-    public String downloadImageFromURL(String url) {
-        if (VERBOSE) {
-            Log.v(TAG,"entering downloadImageFromURL with url: " + url);
-        }
-
-        try {
-            InputStream is = (InputStream) new URL(url).getContent();
-            byte[] array = IOUtils.toByteArray(is);
-            UUID name = UUID.nameUUIDFromBytes(array);
-
-            File f = new File(getCacheDir(),name.toString());
-
-            Log.i(TAG,"writing image url to path " + f.toString());
-            BufferedOutputStream os = new BufferedOutputStream(new FileOutputStream(f));
-            os.write(array);
-            os.flush();
-            os.close();
-
-            if (VERBOSE) {
-                Log.v(TAG,"exiting downloadImageFromURL with name: " + name);
-            }
-            return name.toString();
-        } catch (MalformedURLException e) {
-            Log.e(TAG,"invalid URL... what!?");
-        } catch (IOException e ){
-            Log.e(TAG,"ioException");
-        }
-
-        if (VERBOSE) {
-            Log.v(TAG,"error occured, exiting downladImageFromURL with null...");
-        }
-        return null;
-    }
-
-
     /**
      * method 'onStateChanged'
      *
@@ -1736,7 +1006,6 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
                         }
                         break;
 
-
                     default:
                         Toast.makeText(getApplicationContext(),
                                 "s3 transfer failed... removing content",
@@ -1765,49 +1034,37 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
 
                 Intent intent;
 
+                ServerTask task = null;
                 switch (data.getInt(REQUEST_TYPE,-1)) {
                     case MSG_SEND_IMAGE:
-
-                        createLocalPostAsync(data);
-                        break;
-
-                    case MSG_CREATE_THREAD:
-
-                        createLiveThreadAsync(data);
+                        task = new SendLocalPostTask();
                         break;
 
                     case MSG_SEND_MESSAGE:
+                        task = new SendMessageTask();
+                        break;
 
-                        sendImageMessageAsync(data);
+                    case MSG_CREATE_THREAD:
+                        task = new SendLivePostTask();
                         break;
 
                     case MSG_REPLY_TO_THREAD:
-                        Log.i(TAG,"reply to thread upload completed...");
-                        replyToLiveThreadAsync(data);
+                        task = new SendReplyTask();
                         break;
 
                     case MSG_REQUEST_LIVE_THREADS:
-
                         break;
 
                     case MSG_REQUEST_LOCAL_POSTS:
-
                         break;
 
                     case MSG_REQUEST_REPLIES:
-
-                        Log.i(TAG,"notifying UI of Reply download finish");
-                        intent = new Intent(Constants.ACTION_IMAGE_REPLY_THUMBNAIL_LOADED);
-                        intent.putExtras(data);
-                        sendBroadcast(intent);
                         break;
 
                     case MSG_REQUEST_MESSAGES:
-
                         break;
 
                     case MSG_DOWNLOAD_IMAGE:
-
                         if (VERBOSE) Log.d(TAG,"an image successfully downloaded. notifying photoManager..");
 
                         Message msg = Message.obtain(null,PhotoManager.DOWNLOAD_COMPLETE);
@@ -1822,9 +1079,7 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
                         } else {
                             Log.e(TAG,"imageResponseMessenger was null, cannot send.");
                         }
-
                         break;
-
 
                     default:
                         Log.e(TAG, "no dynamic transfer type was provided... discarding...");
@@ -1832,6 +1087,10 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
 
                 }
 
+                if (task != null) {
+                    task.initializeTask(this,data,userID);
+                    mConnectionThreadPool.execute(task.getServerConnectRunnable());
+                }
                 pendingMap.remove(id);
 
                 break;

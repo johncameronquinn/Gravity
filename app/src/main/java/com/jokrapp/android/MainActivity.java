@@ -722,8 +722,9 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
 
             Message msg = Message.obtain(null, DataHandlingService.MSG_SEND_IMAGE,currentCamera,0);
             Bundle b = new Bundle();
+            b.putString(SQLiteDbContract.LocalEntry.COLUMN_NAME_FILEPATH, filePath);
+            b.putString(SQLiteDbContract.LocalEntry.COLUMN_NAME_TEXT,text);
             b.putString(Constants.KEY_S3_KEY, filePath);
-            b.putString(Constants.KEY_TEXT,text);
 
             if (messageTarget != null) {
                 Log.d(TAG, "Sending message to user : " + messageTarget);
@@ -1187,17 +1188,17 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
 
             Log.w(TAG, "client only mode is enabled... saving internally");
             ContentValues values = new ContentValues();
-            values.put(SQLiteDbContract.LiveThreadEntry.COLUMN_ID, randomgen.nextInt());
-            values.put(SQLiteDbContract.LiveThreadEntry.COLUMN_NAME_THREAD_ID,randomgen.nextInt());
-            values.put(SQLiteDbContract.LiveThreadEntry.COLUMN_NAME_TIME, randomgen.nextInt());
+            values.put(SQLiteDbContract.LiveRepliesEntry.COLUMN_ID, randomgen.nextInt());
+            values.put(SQLiteDbContract.LiveRepliesEntry.COLUMN_NAME_THREAD_ID,randomgen.nextInt());
+            values.put(SQLiteDbContract.LiveRepliesEntry.COLUMN_NAME_TIME, randomgen.nextInt());
 
-            values.put(SQLiteDbContract.LiveThreadEntry.COLUMN_NAME_NAME,
+            values.put(SQLiteDbContract.LiveRepliesEntry.COLUMN_NAME_NAME,
                     liveData.getString("name", ""));
-            values.put(SQLiteDbContract.LiveThreadEntry.COLUMN_NAME_TITLE,
+            values.put(SQLiteDbContract.LiveRepliesEntry.COLUMN_NAME_TITLE,
                     liveData.getString("title",""));
-            values.put(SQLiteDbContract.LiveThreadEntry.COLUMN_NAME_FILEPATH,
+            values.put(SQLiteDbContract.LiveRepliesEntry.COLUMN_NAME_FILEPATH,
                     liveData.getString(Constants.KEY_S3_KEY,""));
-            values.put(SQLiteDbContract.LiveThreadEntry.COLUMN_NAME_DESCRIPTION,
+            values.put(SQLiteDbContract.LiveRepliesEntry.COLUMN_NAME_DESCRIPTION,
                     liveData.getString("description",""));
 
             getContentResolver().insert(FireFlyContentProvider.CONTENT_URI_LIVE,values);
@@ -1254,9 +1255,6 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
             return;
         }
 
-
-
-
         if (isBound) {
             Toast.makeText(this,"posting a reply to the server.",Toast.LENGTH_SHORT).show();
             Message msg = Message.obtain(null, DataHandlingService.MSG_REPLY_TO_THREAD);
@@ -1285,13 +1283,13 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
         if (liveData == null) {
             liveData = new Bundle(3);
         }
-        liveData.putString("name",name);
-        liveData.putString("title",title);
-        liveData.putString("description",description);
+        liveData.putString(SQLiteDbContract.LiveRepliesEntry.COLUMN_NAME_NAME,name);
+        liveData.putString(SQLiteDbContract.LiveRepliesEntry.COLUMN_NAME_TITLE,title);
+        liveData.putString(SQLiteDbContract.LiveRepliesEntry.COLUMN_NAME_DESCRIPTION,description);
 
         Log.d(TAG, "size is " + liveData.size());
 
-        if (liveData.size() == 4) {
+        if (liveData.size() >= 4) {
             sendMsgCreateThread(liveData);
             liveData = null;
         }
@@ -1330,11 +1328,11 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
             replyData = new Bundle(3);
         }
 
-        replyData.putString("name",name);
-        replyData.putString("description", comment);
-        replyData.putInt("threadID", threadID);
+        replyData.putString(SQLiteDbContract.LiveReplies.COLUMN_NAME_NAME,name);
+        replyData.putString(SQLiteDbContract.LiveReplies.COLUMN_NAME_DESCRIPTION, comment);
+        replyData.putInt(SQLiteDbContract.LiveReplies.COLUMN_NAME_THREAD_ID, threadID);
 
-        if (replyData.size() == 4) {
+        if (replyData.size() >= 4) {
             sendMsgCreateReply(replyData);
             replyData = null;
         }
@@ -1371,6 +1369,7 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
             liveData = new Bundle(1);
         }
         liveData.putString(Constants.KEY_S3_KEY, filePath);
+        liveData.putString(SQLiteDbContract.LiveRepliesEntry.COLUMN_NAME_FILEPATH, filePath);
         if (liveData.size() == 4) {
             sendMsgCreateThread(liveData);
             liveData = null;
@@ -1391,6 +1390,7 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
             replyData = new Bundle(1);
         }
         replyData.putString(Constants.KEY_S3_KEY,filePath);
+        replyData.putString(SQLiteDbContract.LiveReplies.COLUMN_NAME_FILEPATH,filePath);
         if (replyData.size() == 4) {
             sendMsgCreateReply(replyData);
             replyData = null;

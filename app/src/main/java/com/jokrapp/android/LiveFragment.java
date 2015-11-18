@@ -3,11 +3,9 @@ package com.jokrapp.android;
 import android.animation.ValueAnimator;
 import android.app.Activity;
 import android.app.LoaderManager;
-import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.CursorLoader;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.Loader;
 import android.database.Cursor;
 import android.graphics.Bitmap;
@@ -21,8 +19,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.AccelerateInterpolator;
-import android.widget.ImageView;
-import android.widget.ProgressBar;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -31,7 +27,7 @@ import java.io.FileNotFoundException;
 import java.lang.ref.WeakReference;
 
 import fr.castorflex.android.verticalviewpager.VerticalViewPager;
-import com.jokrapp.android.SQLiteDbContract.LiveThreadEntry;
+import com.jokrapp.android.SQLiteDbContract.LiveRepliesEntry;
 
 
 /**
@@ -170,14 +166,14 @@ public class LiveFragment extends Fragment implements
 
 
         String[] projection = {
-                LiveThreadEntry.COLUMN_ID,
-                LiveThreadEntry.COLUMN_NAME_NAME,
-                LiveThreadEntry.COLUMN_NAME_TITLE,
-                LiveThreadEntry.COLUMN_NAME_DESCRIPTION,
-                LiveThreadEntry.COLUMN_NAME_FILEPATH,
-                LiveThreadEntry.COLUMN_NAME_THREAD_ID,
-                LiveThreadEntry.COLUMN_NAME_REPLIES,
-                LiveThreadEntry.COLUMN_NAME_UNIQUE
+                LiveRepliesEntry.COLUMN_ID,
+                LiveRepliesEntry.COLUMN_NAME_NAME,
+                LiveRepliesEntry.COLUMN_NAME_TITLE,
+                LiveRepliesEntry.COLUMN_NAME_DESCRIPTION,
+                LiveRepliesEntry.COLUMN_NAME_FILEPATH,
+                LiveRepliesEntry.COLUMN_NAME_THREAD_ID,
+                LiveRepliesEntry.COLUMN_NAME_REPLIES,
+                LiveRepliesEntry.COLUMN_NAME_UNIQUE
         };
 
       }
@@ -510,14 +506,14 @@ public class LiveFragment extends Fragment implements
         if (VERBOSE) Log.v(TAG,"enter onCreateLoader...");
 
         String[] projection = {
-                LiveThreadEntry.COLUMN_ID,
-                LiveThreadEntry.COLUMN_NAME_NAME,
-                LiveThreadEntry.COLUMN_NAME_TITLE,
-                LiveThreadEntry.COLUMN_NAME_DESCRIPTION,
-                LiveThreadEntry.COLUMN_NAME_FILEPATH,
-                LiveThreadEntry.COLUMN_NAME_THREAD_ID,
-                LiveThreadEntry.COLUMN_NAME_REPLIES,
-                LiveThreadEntry.COLUMN_NAME_UNIQUE
+                LiveRepliesEntry.COLUMN_ID,
+                LiveRepliesEntry.COLUMN_NAME_NAME,
+                LiveRepliesEntry.COLUMN_NAME_TITLE,
+                LiveRepliesEntry.COLUMN_NAME_DESCRIPTION,
+                LiveRepliesEntry.COLUMN_NAME_FILEPATH,
+                LiveRepliesEntry.COLUMN_NAME_THREAD_ID,
+                LiveRepliesEntry.COLUMN_NAME_REPLIES,
+                LiveRepliesEntry.COLUMN_NAME_UNIQUE
         };
 
 
@@ -535,7 +531,7 @@ public class LiveFragment extends Fragment implements
                 projection,
                 null,
                 null,
-                LiveThreadEntry.COLUMN_ID);
+                LiveRepliesEntry.COLUMN_ID);
         //sort by column ID
     }
 

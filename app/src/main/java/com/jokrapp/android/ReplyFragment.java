@@ -83,7 +83,7 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
             if (currentThread == LiveFragment.NO_LIVE_THREADS_ID) {
                 currentThread = b.getInt(LiveReplies.COLUMN_NAME_THREAD_ID);
                 Bundle args = new Bundle();
-                args.putString(LiveReplies.COLUMN_NAME_THREAD_ID, String.valueOf(currentThread));
+                args.putInt(LiveReplies.COLUMN_NAME_THREAD_ID, currentThread);
                 getLoaderManager().restartLoader(ReplyFragment.REPLY_LOADER_ID, args, this);
             } else {
                 currentThread = b.getInt(LiveReplies.COLUMN_NAME_THREAD_ID);
@@ -354,7 +354,7 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
     public CursorLoader onCreateLoader(int id, Bundle args) {
         if (VERBOSE) Log.v(TAG,"entering onCreateLoader...");
 
-        String[] selectionArgs = {args.getString(LiveReplies.COLUMN_NAME_THREAD_ID)};
+        String[] selectionArgs = {String.valueOf(args.get(LiveReplies.COLUMN_NAME_THREAD_ID))};
 
         Log.d(TAG,"current selection args = " + args.getString(LiveReplies.COLUMN_NAME_THREAD_ID));
 
