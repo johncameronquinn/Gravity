@@ -23,15 +23,8 @@ import android.hardware.Camera;
 import android.location.LocationManager;
 import android.media.ThumbnailUtils;
 import android.net.Uri;
-import android.os.Build;
-import android.os.Bundle;
-import android.os.Handler;
-import android.os.HandlerThread;
-import android.os.IBinder;
-import android.os.Looper;
-import android.os.Message;
-import android.os.Messenger;
-import android.os.RemoteException;
+import android.os.*;
+import android.os.Process;
 import android.preference.PreferenceManager;
 import android.provider.Settings;
 import android.app.Fragment;
@@ -47,6 +40,8 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.widget.CheckBox;
 import android.widget.EditText;
+import android.widget.ProgressBar;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.amazonaws.mobileconnectors.amazonmobileanalytics.MobileAnalyticsManager;
@@ -116,6 +111,7 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
     Messenger cameraMessenger;
    // private CameraHandler cameraHandler;
 
+    static CameraHandler sHandler;
 
     private static final int CAMERA_POSITION_BACK = 0;
     private static final int CAMERA_POSITION_FRONT = 1;
@@ -182,6 +178,14 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
         super.onCreate(savedInstanceState);
 
         uiHandler.setParent(this);
+
+
+        HandlerThread handlerThread = new HandlerThread("CameraHandlerThread", Process.THREAD_PRIORITY_FOREGROUND);
+        handlerThread.start();
+        sHandler = new CameraHandler(handlerThread.getLooper());
+        sHandler.setParent(this);
+        cameraMessenger = new Messenger(sHandler);
+
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
 
@@ -291,14 +295,9 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
         Log.d(TAG, "enter onStart...");
         super.onStart();
 
-
         Log.d(TAG, "binding the service to this class, creating if necessary");
         Intent intent = new Intent(this, DataHandlingService.class);
         bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
-
-       // cameraHandler = new CameraHandlerThread(this).getCameraHandler();
-        cameraMessenger = new Messenger(getCameraHandlerSingleton(this));
-
 
         try {
             Message msg = Message.obtain(null, MSG_CONNECT_CAMERA, currentCamera, 0);
@@ -306,7 +305,6 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
         } catch (RemoteException e) {
             Log.e(TAG,"error sending message to connect camera");
         }
-
 
         if (isBound) {
             Log.d(TAG, "sending message to connect GoogleApiClient...");
@@ -335,7 +333,6 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
     protected void onPause() {
         super.onPause();
         Log.d(TAG, "enter onPause...");
-
         mTracker.getSessionClient().pauseSession();
         mTracker.getEventClient().submitEvents();
         Log.d(TAG, "exit onPause...");
@@ -345,22 +342,13 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
     protected void onStop() {
         super.onStop();
 
-
         Log.d(TAG, "enter onStop...");
 
         try {
             cameraMessenger.send(Message.obtain(null, MSG_DISCONNECT_CAMERA));
-
         } catch (RemoteException e) {
             Log.e(TAG,"error sending message to connect camera");
         }
-
-
-        if (VERBOSE) Log.v(TAG,"Releseing reference to cameraHandler");
-        cameraHandlerWeakReference = new WeakReference<>(null);
-
-
-        //connect the googleApiC
 
         //unbind the service now
         if (isBound) {
@@ -404,7 +392,6 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
         // Sets the main View to null
         mMainView = null;
 
-
         super.onDestroy();
         Log.d(TAG, "exit onDestroy...");
     }
@@ -444,8 +431,6 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
      */
     @Override
     public View onCreateView(String name, Context context, AttributeSet attrs) {
-
-
         return super.onCreateView(name, context, attrs);
     }
 
@@ -620,10 +605,7 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
     public void onLocalBlockPressed(View view) {
         if (VERBOSE) Log.v(TAG,"Block button pressed.");
 
-
-
         Toast.makeText(this,"Blocking user " + (String)view.getTag(),Toast.LENGTH_SHORT).show();
-
 
         Bundle b = new Bundle();
         b.putString(Constants.KEY_ANALYTICS_CATEGORY,Constants.ANALYTICS_CATEGORY_LOCAL);
@@ -690,7 +672,6 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
         if (Constants.client_only_mode) {
             Random randomgen = new Random(System.currentTimeMillis());
 
-
             Log.w(TAG, "client only mode is enabled... saving internally");
             ContentValues values = new ContentValues();
             values.put(SQLiteDbContract.LocalEntry.COLUMN_ID, randomgen.nextInt());
@@ -719,13 +700,11 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
 
         if (isBound) {
             Log.d(TAG, "sending message to server containing filepath to load...");
-
             Message msg = Message.obtain(null, DataHandlingService.MSG_SEND_IMAGE,currentCamera,0);
             Bundle b = new Bundle();
             b.putString(SQLiteDbContract.LocalEntry.COLUMN_NAME_FILEPATH, filePath);
             b.putString(SQLiteDbContract.LocalEntry.COLUMN_NAME_TEXT,text);
             b.putString(Constants.KEY_S3_KEY, filePath);
-
             if (messageTarget != null) {
                 Log.d(TAG, "Sending message to user : " + messageTarget);
                 b.putString(Constants.MESSAGE_TARGET, messageTarget);
@@ -733,7 +712,6 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
                 Log.d(TAG, "Sending local broadcast...");
             }
             msg.setData(b);
-
             try {
                 msg.replyTo = messageHandler;
                 mService.send(msg);
@@ -741,7 +719,6 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
                 e.printStackTrace();
             }
         }
-
         messageTarget = null;
         if (VERBOSE) Log.v(TAG,"exiting sendImageToLocal...");
     }
@@ -756,7 +733,6 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
      * makes use of the android support library
      */
     public static class MainAdapter extends FragmentStatePagerAdapter {
-
 
         public MainAdapter(FragmentManager fm) {
             super(fm);
@@ -1163,12 +1139,10 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
         }
     }
 
-
     /** LIVE POST and REPLY HANDLING
      */
     Bundle liveData;
     private boolean cancelPost = false;
-
 
     Bundle replyData;
     private boolean cancelReply = false;
@@ -1182,7 +1156,6 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
     public void sendMsgCreateThread(Bundle liveData) {
         if (VERBOSE) Log.v(TAG,"entering sendMsgCreateThread...");
 
-
         if (Constants.client_only_mode) {
             Random randomgen = new Random(System.currentTimeMillis());
 
@@ -1191,7 +1164,6 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
             values.put(SQLiteDbContract.LiveRepliesEntry.COLUMN_ID, randomgen.nextInt());
             values.put(SQLiteDbContract.LiveRepliesEntry.COLUMN_NAME_THREAD_ID,randomgen.nextInt());
             values.put(SQLiteDbContract.LiveRepliesEntry.COLUMN_NAME_TIME, randomgen.nextInt());
-
             values.put(SQLiteDbContract.LiveRepliesEntry.COLUMN_NAME_NAME,
                     liveData.getString("name", ""));
             values.put(SQLiteDbContract.LiveRepliesEntry.COLUMN_NAME_TITLE,
@@ -1222,7 +1194,6 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
         if (VERBOSE) Log.v(TAG,"exiting sendMsgCreateThread...");
     }
 
-
     private void sendMsgCreateReply(Bundle replyData) {
         if (VERBOSE) {
             Log.v(TAG,"entering sendMsgCreateReply");
@@ -1250,7 +1221,6 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
                             .insert(FireFlyContentProvider
                                     .CONTENT_URI_REPLY_LIST, values);
 
-
             if (VERBOSE) Log.v(TAG,"exiting sendMsgCreateThread... saved locally");
             return;
         }
@@ -1267,7 +1237,6 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
         }
         if (VERBOSE) Log.v(TAG,"exiting sendMsgCreateReply");
     }
-
 
     /**
      * method 'setLiveCreateThreadInfo'
@@ -1294,7 +1263,6 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
             liveData = null;
         }
     }
-
 
     /**
      * method 'setLiveCreateInfo'
@@ -1344,7 +1312,6 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
         if (VERBOSE) Log.v(TAG,"reply picture mode was cancelled, clearing info.");
         replyData.clear();
     }
-
 
     /**
      * method 'setLiveFilePath'
@@ -1475,10 +1442,9 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
         File file = new File(this.getFilesDir(), File.separator +
                 "IMG_" + timeStamp + ".jpg");
 
+
         return file;
     }
-
-
 
     /** CAMERA HANDLER COMMUNICATION - HANDLER THREAD
      */
@@ -1520,9 +1486,9 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
 
     }*/
 
-    private static WeakReference<CameraHandler> cameraHandlerWeakReference = new WeakReference<>(null);
+   // private static WeakReference<CameraHandler> cameraHandlerWeakReference = new WeakReference<>(null);
 
-    public synchronized CameraHandler getCameraHandlerSingleton(MainActivity activity) {
+   /* public synchronized CameraHandler getCameraHandlerSingleton(MainActivity activity) {
         if (cameraHandlerWeakReference.get() == null) {
             if (VERBOSE) Log.v(TAG,"reference to camera handler did not exist... creating new cameraHandler...");
 
@@ -1540,7 +1506,7 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
         }
 
         return cameraHandlerWeakReference.get();
-    }
+    }*/
 
     private static SurfaceTexture mSurface;
     private static Camera mCamera; //static to prevent garbage collection during onStop
@@ -1623,34 +1589,29 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
 
 
             if (mSurface != null) {
-                Log.i(TAG,"surface was created and saved");
+                Log.i(TAG, "surface was created and saved");
             }
 
-
-            if (getMainLooper().getThread() == getLooper().getThread()) {
-                Log.e(TAG,"this occurs in the main thread...");
-            }
-
-            if (isConnected) {
+            //if (isConnected) {
 
                 if (mCamera != null) {
                     Log.d(TAG, "Camera is connected and is available, setting and starting " +
                             "preview.");
                             try {
                                 mCamera.setPreviewTexture(mSurface);
-                                //mCamera.startPreview();
+                                mCamera.startPreview();
                             } catch (IOException e) {
                                 Log.e(TAG, "error setting preview texture to camera", e);
-                                mTracker.getEventClient()
-                                        .recordEvent(mTracker
+                                mWeakActivity.get().mTracker.getEventClient()
+                                        .recordEvent(mWeakActivity.get().mTracker
                                                 .getEventClient()
                                                 .createEvent(Constants.ANALYTICS_CATEGORY_ERROR)
                                                 .withAttribute(Constants.ANALYTICS_CATEGORY_MESSAGE,
                                                         e.getMessage() + ":" + "onSurfaceTextureAvailable(SurfaceTexture surface, int width, int height)"));
                             } catch (NullPointerException e) {
                                 Log.e(TAG, "error setting Preview texture to camera", e);
-                                mTracker.getEventClient()
-                                        .recordEvent(mTracker
+                                mWeakActivity.get().mTracker.getEventClient()
+                                        .recordEvent(mWeakActivity.get().mTracker
                                                 .getEventClient()
                                                 .createEvent(Constants.ANALYTICS_CATEGORY_ERROR)
                                                 .withAttribute(Constants.ANALYTICS_CATEGORY_MESSAGE,
@@ -1660,18 +1621,13 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
                     Log.d(TAG, "camera was not avaliable, saving surface...");
                     mSurface = surface;
                 }
-            } else {
-                Log.v(TAG,"Camera was not connected, saving surface...");
-                mSurface = surface;
-            }
+
 
 
             if (VERBOSE) {
                 Log.v(TAG,"exit onSurfaceTextureAvailable");
             }
         }
-
-
 
         @Override
         public void onSurfaceTextureSizeChanged(SurfaceTexture surface, int width, int height) {
@@ -1682,7 +1638,6 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
             if (mCamera == null ){
                 mCamera = getCameraInstance(0);
             } else {
-
                 mSurface = surface;
                 try {
                     Camera.Parameters p = mCamera.getParameters();
@@ -1694,22 +1649,17 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
                 }
                     this.width = width;
                     this.height = height;
-
             }
-
             if (VERBOSE) {
                 Log.v(TAG,"exit onSurfaceTextureSizeChanged");
             }
         }
-
 
         @Override
         public boolean onSurfaceTextureDestroyed(SurfaceTexture surface) {
             if (VERBOSE) {
                 Log.v(TAG, "enter onSurfaceTextureDestroyed");
             }
-
-
             if (mCamera != null) {
                 if (isConnected) {
                     Log.d(TAG,"mCamera was not null, stopping preview");
@@ -1718,18 +1668,14 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
                     Log.d(TAG,"abandoning bufferqueue");
                     mCamera.setPreviewCallbackWithBuffer(null);
                 }
-
                 if (mSurface != null) {
                     surface.release();
                     mSurface.release();
                     mSurface = null;
                 }
-
             } else {
                 Log.d(TAG, "mCamera was null, no action taken");
             }
-
-
             if (VERBOSE) {
                 Log.v(TAG,"exit onSurfaceTextureDestroyed");
             }
@@ -1745,7 +1691,6 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
          */
         @Override
         public void onSurfaceTextureUpdated(SurfaceTexture surface) {
-
         }
 
         /**
@@ -1814,19 +1759,19 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
                     break;
 
                 case MSG_START_PREVIEW: //2
-                    try {
+  /*                  try {
                           Log.d(TAG,"setting and starting preview...");
                           //Log.e(TAG,"this is disabled...");
-                        mCamera.startPreview();
+//                        mCamera.startPreview();
                     } catch (Exception e) {
                         Log.e(TAG, "generic error setting and starting preview", e);
-                        mTracker.getEventClient()
-                                .recordEvent(mTracker
+                        mWeakActivity.get().mTracker.getEventClient()
+                                .recordEvent(mWeakActivity.get().mTracker
                                         .getEventClient()
                                         .createEvent(Constants.ANALYTICS_CATEGORY_ERROR)
                                         .withAttribute(Constants.ANALYTICS_CATEGORY_MESSAGE,
                                                 e.getMessage() + ":" + "msg_start_preview"));
-                    }
+                    }*/
                     break;
                 case MSG_STOP_PREVIEW: //3
                     if (mCamera != null) {
@@ -1864,8 +1809,8 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
                             mCamera.setPreviewTexture(mSurface);
                         } catch (IOException e) {
                             Log.e(TAG, "error setting preview texture to camera", e);
-                            mTracker.getEventClient()
-                                    .recordEvent(mTracker
+                            mWeakActivity.get().mTracker.getEventClient()
+                                    .recordEvent(mWeakActivity.get().mTracker
                                             .getEventClient()
                                             .createEvent(Constants.ANALYTICS_CATEGORY_ERROR)
                                             .withAttribute(Constants.ANALYTICS_CATEGORY_MESSAGE,
@@ -1881,7 +1826,6 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
                     } else {
                         mCamera.setDisplayOrientation(cameraInfo.orientation);
                     }
-
                     break;
 
                 case MSG_FLASH_ON: //8
@@ -1901,7 +1845,6 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
                            parameters.setFlashMode(Camera.Parameters.FLASH_MODE_OFF);
                            mCamera.setParameters(parameters);
                       }
-
                     break;
 
                 case MSG_ACTIVITY_DESTROYED: //4
@@ -1911,7 +1854,6 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
                 case MSG_AUTOFOCUS:
                         focusOnTouch(inputMessage.getData().getFloat("x"),inputMessage.getData().getFloat("y"));
                     break;
-
 
                 default:
                     throw new RuntimeException("unknown msg " + what);
@@ -1952,8 +1894,8 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
                 Log.e(TAG, "Error opening camera - dialog should show" +
                         "", e);
 
-                mTracker.getEventClient()
-                        .recordEvent(mTracker
+                mWeakActivity.get().mTracker.getEventClient()
+                        .recordEvent(mWeakActivity.get().mTracker
                                 .getEventClient()
                                 .createEvent(Constants.ANALYTICS_CATEGORY_ERROR)
                                 .withAttribute(Constants.ANALYTICS_CATEGORY_MESSAGE,
@@ -1962,7 +1904,6 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
 
             if (c != null) {
                 isConnected = true;
-
                 
             if (cInfo.facing == Camera.CameraInfo.CAMERA_FACING_FRONT) {
                 c.setDisplayOrientation(cInfo.orientation - 180);
@@ -1990,8 +1931,8 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
                     } catch (IOException e) {
                         Log.e(TAG, "error setting mSurface as surfacetexture", e);
 
-                   mTracker.getEventClient()
-                           .recordEvent(mTracker
+                        mWeakActivity.get().mTracker.getEventClient()
+                           .recordEvent(mWeakActivity.get().mTracker
                                    .getEventClient()
                                    .createEvent(Constants.ANALYTICS_CATEGORY_ERROR)
                                    .withAttribute(Constants.ANALYTICS_CATEGORY_MESSAGE,
@@ -2000,7 +1941,6 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
            } else {
                Log.e(TAG,"The camera surface texture has yet to be created");
            }
-
 
             } else {
                 Log.i(TAG, "getCameraInstance failed to connect to camera");
@@ -2023,7 +1963,7 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
             if (VERBOSE) Log.v(TAG,"entering onShutter");
 
             Intent intent = new Intent(CameraFragment.ACTION_PICTURE_TAKEN);
-            LocalBroadcastManager.getInstance(getApplicationContext()).sendBroadcastSync(intent);
+            LocalBroadcastManager.getInstance(mWeakActivity.get().getApplicationContext()).sendBroadcastSync(intent);
 
             if (VERBOSE) Log.v(TAG,"exiting onShutter");
         }
@@ -2060,10 +2000,8 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
 
             String filePath = file.getAbsolutePath();
 
-
             Log.d(TAG, "Saving file to... " + filePath);
             Log.d(TAG, "The size of the image before compression: " + data.length);
-
 
             //create bitmap from data
             Bitmap image;
@@ -2079,15 +2017,14 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
 
             Log.d(TAG, "comment was null...");
 
-
             try {
                 image.compress(Bitmap.CompressFormat.JPEG, COMPRESSION_QUALITY,
                         new FileOutputStream(filePath));
             } catch (FileNotFoundException e) {
                 Log.e(TAG, "error compressing bitmap to filepath" + filePath, e);
 
-                mTracker.getEventClient()
-                        .recordEvent(mTracker
+                mWeakActivity.get().mTracker.getEventClient()
+                        .recordEvent(mWeakActivity.get().mTracker
                                 .getEventClient()
                                 .createEvent(Constants.ANALYTICS_CATEGORY_ERROR)
                                 .withAttribute(Constants.ANALYTICS_CATEGORY_MESSAGE,
@@ -2107,8 +2044,8 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
                 } catch (FileNotFoundException e) {
                     Log.e(TAG, "error compressing bitmap to filepath" + filePath, e);
 
-                    mTracker.getEventClient()
-                            .recordEvent(mTracker
+                    mWeakActivity.get().mTracker.getEventClient()
+                            .recordEvent(mWeakActivity.get().mTracker
                                     .getEventClient()
                                     .createEvent(Constants.ANALYTICS_CATEGORY_ERROR)
                                     .withAttribute(Constants.ANALYTICS_CATEGORY_MESSAGE,
@@ -2139,12 +2076,10 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
                     break;
             }
 
-
             if (VERBOSE) {
                 Log.v(TAG, "exit savePicture...");
             }
         }
-
 
         /**
          * method 'focusOnTouch'
@@ -2183,8 +2118,8 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
                 } catch (RuntimeException e) {
                     Log.e(TAG, "Failed to set camera parameters...", e);
 
-                    mTracker.getEventClient()
-                            .recordEvent(mTracker
+                    mWeakActivity.get().mTracker.getEventClient()
+                            .recordEvent(mWeakActivity.get().mTracker
                                     .getEventClient()
                                     .createEvent(Constants.ANALYTICS_CATEGORY_ERROR)
                                     .withAttribute(Constants.ANALYTICS_CATEGORY_MESSAGE,
@@ -2201,18 +2136,13 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
          */
         private Rect calculateTapArea(float x, float y, float coefficient) {
             int areaSize = Float.valueOf(focusAreaSize * coefficient).intValue();
-
             int left = clamp((int) x - areaSize / 2, 0, width - areaSize);
             int top = clamp((int) y - areaSize / 2, 0, height - areaSize);
-
             RectF rectF = new RectF(left, top, left + areaSize, top + areaSize);
-
             matrix.mapRect(rectF);
-
-
-
             return new Rect(Math.round(rectF.left), Math.round(rectF.top), Math.round(rectF.right), Math.round(rectF.bottom));
         }
+
         private int clamp(int x, int min, int max) {
             if (x > max) {
                 return max;
@@ -2299,7 +2229,6 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
                 }
             }
 
-
             //for each size, first, do they have it? - try each size
             for (Camera.Size s : sizes) {
                 if (s.width == Constants.IDEAL_WIDTH) {
@@ -2340,40 +2269,32 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
     }
 
     public void sendMsgStartPreview() {
-        if (VERBOSE) {
-            Log.v(TAG,"received callback from CameraFragment");
-            Log.v(TAG,"entering sendMsgStartPreview");
-        }
+        if (VERBOSE) Log.v(TAG,"entering sendMsgStartPreview");
+
         try {
             cameraMessenger.send(Message.obtain(null, MSG_START_PREVIEW));
         } catch (RemoteException e) {
             Log.e(TAG,"error sending message to start Preview");
         }
 
-
-        if (VERBOSE)
-            Log.v(TAG,"exiting sendMsgStartPreview()");
+        if (VERBOSE) Log.v(TAG,"exiting sendMsgStartPreview()");
     }
 
     public void sendMsgStopPreview() {
-        if (VERBOSE) {
-            Log.v(TAG, "entering sendMsgStopPreview...");
-        }
+        if (VERBOSE) Log.v(TAG, "entering sendMsgStopPreview...");
+
         try {
             cameraMessenger.send(Message.obtain(null, MSG_STOP_PREVIEW));
         } catch (RemoteException e) {
             Log.e(TAG,"error sending message to stop Preview");
         }
 
-        if (VERBOSE) {
-            Log.v(TAG, "exiting sendMsgStopPreview...");
-        }
+        if (VERBOSE) Log.v(TAG, "exiting sendMsgStopPreview...");
     }
 
     public void sendMsgTakePicture() {
-        if (VERBOSE) {
-            Log.v(TAG, "entering sendMsgTakePicture...");
-        }
+        if (VERBOSE) Log.v(TAG, "entering sendMsgTakePicture...");
+
 
         try {
             Message msg = Message.obtain(null,MSG_TAKE_PICTURE);
@@ -2382,9 +2303,7 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
             Log.e(TAG,"error sending message to take picture");
         }
 
-        if (VERBOSE) {
-            Log.v(TAG,"exiting sendMsgTakePicture...");
-        }
+        if (VERBOSE) Log.v(TAG,"exiting sendMsgTakePicture...");
     }
 
     /**
@@ -2395,9 +2314,7 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
      * @param comment if there is a comment, it is passed here
      */
     public void sendMsgSaveImage(EditText comment, int where) {
-        if (VERBOSE) {
-            Log.v(TAG, "entering sendMsgSaveImage...");
-        }
+        if (VERBOSE) Log.v(TAG, "entering sendMsgSaveImage...");
 
         Message msg = Message.obtain(null, MSG_SAVE_PICTURE);
 
@@ -2421,9 +2338,7 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
             Log.e(TAG,"error sending message to save image");
         }
 
-        if (VERBOSE) {
-            Log.v(TAG, "exiting sendMsgSaveImage...");
-        }
+        if (VERBOSE) Log.v(TAG, "exiting sendMsgSaveImage...");
     }
 
     /**
@@ -2441,7 +2356,6 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
             Log.v(TAG, "where " + where);
             Log.v(TAG, "messageTarget " + messageTarget);
         }
-
 
         this.messageTarget = messageTarget;
         sendMsgSaveImage(comment,where);
@@ -2517,13 +2431,11 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
         }
     }
 
-
     /**
      * tags for replyHandler's various tasks
      */
-    static final int MSG_IMAGE_STORED = 0;
 
-    static final int MSG_IMAGE_SENT= 1;
+    static final int MSG_UPLOAD_PROGRESS = 1;
 
     static final int MSG_DATABASE_CLEARED= 2;
 
@@ -2534,7 +2446,6 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
     static final int MSG_SUCCESS_LIVE = 16;
 
     static final int MSG_SUCCESS = 50;
-    static final int MSG_UPLOAD_SUCCESS = 56;
 
     static final int MSG_TOO_MANY_REQUESTS = 51;
 
@@ -2545,7 +2456,6 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
     static final int MSG_NOT_FOUND = 54;
 
     static final int MSG_NOTHING_RETURNED = 55;
-
 
     /**
      * class 'replyHandler'
@@ -2568,22 +2478,44 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
             int respCode = msg.what;
 
             int result;
-            int distance;
 
             switch (respCode) {
-                case MSG_IMAGE_STORED:
-                    result = msg.arg1;
-                    Toast.makeText(activity.get(),"reply from service received " + result,Toast.LENGTH_LONG).show();
+                case MSG_UPLOAD_PROGRESS:
+                    ProgressBar uploadBar = (ProgressBar)activity.get().findViewById(R.id.uploadProgress);
+                    TextView progressText = (TextView)activity.get().findViewById(R.id.uploadProgressText);
+                    Log.i(TAG,"received upload progress from the background service...");
+                    switch (msg.arg1) {
 
-                    //File[] toLoad = new File[1];
-                    //toLoad[0] = new File("IMG_"+msg.arg1+".jpg");
-                    if (mPager.getCurrentItem() <= CAMERA_LIST_POSITION) {//ensure localFrament exists.
+                        case DataHandlingService.CONNECTION_STARTED:
+                            uploadBar.setVisibility(View.VISIBLE);
+                            progressText.setVisibility(View.VISIBLE);
+                            progressText.setText("Opening Connection...");
+                            break;
+                        case DataHandlingService.CONNECTION_FAILED:
+                            uploadBar.setVisibility(View.INVISIBLE);
+                            progressText.setText("Connection Failed!");
+                            progressText.setVisibility(View.INVISIBLE);
+                            uploadBar.setVisibility(View.INVISIBLE);
+                            break;
+                        case DataHandlingService.CONNECTION_COMPLETED:
+                            uploadBar.setVisibility(View.VISIBLE);
+                            uploadBar.setProgress(20);
+                            progressText.setText("Connected");
+                            break;
+                        case DataHandlingService.REQUEST_STARTED:
+                            progressText.setText("Starting Request");
+                            break;
+                        case DataHandlingService.REQUEST_FAILED:
+                            progressText.setText("Request Failed!");
+                            progressText.setVisibility(View.INVISIBLE);
+                            uploadBar.setVisibility(View.INVISIBLE);
+                            break;
+                        case DataHandlingService.TASK_COMPLETED:
+                            progressText.setText("Completed Successfully");
+                            progressText.setVisibility(View.INVISIBLE);
+                            uploadBar.setVisibility(View.INVISIBLE);
+                            break;
                     }
-                    break;
-
-                case MSG_IMAGE_SENT:
-                    result = msg.arg1;
-                    Toast.makeText(activity.get(),"Image size to be sent is: " + result/1024 + "kB",Toast.LENGTH_LONG).show();
                     break;
 
                 case MSG_DATABASE_CLEARED:
@@ -2737,6 +2669,34 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
         }
     }
 
+    class UploadHandler extends Handler {
+        public UploadHandler(Looper looper) {
+            super(looper);
+        }
+
+        @Override
+        public void handleMessage(Message msg) {
+            super.handleMessage(msg);
+
+            Log.i(TAG, "received upload progress from the background service...");
+            switch (msg.what) {
+                case DataHandlingService.CONNECTION_FAILED:
+                    break;
+                case DataHandlingService.CONNECTION_STARTED:
+                    break;
+                case DataHandlingService.CONNECTION_COMPLETED:
+                    break;
+                case DataHandlingService.REQUEST_FAILED:
+                    break;
+                case DataHandlingService.REQUEST_STARTED:
+                    break;
+                case DataHandlingService.TASK_COMPLETED:
+                    break;
+            }
+
+        }
+    }
+
     /**
      *
      */
@@ -2818,7 +2778,6 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
         }
     }
 
-
     public void sendMsgReportTimingEvent(Bundle b) {
         if (VERBOSE) Log.d(TAG,"sending message to report timing event");
         if (isBound) {
@@ -2833,7 +2792,6 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
             Log.e(TAG,"failed to report analytics event, service was not bound...");
         }
     }
-
 
     /**
      * method 'sendScreenName'
@@ -2857,6 +2815,5 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
     public void onDeveloperInteraction(int request, Uri resource) {
         Log.i(TAG, "entering onDeveloperInteraction with request- " + request + " and resource - " + resource.toString());
     }
-
 
 }

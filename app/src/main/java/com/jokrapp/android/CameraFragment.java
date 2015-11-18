@@ -8,6 +8,8 @@ import android.content.IntentFilter;
 import android.hardware.Camera;
 import android.os.Bundle;
 import android.app.Fragment;
+import android.os.Handler;
+import android.os.HandlerThread;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import android.view.GestureDetector;
@@ -395,8 +397,10 @@ n  */
         Log.d(TAG, "setting surface texture listener to cameraHandler");
 
         MainActivity activity = (MainActivity) getActivity();
-        Log.d(TAG, "CameraHandler reference refers to: " + activity.getCameraHandlerSingleton(activity).toString());
-        mPreview.setSurfaceTextureListener(activity.getCameraHandlerSingleton(activity));
+        //Log.d(TAG, "CameraHandler reference refers to: " + activity.getCameraHandlerSingleton(activity).toString());
+        mPreview.setSurfaceTextureListener(MainActivity.sHandler);
+
+
 
         Log.d(TAG, "created view is: " + view.toString());
 
@@ -826,27 +830,28 @@ n  */
     @Override
     public void onAutoFocus(final boolean success, Camera camera) {
 
-        getActivity().runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                View v= getView();
+        if (isAdded()) {
+            getActivity().runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    View v = getView();
 
-                if (v != null) {
-                    v = v.findViewById(R.id.camera_focus);
-                    v.setVisibility(View.INVISIBLE);
-                    if (success) {
-                        // do something...
-                        Log.i(TAG,"success!");
+                    if (v != null) {
+                        v = v.findViewById(R.id.camera_focus);
+                        v.setVisibility(View.INVISIBLE);
+                        if (success) {
+                            // do something...
+                            Log.i(TAG, "success!");
 
-                    } else {
-                        // do something...
-                        Log.i(TAG,"fail!");
+                        } else {
+                            // do something...
+                            Log.i(TAG, "fail!");
 
+                        }
                     }
                 }
-            }
-        });
-
+            });
+        }
 
     }
 

@@ -356,7 +356,7 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
 
         String[] selectionArgs = {String.valueOf(args.get(LiveReplies.COLUMN_NAME_THREAD_ID))};
 
-        Log.d(TAG,"current selection args = " + args.getString(LiveReplies.COLUMN_NAME_THREAD_ID));
+        Log.d(TAG,"current selection args = " + args.get(LiveReplies.COLUMN_NAME_THREAD_ID));
 
             CursorLoader loader = new CursorLoader(
                     this.getActivity(),

@@ -4,13 +4,23 @@ import android.os.*;
 import android.util.Log;
 
 import java.io.IOException;
+import java.net.ConnectException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
+import java.net.ProtocolException;
+import java.net.SocketException;
 import java.net.URL;
 import java.util.UUID;
 
 /**
- * Created by ev0x on 11/14/15.
+ * class 'ServerConnectRunnable'
+ *
+ * @author John C. Quinn
+ * created on 11/14/15
+ * last modified : 11/18/15
+ *
+ * A single runnable task used to establish a connection to the server.
+ * Utilitzes {@link ServerTask} to manage necessary data.
  */
 public class ServerConnectRunnable implements Runnable {
 
@@ -50,7 +60,6 @@ public class ServerConnectRunnable implements Runnable {
 
     private final int BASE_RE_ATTEMPT_DELAY = 1000;
 
-
     public ServerConnectRunnable (ServerConnectMethods methods){
         mTask = methods;
     }
@@ -61,6 +70,8 @@ public class ServerConnectRunnable implements Runnable {
         mTask.setTaskThread(Thread.currentThread());
         android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_BACKGROUND);
         HttpURLConnection conn = null;
+
+        int responseCode = -1;
             try {
                 mTask.handleServerConnectState(CONNECT_STATE_STARTED);
 
@@ -92,7 +103,7 @@ public class ServerConnectRunnable implements Runnable {
                  * continues to retry with a delay of 1 * 2^n seconds, where n is the number
                  * of previous attempts. Times out and reports after 5 attempts.
                  */
-                while (conn==null && attempt < NUMBER_OF_CONNECT_TRIES) {
+                do {
                     Log.i(TAG,"connecting to server...");
 
                     try {
@@ -122,11 +133,20 @@ public class ServerConnectRunnable implements Runnable {
                         // 4nn is client error
                         // 5nn is server error
 
-                        //Log.d(TAG,"responseCode : " + responseCode);
-                        //Log.d(TAG,"http_OK: " + HttpURLConnection.HTTP_OK);
-
-                    } catch (IOException e) {
+                    } catch (ConnectException e) {
                         Log.e(TAG, "Failed to open a connection to the server...", e);
+                        conn = null;
+                    } catch (ProtocolException e) {
+                        Log.e(TAG, "ProtocolException when trying to open a connection to the " +
+                                "server...", e);
+                        conn = null;
+                    } catch (SocketException e) {
+                        Log.e(TAG, "SocketException...", e);
+                        conn = null;
+                    } catch (IOException e) {
+                        Log.e(TAG,
+                                "IOException when trying to open a connection to the server...",
+                                e);
                         conn = null;
                     } finally {
                         if (attempt > 0) {
@@ -136,7 +156,8 @@ public class ServerConnectRunnable implements Runnable {
                         }
                         attempt++;
                     }
-                }
+                } while (conn==null && attempt < NUMBER_OF_CONNECT_TRIES);
+
             } catch (InterruptedException e) {
                 Log.e(TAG,"interruptedException occured...",e);
                 conn = null;

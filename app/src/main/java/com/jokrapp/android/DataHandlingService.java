@@ -266,7 +266,7 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
 
         SharedPreferences settings = getSharedPreferences(TAG, MODE_PRIVATE);
         settings.edit().putStringSet(IMAGESSEEN_KEY, new HashSet<>(imagesSeen)).apply();
-        mConnectionThreadPool.shutdown();
+        cancelAll();
 
         Log.v(TAG, "exiting onDestroy...");
     }
@@ -336,6 +336,7 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
     static final int MSG_REQUEST_CONSTANT_UPDATES = 4;
 
     static final int MSG_SEND_IMAGE = 5;
+
     static final int MSG_SEND_MESSAGE = 19;
 
     static final int MSG_REQUEST_LOCAL_POSTS = 6;
@@ -587,28 +588,30 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
     public void handleDownloadState(int state, ServerTask task) {
         switch (state) {
             case CONNECTION_FAILED:
-                Log.i(TAG, "Connection failed...");
+                if (Constants.LOGD) Log.d(TAG, "Connection failed...");
+                recycleTask(task);
                 break;
 
             case CONNECTION_STARTED:
-                Log.i(TAG, "Connection started...");
+                if (Constants.LOGD) Log.d(TAG, "Connection started...");
                 break;
 
             case CONNECTION_COMPLETED:
-                Log.i(TAG, "Connection completed...");
+                if (Constants.LOGD) Log.d(TAG, "Connection completed...");
                 mRequestThreadPool.execute(task.getRequestRunnable());
                 break;
 
             case REQUEST_FAILED:
-                Log.i(TAG,"Request failed...");
+                if (Constants.LOGD) Log.d(TAG,"Request failed...");
+                recycleTask(task);
                 break;
 
             case REQUEST_STARTED:
-                Log.i(TAG,"Request started...");
+                if (Constants.LOGD) Log.d(TAG,"Request started...");
                 break;
 
             case INITIALIZE_TASK_COMPLETED:
-                userID = ((InitializeUserTask)task).getUserID();
+                userID = (task).getUserID();
 
                 Log.i(TAG,"saving userID to SharedPreferences..." + userID);
                 SharedPreferences settings = getSharedPreferences(TAG, MODE_PRIVATE);
@@ -620,9 +623,63 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
                 sendSignOnEvent(userID.toString());
 
             case TASK_COMPLETED:
-                Log.i(TAG,"Task completed... by name: " + task.toString());
+                recycleTask(task);
+                if (Constants.LOGD) Log.d(TAG, "Task completed... by name: " + task.toString());
+                break;
+        }
+
+    }
+
+    public void handleUploadState(int state, ServerTask task) {
+
+        switch (state) {
+            case CONNECTION_FAILED:
+                if (Constants.LOGD) Log.d(TAG, "Connection failed...");
+                recycleTask(task);
                 break;
 
+            case CONNECTION_STARTED:
+                if (Constants.LOGD) Log.d(TAG, "Connection started...");
+                break;
+
+            case CONNECTION_COMPLETED:
+                if (Constants.LOGD) Log.d(TAG, "Connection completed...");
+                mRequestThreadPool.execute(task.getRequestRunnable());
+                break;
+
+            case REQUEST_FAILED:
+                if (Constants.LOGD) Log.d(TAG,"Request failed...");
+                recycleTask(task);
+                break;
+
+            case REQUEST_STARTED:
+                if (Constants.LOGD) Log.d(TAG,"Request started...");
+                break;
+
+            case INITIALIZE_TASK_COMPLETED:
+                userID = (task).getUserID();
+
+                Log.i(TAG,"saving userID to SharedPreferences..." + userID);
+                SharedPreferences settings = getSharedPreferences(TAG, MODE_PRIVATE);
+                SharedPreferences.Editor editor = settings.edit();
+                editor.putString(UUID_KEY, userID.toString());
+                editor.putBoolean(ISFIRSTRUN_KEY, false);
+                editor.apply();
+
+                sendSignOnEvent(userID.toString());
+
+            case TASK_COMPLETED:
+                recycleTask(task);
+                if (Constants.LOGD) Log.d(TAG, "Task completed... by name: " + task.toString());
+                break;
+
+        }
+
+        Message msg = Message.obtain(null,MainActivity.MSG_UPLOAD_PROGRESS,state,0);
+        try {
+            replyMessenger.send(msg);
+        } catch (RemoteException e) {
+            Log.e(TAG,"remoteException",e);
         }
 
     }
@@ -642,6 +699,43 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
         mServerTaskWorkQueue.offer(task);
 
         if (Constants.LOGV)  Log.v(TAG,"exiting recycleTask...");
+    }
+
+    public void cancelAll() {
+              /*
+         * Creates an array of tasks that's the same size as the task work queue
+         */
+        ServerTask[] taskArray = new ServerTask[mConnectionWorkQueue.size()];
+
+        // Populates the array with the task objects in the queue
+        mConnectionWorkQueue.toArray(taskArray);
+
+        // Stores the array length in order to iterate over the array
+        int taskArraylen = taskArray.length;
+
+        /*
+         * Locks on the singleton to ensure that other processes aren't mutating Threads, then
+         * iterates over the array of tasks and interrupts the task's current Thread.
+         */
+        synchronized (this) {
+
+            // Iterates over the array of tasks
+            for (int taskArrayIndex = 0; taskArrayIndex < taskArraylen; taskArrayIndex++) {
+
+                // Gets the task's current thread
+                Thread thread = taskArray[taskArrayIndex].getTaskThread();
+
+                // if the Thread exists, post an interrupt to it
+                if (null != thread) {
+                    thread.interrupt();
+                }
+            }
+        }
+
+        /*
+         * Clears all waiting photoTasks
+         */
+        mServerTaskWorkQueue.clear();
     }
 
 

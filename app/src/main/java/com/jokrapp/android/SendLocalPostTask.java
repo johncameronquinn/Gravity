@@ -65,7 +65,7 @@ class SendLocalPostTask extends ServerTask implements LocalPostMethods {
                 Log.d(TAG, "successfully connected to server :3");
                 break;
         }
-        handleDownloadState(outState, this);
+        handleUploadState(outState, this);
     }
 
     public void handleLocalPostState(int state) {
@@ -87,7 +87,7 @@ class SendLocalPostTask extends ServerTask implements LocalPostMethods {
                 outState = DataHandlingService.TASK_COMPLETED;
                 break;
         }
-        handleDownloadState(outState, this);
+        handleUploadState(outState, this);
     }
 
 }

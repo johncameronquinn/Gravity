@@ -53,6 +53,10 @@ public abstract class ServerTask implements ServerConnectRunnable.ServerConnectM
         mService.handleDownloadState(outstate,task);
     }
 
+    protected void handleUploadState(int outstate,ServerTask task) {
+        mService.handleUploadState(outstate,task);
+    }
+
     public HttpURLConnection getURLConnection() {
         return mConnection;
     }
