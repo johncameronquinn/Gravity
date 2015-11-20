@@ -3,7 +3,6 @@ package com.jokrapp.android;
 import android.content.ContentValues;
 import android.net.Uri;
 import android.os.Bundle;
-import android.util.Log;
 
 import java.net.HttpURLConnection;
 import java.util.UUID;
@@ -16,7 +15,7 @@ import java.util.UUID;
  * abstract class 'ServerTask'
  *
  * this class represents all the various forms of server tasks, that the threadpool can use to
- * connect to the server. these tasks will be treated mostly the same, for now.
+ * connect to the server. These tasks will be treated mostly the same, for now.
  *
  * each derivative of this class must implement its own runnable to perform the request,
  * and also must implement its own URL to perform the request on.

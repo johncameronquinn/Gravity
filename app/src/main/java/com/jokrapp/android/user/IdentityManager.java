@@ -234,9 +234,7 @@ public class IdentityManager {
      */
     public boolean isUserSignedIn() {
         final Map<String, String> logins = credentialsProvider.getLogins();
-        if (logins == null || logins.size() == 0)
-            return false;
-        return true;
+        return !(logins == null || logins.size() == 0);
     }
 
     /**
@@ -315,12 +313,7 @@ public class IdentityManager {
             return false;
         }
 
-        if (currentIdentityProvider.getClass().equals(clazz)) {
-            return true;
-        }
-        else {
-            return false;
-        }
+        return currentIdentityProvider.getClass().equals(clazz);
     }
 
     /**

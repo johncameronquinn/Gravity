@@ -1,11 +1,9 @@
 package com.jokrapp.android;
 
 import android.annotation.SuppressLint;
-import android.nfc.Tag;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
-import android.os.Messenger;
 import android.util.LruCache;
 import android.util.Log;
 import android.view.View;
@@ -14,7 +12,6 @@ import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.services.s3.AmazonS3Client;
 
 import java.io.File;
-import java.net.URL;
 import java.util.HashMap;
 import java.util.Queue;
 import java.util.concurrent.BlockingQueue;

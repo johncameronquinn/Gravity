@@ -107,7 +107,6 @@
         android:layout_width="50dp"
         android:layout_height="50dp"
         android:id="@+id/camera_focus"
-        android:background="@drawable/focus"
         android:visibility="invisible"
         android:gravity="center"
         android:tint="@color/jpallete_neutral_blue"/>

@@ -8,8 +8,6 @@ import android.content.IntentFilter;
 import android.hardware.Camera;
 import android.os.Bundle;
 import android.app.Fragment;
-import android.os.Handler;
-import android.os.HandlerThread;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import android.view.GestureDetector;
@@ -25,7 +23,6 @@ import android.widget.FrameLayout;
 
 
 import java.lang.ref.WeakReference;
-import java.util.UUID;
 
 
 /**
@@ -358,11 +355,7 @@ n  */
 //                Log.v(TAG,"Event: " + event.toString());
             }
 
-            if (gestureDetector.onTouchEvent(event)) {
-                return true;
-            } else {
-                return false;
-            }
+            return gestureDetector.onTouchEvent(event);
 
         }
 
@@ -426,7 +419,7 @@ n  */
             startMessageMode(messageTarget);
         }
 
-        mListener.sendMsgStartPreview();
+        //mListener.sendMsgStartPreview();
         if (VERBOSE) {
             Log.v(TAG, "exit onViewCreated...");
         }

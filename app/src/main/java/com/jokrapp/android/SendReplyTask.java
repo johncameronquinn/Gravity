@@ -1,13 +1,8 @@
 package com.jokrapp.android;
 
-import android.content.ContentValues;
-import android.net.Uri;
-import android.os.Bundle;
 import android.util.Log;
-import java.net.HttpURLConnection;
-import java.util.UUID;
+
 import com.jokrapp.android.SendReplyRunnable.SendReplyMethods;
-import com.jokrapp.android.ServerConnectRunnable.ServerConnectMethods;
 
 /**
  * Created by John Quinn on 11/9/15.
@@ -62,7 +57,7 @@ class SendReplyTask extends ServerTask implements SendReplyMethods {
         handleDownloadState(outState, this);
     }
 
-    public void handleLivePostState(int state) {
+    public void handleSendReplyState(int state) {
         int outState = -10;
 
         switch (state) {

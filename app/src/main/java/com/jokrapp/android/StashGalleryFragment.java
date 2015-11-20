@@ -325,7 +325,7 @@ public class StashGalleryFragment extends Fragment implements FragmentManager.On
      */
     public interface OnFragmentInteractionListener {
         // TODO: Update argument type and name
-        public void onFragmentInteraction(Uri uri);
+        void onFragmentInteraction(Uri uri);
     }
 
     /**

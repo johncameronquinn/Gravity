@@ -47,8 +47,7 @@ package com.jokrapp.android;
 
 
         import com.jokrapp.android.SQLiteDbContract.StashEntry;
-        import java.net.MalformedURLException;
-        import java.net.URL;
+
         import java.util.concurrent.RejectedExecutionException;
 
 /**

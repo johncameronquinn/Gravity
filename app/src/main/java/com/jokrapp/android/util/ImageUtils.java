@@ -2,6 +2,7 @@ package com.jokrapp.android.util;
 
 import android.app.Activity;
 import android.content.ContentResolver;
+import android.content.Context;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.util.Base64;
@@ -123,7 +124,7 @@ public final class ImageUtils {
         if (VERBOSE) Log.v(TAG, "Saving incoming with file name: " + fileName);
 
         try {
-            FileOutputStream fos = activity.openFileOutput(fileName, activity.MODE_PRIVATE);
+            FileOutputStream fos = activity.openFileOutput(fileName, Context.MODE_PRIVATE);
             if (VERBOSE) {
                 Log.v(TAG, "saving image to file " + fos.getFD());
             }

@@ -7,26 +7,14 @@ package com.jokrapp.android;
 import android.app.Activity;
 import android.app.Fragment;
 import android.app.FragmentManager;
-import android.content.BroadcastReceiver;
-import android.content.Context;
-import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
 import android.support.v13.app.FragmentPagerAdapter;
-import android.app.FragmentTransaction;
-import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
-import android.view.WindowManager;
 import android.widget.Toast;
-
-import java.util.Map;
-import java.util.Set;
 
 public class StashActivity extends Activity implements StashGalleryFragment.OnFragmentInteractionListener,
         StashLiveSettingsFragment.OnFragmentInteractionListener,

@@ -18,7 +18,6 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.channels.NotYetConnectedException;
-import java.util.concurrent.ExecutorService;
 
 /**
  * class 'FireFlyContentProvider'

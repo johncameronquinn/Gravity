@@ -605,7 +605,7 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
     public void onLocalBlockPressed(View view) {
         if (VERBOSE) Log.v(TAG,"Block button pressed.");
 
-        Toast.makeText(this,"Blocking user " + (String)view.getTag(),Toast.LENGTH_SHORT).show();
+        Toast.makeText(this,"Blocking user " + view.getTag(),Toast.LENGTH_SHORT).show();
 
         Bundle b = new Bundle();
         b.putString(Constants.KEY_ANALYTICS_CATEGORY,Constants.ANALYTICS_CATEGORY_LOCAL);
@@ -1759,10 +1759,10 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
                     break;
 
                 case MSG_START_PREVIEW: //2
-  /*                  try {
+                    try {
                           Log.d(TAG,"setting and starting preview...");
-                          //Log.e(TAG,"this is disabled...");
-//                        mCamera.startPreview();
+                          Log.e(TAG,"this is disabled...");
+                        mCamera.startPreview();
                     } catch (Exception e) {
                         Log.e(TAG, "generic error setting and starting preview", e);
                         mWeakActivity.get().mTracker.getEventClient()
@@ -1771,7 +1771,7 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
                                         .createEvent(Constants.ANALYTICS_CATEGORY_ERROR)
                                         .withAttribute(Constants.ANALYTICS_CATEGORY_MESSAGE,
                                                 e.getMessage() + ":" + "msg_start_preview"));
-                    }*/
+                    }
                     break;
                 case MSG_STOP_PREVIEW: //3
                     if (mCamera != null) {

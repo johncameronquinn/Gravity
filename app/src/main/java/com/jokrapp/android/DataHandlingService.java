@@ -17,27 +17,15 @@ import com.amazonaws.mobileconnectors.s3.transferutility.TransferObserver;
 import com.amazonaws.mobileconnectors.s3.transferutility.TransferState;
 import com.amazonaws.mobileconnectors.s3.transferutility.TransferUtility;
 import com.amazonaws.services.s3.AmazonS3Client;
-import com.google.android.gms.analytics.HitBuilders;
-import com.fasterxml.jackson.core.JsonFactory;
-import com.fasterxml.jackson.core.JsonGenerator;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
-import org.apache.commons.compress.utils.IOUtils;
-import java.io.BufferedOutputStream;
+
 import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
 import java.lang.ref.WeakReference;
-import java.net.ConnectException;
-import java.net.HttpURLConnection;
 import java.net.InetAddress;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.URLConnection;
 import java.net.UnknownHostException;
 import java.nio.channels.NotYetConnectedException;
 import java.util.ArrayList;
@@ -49,7 +37,6 @@ import java.util.Queue;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -913,19 +900,7 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
             Log.v(TAG, "entering reportAnalyticsEvent");
             LogUtils.printBundle(data, TAG);
         }
-
-        HitBuilders.TimingBuilder event = new HitBuilders.TimingBuilder()
-                .setCategory(data.getString(Constants.KEY_ANALYTICS_CATEGORY))
-                .setValue(data.getLong(Constants.KEY_ANALYTICS_ACTION));
-
-        if (data.containsKey(Constants.KEY_ANALYTICS_LABEL)) {
-            event.setLabel(data.getString(Constants.KEY_ANALYTICS_LABEL));
-        }
-
-        if (data.containsKey(Constants.KEY_ANALYTICS_VARIABLE)) {
-
-            event.setVariable(data.getString(Constants.KEY_ANALYTICS_VARIABLE));
-        }
+        Log.w(TAG,"not implemented...");
 
         //mTracker.send(event.build()); todo fix this
 

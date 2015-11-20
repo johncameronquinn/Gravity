@@ -18,7 +18,6 @@ package com.jokrapp.android;
 
         import android.graphics.Bitmap;
         import android.graphics.BitmapFactory;
-        import android.os.Messenger;
         import android.util.Log;
 
 /**

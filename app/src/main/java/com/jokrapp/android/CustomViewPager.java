@@ -3,9 +3,7 @@ package com.jokrapp.android;
 import android.content.Context;
 import android.support.v4.view.ViewPager;
 import android.util.AttributeSet;
-import android.view.GestureDetector;
 import android.view.MotionEvent;
-import android.view.View;
 
 /**
  * Author/Copyright John C. Quinn All Rights Reserved

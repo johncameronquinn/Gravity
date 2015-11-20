@@ -34,9 +34,6 @@ package com.jokrapp.android;
         import android.view.View;
         import android.view.ViewGroup;
 
-        import java.net.MalformedURLException;
-        import java.net.URL;
-
 public class PhotoFragment extends Fragment implements View.OnClickListener {
     // Constants
     private static final String LOG_TAG = "ImageDownloaderThread";

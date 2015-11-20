@@ -7,8 +7,6 @@ package com.jokrapp.android.user;
 //
 
 
-import android.graphics.Bitmap;
-
 /**
  * Interface sign-in provider's supported by the IdentityManager must implement.
  */

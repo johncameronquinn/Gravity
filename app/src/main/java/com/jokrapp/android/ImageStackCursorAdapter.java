@@ -6,19 +6,12 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AbsListView;
 import android.widget.CursorAdapter;
-import android.widget.ImageView;
 
 import android.net.Uri;
-import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.jokrapp.android.view.ImageCursorAdapterView;
-
-import java.io.File;
-import java.util.Hashtable;
-import java.util.Map;
 
 /**
  * Author/Copyright John C. Quinn, All Rights Reserved.

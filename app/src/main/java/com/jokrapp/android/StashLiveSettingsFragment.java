@@ -5,21 +5,17 @@
 package com.jokrapp.android;
 
 import android.app.Activity;
-import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
 import android.app.Fragment;
-import android.support.v4.view.ViewPager;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.EditorInfo;
-import android.widget.EditText;
 import android.widget.TextView;
 
-import java.util.Map;
 import java.util.Set;
 
 
@@ -161,9 +157,9 @@ public class StashLiveSettingsFragment extends Fragment implements TextView.OnEd
      */
     public interface OnFragmentInteractionListener {
         // TODO: Update argument type and name
-        public void onFragmentInteraction(Uri uri);
-        public void saveSetting(String key, String value);
-        public String loadSetting(String key);
+        void onFragmentInteraction(Uri uri);
+        void saveSetting(String key, String value);
+        String loadSetting(String key);
     }
 
 }

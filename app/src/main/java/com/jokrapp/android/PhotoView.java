@@ -16,8 +16,6 @@ import android.widget.ImageView;
 
 
 import java.lang.ref.WeakReference;
-import java.net.URL;
-import java.util.UUID;
 
 /**
  * This class extends the standard Android ImageView View class with some features

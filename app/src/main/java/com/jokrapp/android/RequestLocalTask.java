@@ -1,17 +1,10 @@
 package com.jokrapp.android;
 
-import android.content.ContentValues;
-import android.net.Uri;
-import android.os.Bundle;
 import android.util.Log;
 
 import com.jokrapp.android.RequestLocalRunnable.RequestLocalMethods;
-import com.jokrapp.android.ServerConnectRunnable.ServerConnectMethods;
 
-import java.net.HttpURLConnection;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 /**
  * Created by John Quinn on 11/9/15.

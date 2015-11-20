@@ -3,12 +3,6 @@ package com.jokrapp.android.util;
 import android.os.Bundle;
 import android.util.Log;
 
-import java.io.File;
-import java.io.FileFilter;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.nio.channels.FileChannel;
 import java.util.Map;
 
 /**

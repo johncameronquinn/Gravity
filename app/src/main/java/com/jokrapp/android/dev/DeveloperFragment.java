@@ -299,7 +299,7 @@ public class DeveloperFragment extends Fragment implements View.OnClickListener 
      */
     public interface OnFragmentInteractionListener {
         // TODO: Update argument type and name
-        public void onDeveloperInteraction(int request,Uri uri);
+        void onDeveloperInteraction(int request, Uri uri);
     }
 
 }

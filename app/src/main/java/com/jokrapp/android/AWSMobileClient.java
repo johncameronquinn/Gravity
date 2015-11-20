@@ -44,9 +44,9 @@ public class AWSMobileClient {
 	 */
         public Builder(final Context context) {
             this.applicationContext = context.getApplicationContext();
-        };
+        }
 
-	/**
+        /**
 	 * Provides the Amazon Cognito Identity Pool ID.
 	 * @param cognitoIdentityPoolID identity pool ID
 	 * @return builder
@@ -54,9 +54,9 @@ public class AWSMobileClient {
         public Builder withCognitoIdentityPoolID(final String cognitoIdentityPoolID) {
             this.cognitoIdentityPoolID = cognitoIdentityPoolID;
             return this;
-        };
-        
-	/**
+        }
+
+        /**
 	 * Provides the Amazon Cognito service region.
 	 * @param cognitoRegion service region
 	 * @return builder

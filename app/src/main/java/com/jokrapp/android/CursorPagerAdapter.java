@@ -4,17 +4,11 @@ package com.jokrapp.android;
  * Created by ev0xon 10 /3/15.
  */
 
-import android.content.BroadcastReceiver;
-import android.content.Context;
-import android.content.Intent;
 import android.database.Cursor;
 import android.os.Bundle;
 import android.app.Fragment;
 import android.app.FragmentManager;
-import android.os.Parcelable;
-import android.support.v13.app.FragmentPagerAdapter;
 import android.support.v13.app.FragmentStatePagerAdapter;
-import android.util.Log;
 
 
 public class CursorPagerAdapter<F extends Fragment> extends FragmentStatePagerAdapter {

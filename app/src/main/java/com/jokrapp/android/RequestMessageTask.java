@@ -1,14 +1,8 @@
 package com.jokrapp.android;
 
-import android.content.ContentValues;
-import android.net.Uri;
-import android.os.Bundle;
 import android.util.Log;
-import java.net.HttpURLConnection;
-import java.util.UUID;
 
 import com.jokrapp.android.RequestMessagesRunnable.RequestMessagesMethods;
-import com.jokrapp.android.ServerConnectRunnable.ServerConnectMethods;
 
 /**
  * Created by John Quinn on 11/9/15.

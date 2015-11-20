@@ -41,7 +41,7 @@ public class SendReplyRunnable implements Runnable{
 
     interface SendReplyMethods {
 
-        void handleLivePostState(int state);
+        void handleSendReplyState(int state);
 
         void setTaskThread(Thread thread);
 
@@ -81,6 +81,8 @@ public class SendReplyRunnable implements Runnable{
 
         int responseCode = -10;
         try {
+            mTask.handleSendReplyState(REQUEST_STARTED);
+
             conn = mTask.getURLConnection();
             JsonFactory jsonFactory = new JsonFactory();
             JsonGenerator jGen = jsonFactory.
@@ -105,17 +107,17 @@ public class SendReplyRunnable implements Runnable{
             responseCode = conn.getResponseCode();
         } catch (IOException e) {
             Log.e(TAG, "error handling JSON", e);
-            mTask.handleLivePostState(REQUEST_FAILED);
+            mTask.handleSendReplyState(REQUEST_FAILED);
         } finally {
             if (responseCode == HttpURLConnection.HTTP_OK) {
-                mTask.handleLivePostState(REQUEST_SUCCESS);
+                mTask.handleSendReplyState(REQUEST_SUCCESS);
                 if (!"".equals(imageKey)) {
                     File file = new File(imageKey);
                     Log.i(TAG,"file is stored at" + imageKey);
                     file.delete();
                 }
             } else {
-                mTask.handleLivePostState(REQUEST_FAILED);
+                mTask.handleSendReplyState(REQUEST_FAILED);
                 Log.e(TAG,"response code returned: " + responseCode);
                 //todo retry request
             }
