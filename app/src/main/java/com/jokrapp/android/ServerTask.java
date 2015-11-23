@@ -3,6 +3,7 @@ package com.jokrapp.android;
 import android.content.ContentValues;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Messenger;
 
 import java.net.HttpURLConnection;
 import java.util.UUID;
@@ -28,7 +29,7 @@ public abstract class ServerTask implements ServerConnectRunnable.ServerConnectM
     private Thread mThread;
     private UUID userID;
     private HttpURLConnection mConnection;
-    private int httpResponseCode;
+    private int responseWhat;
 
     protected Runnable mServerConnectRunnable;
 
@@ -44,12 +45,22 @@ public abstract class ServerTask implements ServerConnectRunnable.ServerConnectM
         this.userID = userID;
     }
 
+
+    public void initializeTask(DataHandlingService mService, Bundle dataBundle, UUID userID,
+                               int resp) {
+        this.mService = mService;
+        this.dataBundle = dataBundle;
+        this.userID = userID;
+
+        responseWhat = resp;
+    }
+
     public void setServerConnection(HttpURLConnection connection) {
         mConnection = connection;
     }
 
     protected void handleDownloadState(int outstate,ServerTask task) {
-        mService.handleDownloadState(outstate,task);
+        mService.handleDownloadState(outstate, task);
     }
 
     protected void handleUploadState(int outstate,ServerTask task) {
@@ -82,6 +93,10 @@ public abstract class ServerTask implements ServerConnectRunnable.ServerConnectM
 
     public Thread getTaskThread() {
         return this.mThread;
+    }
+
+    public int getResponseWhat() {
+        return responseWhat;
     }
 
     public DataHandlingService getService() {

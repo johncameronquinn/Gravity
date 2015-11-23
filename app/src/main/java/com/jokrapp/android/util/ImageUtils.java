@@ -22,6 +22,9 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.channels.FileChannel;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
 
 /**
  * Created by ev0x on 11/14/15.
@@ -191,6 +194,20 @@ public final class ImageUtils {
             Log.e(TAG, "file was not found", e);
         }
         return image;
+    }
+
+
+    /**
+     * Create a File for saving an image or video
+     */
+    public File getInternalImageFile(Activity activity) {
+        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(new Date());
+
+        File file = new File(activity.getFilesDir(), File.separator +
+                "IMG_" + timeStamp + ".jpg");
+
+
+        return file;
     }
 
 

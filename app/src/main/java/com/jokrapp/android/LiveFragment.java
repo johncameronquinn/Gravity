@@ -13,6 +13,7 @@ import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
 import android.app.Fragment;
+import android.os.Message;
 import android.support.v4.view.ViewPager;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -25,6 +26,7 @@ import android.widget.Toast;
 
 import java.io.FileNotFoundException;
 import java.lang.ref.WeakReference;
+import java.net.HttpURLConnection;
 
 import fr.castorflex.android.verticalviewpager.VerticalViewPager;
 import com.jokrapp.android.SQLiteDbContract.LiveRepliesEntry;
@@ -162,8 +164,7 @@ public class LiveFragment extends Fragment implements
     public void onAttach(Context context) {
         super.onAttach(context);
         mListener = (onLiveFragmentInteractionListener)context;
-        mListener.sendMsgRequestLiveThreads();
-
+        triggerLiveRefresh();
 
         String[] projection = {
                 LiveRepliesEntry.COLUMN_ID,
@@ -315,6 +316,15 @@ public class LiveFragment extends Fragment implements
         }
     }
 
+    public void triggerLiveRefresh() {
+        if (VERBOSE) Log.v(TAG,"entering triggerLiveRefresh...");
+
+        mListener.sendMsgRequestLiveThreads();
+        threadPager.setAdapter(null);
+
+        if (VERBOSE) Log.v(TAG,"exiting triggerLiveRefresh...");
+    }
+
     /**
      * class 'liveButtonListener
      *
@@ -333,13 +343,13 @@ public class LiveFragment extends Fragment implements
             switch (v.getId()) {
 
                 case R.id.button_live_refresh:
-                    ((MainActivity)getActivity()).sendMsgRequestLiveThreads();
+                    triggerLiveRefresh();
                     break;
 
 
                 case R.id.button_new_thread:
                  //   setSeekMode(v);
-                    ((MainActivity)getActivity()).takeLivePicture();
+                    mListener.takeLivePicture();
                     break;
             }
         }
@@ -442,6 +452,35 @@ public class LiveFragment extends Fragment implements
             }
         }
 
+    }
+
+    public void handleLiveResponseState(Message msg) {
+        if (VERBOSE) {
+            Log.v(TAG,"entering handleLiveResponseState...");
+        }
+
+        switch (msg.what) {
+            case DataHandlingService.MSG_REQUEST_LIVE_THREADS:
+                switch (msg.arg2) {
+                    case HttpURLConnection.HTTP_OK:
+                        if (VERBOSE) Log.v(TAG, "Response code : " + msg.arg1);
+                        threadPager.setAdapter(mAdapter);
+                        break;
+
+                    default:
+                    Toast.makeText(getActivity(), "Request threads response code : " + msg.arg2,
+                            Toast.LENGTH_SHORT).show();
+
+                }
+
+                default:
+
+
+        }
+
+        if (VERBOSE) {
+            Log.v(TAG,"exiting handleLiveResponseState...");
+        }
     }
 
     /**
@@ -596,6 +635,7 @@ public class LiveFragment extends Fragment implements
         void sendMsgRequestLiveThreads();
         void sendMsgRequestReplies(int threadID);
         void setCurrentThread(String threadID);
+        void takeLivePicture();
     }
 
 

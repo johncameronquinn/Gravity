@@ -384,19 +384,13 @@ n  */
 
             }
         }
-
-
-
         Log.d(TAG, "setting surface texture listener to cameraHandler");
 
         MainActivity activity = (MainActivity) getActivity();
         //Log.d(TAG, "CameraHandler reference refers to: " + activity.getCameraHandlerSingleton(activity).toString());
         mPreview.setSurfaceTextureListener(MainActivity.sHandler);
 
-
-
         Log.d(TAG, "created view is: " + view.toString());
-
 
         final Button switchButton = (Button) view.findViewById(R.id.switch_camera);
 

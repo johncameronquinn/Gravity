@@ -22,9 +22,12 @@ import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
-
+import org.apache.commons.compress.utils.IOUtils;
+import java.io.BufferedOutputStream;
 import java.io.File;
+import java.io.IOException;
 import java.lang.ref.WeakReference;
+import java.net.HttpURLConnection;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.nio.channels.NotYetConnectedException;
@@ -118,7 +121,6 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
     /**
      * Thread management
      */
-
     // A queue of Runnables for the image download pool
     private final BlockingQueue<Runnable> mConnectionWorkQueue;
 
@@ -147,7 +149,8 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
     private static final int MAXIMUM_POOL_SIZE = 8;
 
     public DataHandlingService() {
-           /*
+
+        /*
          * Creates a work queue for the pool of Thread objects used for downloading, using a linked
          * list queue that blocks when the queue is empty.
          */
@@ -274,7 +277,6 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
         if (VERBOSE) Log.v(TAG,"exiting initializeTransferUtility...");
     }
 
-
     public List<String> getImagesSeen() {
         return imagesSeen;
     }
@@ -308,10 +310,6 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
 
     public void setReplyMessenger(Messenger messenger) {
         replyMessenger = messenger;
-    }
-
-    public Messenger getReplyMessenger() {
-        return replyMessenger;
     }
 
     static final int MSG_BUILD_CLIENT = 1;
@@ -527,7 +525,7 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
             }
 
             if (task != null) {
-                task.initializeTask(irs.get(),data,userID);
+                task.initializeTask(irs.get(),data,userID,msg.what);
                 mConnectionThreadPool.execute(task.getServerConnectRunnable());
             }
 
@@ -573,28 +571,59 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
      * @param state the state of the content being downloaded
      */
     public void handleDownloadState(int state, ServerTask task) {
+        int responseCode = -5;
+        Message responseMessage;
+
         switch (state) {
             case CONNECTION_FAILED:
                 if (Constants.LOGD) Log.d(TAG, "Connection failed...");
+
+                if (task.getURLConnection() != null) {
+                    try {
+                        responseCode = task.getURLConnection().getResponseCode();
+                        if (VERBOSE) Log.v(TAG,"grabbed responseCode is: " + responseCode);
+                    } catch (IOException e) {
+                        Log.e(TAG, "unable to get error code... ", e);
+                        Toast.makeText(this, "unable to get error code from failed connection...",
+                                Toast.LENGTH_LONG).show();
+                    }
+                }
+                responseMessage = Message.obtain(null, task.getResponseWhat(), state, responseCode);
                 recycleTask(task);
                 break;
 
             case CONNECTION_STARTED:
                 if (Constants.LOGD) Log.d(TAG, "Connection started...");
+                responseMessage = Message.obtain(null, task.getResponseWhat(), state, 0);
                 break;
 
             case CONNECTION_COMPLETED:
                 if (Constants.LOGD) Log.d(TAG, "Connection completed...");
+                responseMessage = Message.obtain(null, task.getResponseWhat(), state, 0);
                 mRequestThreadPool.execute(task.getRequestRunnable());
                 break;
 
             case REQUEST_FAILED:
                 if (Constants.LOGD) Log.d(TAG,"Request failed...");
+
+                if (task.getURLConnection() != null) {
+                    try {
+                        responseCode = task.getURLConnection().getResponseCode();
+                        if (VERBOSE) Log.v(TAG,"grabbed responseCode is: " + responseCode);
+                    } catch (IOException e) {
+                        Log.e(TAG, "unable to get error code... ", e);
+                        Toast.makeText(this, "unable to get error code from failed connection...",
+                                Toast.LENGTH_LONG).show();
+                    }
+                }
+                responseMessage = Message.obtain(null, task.getResponseWhat(), state, responseCode);
+
                 recycleTask(task);
                 break;
 
             case REQUEST_STARTED:
                 if (Constants.LOGD) Log.d(TAG,"Request started...");
+                responseMessage = Message.obtain(null, task.getResponseWhat(), state, 0);
                 break;
 
             case INITIALIZE_TASK_COMPLETED:
@@ -610,10 +639,32 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
                 sendSignOnEvent(userID.toString());
 
             case TASK_COMPLETED:
+
+                if (task.getURLConnection() != null) {
+                    try {
+                        responseCode = task.getURLConnection().getResponseCode();
+                        if (VERBOSE) Log.v(TAG,"grabbed responseCode is: " + responseCode);
+                    } catch (IOException e) {
+                        Log.e(TAG, "unable to get error code... ", e);
+                        Toast.makeText(this, "unable to get error code from failed connection...",
+                                Toast.LENGTH_LONG).show();
+                    }
+                }
+                responseMessage = Message.obtain(null, task.getResponseWhat(), state, responseCode);
                 recycleTask(task);
                 if (Constants.LOGD) Log.d(TAG, "Task completed... by name: " + task.toString());
                 break;
+
+            default:
+                throw new RuntimeException("Invalid State received in DataHandlingService");
         }
+
+
+            try {
+                replyMessenger.send(responseMessage);
+            } catch (RemoteException e) {
+                Log.e(TAG, "error responding to UI listeners...");
+            }
 
     }
 
@@ -643,18 +694,6 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
                 if (Constants.LOGD) Log.d(TAG,"Request started...");
                 break;
 
-            case INITIALIZE_TASK_COMPLETED:
-                userID = (task).getUserID();
-
-                Log.i(TAG,"saving userID to SharedPreferences..." + userID);
-                SharedPreferences settings = getSharedPreferences(TAG, MODE_PRIVATE);
-                SharedPreferences.Editor editor = settings.edit();
-                editor.putString(UUID_KEY, userID.toString());
-                editor.putBoolean(ISFIRSTRUN_KEY, false);
-                editor.apply();
-
-                sendSignOnEvent(userID.toString());
-
             case TASK_COMPLETED:
                 recycleTask(task);
                 if (Constants.LOGD) Log.d(TAG, "Task completed... by name: " + task.toString());
@@ -666,7 +705,7 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
         try {
             replyMessenger.send(msg);
         } catch (RemoteException e) {
-            Log.e(TAG,"remoteException",e);
+            Log.e(TAG, "remoteException", e);
         }
 
     }
@@ -1069,7 +1108,9 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
                 Intent intent;
 
                 ServerTask task = null;
-                switch (data.getInt(REQUEST_TYPE,-1)) {
+
+                int requestType = data.getInt(REQUEST_TYPE,-1);
+                switch (requestType) {
                     case MSG_SEND_IMAGE:
                         task = new SendLocalPostTask();
                         break;
@@ -1122,7 +1163,7 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
                 }
 
                 if (task != null) {
-                    task.initializeTask(this,data,userID);
+                    task.initializeTask(this,data,userID,requestType);
                     mConnectionThreadPool.execute(task.getServerConnectRunnable());
                 }
                 pendingMap.remove(id);

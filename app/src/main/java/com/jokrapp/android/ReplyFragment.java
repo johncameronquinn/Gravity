@@ -9,6 +9,7 @@ import android.content.Loader;
 import android.database.Cursor;
 import android.os.Bundle;
 import android.app.Fragment;
+import android.os.Message;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -17,9 +18,12 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.RelativeLayout;
+import android.widget.Toast;
 
 
 import com.jokrapp.android.SQLiteDbContract.LiveReplies;
+
+import java.net.HttpURLConnection;
 
 
 /**
@@ -37,6 +41,7 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
     private final String TAG = "ReplyFragment";
 
     private LiveFragment.onLiveFragmentInteractionListener mListener;
+    private ListView mListView;
 
     private static ReplyButtonListener replyButtonListener;
 
@@ -145,7 +150,7 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
         // Inflate the layout for this fragment
         View v = inflater.inflate(R.layout.fragment_reply, container, false);
 
-        ListView listView = (ListView)v.findViewById(R.id.reply_list_view);
+        mListView = (ListView)v.findViewById(R.id.reply_list_view);
 
 /*        String[] fromColumns = {
                 SQLiteDbContract.LiveReplies.COLUMN_NAME_NAME,
@@ -159,10 +164,10 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
 //                    R.layout.fragment_reply_detail_row, null, fromColumns, toViews, 0);
 
             mAdapter = new ReplyCursorAdapter(getActivity(),null,0);
-            listView.setAdapter(mAdapter);
+            mListView.setAdapter(mAdapter);
         }
 
-        if (VERBOSE) {Log.v(TAG,"exiting onCreateView...");}
+        if (VERBOSE) {Log.v(TAG, "exiting onCreateView...");}
         return v;
     }
 
@@ -252,6 +257,33 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
 
     public int getCurrentThread() { return currentThread;}
 
+    public void triggerReplyRefresh() {
+        mListView.setAdapter(null);
+        mListener.sendMsgRequestReplies(currentThread);
+    }
+
+
+    public void handleReplyResponseState(Message msg) {
+        if (VERBOSE) {
+            Log.v(TAG,"entering handleReplyResponseState...");
+        }
+
+        switch (msg.arg2) {
+            case HttpURLConnection.HTTP_OK:
+                if (VERBOSE) Log.v(TAG,"Response code : " + msg.arg2);
+                mListView.setAdapter(mAdapter);
+                break;
+
+            default:
+                //Toast.makeText(getActivity(), "Response code : " + msg.arg2, Toast.LENGTH_SHORT).show();
+                break;
+        }
+
+        if (VERBOSE) {
+            Log.v(TAG,"exiting handleReplyResponseState...");
+        }
+    }
+
 
     /**
      * class 'replyButtonListener
@@ -277,7 +309,7 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
 
                 case R.id.button_reply_refresh:
                     if (isAdded()) {
-                        activity.sendMsgRequestReplies(currentThread);
+                        triggerReplyRefresh();
                     }
                     b.putString(Constants.KEY_ANALYTICS_ACTION,"refresh");
                     b.putString(Constants.KEY_ANALYTICS_LABEL,"current thread");
@@ -294,6 +326,7 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
 
                         activity.setReplyFilePath("");
                         activity.setLiveCreateReplyInfo(commentText.getText().toString(), getCurrentThread());
+                        triggerReplyRefresh();
 
                         InputMethodManager imm = (InputMethodManager) activity
                                 .getSystemService(Context.INPUT_METHOD_SERVICE);

@@ -61,7 +61,7 @@ class RequestRepliesRunnable implements Runnable {
         Bundle b = mService.getDataBundle();
         LogUtils.printBundle(b,TAG);
 
-        int responsecode = -1;
+        boolean success = true;
 
         try {
             if (Thread.interrupted()) {
@@ -126,12 +126,11 @@ class RequestRepliesRunnable implements Runnable {
                 mService.insert(FireFlyContentProvider.CONTENT_URI_REPLY_LIST,row); //todo implement bulkinsert
             }
 
-            responsecode = conn.getResponseCode();
         } catch (IOException e) {
             Log.e(TAG, "IOException when retrieving replies...", e);
-            mService.handleRepliesRequestState(REQUEST_REPLIES_FAILED);
+            success = false;
         } finally {
-            if (responsecode == HttpURLConnection.HTTP_OK) {
+            if (success) {
                 mService.handleRepliesRequestState(REQUEST_REPLIES_SUCCESS);
             } else {
                 mService.handleRepliesRequestState(REQUEST_REPLIES_FAILED);

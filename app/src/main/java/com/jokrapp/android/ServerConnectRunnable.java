@@ -72,7 +72,14 @@ public class ServerConnectRunnable implements Runnable {
         HttpURLConnection conn = null;
 
         int responseCode = -1;
-            try {
+
+       /*
+        * uses a flag to track success
+        * This method assumes that an error WILL be thrown if a server failure occurs
+        */
+        boolean success = true;
+
+        try {
                 mTask.handleServerConnectState(CONNECT_STATE_STARTED);
 
                 if (Thread.interrupted()) {
@@ -107,6 +114,8 @@ public class ServerConnectRunnable implements Runnable {
                     Log.i(TAG,"connecting to server...");
 
                     try {
+                        success = true;
+
                         conn = (HttpURLConnection) url.openConnection();
                         conn.setReadTimeout(READ_TIMEOUT);
                         conn.setConnectTimeout(CONNECT_TIMEOUT);
@@ -135,19 +144,19 @@ public class ServerConnectRunnable implements Runnable {
 
                     } catch (ConnectException e) {
                         Log.e(TAG, "Failed to open a connection to the server...", e);
-                        conn = null;
+                        success = false;
                     } catch (ProtocolException e) {
                         Log.e(TAG, "ProtocolException when trying to open a connection to the " +
                                 "server...", e);
-                        conn = null;
+                        success = false;
                     } catch (SocketException e) {
                         Log.e(TAG, "SocketException...", e);
-                        conn = null;
+                        success = false;
                     } catch (IOException e) {
                         Log.e(TAG,
                                 "IOException when trying to open a connection to the server...",
                                 e);
-                        conn = null;
+                        success = false;
                     } finally {
                         if (attempt > 0) {
                             Double delay = BASE_RE_ATTEMPT_DELAY * Math.pow(2, attempt);
@@ -156,14 +165,14 @@ public class ServerConnectRunnable implements Runnable {
                         }
                         attempt++;
                     }
-                } while (conn==null && attempt < NUMBER_OF_CONNECT_TRIES);
+                } while (!success && attempt < NUMBER_OF_CONNECT_TRIES);
 
             } catch (InterruptedException e) {
                 Log.e(TAG,"interruptedException occured...",e);
-                conn = null;
+                success = false;
             } finally {
-                if (conn != null) {
-                    mTask.setServerConnection(conn);
+                mTask.setServerConnection(conn);
+                if (success) {
                     mTask.handleServerConnectState(CONNECT_STATE_COMPLETED);
                 } else {
                     mTask.handleServerConnectState(CONNECT_STATE_FAILED);

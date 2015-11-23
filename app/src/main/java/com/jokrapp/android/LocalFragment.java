@@ -8,12 +8,15 @@ import android.content.Loader;
 import android.database.Cursor;
 import android.os.Bundle;
 import android.app.Fragment;
+import android.os.Message;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
 import com.jokrapp.android.view.ImageCursorAdapterView;
+
+import java.net.HttpURLConnection;
 
 
 /**
@@ -196,6 +199,26 @@ public class LocalFragment extends Fragment implements
                 null,
                 SQLiteDbContract.LocalEntry.COLUMN_NAME_WEIGHT);
 
+    }
+    public void handleLocalResponseState(Message msg) {
+        if (VERBOSE) {
+            Log.v(TAG,"entering handleLocalResponseState...");
+        }
+
+        switch (msg.arg2) {
+            case HttpURLConnection.HTTP_OK:
+                if (VERBOSE) Log.v(TAG,"Response code : " + msg.arg2);
+                //imageAdapterView.setAdapter(adapter);
+                break;
+
+            default:
+                //Toast.makeText(getActivity(), "Response code : " + msg.arg2, Toast.LENGTH_SHORT).show();
+                break;
+        }
+
+        if (VERBOSE) {
+            Log.v(TAG,"exiting handleReplyResponseState...");
+        }
     }
 
 

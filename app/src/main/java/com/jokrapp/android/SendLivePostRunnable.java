@@ -71,6 +71,8 @@ public class SendLivePostRunnable implements Runnable{
 
         mTask.setTaskThread(Thread.currentThread());
 
+
+        boolean success = true;
         HttpURLConnection conn = null;
         Bundle b = mTask.getDataBundle();
         if (VERBOSE) LogUtils.printBundle(b, TAG);
@@ -101,12 +103,11 @@ public class SendLivePostRunnable implements Runnable{
             jGen.flush();
             jGen.close();
 
-            responseCode = conn.getResponseCode();
         } catch (IOException e) {
             Log.e(TAG, "error handling JSON", e);
-            mTask.handleLivePostState(REQUEST_FAILED);
+            success = false;
         } finally {
-            if (responseCode == HttpURLConnection.HTTP_OK) {
+            if (success) {
                 mTask.handleLivePostState(REQUEST_SUCCESS);
                 File file = new File(imageKey);
                 Log.i(TAG,"file is stored at" + imageKey);
