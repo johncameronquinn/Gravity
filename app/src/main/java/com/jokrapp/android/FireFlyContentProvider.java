@@ -458,7 +458,6 @@ public class FireFlyContentProvider extends ContentProvider {
                 id = sqlDB.insertWithOnConflict(SQLiteDbContract.LiveRepliesEntry.TABLE_NAME,null,values,SQLiteDatabase.CONFLICT_REPLACE);
                 break;
 
-
             case REPLIES:
                 id = sqlDB.insertWithOnConflict(SQLiteDbContract.LiveReplies.TABLE_NAME, null, values,SQLiteDatabase.CONFLICT_IGNORE);
                 break;

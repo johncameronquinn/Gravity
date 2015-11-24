@@ -101,8 +101,14 @@ public class ImageStackCursorAdapter extends CursorAdapter {
             Log.v(TAG,"entering newView...");
         }
 
-        vView.setTag(new ViewHolder(vView, cursor.getString
-                (cursor.getColumnIndex(SQLiteDbContract.LocalEntry.COLUMN_NAME_FILEPATH))));
+
+        String filePath = cursor.getString(
+                cursor.getColumnIndex(
+                        SQLiteDbContract.LocalEntry.COLUMN_NAME_FILEPATH
+                )
+        );
+
+        vView.setTag(new ViewHolder(vView,filePath));
 
         vView.setLayoutParams(new ImageCursorAdapterView.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,

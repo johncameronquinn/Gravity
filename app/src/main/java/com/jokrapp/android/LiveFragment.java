@@ -61,7 +61,6 @@ public class LiveFragment extends Fragment implements
 
     private int numberOfThreads;
 
-    // TODO: Rename and change types of parameters
     private int currentThread;
 
     public static final int NO_LIVE_THREADS_ID = -1;
@@ -226,6 +225,7 @@ public class LiveFragment extends Fragment implements
         View rootView = inflater.inflate(R.layout.fragment_live,container,false);
         rootView.findViewById(R.id.button_live_refresh).setOnClickListener(getButtonListener(this));
         rootView.findViewById(R.id.button_new_thread).setOnClickListener(getButtonListener(this));
+        rootView.findViewById(R.id.button_live_save).setOnClickListener(getButtonListener(this));
         ((SeekBar)rootView.findViewById(R.id.seekBar)).setOnSeekBarChangeListener(getButtonListener(this));
 
         if (VERBOSE) Log.v(TAG,"exiting onCreateView...");
@@ -343,6 +343,7 @@ public class LiveFragment extends Fragment implements
             switch (v.getId()) {
 
                 case R.id.button_live_refresh:
+                    //starts a refresh and waits for success
                     triggerLiveRefresh();
                     break;
 
@@ -350,6 +351,22 @@ public class LiveFragment extends Fragment implements
                 case R.id.button_new_thread:
                  //   setSeekMode(v);
                     mListener.takeLivePicture();
+                    break;
+
+                case R.id.button_live_save:
+                    //gets the photoView of the thread currently selected by the pager, and saves.
+
+                    //Fragment fragment = mAdapter.getItem(currentThread);
+                    //v = fragment.getView();
+                    LiveThreadFragment liveFragment = mAdapter.getCurrentFragment();
+
+                    if (liveFragment!=null) {
+                        Log.v(TAG,"liveThreadFragment returned: " + liveFragment.toString());
+                        PhotoView photoView = liveFragment.mPhotoView;
+                        mListener.saveToStash(photoView);
+                    } else {
+                        Log.e(TAG,"fragment.getView() returned null");
+                    }
                     break;
             }
         }
@@ -636,6 +653,7 @@ public class LiveFragment extends Fragment implements
         void sendMsgRequestReplies(int threadID);
         void setCurrentThread(String threadID);
         void takeLivePicture();
+        void saveToStash(PhotoView imageToSave);
     }
 
 

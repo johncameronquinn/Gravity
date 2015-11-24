@@ -37,6 +37,8 @@ public final class Constants {
     public static final String LOCAL_KEY_PATH = "pkl";
     public static final String KEY_USER_ID = "userID";
 
+    public static final String STASH_GALLERY_DIRECTORY = "Stash_Gallery";
+
 
     /** threadSample
      */

@@ -16,12 +16,19 @@
         android:background="@drawable/ic_live_hidethread"
         android:layout_below="@+id/button_live_refresh"/>
 
+
+    <Button
+        style="@style/radicalContentButton"
+        android:id="@+id/button_live_save"
+        android:background="@drawable/ic_minifab4"
+        android:layout_below="@+id/button_live_hide"/>
+
     <Button
         style="@style/radicalContentButton"
         android:id="@+id/button_new_thread"
         android:background="@drawable/ic_live_newthread"
         android:layout_gravity="center_horizontal|top"
-        android:layout_below="@+id/button_live_hide" />
+        android:layout_below="@+id/button_live_save" />
 
     <Button
         style="@style/radicalContentButton"

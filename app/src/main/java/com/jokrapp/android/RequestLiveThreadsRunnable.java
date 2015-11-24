@@ -40,6 +40,8 @@ public class RequestLiveThreadsRunnable implements Runnable {
         HttpURLConnection getURLConnection();
 
         void insert(Uri uri, ContentValues values);
+
+        void delete(Uri uri, ContentValues values);
     }
 
     public RequestLiveThreadsRunnable(ThreadRequestMethods methods) {
@@ -57,7 +59,7 @@ public class RequestLiveThreadsRunnable implements Runnable {
         mService.handleThreadsRequestState(REQUEST_THREADS_STARTED);
 
         HttpURLConnection conn = null;
-        int responseCode = -10;
+        boolean success = true;
 
         try {
             if (Thread.interrupted()) {
@@ -103,7 +105,7 @@ public class RequestLiveThreadsRunnable implements Runnable {
                     valuesList.add(values);
                 }
 
-                responseCode = conn.getResponseCode();
+                mService.delete(FireFlyContentProvider.CONTENT_URI_LIVE,null);
 
                 for (ContentValues row : valuesList) {
                      mService.insert(FireFlyContentProvider.CONTENT_URI_LIVE, row); //todo implement bulkinsert
@@ -112,9 +114,9 @@ public class RequestLiveThreadsRunnable implements Runnable {
 
         } catch (IOException e) {
             Log.e(TAG, "IOException when retrieving replies...", e);
-            mService.handleThreadsRequestState(REQUEST_THREADS_FAILED);
+            success = false;
         } finally {
-            if (responseCode == HttpURLConnection.HTTP_OK) {
+            if (success) {
                 mService.handleThreadsRequestState(REQUEST_THREADS_SUCCESS);
             } else {
                 mService.handleThreadsRequestState(REQUEST_THREADS_FAILED);

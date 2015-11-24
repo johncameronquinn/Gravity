@@ -91,6 +91,8 @@ public abstract class ServerTask implements ServerConnectRunnable.ServerConnectM
         mService.insert(uri, values);
     }
 
+    public void delete(Uri uri, ContentValues values) { mService.delete(uri, values); }
+
     public Thread getTaskThread() {
         return this.mThread;
     }

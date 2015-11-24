@@ -445,6 +445,10 @@ public class ImageCursorAdapterView extends AdapterView<CursorAdapter> {
         throw new UnsupportedOperationException();
     }
 
+    public View getmTopCard() {
+        return mTopCard;
+    }
+
     @Override
     public void setSelection(int position) {
         throw new UnsupportedOperationException();

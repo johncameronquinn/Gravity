@@ -339,6 +339,10 @@ public class PhotoManager {
         if (Constants.LOGV) Log.v(TAG,"exiting PhotoManager constructor...");
     }
 
+    public byte[] getCachedImage(String key) {
+        return mPhotoCache.get(key);
+    }
+
     /**
      * Returns the PhotoManager object
      * @return The global PhotoManager object

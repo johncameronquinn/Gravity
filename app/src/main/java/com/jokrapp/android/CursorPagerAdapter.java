@@ -9,12 +9,15 @@ import android.os.Bundle;
 import android.app.Fragment;
 import android.app.FragmentManager;
 import android.support.v13.app.FragmentStatePagerAdapter;
+import android.view.View;
+import android.view.ViewGroup;
 
 
 public class CursorPagerAdapter<F extends Fragment> extends FragmentStatePagerAdapter {
     private final Class<F> fragmentClass;
     private final String[] projection;
     private Cursor cursor;
+    private LiveThreadFragment mThreadFragment;
 
     public CursorPagerAdapter(FragmentManager fm, Class<F> fragmentClass, String[] projection, Cursor cursor) {
         super(fm);
@@ -66,6 +69,16 @@ public class CursorPagerAdapter<F extends Fragment> extends FragmentStatePagerAd
 
     public Cursor getCursor() {
         return cursor;
+    }
+
+
+    @Override
+    public void setPrimaryItem(ViewGroup container, int position, Object object) {
+        mThreadFragment = (LiveThreadFragment)object;
+    }
+
+    public LiveThreadFragment getCurrentFragment() {
+        return mThreadFragment;
     }
 
 }

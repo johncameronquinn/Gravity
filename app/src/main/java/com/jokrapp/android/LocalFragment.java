@@ -6,16 +6,26 @@ import android.content.Context;
 import android.content.CursorLoader;
 import android.content.Loader;
 import android.database.Cursor;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.drawable.BitmapDrawable;
 import android.os.Bundle;
 import android.app.Fragment;
+import android.os.Environment;
 import android.os.Message;
+import android.provider.MediaStore;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 
 import com.jokrapp.android.view.ImageCursorAdapterView;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOError;
+import java.io.IOException;
 import java.net.HttpURLConnection;
 
 
@@ -138,6 +148,24 @@ public class LocalFragment extends Fragment implements
 
         imageAdapterView = (ImageCursorAdapterView)cat.findViewById(R.id.imageAdapter);
         imageAdapterView.setAdapter(adapter);
+
+
+
+        cat.findViewById(R.id.button_local_save).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (VERBOSE) Log.v(TAG,"entering LocalSaveToStash-OnClick...");
+
+                PhotoView topView = (
+                        (PhotoView)imageAdapterView
+                                .getmTopCard()
+                                .findViewById(R.id.photoView)
+                );
+
+                mListener.saveToStash(topView);
+                if (VERBOSE)Log.v(TAG,"exiting LocalSaveToStash-OnClick...");
+            }
+        });
 
         if (VERBOSE) {
             Log.v(TAG,"exit onViewCreated...");
@@ -269,7 +297,6 @@ public class LocalFragment extends Fragment implements
         void setAnalyticsScreenName(String name);
         void sendMsgReportAnalyticsEvent(Bundle b);
         void sendMsgDownloadImage(String s3Directroy, String s3Key);
-
-
+        void saveToStash(PhotoView imageToSave);
     }
 }

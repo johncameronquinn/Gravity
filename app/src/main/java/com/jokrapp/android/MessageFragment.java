@@ -105,7 +105,21 @@ public class MessageFragment extends Fragment implements
         }
 
         imageAdapterView.setAdapter(adapter);
+        cat.findViewById(R.id.button_message_save).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (VERBOSE) Log.v(TAG,"entering MessageSaveToStash-OnClick...");
 
+                PhotoView topView = (
+                        (PhotoView)imageAdapterView
+                                .getmTopCard()
+                                .findViewById(R.id.photoView)
+                );
+
+                mListener.saveToStash(topView);
+                if (VERBOSE)Log.v(TAG,"exiting MessageSaveToStash-OnClick...");
+            }
+        });
         if (VERBOSE) {
             Log.v(TAG,"exit onViewCreated...");
         }
@@ -223,6 +237,6 @@ public class MessageFragment extends Fragment implements
      *
      */
     public interface onMessageFragmentInteractionListener {
-
+        void saveToStash(PhotoView view);
     }
 }

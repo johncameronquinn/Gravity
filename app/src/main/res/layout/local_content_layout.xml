@@ -18,14 +18,18 @@
         android:background="@drawable/ic_local_refresh"
         android:onClick="onLocalRefresh"
         android:layout_below="@+id/button_local_report"/>
+    <Button
+        style="@style/radicalContentButton"
+        android:id="@+id/button_local_save"
+        android:background="@drawable/ic_minifab2"
+        android:layout_below="@+id/button_local_refresh"/>
 
     <Button
         style="@style/radicalContentButton"
         android:id="@+id/button_local_block"
         android:background="@drawable/ic_local_blockjester"
         android:onClick="onLocalBlockPressed"
-
-        android:layout_below="@+id/button_local_refresh"/>
+        android:layout_below="@+id/button_local_save"/>
 
     <Button
         style="@style/radicalContentButton"
@@ -34,8 +38,6 @@
         android:background="@drawable/ic_local_message"
         android:layout_below="@+id/button_local_block"
         android:contextClickable="false" />
-
-
 
 
 </RelativeLayout>

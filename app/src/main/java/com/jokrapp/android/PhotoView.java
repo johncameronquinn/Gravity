@@ -30,7 +30,7 @@ public class PhotoView extends ImageView {
     // Status flag that indicates if onDraw has completed
     private boolean mIsDrawn;
 
-    private final boolean VERBOSE = false;
+    private final boolean VERBOSE = true;
 
     private final String TAG = "PhotoView";
 
@@ -305,11 +305,10 @@ public class PhotoView extends ImageView {
     public void setImageKey(String directory, String imageKey, boolean cacheFlag, Drawable imageDrawable) {
         if (VERBOSE) Log.v(TAG,"entering setImageKey with key: " + imageKey + " and directory : " + directory);
         if (imageKey == "null") {
-            Log.v(TAG,imageKey = null);
+            Log.v(TAG,"imageKey = null");
         }
 
-        // If the picture URL for this ImageView is already set
-
+        // If the picture URL for this ImageView is already set\
         if (mImageKey != null) {
             if (VERBOSE) Log.v(TAG,"image key was not null...");
 

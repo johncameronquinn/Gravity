@@ -285,6 +285,10 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
        getContentResolver().insert(uri, values);
     }
 
+    public void delete(Uri uri, ContentValues values) {
+        getContentResolver().delete(uri,null,null);
+    }
+
 
     /***********************************************************************************************
      * SERVICE - ACTIVITY COMMUNICATION

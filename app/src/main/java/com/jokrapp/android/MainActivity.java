@@ -19,6 +19,7 @@ import android.graphics.Matrix;
 import android.graphics.Rect;
 import android.graphics.RectF;
 import android.graphics.SurfaceTexture;
+import android.graphics.drawable.BitmapDrawable;
 import android.hardware.Camera;
 import android.location.LocationManager;
 import android.media.ThumbnailUtils;
@@ -26,6 +27,7 @@ import android.net.Uri;
 import android.os.*;
 import android.os.Process;
 import android.preference.PreferenceManager;
+import android.provider.MediaStore;
 import android.provider.Settings;
 import android.app.Fragment;
 import android.support.v13.app.FragmentStatePagerAdapter;
@@ -46,12 +48,14 @@ import android.widget.Toast;
 
 import com.amazonaws.mobileconnectors.amazonmobileanalytics.MobileAnalyticsManager;
 import com.jokrapp.android.user.IdentityManager;
+import com.jokrapp.android.util.ImageUtils;
 import com.jokrapp.android.util.LogUtils;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
@@ -562,8 +566,67 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
         b.putString(Constants.KEY_ANALYTICS_ACTION, "refresh");
         sendMsgReportAnalyticsEvent(b);
 
-
         sendMsgRequestLocalPosts(3);
+    }
+
+    public void saveToStash(PhotoView photoView) {
+        if (VERBOSE) Log.v(TAG, "entering onSaveToStash with key " + photoView.getImageKey());
+
+        String strDirectory = Environment.getExternalStorageDirectory().toString();
+        File outFile = new File(strDirectory + File.separator +
+                Constants.STASH_GALLERY_DIRECTORY, photoView.getImageKey());
+
+        Bitmap b = ((BitmapDrawable) photoView.getDrawable()).getBitmap();
+
+        FileOutputStream fOut;
+
+        if (outFile.exists()) {
+            Log.i(TAG, "file already existed... not saving...");
+            Toast.makeText(this, "File already existed in stash...", Toast.LENGTH_SHORT).show();
+        } else {
+
+        try {
+            fOut = new FileOutputStream(outFile);
+
+            /**Compress image**/
+            b.compress(Bitmap.CompressFormat.JPEG, 100, fOut);
+            fOut.flush();
+            fOut.close();
+
+            MediaStore.Images.Media.insertImage(
+                    getContentResolver(),
+                    outFile.getAbsolutePath(),
+                    outFile.getName(),
+                    outFile.getName()
+            );
+
+            Toast.makeText(this,"Saved...",Toast.LENGTH_SHORT).show();
+
+        } catch (IOException e) {
+            Log.e(TAG, "ioException", e);
+            Toast.makeText(this, "error saving image to gallery", Toast.LENGTH_LONG).show();
+        }
+
+        }
+
+
+        if (VERBOSE) Log.v(TAG,"exiting onSaveToStash...");
+        /*String filePath = (String)v.getTag();
+        if (VERBOSE) Log.v(TAG,"entering onSaveToStash with filePath : " + filePath);
+
+        String root = Environment.getExternalStorageDirectory().toString();
+        File myDir = new File(root + File.separator + Constants.STASH_GALLERY_DIRECTORY);
+        myDir.mkdirs();
+
+
+        try {
+            ImageUtils.copyFile(
+                    new File(getCacheDir(), filePath),
+                    new File(myDir + File.separator + filePath)
+            );
+        } catch (IOException e) {
+            Log.e(TAG,"error saving file to external gallery",e);
+        }*/
     }
 
     public void onLocalReplyPressed(View view) {
@@ -1320,7 +1383,7 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
         }
         replyData.putString(Constants.KEY_S3_KEY,filePath);
         replyData.putString(SQLiteDbContract.LiveReplies.COLUMN_NAME_FILEPATH,filePath);
-        if (replyData.size() == 4) {
+        if (replyData.size() >= 4) {
             sendMsgCreateReply(replyData);
             replyData = null;
         }

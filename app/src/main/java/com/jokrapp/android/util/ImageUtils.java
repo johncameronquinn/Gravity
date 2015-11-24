@@ -58,7 +58,7 @@ public final class ImageUtils {
      * @param destFile
      * @throws IOException
      */
-    private void copyFile(File sourceFile, File destFile) throws IOException {
+    public static void copyFile(File sourceFile, File destFile) throws IOException {
         if (!sourceFile.exists()) {
             return;
         }
