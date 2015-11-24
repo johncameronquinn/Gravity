@@ -35,13 +35,18 @@ import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.view.ViewPager;
 import android.util.AttributeSet;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.TextureView;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.CheckBox;
 import android.widget.EditText;
+import android.widget.FrameLayout;
+import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -55,8 +60,8 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.lang.ref.WeakReference;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -72,7 +77,8 @@ import java.util.UUID;
  * there is only one activity, and all the other features are managed as fragments
  */
 public class MainActivity extends Activity implements CameraFragment.OnCameraFragmentInteractionListener,
-LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInteractionListener, ViewPager.OnPageChangeListener {
+LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInteractionListener,
+        ViewPager.OnPageChangeListener, PhotoFragment.onPreviewInteractionListener {
     private static String TAG = "MainActivity";
     private static final boolean VERBOSE = true;
 
@@ -569,6 +575,21 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
         sendMsgRequestLocalPosts(3);
     }
 
+    public static void hide_keyboard(Activity activity) {
+        InputMethodManager inputMethodManager = (InputMethodManager) activity.getSystemService(Activity.INPUT_METHOD_SERVICE);
+        //Find the currently focused view, so we can grab the correct window token from it.
+        View view = activity.getCurrentFocus();
+        //If no view currently has focus, create a new one, just so we can grab a window token from it
+        if(view == null) {
+            view = new View(activity);
+        }
+        inputMethodManager.hideSoftInputFromWindow(view.getWindowToken(), 0);
+    }
+
+    public void hideSoftKeyboard() {
+        MainActivity.hide_keyboard(this);
+    }
+
     public void saveToStash(PhotoView photoView) {
         if (VERBOSE) Log.v(TAG, "entering onSaveToStash with key " + photoView.getImageKey());
 
@@ -593,14 +614,15 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
             fOut.flush();
             fOut.close();
 
-            MediaStore.Images.Media.insertImage(
+            String url = MediaStore.Images.Media.insertImage(
                     getContentResolver(),
                     outFile.getAbsolutePath(),
                     outFile.getName(),
                     outFile.getName()
             );
 
-            Toast.makeText(this,"Saved...",Toast.LENGTH_SHORT).show();
+
+            Toast.makeText(this,"Saved",Toast.LENGTH_SHORT).show();
 
         } catch (IOException e) {
             Log.e(TAG, "ioException", e);
@@ -946,8 +968,15 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
             // Stores a string representation of the URL in the incoming Intent
             String urlString;
 
+            // Stores a directory representation, which shows which directory to fetch this image from
+            String directory;
+
+            //is this a preview or just a fullscreen?
+            boolean isPreview;
+
             // If the incoming Intent is a request is to view an image
             if (intent.getAction().equals(Constants.ACTION_VIEW_IMAGE)) {
+                if (VERBOSE) Log.v(TAG,"Fullscreen intent received...");
 
                 // Gets an instance of the support library fragment manager
                 fragmentManager1 = getFragmentManager();
@@ -960,18 +989,23 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
 
                 // Gets the URL of the picture to display
                 urlString = intent.getExtras().getString(Constants.KEY_S3_KEY,"");
+                directory = intent.getExtras().getString(Constants.KEY_S3_DIRECTORY,"");
+                isPreview = intent.getExtras().getBoolean(Constants.KEY_PREVIEW_IMAGE,false);
 
 
                 if (Constants.LOGV) Log.v(TAG,"Received string is: " + urlString);
+                if (Constants.LOGV) Log.v(TAG,"Received directory string is: " + urlString);
 
                 // If the photo Fragment exists from a previous display
                 if (null != photoFragment) {
+                    if (VERBOSE) Log.v(TAG,"PhotoFragment already existed...");
 
                     // If the incoming URL is not already being displayed
                     if (!urlString.equals(photoFragment.getImageKeyString())) {
 
                         // Sets the Fragment to use the URL from the Intent for the photo
-                        photoFragment.setPhoto(Constants.KEY_S3_REPLIES_DIRECTORY,urlString);
+                        photoFragment.setPhoto(directory,urlString,isPreview);
+
                         Log.w(TAG,"for now, replies is assumed for fullscreened images...");
 
                         // Loads the photo into the Fragment
@@ -980,11 +1014,12 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
 
                     // If the Fragment doesn't already exist
                 } else {
+                    if (VERBOSE) Log.v(TAG,"PhotoFragment didn't exist, creating new..");
                     // Instantiates a new Fragment
                     photoFragment = new PhotoFragment();
 
                     // Sets the Fragment to use the URL from the Intent for the photo
-                    photoFragment.setPhoto(Constants.KEY_S3_REPLIES_DIRECTORY, urlString);
+                    photoFragment.setPhoto(directory, urlString,isPreview);
                     Log.w(TAG,"for now, replies is assumed for fullscreened images...");
 
                     // Starts a new Fragment transaction
@@ -993,6 +1028,8 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
 
                     // If the fragments are side-by-side, adds the photo Fragment to the display
                     if (mSideBySide) {
+                        if (VERBOSE) Log.v(TAG,"side-by-side enabled, adding to display...");
+
                         localFragmentTransaction2.add(
                                 R.id.fragmentHost,
                                 photoFragment,
@@ -1003,6 +1040,7 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
                      * the photo Fragment
                      */
                     } else {
+                        if (VERBOSE) Log.v(TAG,"side-by-side disabled, replacing display...");
                         localFragmentTransaction2.replace(
                                 R.id.fragmentHost,
                                 photoFragment,
@@ -1026,6 +1064,7 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
              * (Notice that zooming is only supported on large-screen devices)
              */
             } else if (intent.getAction().equals(Constants.ACTION_ZOOM_IMAGE)) {
+                if (VERBOSE) Log.v(TAG,"Zoom intent received...");
 
                 // If the Fragments are being displayed side-by-side
                 if (mSideBySide) {
@@ -1188,19 +1227,19 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
 
             Log.w(TAG, "client only mode is enabled... saving internally");
             ContentValues values = new ContentValues();
-            values.put(SQLiteDbContract.LiveRepliesEntry.COLUMN_ID, randomgen.nextInt());
-            values.put(SQLiteDbContract.LiveRepliesEntry.COLUMN_NAME_THREAD_ID,randomgen.nextInt());
-            values.put(SQLiteDbContract.LiveRepliesEntry.COLUMN_NAME_TIME, randomgen.nextInt());
-            values.put(SQLiteDbContract.LiveRepliesEntry.COLUMN_NAME_NAME,
+            values.put(SQLiteDbContract.LiveEntry.COLUMN_ID, randomgen.nextInt());
+            values.put(SQLiteDbContract.LiveEntry.COLUMN_NAME_THREAD_ID,randomgen.nextInt());
+            values.put(SQLiteDbContract.LiveEntry.COLUMN_NAME_TIME, randomgen.nextInt());
+            values.put(SQLiteDbContract.LiveEntry.COLUMN_NAME_NAME,
                     liveData.getString("name", ""));
-            values.put(SQLiteDbContract.LiveRepliesEntry.COLUMN_NAME_TITLE,
+            values.put(SQLiteDbContract.LiveEntry.COLUMN_NAME_TITLE,
                     liveData.getString("title",""));
-            values.put(SQLiteDbContract.LiveRepliesEntry.COLUMN_NAME_FILEPATH,
+            values.put(SQLiteDbContract.LiveEntry.COLUMN_NAME_FILEPATH,
                     liveData.getString(Constants.KEY_S3_KEY,""));
-            values.put(SQLiteDbContract.LiveRepliesEntry.COLUMN_NAME_DESCRIPTION,
-                    liveData.getString("description",""));
+            values.put(SQLiteDbContract.LiveEntry.COLUMN_NAME_DESCRIPTION,
+                    liveData.getString("description", ""));
 
-            getContentResolver().insert(FireFlyContentProvider.CONTENT_URI_LIVE,values);
+            getContentResolver().insert(FireFlyContentProvider.CONTENT_URI_LIVE, values);
 
 
             if (VERBOSE) Log.v(TAG,"exiting sendMsgCreateThread... saved locally");
@@ -1278,15 +1317,16 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
         if (liveData == null) {
             liveData = new Bundle(3);
         }
-        liveData.putString(SQLiteDbContract.LiveRepliesEntry.COLUMN_NAME_NAME,name);
-        liveData.putString(SQLiteDbContract.LiveRepliesEntry.COLUMN_NAME_TITLE,title);
-        liveData.putString(SQLiteDbContract.LiveRepliesEntry.COLUMN_NAME_DESCRIPTION,description);
+        liveData.putString(SQLiteDbContract.LiveEntry.COLUMN_NAME_NAME,name);
+        liveData.putString(SQLiteDbContract.LiveEntry.COLUMN_NAME_TITLE,title);
+        liveData.putString(SQLiteDbContract.LiveEntry.COLUMN_NAME_DESCRIPTION,description);
 
         Log.d(TAG, "size is " + liveData.size());
 
         if (liveData.size() >= 4) {
             sendMsgCreateThread(liveData);
-            liveData = null;
+            liveData.clear();
+            //liveData = null;
         }
     }
 
@@ -1315,6 +1355,20 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
         if (VERBOSE) Log.v(TAG,"exiting setLiveCreateReplyInfo");
     }
 
+
+    public void setLiveCreateReplyInfo(String comment) {
+        if (VERBOSE) Log.v(TAG,"enter setLiveCreateReplyInfo with "  + comment);
+
+        String name = getSharedPreferences(Constants.SHARED_PREFERENCES_NAME,MODE_PRIVATE).
+                getString(StashLiveSettingsFragment.LIVE_NAME_KEY,"jester");
+        setLiveCreateReplyInfo(name, comment, replyData.
+                getInt(SQLiteDbContract.LiveReplies.COLUMN_NAME_THREAD_ID));
+
+
+        if (VERBOSE) Log.v(TAG,"exiting setLiveCreateReplyInfo");
+    }
+
+
     public void setLiveCreateReplyInfo(String name, String comment, int threadID) {
         if (VERBOSE) Log.v(TAG,"enter setLiveCreateReplyInfo with " + name + ", " + comment + ", " + threadID);
 
@@ -1339,6 +1393,131 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
         replyData.clear();
     }
 
+    private static final int UPLOAD_TO_LIVE = 1;
+
+    private static final int UPLOAD_TO_REPLY = 2;
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+//        super.onActivityResult(requestCode, resultCode, data);
+
+        /*
+         * Creates a new Intent to get the full picture for the thumbnail that the user clicked.
+         * The full photo is loaded into a separate Fragment
+         */
+
+        String selectedImagePath;
+        Uri selectedImageUri;
+        if (resultCode == RESULT_OK) {
+
+            selectedImageUri = data.getData();
+            selectedImagePath = ImageUtils.getPath(this, selectedImageUri);
+
+            String key = UUID.randomUUID().toString();
+
+            File destFile = new File(getCacheDir(),key);
+            try {
+                ImageUtils.copyFile(new File(selectedImagePath),destFile);
+            } catch (IOException e) {
+                Log.e(TAG,"error copying file...",e);
+           Toast.makeText(this,"error copying file to internal cache...",Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            if (requestCode == UPLOAD_TO_REPLY) {
+                Bitmap image = BitmapFactory.decodeFile(destFile.toString());
+                Bitmap thumbnail = ThumbnailUtils.extractThumbnail(image, 250, 250);
+
+                try {
+                    FileOutputStream fos = new FileOutputStream(destFile.toString() + "s");
+                    thumbnail.compress(Bitmap.CompressFormat.JPEG, 80, fos);
+                } catch (FileNotFoundException e) {
+                    Log.e(TAG,"file not found when writing thumbnail...",e);
+                    Toast.makeText(this,"Error saving thumbnail... quitting..",Toast.LENGTH_SHORT)
+                            .show(); //todo handle this better
+                    return;
+                }
+            }
+
+
+            Intent localIntent =
+                    new Intent(Constants.ACTION_VIEW_IMAGE)
+                            .putExtra(Constants.KEY_S3_KEY, key)
+                            .putExtra(Constants.KEY_PREVIEW_IMAGE,true);
+            //disableScrolling();
+
+            switch (requestCode) {
+                case UPLOAD_TO_LIVE:
+                   setLiveFilePath(key);
+                  localIntent.putExtra(Constants.KEY_S3_DIRECTORY, Constants.KEY_S3_LIVE_DIRECTORY);
+                    break;
+
+                case UPLOAD_TO_REPLY:
+                    setReplyFilePath(key);
+               localIntent.putExtra(Constants.KEY_S3_DIRECTORY, Constants.KEY_S3_REPLIES_DIRECTORY);
+                    break;
+            }
+
+            mFragmentDisplayer.onReceive(this,localIntent);
+
+
+
+        } else if(resultCode == RESULT_CANCELED) {
+            switch (requestCode) {
+                case UPLOAD_TO_LIVE:
+                    liveData.clear();
+                    break;
+
+                case UPLOAD_TO_REPLY:
+                    replyData.clear();
+                    break;
+            }
+        }
+
+    }
+
+    /**
+     * method 'loadFromStash'
+     *
+     * starts a chooser activity to select an image and send it to the server
+     *
+     * @param v the view of the button which called this method
+     */
+    public void loadFromStash(View v) {
+
+        Intent intent = new Intent();
+        intent.setType("image/*");
+        intent.setAction(Intent.ACTION_GET_CONTENT);
+        int requestCode;
+        switch (v.getId()) {
+            case R.id.button_live_load:
+                requestCode = UPLOAD_TO_LIVE;
+                break;
+
+            case R.id.button_reply_load:
+                requestCode = UPLOAD_TO_REPLY;
+
+                if (replyData == null) replyData = new Bundle();
+
+                replyData.putInt(SQLiteDbContract.LiveReplies.COLUMN_NAME_THREAD_ID,
+                        ReplyFragReference.get().getCurrentThread());
+                break;
+            default:
+                /* If you're not live load or reply load, then why are you calling this method?*/
+                throw new RuntimeException("Invalid Source button");
+        }
+
+
+        startActivityForResult(Intent.createChooser(intent,
+                "Select Picture"), requestCode);
+
+    }
+
+    @Override
+    public void dismissPreview(PhotoFragment me) {
+        getFragmentManager().beginTransaction().remove(me).commit();
+    }
+
     /**
      * method 'setLiveFilePath'
      *
@@ -1354,19 +1533,20 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
         if (cancelPost) { //true if the user aborted posting to live
             new File(filePath).delete();
             cancelPost = false;
-            liveData = null;
+            liveData.clear();
             return;
         }
         if (liveData == null) {
             liveData = new Bundle(1);
         }
         liveData.putString(Constants.KEY_S3_KEY, filePath);
-        liveData.putString(SQLiteDbContract.LiveRepliesEntry.COLUMN_NAME_FILEPATH, filePath);
-        if (liveData.size() == 4) {
+        liveData.putString(SQLiteDbContract.LiveEntry.COLUMN_NAME_FILEPATH, filePath);
+        if (liveData.size() >= 5) {
             sendMsgCreateThread(liveData);
-            liveData = null;
+            liveData.clear();
         }
     }
+
 
     public void setReplyFilePath(String filePath) {
         if (VERBOSE) Log.v(TAG,"entering setReplyFilepath" + filePath);
@@ -1374,7 +1554,7 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
         if (cancelReply) {
             new File(filePath).delete();
             cancelPost = false;
-            replyData = null;
+            replyData.clear();
             return;
         }
 
@@ -1385,7 +1565,7 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
         replyData.putString(SQLiteDbContract.LiveReplies.COLUMN_NAME_FILEPATH,filePath);
         if (replyData.size() >= 4) {
             sendMsgCreateReply(replyData);
-            replyData = null;
+            replyData.clear();
         }
         if (VERBOSE) Log.v(TAG, "exiting setReplyFilepath" + filePath);
     }
@@ -1411,7 +1591,7 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
            if (path!=null) {
                new File(path).delete();
            }
-           liveData = null;
+           liveData.clear();
        } else { //if not, make sure that when it is, its deleted.
            cancelPost = true;
        }
@@ -2520,10 +2700,10 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
 
                 case DataHandlingService.MSG_CREATE_THREAD:
                     Log.v(TAG, "entering msg_create_thread");
-                    Toast.makeText(activity.get(),
+                 /*   Toast.makeText(activity.get(),
                             "created live thread info received...",
                             Toast.LENGTH_LONG)
-                            .show();
+                            .show();*/
                     break;
 
 

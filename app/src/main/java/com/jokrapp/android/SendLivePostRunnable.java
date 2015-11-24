@@ -5,7 +5,7 @@ import android.util.Log;
 
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
-import com.jokrapp.android.SQLiteDbContract.LiveRepliesEntry;
+import com.jokrapp.android.SQLiteDbContract.LiveEntry;
 import com.jokrapp.android.util.LogUtils;
 
 import java.io.File;
@@ -77,9 +77,18 @@ public class SendLivePostRunnable implements Runnable{
         Bundle b = mTask.getDataBundle();
         if (VERBOSE) LogUtils.printBundle(b, TAG);
 
-        String imageKey = b.getString(LiveRepliesEntry.COLUMN_NAME_FILEPATH, "");
+        String imageKey = b.getString(LiveEntry.COLUMN_NAME_FILEPATH, "");
 
-        int responseCode = -10;
+        if (imageKey.contains("/")) {
+
+            if (VERBOSE) Log.v(TAG,"imageKey contains a path separator... getting last path");
+
+            imageKey = imageKey.substring(imageKey.lastIndexOf('/') + 1);
+
+            if (VERBOSE) Log.v(TAG,"outputted key: " + imageKey);
+
+        }
+
         try {
             conn = mTask.getURLConnection();
             JsonFactory jsonFactory = new JsonFactory();
@@ -87,16 +96,18 @@ public class SendLivePostRunnable implements Runnable{
                     createGenerator(conn.getOutputStream()); //tcp connection to server
 
             jGen.writeStartObject();
-            jGen.writeStringField(LiveRepliesEntry.COLUMN_NAME_TITLE,
-                    b.getString(LiveRepliesEntry.COLUMN_NAME_TITLE,"")
+          ///  jGen.writeNumberField("boardID",0);
+
+            jGen.writeStringField(LiveEntry.COLUMN_NAME_TITLE,
+                    b.getString(LiveEntry.COLUMN_NAME_TITLE,"")
             );
-            jGen.writeStringField(LiveRepliesEntry.COLUMN_NAME_NAME,
-                    b.getString(LiveRepliesEntry.COLUMN_NAME_NAME,"")
+            jGen.writeStringField(LiveEntry.COLUMN_NAME_NAME,
+                    b.getString(LiveEntry.COLUMN_NAME_NAME,"")
             );
-            jGen.writeStringField(LiveRepliesEntry.COLUMN_NAME_DESCRIPTION,
-                    b.getString(LiveRepliesEntry.COLUMN_NAME_DESCRIPTION,"")
+            jGen.writeStringField(LiveEntry.COLUMN_NAME_DESCRIPTION,
+                    b.getString(LiveEntry.COLUMN_NAME_DESCRIPTION,"")
             );
-            jGen.writeStringField(LiveRepliesEntry.COLUMN_NAME_FILEPATH,
+            jGen.writeStringField(LiveEntry.COLUMN_NAME_FILEPATH,
                     imageKey
             );
             jGen.writeEndObject();
@@ -121,7 +132,6 @@ public class SendLivePostRunnable implements Runnable{
                 conn.disconnect();
             }
         }
-
 
         mTask.setTaskThread(null);
         if (VERBOSE) {

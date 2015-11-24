@@ -121,6 +121,10 @@ public final class Constants {
     public static final String KEY_S3_MESSAGE_DIRECTORY = "message";
     public static final String KEY_S3_REPLIES_DIRECTORY = "reply";
 
+    public static final String KEY_PREVIEW_IMAGE = "preview_status";
+
+
+
 
     /**
      * ANALYTICS

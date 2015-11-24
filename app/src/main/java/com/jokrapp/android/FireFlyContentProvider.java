@@ -272,11 +272,11 @@ public class FireFlyContentProvider extends ContentProvider {
 
             case LIVE:
                 Log.d(TAG,"LIVE called");
-                queryBuilder.setTables(SQLiteDbContract.LiveRepliesEntry.TABLE_NAME);
+                queryBuilder.setTables(SQLiteDbContract.LiveEntry.TABLE_NAME);
                 break;
             case LIVE_ID:
                 Log.d(TAG, "LIVE_ID called");
-                queryBuilder.appendWhere(SQLiteDbContract.LiveRepliesEntry.COLUMN_ID + "="
+                queryBuilder.appendWhere(SQLiteDbContract.LiveEntry.COLUMN_ID + "="
                         + uri.getLastPathSegment());
                 break;
 
@@ -386,19 +386,19 @@ public class FireFlyContentProvider extends ContentProvider {
                 break;
 
             case LIVE:
-                rowsDeleted = sqlDB.delete(SQLiteDbContract.LiveRepliesEntry.TABLE_NAME, selection,
+                rowsDeleted = sqlDB.delete(SQLiteDbContract.LiveEntry.TABLE_NAME, selection,
                         selectionArgs);
                 break;
 
             case LIVE_ID:
                 id = uri.getLastPathSegment();
                 if (TextUtils.isEmpty(selection)) {
-                    rowsDeleted = sqlDB.delete(SQLiteDbContract.LiveRepliesEntry.TABLE_NAME,
-                            SQLiteDbContract.LiveRepliesEntry.COLUMN_ID + "=" + id,
+                    rowsDeleted = sqlDB.delete(SQLiteDbContract.LiveEntry.TABLE_NAME,
+                            SQLiteDbContract.LiveEntry.COLUMN_ID + "=" + id,
                             null);
                 } else {
-                    rowsDeleted = sqlDB.delete(SQLiteDbContract.LiveRepliesEntry.TABLE_NAME,
-                            SQLiteDbContract.LiveRepliesEntry.COLUMN_ID + "=" + id
+                    rowsDeleted = sqlDB.delete(SQLiteDbContract.LiveEntry.TABLE_NAME,
+                            SQLiteDbContract.LiveEntry.COLUMN_ID + "=" + id
                                     + " and " + selection,
                             selectionArgs);
                 }
@@ -455,7 +455,7 @@ public class FireFlyContentProvider extends ContentProvider {
                 break;
 
             case LIVE:
-                id = sqlDB.insertWithOnConflict(SQLiteDbContract.LiveRepliesEntry.TABLE_NAME,null,values,SQLiteDatabase.CONFLICT_REPLACE);
+                id = sqlDB.insertWithOnConflict(SQLiteDbContract.LiveEntry.TABLE_NAME,null,values,SQLiteDatabase.CONFLICT_REPLACE);
                 break;
 
             case REPLIES:

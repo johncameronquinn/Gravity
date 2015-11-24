@@ -114,13 +114,15 @@ public class ReplyCursorAdapter extends CursorAdapter implements PhotoView.OnCli
         String s3Key = ((PhotoView)view).getImageKey();
         s3Key = s3Key.substring(0,s3Key.length()-1);
 
-        Log.d(TAG,"grabbed key is: " + s3Key);
+        Log.d(TAG, "grabbed key is: " + s3Key);
         /*
          * Creates a new Intent to get the full picture for the thumbnail that the user clicked.
          * The full photo is loaded into a separate Fragment
          */
         Intent localIntent =
-                new Intent(Constants.ACTION_VIEW_IMAGE).putExtra(Constants.KEY_S3_KEY,s3Key);
+                new Intent(Constants.ACTION_VIEW_IMAGE).putExtra(Constants.KEY_S3_KEY,s3Key)
+                .putExtra(Constants.KEY_S3_DIRECTORY,Constants.KEY_S3_REPLIES_DIRECTORY)
+                .putExtra(Constants.KEY_PREVIEW_IMAGE,false);
 
         // Broadcasts the Intent to receivers in this app. See DisplayActivity.FragmentDisplayer.
         LocalBroadcastManager.getInstance(view.getContext()).sendBroadcast(localIntent);

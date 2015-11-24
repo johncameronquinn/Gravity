@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ Copyright (c) 2015. John C Quinn, All Rights Reserved.
+  -->
+<!-- Defines a single full-screen image -->
+<FrameLayout
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:layout_weight="3.0"
+    android:id="@+id/photoLayout"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:image="http://schemas.android.com/apk/res-auto"
+    android:background="@android:color/black">
+    <ProgressBar android:layout_gravity="center" android:id="@+id/photoProgress"
+        android:layout_width="wrap_content" android:layout_height="wrap_content" />
+    <com.jokrapp.android.PhotoView
+        android:id="@+id/photoView" android:layout_width="match_parent"
+        android:layout_height="match_parent" android:scaleType="fitXY"
+        image:hideShowSibling="@id/photoProgress" />
+
+    <EditText
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/commentText"
+        android:layout_gravity="bottom|center"
+        android:gravity="center"
+        android:visibility="visible"
+        android:textSize="22dp"
+        android:layout_marginBottom="10dp"
+        android:hint="Caption" />
+
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/button_cancel_reply"
+        android:layout_gravity="center_horizontal|top"
+        android:visibility="visible"
+        android:background="@drawable/ic_cancel"
+        android:layout_marginTop="35dp" />
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/button_send_reply"
+        android:layout_gravity="center_horizontal|bottom"
+        android:visibility="visible"
+        android:layout_marginBottom="@dimen/local_card_margin"
+        android:background="@drawable/ic_camera_confirm"/>
+
+</FrameLayout>

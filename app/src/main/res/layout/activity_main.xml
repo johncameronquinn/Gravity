@@ -23,14 +23,6 @@
             android:paddingBottom="4dp"
           />
 
-        <LinearLayout
-            android:orientation="horizontal"
-            android:id="@+id/fragmentHost"
-            android:layout_width="wrap_content" android:layout_height="match_parent"
-            android:animateLayoutChanges="true"
-            xmlns:android="http://schemas.android.com/apk/res/android">
-
-        </LinearLayout>
     </com.jokrapp.android.CustomViewPager>
 
 
@@ -56,6 +48,15 @@
             android:visibility="invisible" />
 
     </RelativeLayout>
+
+    <LinearLayout
+        android:orientation="horizontal"
+        android:id="@+id/fragmentHost"
+        android:layout_width="match_parent" android:layout_height="match_parent"
+        android:animateLayoutChanges="true"
+        xmlns:android="http://schemas.android.com/apk/res/android">
+
+    </LinearLayout>
 
 
 </FrameLayout>

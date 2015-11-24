@@ -95,8 +95,8 @@ public class RequestLiveThreadsRunnable implements Runnable {
 
                 for (int i = 0; i < jsonArray.size(); i++) {
                     map = jsonArray.get(i);
-                    map.put(SQLiteDbContract.LiveRepliesEntry.COLUMN_ID, map.remove("order"));
-                    map.put(SQLiteDbContract.LiveRepliesEntry.COLUMN_NAME_THREAD_ID, map.remove("id"));
+                    map.put(SQLiteDbContract.LiveEntry.COLUMN_ID, map.remove("order"));
+                    map.put(SQLiteDbContract.LiveEntry.COLUMN_NAME_THREAD_ID, map.remove("id"));
 
                     android.os.Parcel myParcel = android.os.Parcel.obtain();
                     myParcel.writeMap(map);

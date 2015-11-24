@@ -29,7 +29,7 @@ import java.lang.ref.WeakReference;
 import java.net.HttpURLConnection;
 
 import fr.castorflex.android.verticalviewpager.VerticalViewPager;
-import com.jokrapp.android.SQLiteDbContract.LiveRepliesEntry;
+import com.jokrapp.android.SQLiteDbContract.LiveEntry;
 
 
 /**
@@ -166,14 +166,14 @@ public class LiveFragment extends Fragment implements
         triggerLiveRefresh();
 
         String[] projection = {
-                LiveRepliesEntry.COLUMN_ID,
-                LiveRepliesEntry.COLUMN_NAME_NAME,
-                LiveRepliesEntry.COLUMN_NAME_TITLE,
-                LiveRepliesEntry.COLUMN_NAME_DESCRIPTION,
-                LiveRepliesEntry.COLUMN_NAME_FILEPATH,
-                LiveRepliesEntry.COLUMN_NAME_THREAD_ID,
-                LiveRepliesEntry.COLUMN_NAME_REPLIES,
-                LiveRepliesEntry.COLUMN_NAME_UNIQUE
+                LiveEntry.COLUMN_ID,
+                LiveEntry.COLUMN_NAME_NAME,
+                LiveEntry.COLUMN_NAME_TITLE,
+                LiveEntry.COLUMN_NAME_DESCRIPTION,
+                LiveEntry.COLUMN_NAME_FILEPATH,
+                LiveEntry.COLUMN_NAME_THREAD_ID,
+                LiveEntry.COLUMN_NAME_REPLIES,
+                LiveEntry.COLUMN_NAME_UNIQUE
         };
 
       }
@@ -562,14 +562,14 @@ public class LiveFragment extends Fragment implements
         if (VERBOSE) Log.v(TAG,"enter onCreateLoader...");
 
         String[] projection = {
-                LiveRepliesEntry.COLUMN_ID,
-                LiveRepliesEntry.COLUMN_NAME_NAME,
-                LiveRepliesEntry.COLUMN_NAME_TITLE,
-                LiveRepliesEntry.COLUMN_NAME_DESCRIPTION,
-                LiveRepliesEntry.COLUMN_NAME_FILEPATH,
-                LiveRepliesEntry.COLUMN_NAME_THREAD_ID,
-                LiveRepliesEntry.COLUMN_NAME_REPLIES,
-                LiveRepliesEntry.COLUMN_NAME_UNIQUE
+                LiveEntry.COLUMN_ID,
+                LiveEntry.COLUMN_NAME_NAME,
+                LiveEntry.COLUMN_NAME_TITLE,
+                LiveEntry.COLUMN_NAME_DESCRIPTION,
+                LiveEntry.COLUMN_NAME_FILEPATH,
+                LiveEntry.COLUMN_NAME_THREAD_ID,
+                LiveEntry.COLUMN_NAME_REPLIES,
+                LiveEntry.COLUMN_NAME_UNIQUE
         };
 
 
@@ -587,7 +587,7 @@ public class LiveFragment extends Fragment implements
                 projection,
                 null,
                 null,
-                LiveRepliesEntry.COLUMN_ID);
+                LiveEntry.COLUMN_ID);
         //sort by column ID
     }
 

@@ -989,6 +989,7 @@ n  */
             Log.v(TAG,"exiting startNewThreadInputMode...");
         }
     }
+
 /***************************************************************************************************
  * REPLY MODE
 */
@@ -1080,10 +1081,10 @@ n  */
 
     private void hideSoftKeyboard(EditText input) {
         input.clearFocus();
-            Log.e(TAG, "hiding the view with focus...");
-            input.setInputType(0);
-            InputMethodManager imm = (InputMethodManager) getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
-            imm.hideSoftInputFromWindow(getView().getWindowToken(), 0);
+        Log.e(TAG, "hiding the view with focus...");
+        input.setInputType(0);
+        InputMethodManager imm = (InputMethodManager) getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
+        imm.hideSoftInputFromWindow(getView().getWindowToken(), 0);
     }
 
     private void showSoftKeyboard(EditText input) {

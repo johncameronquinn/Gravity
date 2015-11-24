@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ Copyright (c) 2015. John C Quinn, All Rights Reserved.
+  -->
+<!-- Defines a single full-screen image -->
+<FrameLayout
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:layout_weight="3.0"
+    android:id="@+id/photoLayout"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:image="http://schemas.android.com/apk/res-auto">
+    <ProgressBar android:layout_gravity="center" android:id="@+id/photoProgress"
+        android:layout_width="wrap_content" android:layout_height="wrap_content" />
+    <com.jokrapp.android.PhotoView
+        android:id="@+id/photoView" android:layout_width="match_parent"
+        android:layout_height="match_parent" android:scaleType="fitXY"
+        image:hideShowSibling="@id/photoProgress" />
+
+
+    <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:layout_gravity="center|bottom"
+        android:id="@+id/layout_live_new_post"
+        android:layout_margin="5dp"
+        android:gravity="bottom"
+        android:background="@drawable/ic_comment">
+
+
+        <EditText
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/editText_live_mode_title"
+            android:hint="Title"
+            android:singleLine="true"
+            android:phoneNumber="false"
+            style="@style/AppTheme"
+            android:textSize="20dp"
+            android:layout_alignParentTop="true"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentStart="true"
+            android:gravity="bottom|center_horizontal" />
+
+        <EditText
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="textMultiLine"
+            android:ems="10"
+            android:id="@+id/editText_live_mode_description"
+            android:hint="Caption"
+            android:textSize="20dp"
+            android:layout_below="@+id/editText_live_mode_title"
+            android:gravity="center_horizontal" />
+
+        <Button
+            android:layout_width="100dp"
+            android:layout_height="40dp"
+            android:text="Confirm"
+            android:id="@+id/button_camera_live_mode_confirm"
+            android:layout_alignParentRight="true"
+            android:background="@drawable/camera_live_mode_button_base"
+            android:textSize="20dp"
+            android:textColor="@color/wpallete_neutral_gray"
+            android:layout_below="@+id/editText_live_mode_description" />
+
+        <Button
+            android:layout_width="100dp"
+            android:layout_height="wrap_content"
+            android:text="Cancel"
+            android:id="@+id/button_camera_live_mode_cancel"
+            android:layout_alignParentBottom="false"
+            android:layout_marginRight="150dp"
+            android:layout_marginEnd="150dp"
+            android:layout_alignParentLeft="true"
+            android:background="@drawable/camera_live_mode_button_base"
+            android:layout_alignTop="@+id/button_camera_live_mode_confirm"
+            android:textColor="@color/wpallete_neutral_gray"
+            android:textSize="20dp"
+            android:layout_alignBottom="@+id/button_camera_live_mode_confirm" />
+    </RelativeLayout>
+</FrameLayout>

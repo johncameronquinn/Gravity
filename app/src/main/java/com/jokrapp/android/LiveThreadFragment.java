@@ -11,7 +11,7 @@ import android.view.ViewGroup;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
-import com.jokrapp.android.SQLiteDbContract.LiveRepliesEntry;
+import com.jokrapp.android.SQLiteDbContract.LiveEntry;
 
 /**
  * fragment 'LiveThreadFragment'
@@ -56,13 +56,13 @@ public class LiveThreadFragment extends Fragment implements View.OnClickListener
 
         // Supply num input as an argument.
         Bundle args = new Bundle();
-        args.putString(LiveRepliesEntry.COLUMN_NAME_NAME, name);
-        args.putString(LiveRepliesEntry.COLUMN_NAME_TITLE,title);
-        args.putString(LiveRepliesEntry.COLUMN_NAME_DESCRIPTION,text);
-        args.putString(LiveRepliesEntry.COLUMN_NAME_FILEPATH,filePath);
-        args.putString(LiveRepliesEntry.COLUMN_NAME_THREAD_ID,threadID);
-        args.putString(LiveRepliesEntry.COLUMN_NAME_UNIQUE,unique);
-        args.putString(LiveRepliesEntry.COLUMN_NAME_REPLIES,replies);
+        args.putString(LiveEntry.COLUMN_NAME_NAME, name);
+        args.putString(LiveEntry.COLUMN_NAME_TITLE,title);
+        args.putString(LiveEntry.COLUMN_NAME_DESCRIPTION,text);
+        args.putString(LiveEntry.COLUMN_NAME_FILEPATH,filePath);
+        args.putString(LiveEntry.COLUMN_NAME_THREAD_ID,threadID);
+        args.putString(LiveEntry.COLUMN_NAME_UNIQUE,unique);
+        args.putString(LiveEntry.COLUMN_NAME_REPLIES,replies);
         f.setArguments(args);
 
         return f;
@@ -119,14 +119,14 @@ public class LiveThreadFragment extends Fragment implements View.OnClickListener
 
         if (getArguments() != null) {
             Bundle args = getArguments();
-            threadName = args.getString(LiveRepliesEntry.COLUMN_NAME_NAME);
-            threadTitle = args.getString(LiveRepliesEntry.COLUMN_NAME_TITLE);
-            threadText = args.getString(LiveRepliesEntry.COLUMN_NAME_DESCRIPTION);
-            threadID = args.getString(LiveRepliesEntry.COLUMN_NAME_THREAD_ID);
-            unique = args.getString(LiveRepliesEntry.COLUMN_NAME_UNIQUE);
-            replies = args.getString(LiveRepliesEntry.COLUMN_NAME_REPLIES);
+            threadName = args.getString(LiveEntry.COLUMN_NAME_NAME);
+            threadTitle = args.getString(LiveEntry.COLUMN_NAME_TITLE);
+            threadText = args.getString(LiveEntry.COLUMN_NAME_DESCRIPTION);
+            threadID = args.getString(LiveEntry.COLUMN_NAME_THREAD_ID);
+            unique = args.getString(LiveEntry.COLUMN_NAME_UNIQUE);
+            replies = args.getString(LiveEntry.COLUMN_NAME_REPLIES);
 
-            mImageKey = args.getString(LiveRepliesEntry.COLUMN_NAME_FILEPATH);
+            mImageKey = args.getString(LiveEntry.COLUMN_NAME_FILEPATH);
 
         }
 
@@ -136,14 +136,14 @@ public class LiveThreadFragment extends Fragment implements View.OnClickListener
     public void setArguments(Bundle args) {
 
         if (args != null) {
-            threadName = args.getString(LiveRepliesEntry.COLUMN_NAME_NAME);
-            threadTitle = args.getString(LiveRepliesEntry.COLUMN_NAME_TITLE);
-            threadText = args.getString(LiveRepliesEntry.COLUMN_NAME_DESCRIPTION);
-            threadID = args.getString(LiveRepliesEntry.COLUMN_NAME_THREAD_ID);
-            unique = args.getString(LiveRepliesEntry.COLUMN_NAME_UNIQUE);
-            replies = args.getString(LiveRepliesEntry.COLUMN_NAME_REPLIES);
+            threadName = args.getString(LiveEntry.COLUMN_NAME_NAME);
+            threadTitle = args.getString(LiveEntry.COLUMN_NAME_TITLE);
+            threadText = args.getString(LiveEntry.COLUMN_NAME_DESCRIPTION);
+            threadID = args.getString(LiveEntry.COLUMN_NAME_THREAD_ID);
+            unique = args.getString(LiveEntry.COLUMN_NAME_UNIQUE);
+            replies = args.getString(LiveEntry.COLUMN_NAME_REPLIES);
 
-            mImageKey = args.getString(LiveRepliesEntry.COLUMN_NAME_FILEPATH);
+            mImageKey = args.getString(LiveEntry.COLUMN_NAME_FILEPATH);
 
             Log.i(TAG,"incoming name: " + threadName);
             Log.i(TAG,"incoming image key: " + mImageKey);

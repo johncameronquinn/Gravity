@@ -22,12 +22,9 @@ import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
-import org.apache.commons.compress.utils.IOUtils;
-import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.lang.ref.WeakReference;
-import java.net.HttpURLConnection;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.nio.channels.NotYetConnectedException;
@@ -616,8 +613,6 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
                         if (VERBOSE) Log.v(TAG,"grabbed responseCode is: " + responseCode);
                     } catch (IOException e) {
                         Log.e(TAG, "unable to get error code... ", e);
-                        Toast.makeText(this, "unable to get error code from failed connection...",
-                                Toast.LENGTH_LONG).show();
                     }
                 }
                 responseMessage = Message.obtain(null, task.getResponseWhat(), state, responseCode);
@@ -967,11 +962,22 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
 
         String directory = b.getString(Constants.KEY_S3_DIRECTORY);
 
-        File file = new File(getCacheDir(),b.getString(Constants.KEY_S3_KEY));
+        String key = b.getString(Constants.KEY_S3_KEY,"");
+
+        File file;
+        if (!key.contains("/")) {
+            if (VERBOSE) Log.v(TAG,
+                    "File does not contain a path separator, assuming cache directory...");
+            file = new File(getCacheDir(), key);
+        } else {
+            if (VERBOSE) Log.v(TAG,
+                    "file contains a path separator... uploading directly..");
+            file = new File(key);
+        }
 
         if (Constants.LOGD)
             Log.d(TAG,"uploading image to s3 with key: " + b.getString(Constants.KEY_S3_KEY));
-        Log.d(TAG, "uploading image from file" + file.getPath());
+        //Log.d(TAG, "uploading image from file" + file.getPath());
 
         TransferObserver observer = transferUtility.upload(
                 BUCKET_NAME,     /* The bucket to upload to */

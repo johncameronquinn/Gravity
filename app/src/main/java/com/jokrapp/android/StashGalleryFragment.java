@@ -465,7 +465,7 @@ public class StashGalleryFragment extends Fragment implements FragmentManager.On
                     if (!urlString.equals(photoFragment.getImageKeyString())) {
 
                         // Sets the Fragment to use the URL from the Intent for the photo
-                        photoFragment.setPhoto(Constants.KEY_S3_STASH_DIRECTORY,urlString);
+                        photoFragment.setPhoto(Constants.KEY_S3_STASH_DIRECTORY,urlString,false);
 
                         // Loads the photo into the Fragment
                         photoFragment.loadPhoto();
@@ -477,7 +477,7 @@ public class StashGalleryFragment extends Fragment implements FragmentManager.On
                     photoFragment = new PhotoFragment();
 
                     // Sets the Fragment to use the URL from the Intent for the photo
-                    photoFragment.setPhoto(Constants.KEY_S3_STASH_DIRECTORY,urlString);
+                    photoFragment.setPhoto(Constants.KEY_S3_STASH_DIRECTORY,urlString,false);
 
                     // Starts a new Fragment transaction
                     FragmentTransaction localFragmentTransaction2 =

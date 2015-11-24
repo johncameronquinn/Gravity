@@ -28,7 +28,7 @@
         android:inputType="textMultiLine"
         android:ems="10"
         android:id="@+id/editText_live_mode_description"
-        android:hint="Description"
+        android:hint="Caption"
         android:textSize="20dp"
         android:layout_below="@+id/editText_live_mode_title"
         android:gravity="center_horizontal" />

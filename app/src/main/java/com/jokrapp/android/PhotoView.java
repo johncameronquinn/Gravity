@@ -228,6 +228,13 @@ public class PhotoView extends ImageView {
 
             // After successfully downloading the image, this marks that it's available.
             mIsDrawn = true;
+        } else {
+            if (mIsDrawn) {
+                if (VERBOSE) Log.v(TAG,"image was drawn");
+            }
+            if (mImageKey == null) {
+                if (VERBOSE) Log.v(TAG, "mImageKey was null " + mImageKey);
+            }
         }
         // Always call the super method last
         super.onDraw(canvas);
@@ -346,10 +353,9 @@ public class PhotoView extends ImageView {
             mDownloadThread = PhotoManager.startDownload(this, cacheFlag);
         } else {
             if (VERBOSE) Log.v(TAG,"incoming image was null so do nothing");
-
         }
 
-        if (VERBOSE) Log.v(VIEW_LOG_TAG,"exiting setImageKey...");
+        if (VERBOSE) Log.v(TAG,"exiting setImageKey...");
     }
 
     /**

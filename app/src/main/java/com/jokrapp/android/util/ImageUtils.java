@@ -3,8 +3,10 @@ package com.jokrapp.android.util;
 import android.app.Activity;
 import android.content.ContentResolver;
 import android.content.Context;
+import android.database.Cursor;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
+import android.provider.MediaStore;
 import android.util.Base64;
 import android.util.Base64InputStream;
 import android.util.Log;
@@ -210,5 +212,26 @@ public final class ImageUtils {
         return file;
     }
 
+    /**
+     * helper to retrieve the path of an image URI
+     */
+    public static String getPath(Activity activity, Uri uri) {
 
+        String res = null;
+        String[] proj = {MediaStore.Images.Media.DATA};
+        Cursor cursor = activity.getContentResolver().query(uri, proj, null, null, null);
+        if (cursor.moveToFirst()) {
+            int column_index = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
+            res = cursor.getString(column_index);
+        }
+        cursor.close();
+        if (res != null) {
+            return res;
+        } else {
+            // this is our fallback here
+            return uri.getPath();
+        }
+
+
+    }
 }

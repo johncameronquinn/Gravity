@@ -24,6 +24,8 @@ package com.jokrapp.android;
 
 
 
+        import android.app.Activity;
+        import android.content.Context;
         import android.content.Intent;
         import android.os.Bundle;
         import android.app.Fragment;
@@ -33,6 +35,8 @@ package com.jokrapp.android;
         import android.view.LayoutInflater;
         import android.view.View;
         import android.view.ViewGroup;
+        import android.widget.EditText;
+        import android.widget.FrameLayout;
 
 public class PhotoFragment extends Fragment implements View.OnClickListener {
     // Constants
@@ -44,6 +48,9 @@ public class PhotoFragment extends Fragment implements View.OnClickListener {
 
     String mImageKey;
     String mImageDirectory;
+    boolean mIsPreview;
+
+    private onPreviewInteractionListener mListener;
 
     ShareCompat.IntentBuilder mShareCompatIntentBuilder;
 
@@ -55,7 +62,7 @@ public class PhotoFragment extends Fragment implements View.OnClickListener {
         if (Constants.LOGV) Log.v(TAG,"entering loadPhoto...");
 
         // If setPhoto() was called to store a URL, proceed
-        if (mImageKey != null) {
+        if (mImageKey != null && mPhotoView != null) {
             Log.d(TAG, "mImageKey is not null: " + mImageKey);
 
 
@@ -84,13 +91,74 @@ public class PhotoFragment extends Fragment implements View.OnClickListener {
      * a handle to the View object that was clicked
      */
     @Override
-    public void onClick(View view) {
-        if (Constants.LOGV) Log.v(TAG,"entering onClick with view: " + view.toString());
-        // Sends a broadcast intent to zoom the image
-        if (Constants.LOGV) Log.v(TAG,"sending broadcast to zoom the image");
-        Intent localIntent = new Intent(Constants.ACTION_ZOOM_IMAGE);
-        LocalBroadcastManager.getInstance(getActivity()).sendBroadcast(localIntent);
+    public void onClick(View v) {
+        if (Constants.LOGV) Log.v(TAG,"entering onClick with view: " + v.toString());
 
+        switch (v.getId()) {
+            case R.id.button_camera_live_mode_cancel:
+                ((ViewGroup)v.getParent()
+                        .getParent())
+                        .removeView(
+                                (View)
+                                        v.getParent()
+                        );
+
+                ((MainActivity)getActivity()).removePendingLiveImage();
+
+                mListener.hideSoftKeyboard();
+                mListener.removePendingLiveImage();
+                mListener.dismissPreview(this);
+                break;
+
+            case R.id.button_camera_live_mode_confirm:
+
+                FrameLayout layout = (FrameLayout) v.getParent().getParent();
+
+                String title = ((EditText)layout
+                        .findViewById(R.id.editText_live_mode_title))
+                        .getText()
+                        .toString();
+
+                String description = ((EditText)layout
+                        .findViewById(R.id.editText_live_mode_description))
+                        .getText()
+                        .toString();
+
+                mListener.hideSoftKeyboard();
+                mListener.setLiveCreateThreadInfo(title, description);
+                mListener.dismissPreview(this);
+                break;
+
+            case R.id.button_cancel_reply:
+
+                mListener.clearReplyInfo();
+                mListener.hideSoftKeyboard();
+                mListener.removePendingLiveImage();
+                mListener.dismissPreview(this);
+                break;
+
+            case R.id.button_send_reply:
+
+                FrameLayout layout2 = (FrameLayout) v.getParent();
+
+                String caption = ((EditText)layout2
+                        .findViewById(R.id.commentText))
+                        .getText()
+                        .toString();
+
+                mListener.hideSoftKeyboard();
+                mListener.setLiveCreateReplyInfo(caption);
+                mListener.dismissPreview(this);
+                break;
+
+            default:
+                // Sends a broadcast intent to zoom the image
+                if (Constants.LOGV) Log.v(TAG,"sending broadcast to zoom the image");
+                Intent localIntent = new Intent(Constants.ACTION_ZOOM_IMAGE);
+                LocalBroadcastManager.getInstance(getActivity()).sendBroadcast(localIntent);
+
+
+        }
         if (Constants.LOGV) Log.v(TAG,"exiting onClick...");
     }
 
@@ -109,11 +177,39 @@ public class PhotoFragment extends Fragment implements View.OnClickListener {
     public View onCreateView(LayoutInflater inflater, ViewGroup viewGroup, Bundle bundle) {
         super.onCreateView(inflater, viewGroup, bundle);
         if (Constants.LOGV) Log.v(TAG,"entering onCreateView...");
+
+        View localView;
         /*
          * Creates a View from the specified layout file. The layout uses the parameters specified
          * in viewGroup, but is not attached to any parent
          */
-        View localView = inflater.inflate(R.layout.photo, viewGroup, false);
+        if (mIsPreview) {
+
+            if (mImageDirectory.equals(Constants.KEY_S3_LIVE_DIRECTORY)) {
+
+                localView = inflater.inflate(R.layout.photo_preview_live, viewGroup, false);
+
+                localView.findViewById(R.id.button_camera_live_mode_cancel).setOnClickListener(this);
+                localView.findViewById(R.id.button_camera_live_mode_confirm).setOnClickListener(this);
+            } else if (mImageDirectory.equals(Constants.KEY_S3_REPLIES_DIRECTORY)) {
+
+                localView = inflater.inflate(R.layout.photo_preview_reply, viewGroup, false);
+
+                localView.findViewById(R.id.button_cancel_reply).setOnClickListener(this);
+                localView.findViewById(R.id.button_send_reply).setOnClickListener(this);
+            } else {
+                Log.wtf(TAG,"wtf you doin son. You tryna upload to local or sumthin cause" +
+                        "that's not allowed.");
+
+                throw new RuntimeException("This fragment only servers previews for Reply or Live");
+            }
+            //root.addView(v,root.getChildCount());
+            //v.bringToFront();
+        } else {
+            localView = inflater.inflate(R.layout.photo, viewGroup, false);
+
+        }
+
 
         // Gets a handle to the PhotoView View in the layout
         mPhotoView = ((PhotoView) localView.findViewById(R.id.photoView));
@@ -128,11 +224,14 @@ public class PhotoFragment extends Fragment implements View.OnClickListener {
         if (bundle != null) {
             mImageKey = bundle.getString(Constants.KEY_S3_KEY);
             mImageDirectory = bundle.getString(Constants.KEY_S3_DIRECTORY);
+            mIsPreview = bundle.getBoolean(Constants.KEY_PREVIEW_IMAGE);
             if (Constants.LOGV) Log.v(TAG,"Loaded key: " + mImageKey);
         }
 
         if (mImageKey != null)
             loadPhoto();
+
+
 
         // Returns the resulting View
 
@@ -159,10 +258,24 @@ public class PhotoFragment extends Fragment implements View.OnClickListener {
         super.onDestroyView();
     }
 
+    @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
+
+        mListener = (onPreviewInteractionListener)context;
+    }
+
+    @Override
+    public void onAttach(Activity activity) {
+        super.onAttach(activity);
+
+        mListener = (onPreviewInteractionListener)activity;
+    }
+
     /*
-     * This callback is invoked when the Fragment is no longer attached to its Activity.
-     * Sets the URL for the Fragment to null
-     */
+         * This callback is invoked when the Fragment is no longer attached to its Activity.
+         * Sets the URL for the Fragment to null
+         */
     @Override
     public void onDetach() {
         // Logs the detach
@@ -188,6 +301,7 @@ public class PhotoFragment extends Fragment implements View.OnClickListener {
         // Puts the current URL for the picture being shown into the saved state
         bundle.putString(Constants.KEY_S3_KEY, mImageKey);
         bundle.putString(Constants.KEY_S3_DIRECTORY,mImageDirectory);
+        bundle.putBoolean(Constants.KEY_PREVIEW_IMAGE, mIsPreview);
 
         if (Constants.LOGV) Log.v(TAG,"exiting onSaveInstanceState...");
     }
@@ -196,9 +310,20 @@ public class PhotoFragment extends Fragment implements View.OnClickListener {
      * Sets the photo for this Fragment, by storing a URL that points to a picture
      * @param imageKey A String representation of the URL pointing to the picture
      */
-    public void setPhoto(String s3Directory, String imageKey) {
+    public void setPhoto(String s3Directory, String imageKey, boolean isPreview) {
         mImageKey = imageKey;
         mImageDirectory = s3Directory;
+        mIsPreview = isPreview;
+
         if (Constants.LOGV) Log.v(LOG_TAG,"urlString provided is: " + imageKey);
+    }
+
+    public interface onPreviewInteractionListener {
+        void dismissPreview(PhotoFragment me);
+        void removePendingLiveImage();
+        void setLiveCreateThreadInfo(String title, String description);
+        void setLiveCreateReplyInfo(String description);
+        void hideSoftKeyboard();
+        void clearReplyInfo();
     }
 }

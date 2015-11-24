@@ -15,6 +15,16 @@
         android:id="@+id/button_reply_refresh"
         android:layout_below="@id/button_reply_report"/>
 
+
+    <Button
+        style="@style/radicalContentButton"
+        android:id="@+id/button_reply_load"
+        android:text="Load"
+        android:background="@drawable/ic_minifab5"
+        android:layout_below="@+id/button_reply_report"
+        android:onClick="loadFromStash" />
+
+
     <Button
         style="@style/radicalContentButton"
         android:id="@+id/button_reply_capture"
