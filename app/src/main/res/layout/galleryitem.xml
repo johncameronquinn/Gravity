@@ -4,9 +4,9 @@
   -->
 <!-- Defines a single thumbnail view -->
 <FrameLayout
-        android:layout_width="?android:listPreferredItemHeight"
-        android:layout_height="?android:listPreferredItemHeight"
-        xmlns:android="http://schemas.android.com/apk/res/android">
+    android:layout_width="?android:listPreferredItemHeight"
+    android:layout_height="?android:listPreferredItemHeight"
+    xmlns:android="http://schemas.android.com/apk/res/android">
     <com.jokrapp.android.PhotoView
         android:id="@+id/thumbImage"
         android:layout_width="fill_parent"

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!-- Defines a single thumbnail view -->
+<FrameLayout
+    android:layout_width="?android:listPreferredItemHeight"
+    android:layout_height="?android:listPreferredItemHeight"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+    <ImageButton
+        android:id="@+id/message_indicator_image"
+        android:src="@drawable/ic_minifab3"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:adjustViewBounds="true"
+        android:scaleType="fitCenter"
+        style="@android:style/Widget.Holo.Button.Borderless"/>
+</FrameLayout>

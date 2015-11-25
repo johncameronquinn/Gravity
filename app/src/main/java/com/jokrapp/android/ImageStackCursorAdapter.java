@@ -65,10 +65,9 @@ public class ImageStackCursorAdapter extends CursorAdapter {
      * @param layout the layout to be inflated
      * @param c data to be loaded
      * @param table projection of what columns to be loaded
-     * @param to resource values to for those columns to be loaded to
      * @param flags options
      */
-    public ImageStackCursorAdapter(MainActivity activity, int layout, Cursor c, Uri table, int[] to, int flags) {
+    public ImageStackCursorAdapter(MainActivity activity, int layout, Cursor c, Uri table, int flags) {
         super(activity, c, flags);
         this.context = activity;
         this.layout = layout;

@@ -1,6 +1,7 @@
 package com.jokrapp.android;
 
 import android.app.Activity;
+import android.app.ListActivity;
 import android.app.LoaderManager;
 import android.content.CursorLoader;
 import android.content.Loader;
@@ -13,6 +14,9 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ListAdapter;
+import android.widget.ListView;
+import android.widget.SimpleCursorAdapter;
 
 import com.jokrapp.android.view.ImageCursorAdapterView;
 
@@ -25,11 +29,14 @@ import java.net.HttpURLConnection;
  * to handle interaction events.
  */
 public class MessageFragment extends Fragment implements
-        LoaderManager.LoaderCallbacks<Cursor> {
+        LoaderManager.LoaderCallbacks<Cursor>,
+     ImageStackMessageAdapter.onIndicatorClick{
     private final String TAG = "MessageFragment";
     private final boolean VERBOSE = false;
 
+    private ListView messageIndicatorListView;
     private ImageStackMessageAdapter adapter;
+    private ListAdapter messageListAdapter;
     private ImageCursorAdapterView imageAdapterView;
 
     private int MESSAGE_LOADER_ID = 10;
@@ -89,7 +96,8 @@ public class MessageFragment extends Fragment implements
         // Inflate the layout for this fragment
         View cat = inflater.inflate(R.layout.fragment_message, container, false);
 
-        imageAdapterView = (ImageCursorAdapterView)cat.findViewById(R.id.imageMessageAdapter);
+        imageAdapterView = (ImageCursorAdapterView)cat.findViewById(R.id.message_images_view);
+        messageIndicatorListView = (ListView)cat.findViewById(R.id.message_indicator_ListView);
 
         if (VERBOSE) {
             Log.v(TAG,"exit onCreateView...");
@@ -105,6 +113,8 @@ public class MessageFragment extends Fragment implements
         }
 
         imageAdapterView.setAdapter(adapter);
+        messageIndicatorListView.setAdapter(adapter);
+
         cat.findViewById(R.id.button_message_save).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -139,8 +149,9 @@ public class MessageFragment extends Fragment implements
                 R.layout.std_msg_inner,
                 null,
                 FireFlyContentProvider.CONTENT_URI_MESSAGE,
-                null,
                 0);
+
+        adapter.setOnIndicatorClickListener(this);
     }
 
     public void handleMessageResponseState(Message msg) {
@@ -231,6 +242,19 @@ public class MessageFragment extends Fragment implements
         }
     }
 
+    @Override
+    public void onIndicatorClick(View v) {
+        Log.v(TAG,"clicked! : " + v.toString());
+
+        //get the position of the view which was clicked
+        int position = messageIndicatorListView.getPositionForView(v);
+
+        //get the corresponding cardview
+        View cardView = imageAdapterView.getChildAt(position);
+
+        //show
+        cardView.bringToFront();
+    }
 
     /**
      * interface 'onLocalFragmentInteractionListener'

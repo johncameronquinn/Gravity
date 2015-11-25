@@ -1,13 +1,22 @@
 package com.jokrapp.android;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.database.Cursor;
+import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.FrameLayout;
+import android.widget.ImageButton;
+import android.widget.ListView;
 import android.widget.TextView;
+
+import java.util.HashMap;
+import java.util.UUID;
 
 /**
  * Author/Copyright John C. Quinn, All Rights Reserved.
@@ -18,7 +27,7 @@ import android.widget.TextView;
  * and loaded into the view. Maintains a reference to the database using cursors,
  * and dynamically swaps the cursors with their actual data once the data is finished loading
  */
-public class ImageStackMessageAdapter extends ImageStackCursorAdapter {
+public class ImageStackMessageAdapter extends ImageStackCursorAdapter implements View.OnClickListener{
     private final boolean VERBOSE = false;
     private final String TAG = "ImageMessageAdapter";
 
@@ -27,8 +36,11 @@ public class ImageStackMessageAdapter extends ImageStackCursorAdapter {
     private Uri table;
 
     private Drawable mEmptyDrawable;
-
     private LayoutInflater mLayoutInflater;
+
+    private HashMap<String,Integer> uuidColorHashMap = new HashMap<>();
+
+    private onIndicatorClick mListener;
 
     /**
      * class 'ViewHolder'
@@ -55,18 +67,20 @@ public class ImageStackMessageAdapter extends ImageStackCursorAdapter {
      * @param layout the layout to be inflated
      * @param c data to be loaded
      * @param table from where to load
-     * @param to resource values to for those columns to be loaded to
      * @param flags options
      */
-    public ImageStackMessageAdapter(MainActivity activity, int layout, Cursor c, Uri table, int[] to, int flags) {
-        super(activity, layout,c, table,to,flags);
+    public ImageStackMessageAdapter(MainActivity activity, int layout, Cursor c, Uri table, int flags) {
+        super(activity, layout,c, table, flags);
         this.context = activity;
         this.layout = layout;
         mLayoutInflater = LayoutInflater.from(context);
         this.table = table;
 
         mEmptyDrawable = activity.getResources().getDrawable(R.drawable.imagenotqueued);
+    }
 
+    public void setOnIndicatorClickListener(onIndicatorClick clickListener) {
+        mListener = clickListener;
     }
 
     /**
@@ -86,25 +100,29 @@ public class ImageStackMessageAdapter extends ImageStackCursorAdapter {
      */
     @Override
     public View newView(Context ctx, Cursor cursor, ViewGroup parent) {
-        View vView =  mLayoutInflater.inflate(layout, parent, false);
-        if (VERBOSE) {
-            Log.v(TAG,"entering newView...");
-            Log.v(TAG,"Cursor used for newView is: " + cursor.toString());
+        View vView;
+        if (parent instanceof ListView) {
+            vView = mLayoutInflater.inflate(R.layout.message_indicator,parent,false);
+            vView.findViewById(R.id.message_indicator_image).setOnClickListener(this);
+        } else {
+            vView=  mLayoutInflater.inflate(layout, parent, false);
 
-        }
-
-        vView.setTag(new ViewHolder(vView, cursor.getString
-                (cursor.getColumnIndex(SQLiteDbContract.MessageEntry.COLUMN_NAME_FILEPATH))));
+            vView.setTag(new ViewHolder(vView, cursor.getString
+                    (cursor.getColumnIndex(SQLiteDbContract.MessageEntry.COLUMN_NAME_FILEPATH))));
             /*
              * sets tags of the buttons, so then when they are clicked, the method in mainactivity
              * knows which card they were attached to.
              */
 
-        String UUID = cursor.getString(cursor.getColumnIndex(SQLiteDbContract.MessageEntry.COLUMN_FROM_USER));
+            String UUID = cursor.getString(
+                    cursor.getColumnIndex(SQLiteDbContract.MessageEntry.COLUMN_FROM_USER)
+            );
 
-        ((TextView)vView.findViewById(R.id.userID)).setText(UUID);
-        context.findViewById(R.id.button_local_message).setTag(UUID);
-        context.findViewById(R.id.button_local_block).setTag(UUID);
+            ((TextView)vView.findViewById(R.id.userID)).setText(UUID);
+            context.findViewById(R.id.button_local_message).setTag(UUID);
+            context.findViewById(R.id.button_local_block).setTag(UUID);
+
+        }
 
         if (VERBOSE) {
             Log.v(TAG,"exiting newView...");
@@ -126,32 +144,68 @@ public class ImageStackMessageAdapter extends ImageStackCursorAdapter {
     public void bindView(View v, Context ctx, Cursor c) {
         if (VERBOSE) {
             Log.v(TAG,"entering bindView...");
+
         }
+
+        if (v instanceof FrameLayout) {
+
+        /* Message_Indicator has a FrameLayout
+         * as a root, std_card_inner users a RelativeLayout
+         */
+
+            if (VERBOSE) Log.v(TAG,"bind view listView...");
+            //set the state to be either received or pending
+
+            String suuid = c.getString(
+                    c.getColumnIndex(SQLiteDbContract.MessageEntry.COLUMN_FROM_USER)
+            );
+
+
+            if (!"".equals(suuid)) { // is not null
+                if (VERBOSE) Log.v(TAG, "UUID is not null, setting minifab to colored");
+
+
+                int imageButtonColor;
+                if (uuidColorHashMap.containsKey(suuid)) {
+                    imageButtonColor = uuidColorHashMap.get(suuid);
+                } else {
+                    imageButtonColor = ctx.getResources().getColor(R.color.jpallete_neutral_blue);
+                    uuidColorHashMap.put(suuid,imageButtonColor);
+                }
+
+
+                ((ImageButton) v.findViewById(R.id.message_indicator_image))
+                        .setColorFilter(imageButtonColor);
+            }
+
+        } else {
+            if (VERBOSE) Log.v(TAG,"bind view ImageCursorView...");
 
          /* grab the caption from incoming files*/
-        String caption_text = c.getString(
-                c.getColumnIndex(
-                        SQLiteDbContract.MessageEntry.COLUMN_NAME_TEXT)
-        );
+            String caption_text = c.getString(
+                    c.getColumnIndex(
+                            SQLiteDbContract.MessageEntry.COLUMN_NAME_TEXT)
+            );
 
         /* if the caption is not empty (or null) set and display*/
-        if (!"".equals(caption_text)) {
-            TextView caption = ((TextView) v.findViewById(R.id.textView_message_caption));
-            caption.setText(caption_text);
-            caption.setVisibility(View.VISIBLE);
+            if (!"".equals(caption_text)) {
+                TextView caption = ((TextView) v.findViewById(R.id.textView_message_caption));
+                caption.setText(caption_text);
+                caption.setVisibility(View.VISIBLE);
+            }
+
+            ViewHolder vh = (ViewHolder) v.getTag();
+            if (VERBOSE) Log.v(TAG, "incoming filepath is: " + vh.path);
+
+            vh.photoView.setImageKey(Constants.KEY_S3_MESSAGE_DIRECTORY,
+                    vh.path,
+                    true,
+                    this.mEmptyDrawable
+            );
         }
 
-        ViewHolder vh = (ViewHolder) v.getTag();
-        if (VERBOSE) Log.v(TAG,"incoming filepath is: " + vh.path);
-
-        vh.photoView.setImageKey(Constants.KEY_S3_MESSAGE_DIRECTORY,
-                vh.path,
-                true,
-                this.mEmptyDrawable
-        );
-
         if (VERBOSE) {
-            Log.v(TAG,"exiting bindView...");
+            Log.v(TAG, "exiting bindView...");
         }
     }
 
@@ -190,6 +244,14 @@ public class ImageStackMessageAdapter extends ImageStackCursorAdapter {
         return filePath;
     }
 
+    public void onClick(View v) {
+        mListener.onIndicatorClick(v);
+
+    }
+
+    public interface onIndicatorClick {
+        void onIndicatorClick(View v);
+    }
 
 
 }

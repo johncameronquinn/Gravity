@@ -186,7 +186,6 @@ public class LocalFragment extends Fragment implements
                 R.layout.std_card_inner,
                 null,
                 FireFlyContentProvider.CONTENT_URI_LOCAL,
-                null,
                 0);
                 //to, 0);
     }

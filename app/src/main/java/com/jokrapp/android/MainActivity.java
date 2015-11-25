@@ -1785,7 +1785,7 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
                             try {
                                 mCamera.setPreviewTexture(mSurface);
                                 mCamera.startPreview();
-                            } catch (IOException e) {
+                            } catch (Exception e) {
                                 Log.e(TAG, "error setting preview texture to camera", e);
                                 mWeakActivity.get().mTracker.getEventClient()
                                         .recordEvent(mWeakActivity.get().mTracker
@@ -1794,15 +1794,6 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
                                                 .withAttribute(Constants.ANALYTICS_CATEGORY_MESSAGE,
                                                         e.getMessage() + ":" + "" +
                        "onSurfaceTextureAvailable(SurfaceTexture surface, int width, int height)"));
-                            } catch (NullPointerException e) {
-                                Log.e(TAG, "error setting Preview texture to camera", e);
-                                mWeakActivity.get().mTracker.getEventClient()
-                                        .recordEvent(mWeakActivity.get().mTracker
-                                                .getEventClient()
-                                                .createEvent(Constants.ANALYTICS_CATEGORY_ERROR)
-                                                .withAttribute(Constants.ANALYTICS_CATEGORY_MESSAGE,
-                                                        e.getMessage()
-               + ":" + "onSurfaceTextureAvailable(SurfaceTexture surface, int width, int height)"));
                             }
                 } else {
                     Log.d(TAG, "camera was not available, saving surface...");

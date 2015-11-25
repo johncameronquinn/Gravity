@@ -4,12 +4,21 @@
     android:layout_height="match_parent"
     android:background="@color/jpallete_main_grey">
 
-        <com.jokrapp.android.view.ImageCursorAdapterView
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:id="@+id/imageMessageAdapter">
-        </com.jokrapp.android.view.ImageCursorAdapterView>
+    <com.jokrapp.android.view.ImageCursorAdapterView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:id="@+id/message_images_view">
+    </com.jokrapp.android.view.ImageCursorAdapterView>
 
+    <ListView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/message_indicator_ListView"
+        android:layout_gravity="start|top"
+        android:divider="@color/clear_background"
+        android:contextClickable="false"
+        android:dividerHeight="10dp"
+        android:layout_margin="@dimen/side_screen_margin" />
 
     <com.jokrapp.android.view.ExpandableLayout
         android:id="@+id/replyexpandable"
