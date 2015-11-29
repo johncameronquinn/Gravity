@@ -663,6 +663,9 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
                 replyMessenger.send(responseMessage);
             } catch (RemoteException e) {
                 Log.e(TAG, "error responding to UI listeners...");
+            } catch (NullPointerException e) {
+                Log.e(TAG, "replyMessenger was null... this is bad. Handle this.",e);
+                //// FIXME: 11/29/15 this nullpointerexception should never, ever, occur
             }
 
     }

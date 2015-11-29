@@ -8,7 +8,7 @@ android {
         minSdkVersion 17
         targetSdkVersion 23
         versionCode 7
-        versionName "4.2.3"
+        versionName "4.2.4"
     }
     buildTypes {
         release {
@@ -34,7 +34,7 @@ android {
             applicationId 'com.jokrapp.android'
             targetSdkVersion 23
             versionCode 7
-            versionName '4.2.3-developer'
+            versionName '4.2.4-developer'
         }
 
 
@@ -43,7 +43,7 @@ android {
             applicationId 'com.jokrapp.android'
             targetSdkVersion 23
             versionCode 7
-            versionName '4.2.3'
+            versionName '4.2.4'
         }
     }
 

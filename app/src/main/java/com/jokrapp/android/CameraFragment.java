@@ -20,6 +20,7 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.FrameLayout;
+import android.widget.ImageButton;
 
 
 import java.lang.ref.WeakReference;
@@ -396,7 +397,7 @@ n  */
 
         switchButton.setOnClickListener(cameraButtonInstance);
 
-        Button captureButton = (Button) view.findViewById(R.id.button_capture);
+        ImageButton captureButton = (ImageButton) view.findViewById(R.id.button_capture);
         captureButton.setOnClickListener(cameraButtonInstance);
         captureButton.bringToFront();
 
@@ -465,7 +466,9 @@ n  */
      */
     private class CameraButtonManager implements View.OnClickListener {
 
-        private Button captureButton;
+        private ImageButton captureButton;
+        private FrameLayout captureLayout;
+
         private Button switchButton;
         private Button flashButton;
         private Button cancelButton;
@@ -492,7 +495,8 @@ n  */
                     switch (currentCameraMode) {
                         case CAMERA_DEFAULT_MODE:
                             if (Constants.LOGD) Log.d(TAG,"Taking a picture in default mode...");
-                            captureButton = (Button) v;
+                            captureButton = (ImageButton) v;
+                            captureLayout = (FrameLayout) v.getParent();
                             switchButton = (Button) mActivity.findViewById(R.id.switch_camera);
                             flashButton = (Button) mActivity.findViewById(R.id.button_flash);
                             liveButton = (Button) mActivity.findViewById(R.id.button_live);
@@ -509,7 +513,8 @@ n  */
 
                         case CAMERA_MESSAGE_MODE:
                             if (Constants.LOGD) Log.d(TAG,"Taking a picture in message mode...");
-                            captureButton = (Button) v;
+                            captureButton = (ImageButton) v;
+                            captureLayout = (FrameLayout) v.getParent();
                             cancelMessageButton = (Button) mActivity.
                                     findViewById(R.id.button_cancel_message);
                             switchButton = (Button) mActivity.findViewById(R.id.switch_camera);
@@ -526,7 +531,8 @@ n  */
 
                         case CAMERA_LIVE_MODE:
                             if (Constants.LOGD) Log.d(TAG,"Taking a picture in live mode...");
-                           captureButton = (Button) v;
+                           captureButton = (ImageButton) v;
+                            captureLayout = (FrameLayout) v.getParent();
                             switchButton = (Button) mActivity.findViewById(R.id.switch_camera);
                             flashButton = (Button) mActivity.findViewById(R.id.button_flash);
                             mListener.sendMsgTakePicture();
@@ -540,7 +546,8 @@ n  */
 
                         case CAMERA_REPLY_MODE:
                             if (Constants.LOGD) Log.d(TAG,"Taking a picture in reply mode...");
-                            captureButton = (Button) v;
+                            captureButton = (ImageButton) v;
+                            captureLayout = (FrameLayout) v.getParent();
                             switchButton = (Button) mActivity.findViewById(R.id.switch_camera);
                             flashButton = (Button) mActivity.findViewById(R.id.button_flash);
                             mListener.sendMsgTakePicture();
@@ -666,7 +673,8 @@ n  */
                     localButton.bringToFront();
                     liveButton.bringToFront();
 
-                    captureButton.setVisibility(View.INVISIBLE);
+                    //captureButton.setVisibility(View.INVISIBLE);
+                    captureLayout.setVisibility(View.INVISIBLE);
                     switchButton.setVisibility(View.INVISIBLE);
                     flashButton.setVisibility(View.INVISIBLE);
 
@@ -685,7 +693,8 @@ n  */
                     if (VERBOSE) Log.v(TAG,"Image captured in message mode");
                     isPreview = false;
 
-                    captureButton.setVisibility(View.INVISIBLE);
+                    //captureButton.setVisibility(View.INVISIBLE);
+                    captureLayout.setVisibility(View.INVISIBLE);
                     switchButton.setVisibility(View.INVISIBLE);
                     flashButton.setVisibility(View.INVISIBLE);
 
@@ -697,7 +706,8 @@ n  */
                     if (VERBOSE) Log.v(TAG,"Image captured in live mode");
                     isPreview = false;
 
-                    captureButton.setVisibility(View.INVISIBLE);
+                    //captureButton.setVisibility(View.INVISIBLE);
+                    captureLayout.setVisibility(View.INVISIBLE);
                     switchButton.setVisibility(View.INVISIBLE);
                     flashButton.setVisibility(View.INVISIBLE);
                     startNewThreadInputMode((MainActivity)getActivity());
@@ -708,7 +718,8 @@ n  */
                     isPreview = false;
                     if (VERBOSE) Log.v(TAG,"Image captured in reply mode");
 
-                    captureButton.setVisibility(View.INVISIBLE);
+                    //captureButton.setVisibility(View.INVISIBLE);
+                    captureLayout.setVisibility(View.INVISIBLE);
                     switchButton.setVisibility(View.INVISIBLE);
                     flashButton.setVisibility(View.INVISIBLE);
                     commentText.setVisibility(View.VISIBLE);
@@ -741,7 +752,8 @@ n  */
                     cancelMessageButton.setVisibility(View.INVISIBLE);
                     sendMessageButton.setVisibility(View.INVISIBLE);
 
-                    captureButton.setVisibility(View.VISIBLE);
+                    //captureButton.setVisibility(View.VISIBLE);
+                    captureLayout.setVisibility(View.VISIBLE);
                     switchButton.setVisibility(View.VISIBLE);
                     flashButton.setVisibility(View.VISIBLE);
 
@@ -755,7 +767,8 @@ n  */
 
                     commentText.setText("");
                     commentText.setVisibility(View.INVISIBLE);
-                    captureButton.setVisibility(View.VISIBLE);
+                    //captureButton.setVisibility(View.VISIBLE);
+                    captureLayout.setVisibility(View.VISIBLE);
                     switchButton.setVisibility(View.VISIBLE);
                     flashButton.setVisibility(View.VISIBLE);
 
@@ -771,7 +784,8 @@ n  */
                     mListener.sendMsgStartPreview();
                     mListener.enableScrolling();
 
-                    captureButton.setVisibility(View.VISIBLE);
+                    //captureButton.setVisibility(View.VISIBLE);
+                    captureLayout.setVisibility(View.VISIBLE);
                     switchButton.setVisibility(View.VISIBLE);
                     flashButton.setVisibility(View.VISIBLE);
                     break;
