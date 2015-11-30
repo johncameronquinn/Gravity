@@ -1,23 +1,34 @@
 package com.jokrapp.android;
 
+import android.animation.Animator;
+import android.animation.AnimatorInflater;
+import android.animation.AnimatorListenerAdapter;
+import android.animation.AnimatorSet;
+import android.animation.ValueAnimator;
 import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.res.Resources;
 import android.hardware.Camera;
 import android.os.Bundle;
 import android.app.Fragment;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
+import android.util.TypedValue;
 import android.view.GestureDetector;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.TextureView;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
+import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
@@ -39,7 +50,8 @@ import java.lang.ref.WeakReference;
  * create an instance of this fragment.
  *
  */
-public class CameraFragment extends Fragment implements Camera.AutoFocusCallback{
+public class CameraFragment extends Fragment implements Camera.AutoFocusCallback,
+        ValueAnimator.AnimatorUpdateListener{
     private static final boolean VERBOSE = true;
     private static final String TAG = "CameraFragment";
 
@@ -50,6 +62,9 @@ public class CameraFragment extends Fragment implements Camera.AutoFocusCallback
     private EditText commentText = null;
     private String messageTarget = null;
 
+    private FrameLayout captureLayout;
+
+
     private int currentCameraMode;
     private CameraReceiver cameraReceiver;
 
@@ -57,6 +72,11 @@ public class CameraFragment extends Fragment implements Camera.AutoFocusCallback
     public static final int CAMERA_MESSAGE_MODE = 1;
     public static final int CAMERA_LIVE_MODE = 2;
     public static final int CAMERA_REPLY_MODE = 3;
+
+    private final int FOCUS_AREA_ANIMATION_DURATION = 300;
+    private final int CAPTURE_LAYOUT_ANIMATION_DURATION = 300;
+    private final int CAPTURE_LAYOUT_START_DP = 120;
+    private final int CAPTURE_LAYOUT_END_DP = 100;
 
     private static final String CAMERA_MODE_KEY = "ckey";
     private static final String KEY_PREVIEW = "pkey";
@@ -260,6 +280,7 @@ n  */
 
         View view = inflater.inflate(R.layout.fragment_camera, container, false);
         mPreview = (TextureView) view.findViewById(R.id.cameraSurfaceView);
+        captureLayout = (FrameLayout) view.findViewById(R.id.capture_layout);
 
         return view;
     }
@@ -317,15 +338,8 @@ n  */
             if (VERBOSE) Log.v(TAG,"entering onSingleTapConfirmed...");
 
             if (isPreview) { //its in preview mode, so trigger an auto-focus
-                mListener.sendMsgAutoFocus(e);
 
-                View v= getView();
-                if (v!= null) {
-                    v = getView().findViewById(R.id.camera_focus);
-                    v.setVisibility(View.VISIBLE);
-                    v.setX(e.getX());
-                    v.setY(e.getY());
-                }
+                startAutoFocus(e);
 
                 if (VERBOSE) Log.v(TAG,"exiting onSingleTapConfirmed...");
                 return true;
@@ -393,9 +407,9 @@ n  */
 
         Log.d(TAG, "created view is: " + view.toString());
 
-        final Button switchButton = (Button) view.findViewById(R.id.switch_camera);
-
+        CheckBox switchButton = (CheckBox) view.findViewById(R.id.switch_camera);
         switchButton.setOnClickListener(cameraButtonInstance);
+
 
         ImageButton captureButton = (ImageButton) view.findViewById(R.id.button_capture);
         captureButton.setOnClickListener(cameraButtonInstance);
@@ -496,7 +510,6 @@ n  */
                         case CAMERA_DEFAULT_MODE:
                             if (Constants.LOGD) Log.d(TAG,"Taking a picture in default mode...");
                             captureButton = (ImageButton) v;
-                            captureLayout = (FrameLayout) v.getParent();
                             switchButton = (Button) mActivity.findViewById(R.id.switch_camera);
                             flashButton = (Button) mActivity.findViewById(R.id.button_flash);
                             liveButton = (Button) mActivity.findViewById(R.id.button_live);
@@ -514,7 +527,6 @@ n  */
                         case CAMERA_MESSAGE_MODE:
                             if (Constants.LOGD) Log.d(TAG,"Taking a picture in message mode...");
                             captureButton = (ImageButton) v;
-                            captureLayout = (FrameLayout) v.getParent();
                             cancelMessageButton = (Button) mActivity.
                                     findViewById(R.id.button_cancel_message);
                             switchButton = (Button) mActivity.findViewById(R.id.switch_camera);
@@ -532,7 +544,6 @@ n  */
                         case CAMERA_LIVE_MODE:
                             if (Constants.LOGD) Log.d(TAG,"Taking a picture in live mode...");
                            captureButton = (ImageButton) v;
-                            captureLayout = (FrameLayout) v.getParent();
                             switchButton = (Button) mActivity.findViewById(R.id.switch_camera);
                             flashButton = (Button) mActivity.findViewById(R.id.button_flash);
                             mListener.sendMsgTakePicture();
@@ -547,7 +558,6 @@ n  */
                         case CAMERA_REPLY_MODE:
                             if (Constants.LOGD) Log.d(TAG,"Taking a picture in reply mode...");
                             captureButton = (ImageButton) v;
-                            captureLayout = (FrameLayout) v.getParent();
                             switchButton = (Button) mActivity.findViewById(R.id.switch_camera);
                             flashButton = (Button) mActivity.findViewById(R.id.button_flash);
                             mListener.sendMsgTakePicture();
@@ -662,6 +672,10 @@ n  */
          * @param mode the mode of the camera UI
          */
         public void setCameraUI(int mode) {
+
+            if (captureLayout == null ) {
+                captureLayout = (FrameLayout)captureButton.getParent();
+            }
 
             switch (mode) {
 
@@ -828,32 +842,141 @@ n  */
      }
 
 
+    /**
+     * method 'onAutoFocus'
+     *
+     * called by {@link com.jokrapp.android.MainActivity.CameraHandler} when a focus action
+     * is finished. Returns success or fail, and animates the views accordingly
+     *
+     * @param success whether or not the focus was successful
+     * @param camera the camera which was used in the focus
+     */
     @Override
     public void onAutoFocus(final boolean success, Camera camera) {
 
+        /*
+         * returns the layout to its starting size
+         */
+        int startpx = Math.round(TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP,
+                CAPTURE_LAYOUT_END_DP,
+                getResources().getDisplayMetrics()));
+        int px = Math.round(TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP,
+                CAPTURE_LAYOUT_START_DP,
+                getResources().getDisplayMetrics()));
+
+        final ValueAnimator animator = ValueAnimator.ofInt(startpx, px);
+        animator.setDuration(CAPTURE_LAYOUT_ANIMATION_DURATION);
+        animator.addUpdateListener(this);
+
+
+
+        /*
+         * Animates the focusView and dodads on the UI thread
+         */
         if (isAdded()) {
             getActivity().runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    View v = getView();
 
-                    if (v != null) {
-                        v = v.findViewById(R.id.camera_focus);
-                        v.setVisibility(View.INVISIBLE);
-                        if (success) {
-                            // do something...
-                            Log.i(TAG, "success!");
+                    //the focusView should disappear now. Shrink to size 0.
+                    View focusView = getActivity().findViewById(R.id.camera_focus);
+                    focusView.animate()
+                            .scaleX(0.0f)
+                            .scaleY(0.0f)
+                            .setDuration(FOCUS_AREA_ANIMATION_DURATION);
+                    if (success) {
 
-                        } else {
-                            // do something...
-                            Log.i(TAG, "fail!");
+                        // this does nothing special currently, just logs.
+                        Log.i(TAG, "success!");
 
-                        }
+                    } else {
+
+                        //since the operation failed, make the dodad's shake now.
+                        Animation shake = AnimationUtils.loadAnimation(getActivity(),
+                                R.anim.shake);
+                        View x = captureLayout.findViewById(R.id.do_dad_one);
+                        View vx = captureLayout.findViewById(R.id.do_dad_two);
+                        x.startAnimation(shake);
+                        vx.startAnimation(shake);
+
+                        //set the layout to return to its start AFTER the shake finishes
+                        animator.setStartDelay(shake.getDuration());
+
+                        //logs the failure
+                        Log.i(TAG, "fail!");
+
                     }
+
+                    //starts the layout animation
+                    animator.start();
+
                 }
+
             });
         }
 
+    }
+
+    /**
+     * method 'startAutoFocus'
+     *
+     * uses the tap area to start an area autofocus
+     *
+     * this method sends a message to the camera thread to perform an autofocus, and
+     * displays an animation until the focus successfully returns
+     *
+     * @param e motionevent containing the data from the tap
+     */
+    private void startAutoFocus(MotionEvent e) {
+
+        //sends the message to start an autofocus event
+        int autoFocus = mListener.sendMsgAutoFocus(e);
+
+        if (autoFocus == 0) { // this should be returned if the message sent successfully
+
+            View v= getView();
+            if (v!= null) {
+                View focusView = getView().findViewById(R.id.camera_focus);
+                focusView.setX(e.getX() - focusView.getWidth() / 2);
+                focusView.setY(e.getY() - focusView.getHeight());
+
+                focusView.animate()
+                        .scaleX(1f)
+                        .scaleY(1f)
+                        .setDuration(FOCUS_AREA_ANIMATION_DURATION);
+            }
+
+            /*
+             * perform the autofocus animation - the dodads should touch the camera capture button,
+             * and wait.
+             */
+
+            int startpx = Math.round(TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP,
+                    CAPTURE_LAYOUT_START_DP,
+                    getResources().getDisplayMetrics()));
+            int px = Math.round(TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP,
+                    CAPTURE_LAYOUT_END_DP,
+                    getResources().getDisplayMetrics()));
+
+
+
+            ValueAnimator animator = ValueAnimator.ofInt(startpx,px);
+            animator.setDuration(CAPTURE_LAYOUT_ANIMATION_DURATION);
+            animator.addUpdateListener(this);
+            animator.start();
+
+        } else {
+            Log.e(TAG, "error sending message to start autofocus...");
+        }
+
+    }
+
+    @Override
+    public void onAnimationUpdate(ValueAnimator animation) {
+        int value = (int)animation.getAnimatedValue();
+        captureLayout.getLayoutParams().height = value;
+        captureLayout.getLayoutParams().width = value;
+        captureLayout.requestLayout();
     }
 
 
@@ -1143,7 +1266,7 @@ n  */
         void sendMsgSaveImage(EditText comment, int postWhere);
         void sendMsgSaveImage(EditText comment, int postWhere, String messageTarget);
         void sendMsgSwitchCamera();
-        void sendMsgAutoFocus(MotionEvent event);
+        int sendMsgAutoFocus(MotionEvent event);
         void sendMsgReportAnalyticsEvent(Bundle b);
     }
 

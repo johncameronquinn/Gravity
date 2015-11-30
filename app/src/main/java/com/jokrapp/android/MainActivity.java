@@ -2085,8 +2085,26 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
                 
             if (cameraInfo.facing == Camera.CameraInfo.CAMERA_FACING_FRONT) {
                 c.setDisplayOrientation(cameraInfo.orientation - 180);
+
+                mWeakActivity.get().runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        ((CheckBox)findViewById(R.id.switch_camera))
+                                .setButtonDrawable(R.drawable.switch_camera_selfie);
+
+                    }
+                });
+
             } else {
                 c.setDisplayOrientation(cameraInfo.orientation);
+
+                mWeakActivity.get().runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        ((CheckBox)findViewById(R.id.switch_camera))
+                                .setButtonDrawable(R.drawable.switch_camera_default);
+                    }
+                });
             }
 
             int width = mWeakActivity.get().getResources().getDisplayMetrics().widthPixels;
@@ -2114,7 +2132,7 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
                                    .getEventClient()
                                    .createEvent(Constants.ANALYTICS_CATEGORY_ERROR)
                                    .withAttribute(Constants.ANALYTICS_CATEGORY_MESSAGE,
-                                           e.getMessage() + ":" + "getCameraInstance(int whichCamera)"));
+                                           e.getMessage()+":"+ "getCameraInstance(int whichCamera)"));
                }
            } else {
                Log.e(TAG,"The camera surface texture has yet to be created");
@@ -2291,11 +2309,13 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
 
                     mWeakActivity.get().mTracker.getEventClient()
                             .recordEvent(mWeakActivity.get().mTracker
-                                    .getEventClient()
-                                    .createEvent(Constants.ANALYTICS_CATEGORY_ERROR)
-                                    .withAttribute(Constants.ANALYTICS_CATEGORY_MESSAGE,
-                                            e.getMessage() + ":" + "focusOnTouch(float x, float y)")
+                                            .getEventClient()
+                                            .createEvent(Constants.ANALYTICS_CATEGORY_ERROR)
+                                            .withAttribute(Constants.ANALYTICS_CATEGORY_MESSAGE,
+                                                    e.getMessage() + ":" + "focusOnTouch(float x, float y)")
                             );
+
+                    ((CameraFragment) mAdapter.getItem(CAMERA_LIST_POSITION)).onAutoFocus(false,mCamera);
                 }
             }
         }
@@ -2566,9 +2586,10 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
         if (VERBOSE) Log.v(TAG, "exiting setFlash...");
     }
 
-    public void sendMsgAutoFocus(MotionEvent event) {
+    public int sendMsgAutoFocus(MotionEvent event) {
         if (VERBOSE) Log.v(TAG, "entering sendMsgAutoFocus...");
 
+        int success;
 
         try {
             Bundle b = new Bundle(2);
@@ -2578,11 +2599,16 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
             Message msg = Message.obtain(null,MSG_AUTOFOCUS);
             msg.setData(b);
             cameraMessenger.send(msg);
+
+            success = 0;
         } catch (RemoteException e) {
             Log.e(TAG,"error sending message to take picture");
+            success = -1;
         }
 
         if (VERBOSE) Log.v(TAG,"exiting sendMsgAutoFocus...");
+
+        return success;
     }
 
     /**
