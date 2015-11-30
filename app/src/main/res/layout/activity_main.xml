@@ -58,4 +58,39 @@
 
     </LinearLayout>
 
+    <SlidingDrawer
+        android:id="@+id/drawer_settings"
+        android:layout_gravity="center_horizontal"
+        android:layout_width="250dp"
+        android:layout_height="400dp"
+        android:handle="@+id/handle"
+        android:rotation="180"
+        android:content="@+id/content"
+        android:layout_marginTop="32dp">
+
+        <ImageView
+            android:id="@id/handle"
+            android:scaleType="fitCenter"
+            android:src="@drawable/drawer_tab"
+            android:layout_width="wrap_content"
+            android:rotation="180"
+            android:layout_height="wrap_content"
+            android:paddingBottom="15dp"
+            android:paddingRight="15dp"
+            android:paddingLeft="15dp" />
+
+        <ListView
+            android:id="@id/content"
+            android:entries="@array/settings_drawer_entries"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:dividerHeight="2dp"
+            android:divider="#ffffff"
+            android:rotation="180"
+            android:background="@color/wpallete_neutral_gray"
+            android:textAlignment="center" />
+
+    </SlidingDrawer>
+
+
 </FrameLayout>
