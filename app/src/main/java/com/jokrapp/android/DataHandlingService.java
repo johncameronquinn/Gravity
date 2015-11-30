@@ -42,6 +42,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 import com.jokrapp.android.util.LogUtils;
+import com.jokrapp.android.SQLiteDbContract.StashEntry;
 
 /**
  * Author/Copyright John C. Quinn, All Rights Reserved.
@@ -1118,7 +1119,14 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
                     LogUtils.printBundle(data,TAG);
                 }
 
-                Intent intent;
+
+                ContentValues values = new ContentValues();
+                values.put(StashEntry.IMAGE_URL_COLUMN,data.getString(Constants.KEY_S3_KEY));
+                values.put(StashEntry.IMAGE_THUMBURL_COLUMN,data.getString(Constants.KEY_S3_KEY));
+                values.put(StashEntry.IMAGE_PICTURENAME_COLUMN,data.getString(Constants.KEY_S3_KEY));
+                values.put(StashEntry.IMAGE_THUMBNAME_COLUMN,data.getString(Constants.KEY_S3_KEY));
+                getContentResolver().insert(FireFlyContentProvider
+                        .PICTUREURL_TABLE_CONTENTURI,values);
 
                 ServerTask task = null;
 

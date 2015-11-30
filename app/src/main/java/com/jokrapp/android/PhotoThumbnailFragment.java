@@ -34,6 +34,7 @@ package com.jokrapp.android;
         import android.app.LoaderManager;
         import android.content.CursorLoader;
         import android.content.Loader;
+        import android.util.Log;
         import android.widget.CursorAdapter;
         import android.support.v4.content.LocalBroadcastManager;
         import android.util.DisplayMetrics;
@@ -58,6 +59,8 @@ public class PhotoThumbnailFragment extends Fragment implements
 
     private static final String STATE_IS_HIDDEN =
             "com.boomerangapp.boomerang.STATE_IS_HIDDEN";
+
+    private static final String TAG = "PhotoThumbnailFragment";
 
     // The width of each column in the grid
     private int mColumnWidth;
@@ -94,7 +97,7 @@ public class PhotoThumbnailFragment extends Fragment implements
     private static final int IMAGE_URL_CURSOR_INDEX = 2;
 
     // Identifies a particular Loader being used in this component
-    private static final int URL_LOADER = 0;
+    private static final int URL_LOADER = 20;
 
     /*
      * This callback is invoked when the framework is starting or re-starting the Loader. It
@@ -202,13 +205,14 @@ public class PhotoThumbnailFragment extends Fragment implements
        /* mServiceIntent =
                 new Intent(getActivity(), RSSPullService.class)
                         .setData(Uri.parse(PICASA_RSS_URL));*/
-
         // If there's no pre-existing state for this Fragment
         if (bundle == null) {
             // If the data wasn't previously loaded
             if (!this.mIsLoaded) {
+                Log.i(TAG,"start loading data...");
+                Log.w(TAG,"this is depreciated, and is left over from the RSS pull service");
                 // Starts the IntentService to download the RSS feed data
-                getActivity().startService(mServiceIntent);
+                //getActivity().startService(mServiceIntent);
             }
 
             // If this Fragment existed previously, gets its state
@@ -263,11 +267,11 @@ public class PhotoThumbnailFragment extends Fragment implements
                 mAdapter = null;
             }
         } catch (Throwable localThrowable) {
+            Log.e(TAG,"Error thrown when destroying variables and references...",localThrowable);
         }
 
         // Always call the super method last
         super.onDetach();
-        return;
     }
 
     /*

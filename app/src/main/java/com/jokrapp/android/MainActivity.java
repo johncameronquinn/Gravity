@@ -43,10 +43,12 @@ import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.AdapterView;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
+import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -78,13 +80,15 @@ import java.util.UUID;
  */
 public class MainActivity extends Activity implements CameraFragment.OnCameraFragmentInteractionListener,
 LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInteractionListener,
-        ViewPager.OnPageChangeListener, PhotoFragment.onPreviewInteractionListener {
+        ViewPager.OnPageChangeListener, PhotoFragment.onPreviewInteractionListener,
+        ListView.OnItemClickListener{
     private static String TAG = "MainActivity";
     private static final boolean VERBOSE = true;
 
     //UI
     private static CustomViewPager mPager;
     private static MainAdapter mAdapter;
+    private ListView mSettingsListView;
 
     /** FRAGMENT MANAGEMENT
      */
@@ -241,11 +245,52 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
      */
     private void initializeUI() {
         setContentView(R.layout.activity_main);
+
+        mSettingsListView = (ListView)findViewById(R.id.content);
+        mSettingsListView.setOnItemClickListener(this);
+
+
         mAdapter = new MainAdapter(getFragmentManager());
         mPager = (CustomViewPager) findViewById(R.id.pager);
         mPager.setAdapter(mAdapter);
         mPager.setCurrentItem(CAMERA_LIST_POSITION);
         mPager.addOnPageChangeListener(this);
+    }
+
+    @Override
+    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+        int STASH_POSTION = 0;
+        if (position == STASH_POSTION) {
+
+            final int LOCAL_SETTINGS = 0;
+            final int GALLERY = 1;
+            final int LIVE_SETTINGS = 2;
+
+            int startPage = GALLERY;
+            switch (mPager.getCurrentItem()) {
+
+                case MESSAGE_LIST_POSITION:
+                case LOCAL_LIST_POSITION:
+                    Toast.makeText(getApplicationContext(),"Opening Local Settings...",Toast.LENGTH_SHORT).show();
+                    startPage = LOCAL_SETTINGS;
+                    break;
+
+                case CAMERA_LIST_POSITION:
+                    Toast.makeText(getApplicationContext(),"Opening Stash Gallery...",Toast.LENGTH_SHORT).show();
+                    startPage = GALLERY;
+                    break;
+
+                case LIVE_LIST_POSITION:
+                case REPLY_LIST_POSITION:
+                    Toast.makeText(getApplicationContext(),"Opening Live Settings...",Toast.LENGTH_SHORT).show();
+                    startPage = LIVE_SETTINGS;
+                    break;
+            }
+            Intent stashActivtyIntent = new Intent(getApplicationContext(),StashActivity.class);
+            stashActivtyIntent.putExtra(StashActivity.STARTING_PAGE_POSITION_KEY, startPage);
+            startActivity(stashActivtyIntent);
+
+        }
     }
 
     /**
@@ -353,8 +398,8 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
         //unbind the service now
         if (isBound) {
 
-             Log.d(TAG, "sending message to disconnect GoogleApiClient...");
-             Message msg1 = Message.obtain(null, DataHandlingService.MSG_DISCONNECT_CLIENT, 0, 0);
+            Log.d(TAG, "sending message to disconnect GoogleApiClient...");
+            Message msg1 = Message.obtain(null, DataHandlingService.MSG_DISCONNECT_CLIENT, 0, 0);
 
             try {
                 mService.send(msg1);
@@ -590,6 +635,18 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
         MainActivity.hide_keyboard(this);
     }
 
+    /**
+     * method 'saveToStash'
+     *
+     * this method saves an image to our internal stash directory
+     * uses a provided photoView, as this object should contain all the information necessary.
+     * this method is chosen over a "copyFile" implemenation, because in the case of Local,
+     * files are never normally written to disk.
+     *
+     * translation: this works in all cases
+     *
+     * @param photoView the photoView object containing the image to be saved
+     */
     public void saveToStash(PhotoView photoView) {
         if (VERBOSE) Log.v(TAG, "entering onSaveToStash with key " + photoView.getImageKey());
 
@@ -606,28 +663,28 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
             Toast.makeText(this, "File already existed in stash...", Toast.LENGTH_SHORT).show();
         } else {
 
-        try {
-            fOut = new FileOutputStream(outFile);
+            try {
+                fOut = new FileOutputStream(outFile);
 
-            /**Compress image**/
-            b.compress(Bitmap.CompressFormat.JPEG, 100, fOut);
-            fOut.flush();
-            fOut.close();
+                /**Compress image**/
+                b.compress(Bitmap.CompressFormat.JPEG, 100, fOut);
+                fOut.flush();
+                fOut.close();
 
-            String url = MediaStore.Images.Media.insertImage(
-                    getContentResolver(),
-                    outFile.getAbsolutePath(),
-                    outFile.getName(),
-                    outFile.getName()
-            );
+                String url = MediaStore.Images.Media.insertImage(
+                        getContentResolver(),
+                        outFile.getAbsolutePath(),
+                        outFile.getName(),
+                        outFile.getName()
+                );
 
 
-            Toast.makeText(this,"Saved",Toast.LENGTH_SHORT).show();
+                Toast.makeText(this,"Saved",Toast.LENGTH_SHORT).show();
 
-        } catch (IOException e) {
-            Log.e(TAG, "ioException", e);
-            Toast.makeText(this, "error saving image to gallery", Toast.LENGTH_LONG).show();
-        }
+            } catch (IOException e) {
+                Log.e(TAG, "ioException", e);
+                Toast.makeText(this, "error saving image to gallery", Toast.LENGTH_LONG).show();
+            }
 
         }
 
@@ -649,6 +706,51 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
         } catch (IOException e) {
             Log.e(TAG,"error saving file to external gallery",e);
         }*/
+    }
+
+    public void exportImage(PhotoView photoView) {
+
+        if (VERBOSE) Log.v(TAG, "entering exportImage with key " + photoView.getImageKey());
+
+        String strDirectory = Environment.getExternalStorageDirectory().toString();
+        File outFile = new File(strDirectory + File.separator +
+                Constants.STASH_GALLERY_DIRECTORY, photoView.getImageKey());
+
+        Bitmap b = ((BitmapDrawable) photoView.getDrawable()).getBitmap();
+
+        FileOutputStream fOut;
+
+        if (outFile.exists()) {
+            Log.i(TAG, "file already existed... not saving...");
+            Toast.makeText(this, "File already existed in stash...", Toast.LENGTH_SHORT).show();
+        } else {
+
+            try {
+                fOut = new FileOutputStream(outFile);
+
+                /**Compress image**/
+                b.compress(Bitmap.CompressFormat.JPEG, 100, fOut);
+                fOut.flush();
+                fOut.close();
+
+                String url = MediaStore.Images.Media.insertImage(
+                        getContentResolver(),
+                        outFile.getAbsolutePath(),
+                        outFile.getName(),
+                        outFile.getName()
+                );
+
+
+                Toast.makeText(this,"Export Complete",Toast.LENGTH_SHORT).show();
+
+            } catch (IOException e) {
+                Log.e(TAG, "ioException", e);
+                Toast.makeText(this, "error saving image to gallery", Toast.LENGTH_LONG).show();
+            }
+
+        }
+
+        if (VERBOSE) Log.v(TAG, "exiting exportImage with key " + photoView.getImageKey());
     }
 
     public void onLocalReplyPressed(View view) {

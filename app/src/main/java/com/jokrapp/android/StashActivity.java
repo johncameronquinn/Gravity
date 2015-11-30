@@ -7,9 +7,17 @@ package com.jokrapp.android;
 import android.app.Activity;
 import android.app.Fragment;
 import android.app.FragmentManager;
+import android.content.ComponentName;
+import android.content.Context;
+import android.content.Intent;
+import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.IBinder;
+import android.os.Message;
+import android.os.Messenger;
+import android.os.RemoteException;
 import android.support.v13.app.FragmentPagerAdapter;
 import android.util.Log;
 import android.view.Menu;
@@ -25,6 +33,10 @@ public class StashActivity extends Activity implements StashGalleryFragment.OnFr
     private  StashAdapter adapter;
     private final String TAG = "StashActivity";
     static final boolean VERBOSE = true;
+
+    private boolean isBound = false;
+
+    private Messenger mService;
 
 
 
@@ -51,6 +63,26 @@ public class StashActivity extends Activity implements StashGalleryFragment.OnFr
     @Override
     protected void onDestroy() {
         super.onDestroy();
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+
+
+        Log.i(TAG, "binding the service to this class, creating if necessary");
+        Intent intent = new Intent(this, DataHandlingService.class);
+        bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+
+        if (isBound) {
+            Log.i(TAG, "unbinding the service");
+            unbindService(mConnection);
+        }
     }
 
     @Override
@@ -93,8 +125,6 @@ public class StashActivity extends Activity implements StashGalleryFragment.OnFr
     public String loadSetting(String key) {
         return preferences.getString(key,"");
     }
-
-
 
 
 
@@ -152,5 +182,33 @@ public class StashActivity extends Activity implements StashGalleryFragment.OnFr
             }
         }
     }
+
+
+    /**
+     *
+     */
+    private ServiceConnection mConnection = new ServiceConnection() {
+        public void onServiceConnected(ComponentName className, IBinder service) {
+            // This is called when the connection with the service has been
+            // established, giving us the object we can use to
+            // interact with the service.  We are communicating with the
+            // service using a Messenger, so here we get a client-side
+            // representation of that from the raw IBinder object.
+            Log.d(TAG,"binding to service...");
+            mService = new Messenger(service);
+            isBound = true;
+        }
+
+        public void onServiceDisconnected(ComponentName className) {
+            // This is called when the connection with the service has been
+            // unexpectedly disconnected -- that is, its process crashed.
+            Log.d(TAG,"unbinding from service...");
+
+            mService = null;
+            isBound = false;
+        }
+    };
+
+
 }
 

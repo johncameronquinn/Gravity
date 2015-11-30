@@ -115,7 +115,6 @@ public class SQLiteDbHelper extends SQLiteOpenHelper {
             ")";
 
 
-
     private final String SQL_DELETE_LOCAL =
             "DROP TABLE IF EXISTS " + LocalEntry.TABLE_NAME;
     private final String SQL_DELETE_MESSAGE =
