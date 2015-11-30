@@ -8,7 +8,7 @@ android {
         minSdkVersion 17
         targetSdkVersion 23
         versionCode 7
-        versionName "4.2.4"
+        versionName "4.2.5"
     }
     buildTypes {
         release {
@@ -34,7 +34,7 @@ android {
             applicationId 'com.jokrapp.android'
             targetSdkVersion 23
             versionCode 7
-            versionName '4.2.4-developer'
+            versionName '4.2.5-developer'
         }
 
 
@@ -43,7 +43,7 @@ android {
             applicationId 'com.jokrapp.android'
             targetSdkVersion 23
             versionCode 7
-            versionName '4.2.4'
+            versionName '4.2.5'
         }
     }
 
@@ -53,14 +53,14 @@ dependencies {
     compile fileTree(include: ['*.jar'], dir: 'libs')
     //  compile 'com.android.support:appcompat-v7:23.0.1'
     compile 'org.apache.commons:commons-compress:1.9'
-    compile 'com.android.support:support-v13:23.0.1'
+    compile 'com.android.support:support-v13:23.1.1'
     compile 'com.github.castorflex.verticalviewpager:library:19.0.1'
     compile 'com.fasterxml.jackson.core:jackson-databind:2.6.1'
     compile 'com.amazonaws:aws-android-sdk-s3:2.2.6'
     compile 'com.amazonaws:aws-android-sdk-core:2.2.6'
     compile 'com.amazonaws:aws-android-sdk-cognito:2.2.6'
     compile 'com.amazonaws:aws-android-sdk-mobileanalytics:2.2.5'
-    compile 'com.google.android.gms:play-services-location:8.1.0'
-    compile 'com.google.android.gms:play-services-base:8.1.0'
-    compile 'com.android.support:support-v4:23.0.1'
+    compile 'com.google.android.gms:play-services-location:8.3.0'
+    compile 'com.google.android.gms:play-services-base:8.3.0'
+    compile 'com.android.support:support-v4:23.1.1'
 }
