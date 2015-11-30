@@ -121,8 +121,8 @@ public class ReplyCursorAdapter extends CursorAdapter implements PhotoView.OnCli
          */
         Intent localIntent =
                 new Intent(Constants.ACTION_VIEW_IMAGE).putExtra(Constants.KEY_S3_KEY,s3Key)
-                .putExtra(Constants.KEY_S3_DIRECTORY,Constants.KEY_S3_REPLIES_DIRECTORY)
-                .putExtra(Constants.KEY_PREVIEW_IMAGE,false);
+                        .putExtra(Constants.KEY_S3_DIRECTORY,Constants.KEY_S3_REPLIES_DIRECTORY)
+                        .putExtra(Constants.KEY_PREVIEW_IMAGE,false);
 
         // Broadcasts the Intent to receivers in this app. See DisplayActivity.FragmentDisplayer.
         LocalBroadcastManager.getInstance(view.getContext()).sendBroadcast(localIntent);

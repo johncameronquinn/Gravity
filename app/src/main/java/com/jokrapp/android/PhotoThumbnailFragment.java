@@ -288,6 +288,7 @@ public class PhotoThumbnailFragment extends Fragment implements
      */
     @Override
     public void onItemClick(AdapterView<?> adapterView, View view, int viewId, long rowId) {
+        Log.d(TAG, "onItemClick: " + view.toString());
 
         // Returns a one-row cursor for the data that backs the View that was clicked.
         Cursor cursor = (Cursor) mAdapter.getItem(viewId);
@@ -299,9 +300,13 @@ public class PhotoThumbnailFragment extends Fragment implements
          * Creates a new Intent to get the full picture for the thumbnail that the user clicked.
          * The full photo is loaded into a separate Fragment
          */
+
+
         Intent localIntent =
-                new Intent(Constants.ACTION_VIEW_IMAGE)
-                        .setData(Uri.parse(urlString));
+                new Intent(Constants.ACTION_VIEW_IMAGE).putExtra(Constants.KEY_S3_KEY,urlString)
+                        .putExtra(Constants.KEY_S3_DIRECTORY,Constants.KEY_S3_STASH_DIRECTORY)
+                        .putExtra(Constants.KEY_PREVIEW_IMAGE,false);
+
 
         // Broadcasts the Intent to receivers in this app. See DisplayActivity.FragmentDisplayer.
         LocalBroadcastManager.getInstance(getActivity()).sendBroadcast(localIntent);
@@ -394,6 +399,7 @@ public class PhotoThumbnailFragment extends Fragment implements
                         imageKey, true, PhotoThumbnailFragment.this.mEmptyDrawable);
 
             }  catch (RejectedExecutionException localRejectedExecutionException) {
+                Log.e(TAG,"RejectedExecutionException occured...",localRejectedExecutionException);
             }
         }
 

@@ -203,25 +203,6 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
             window.setStatusBarColor(getResources().getColor(R.color.jpallete_neutral_blue));
         }
 
-        // One filter is for the action ACTION_VIEW_IMAGE
-        IntentFilter displayerIntentFilter = new IntentFilter(
-                Constants.ACTION_VIEW_IMAGE);
-
-        // Registers the receiver
-        LocalBroadcastManager.getInstance(this).registerReceiver(
-                mFragmentDisplayer,
-                displayerIntentFilter);
-
-        // Creates a second filter for ACTION_ZOOM_IMAGE
-        displayerIntentFilter = new IntentFilter(Constants.ACTION_ZOOM_IMAGE);
-
-        // Registers the receiver
-        LocalBroadcastManager.getInstance(this)
-                .registerReceiver(
-                        mFragmentDisplayer,
-                        displayerIntentFilter
-                );
-
         checkForLocationEnabled(this);
 
         initializeAWS();
@@ -351,6 +332,27 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
             Log.e(TAG,"error sending message to connect camera");
         }
 
+
+        // One filter is for the action ACTION_VIEW_IMAGE
+        IntentFilter displayerIntentFilter = new IntentFilter(
+                Constants.ACTION_VIEW_IMAGE);
+
+        // Registers the receiver
+        LocalBroadcastManager.getInstance(this).registerReceiver(
+                mFragmentDisplayer,
+                displayerIntentFilter);
+
+        // Creates a second filter for ACTION_ZOOM_IMAGE
+        displayerIntentFilter = new IntentFilter(Constants.ACTION_ZOOM_IMAGE);
+
+        // Registers the receiver
+        LocalBroadcastManager.getInstance(this)
+                .registerReceiver(
+                        mFragmentDisplayer,
+                        displayerIntentFilter
+                );
+
+
         if (isBound) {
             Log.d(TAG, "sending message to connect GoogleApiClient...");
             // Create and send a message to the service, using a supported 'what' value
@@ -395,6 +397,8 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
             Log.e(TAG,"error sending message to connect camera");
         }
 
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(this.mFragmentDisplayer);
+
         //unbind the service now
         if (isBound) {
 
@@ -421,7 +425,7 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
         Bundle b = new Bundle();
         b.putString(Constants.KEY_ANALYTICS_CATEGORY, Constants.ANALYTICS_CATEGORY_LIFECYCLE);
         b.putString(Constants.KEY_ANALYTICS_ACTION, "destroyed");
-        b.putString(Constants.KEY_ANALYTICS_LABEL,"Last open fragment");
+        b.putString(Constants.KEY_ANALYTICS_LABEL, "Last open fragment");
         b.putString(Constants.KEY_ANALYTICS_VALUE, String.valueOf(mAdapter.getPageTitle(mPager.getCurrentItem())));
 
         try {
@@ -430,7 +434,6 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
             Log.e(TAG,"error notifying that fragment was destroyed",e);
         }
 
-        LocalBroadcastManager.getInstance(this).unregisterReceiver(this.mFragmentDisplayer);
 
         // Sets the main View to null
         mMainView = null;
@@ -650,43 +653,122 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
     public void saveToStash(PhotoView photoView) {
         if (VERBOSE) Log.v(TAG, "entering onSaveToStash with key " + photoView.getImageKey());
 
-        String strDirectory = Environment.getExternalStorageDirectory().toString();
-        File outFile = new File(strDirectory + File.separator +
-                Constants.STASH_GALLERY_DIRECTORY, photoView.getImageKey());
+        String strDirectory = getCacheDir().getAbsolutePath();
+        File outFile = new File(strDirectory + File.separator + photoView.getImageKey());
+        File thumbFile = new File(strDirectory + File.separator + photoView.getImageKey() + "s");
+
+        if (photoView.getDrawable() instanceof BitmapDrawable) {
+            Toast.makeText(this,"Saving...",Toast.LENGTH_SHORT).show();
 
         Bitmap b = ((BitmapDrawable) photoView.getDrawable()).getBitmap();
 
-        FileOutputStream fOut;
+            FileOutputStream fOut;
+            FileOutputStream thumbOut;
 
-        if (outFile.exists()) {
-            Log.i(TAG, "file already existed... not saving...");
-            Toast.makeText(this, "File already existed in stash...", Toast.LENGTH_SHORT).show();
-        } else {
+        /*
+         * If neither the thumbnail nor the file exists, create and save both
+         */
+        if (!outFile.exists() && !thumbFile.exists()) {
+            if (VERBOSE) Log.v(TAG,"neither the image nor the thumbnail existed...");
 
             try {
+
                 fOut = new FileOutputStream(outFile);
+                thumbOut = new FileOutputStream(thumbFile);
+
+
+                if (VERBOSE) Log.v(TAG, "writing image to: " + outFile);
+                if (VERBOSE) Log.v(TAG, "writing thumbnail to: " + thumbFile);
+
+                Bitmap thumbNail = ThumbnailUtils.extractThumbnail(b,200,200);
+
 
                 /**Compress image**/
                 b.compress(Bitmap.CompressFormat.JPEG, 100, fOut);
                 fOut.flush();
                 fOut.close();
 
-                String url = MediaStore.Images.Media.insertImage(
+                /**Compress thumbnail**/
+                thumbNail.compress(Bitmap.CompressFormat.JPEG, 100, thumbOut);
+                thumbOut.flush();
+                thumbOut.close();
+
+                /*String url = MediaStore.Images.Media.insertImage(
                         getContentResolver(),
                         outFile.getAbsolutePath(),
                         outFile.getName(),
                         outFile.getName()
-                );
+                );*/
 
-
-                Toast.makeText(this,"Saved",Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Saved", Toast.LENGTH_SHORT).show();
 
             } catch (IOException e) {
                 Log.e(TAG, "ioException", e);
                 Toast.makeText(this, "error saving image to gallery", Toast.LENGTH_LONG).show();
+                return;
             }
+        } else if (!thumbFile.exists() && outFile.exists()) {
+            if (VERBOSE) Log.v(TAG,"the thumbnail didn't exist, but the image did...");
 
+
+            try {
+                thumbOut = new FileOutputStream(thumbFile);
+
+                Bitmap thumbNail = ThumbnailUtils.extractThumbnail(b, 200, 200);
+
+
+                /**Compress thumbnail and save**/
+                thumbNail.compress(Bitmap.CompressFormat.JPEG, 100, thumbOut);
+                thumbOut.flush();
+                thumbOut.close();
+            } catch (IOException e) {
+                Log.e(TAG, "ioException saving thumbnail", e);
+                Toast.makeText(this, "error saving image to gallery", Toast.LENGTH_LONG).show();
+                return;
+            }
+        } else if (!outFile.exists() && thumbFile.exists()) {
+            if (VERBOSE) Log.v(TAG,"the image didn't exist, but the thumbnail did...");
+
+            try {
+                fOut = new FileOutputStream(outFile);
+
+                /**Compress image and save**/
+                b.compress(Bitmap.CompressFormat.JPEG, 100, fOut);
+                fOut.flush();
+                fOut.close();
+            } catch (IOException e) {
+                Log.e(TAG, "ioException saving image", e);
+                Toast.makeText(this, "error saving image to gallery", Toast.LENGTH_LONG).show();
+                return;
+            }
+        } else {
+            if (VERBOSE) Log.v(TAG,"both the image and the thumbnail existed, just insert...");
         }
+
+
+            ContentValues values = new ContentValues();
+            values.put(SQLiteDbContract.StashEntry.IMAGE_URL_COLUMN,
+                    photoView.getImageKey()
+            );
+            values.put(SQLiteDbContract.StashEntry.IMAGE_THUMBURL_COLUMN,
+                    photoView.getImageKey() + "s"
+            );
+            values.put(SQLiteDbContract.StashEntry.IMAGE_PICTURENAME_COLUMN,
+                    outFile.getName()
+            );
+            values.put(SQLiteDbContract.StashEntry.IMAGE_THUMBNAME_COLUMN,
+                    thumbFile.getName()
+            );
+
+            getContentResolver().insert(FireFlyContentProvider.PICTUREURL_TABLE_CONTENTURI,
+                    values);
+
+            Toast.makeText(this,"Saved",Toast.LENGTH_SHORT).show();
+
+        } else {
+            if (VERBOSE) Log.v(TAG,"drawable was not a bitmap drawable, do nothing...");
+        }
+
 
 
         if (VERBOSE) Log.v(TAG,"exiting onSaveToStash...");
@@ -741,7 +823,8 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
                 );
 
 
-                Toast.makeText(this,"Export Complete",Toast.LENGTH_SHORT).show();
+
+                Toast.makeText(this, "Export Complete", Toast.LENGTH_SHORT).show();
 
             } catch (IOException e) {
                 Log.e(TAG, "ioException", e);

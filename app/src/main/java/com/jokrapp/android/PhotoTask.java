@@ -283,7 +283,11 @@ public class PhotoTask implements
 
     @Override
     public Messenger getmService() {
-        return ((MainActivity)mImageWeakRef.get().getContext()).getMessenger();
+        if ((mImageWeakRef.get().getContext()) instanceof MainActivity) {
+            return ((MainActivity) mImageWeakRef.get().getContext()).getMessenger();
+        } else {
+            return null;
+        }
     }
 
 

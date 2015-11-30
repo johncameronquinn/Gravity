@@ -118,6 +118,14 @@ class PhotoRequestDownloadRunnable implements Runnable {
         }
 
         Messenger serviceMessenger = mPhotoTask.getmService();
+        if (serviceMessenger == null ) {
+            Log.e(LOG_TAG,"requestMessenger was null... exiting...");
+            // Sets the reference to the current Thread to null, releasing its storage
+            mPhotoTask.setDownloadThread(null);
+            // Clears the Thread's interrupt flag
+            Thread.interrupted();
+            return;
+        }
 
 
         Log.w(LOG_TAG,"Downloading from PhotoRequestDownloadRunnable is not available... please try again...");

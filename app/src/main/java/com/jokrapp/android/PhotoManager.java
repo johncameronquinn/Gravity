@@ -636,6 +636,8 @@ public class PhotoManager {
 
                 //is it in the disk cache?
                 File imagePath = new File(downloadTask.getCacheDirectory(), downloadTask.getImageKey());
+
+                if (VERBOSE) Log.v(TAG,"does the path : " + imagePath.getAbsolutePath() + " exist?");
                 if (imagePath.exists()) {
                     if (VERBOSE) Log.v(TAG, "file is stored in the disk cache, loading...");
                     sInstance.mDownloadThreadPool.execute(downloadTask.getDiskloadRunnable());

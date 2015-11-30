@@ -484,8 +484,9 @@ public class FireFlyContentProvider extends ContentProvider {
                     throw new SQLiteException("Insert error:" + uri);
                 }
             case IMAGE_URL_QUERY:
-
-                throw new IllegalArgumentException("Insert: Invalid URI" + uri);
+                id = sqlDB.insertWithOnConflict(SQLiteDbContract.StashEntry.PICTUREURL_TABLE_NAME,
+                        null, values,SQLiteDatabase.CONFLICT_IGNORE);
+                break;
 
             default:
                 throw new IllegalArgumentException("Unknown URI: " + uri);

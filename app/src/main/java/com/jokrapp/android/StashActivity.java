@@ -26,7 +26,8 @@ import android.widget.Toast;
 
 public class StashActivity extends Activity implements StashGalleryFragment.OnFragmentInteractionListener,
         StashLiveSettingsFragment.OnFragmentInteractionListener,
-        StashLocalSettingsFragment.OnFragmentInteractionListener {
+        StashLocalSettingsFragment.OnFragmentInteractionListener,
+        PhotoFragment.onPreviewInteractionListener {
 
     static final String STARTING_PAGE_POSITION_KEY = "startkey";
     private CustomViewPager pager;
@@ -209,6 +210,33 @@ public class StashActivity extends Activity implements StashGalleryFragment.OnFr
         }
     };
 
+    public void hideSoftKeyboard() {
+        MainActivity.hide_keyboard(this);
+    }
 
+    @Override
+    public void setLiveCreateReplyInfo(String description) {
+
+    }
+
+    @Override
+    public void setLiveCreateThreadInfo(String title, String description) {
+
+    }
+
+    @Override
+    public void clearReplyInfo() {
+
+    }
+
+    @Override
+    public void removePendingLiveImage() {
+
+    }
+
+    @Override
+    public void dismissPreview(PhotoFragment me) {
+        getFragmentManager().beginTransaction().remove(me).commit();
+    }
 }
 

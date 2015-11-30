@@ -141,9 +141,6 @@ public class StashGalleryFragment extends Fragment implements FragmentManager.On
         IntentFilter displayerIntentFilter = new IntentFilter(
                 Constants.ACTION_VIEW_IMAGE);
 
-        // Adds a data filter for the HTTP scheme
-        displayerIntentFilter.addDataScheme("http");
-
         // Registers the receiver
         LocalBroadcastManager.getInstance(context).registerReceiver(
                 mFragmentDisplayer,
@@ -433,6 +430,7 @@ public class StashGalleryFragment extends Fragment implements FragmentManager.On
          */
         @Override
         public void onReceive(Context context, Intent intent) {
+            Log.d(TAG, "onReceive: called");
 
             // Declares a local FragmentManager instance
             FragmentManager fragmentManager1;
@@ -456,7 +454,7 @@ public class StashGalleryFragment extends Fragment implements FragmentManager.On
                         );
 
                 // Gets the URL of the picture to display
-                urlString = intent.getDataString();
+                urlString = intent.getStringExtra(Constants.KEY_S3_KEY);
 
                 // If the photo Fragment exists from a previous display
                 if (null != photoFragment) {
