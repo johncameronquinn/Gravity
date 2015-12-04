@@ -11,9 +11,9 @@ import android.util.Base64;
 import android.util.Base64InputStream;
 import android.util.Log;
 
-import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
-import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream;
-import org.apache.commons.compress.utils.IOUtils;
+//import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
+//import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream;
+///import org.apache.commons.compress.utils.IOUtils;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -102,8 +102,8 @@ public final class ImageUtils {
             byte[] data = theImage.getBytes();
             ByteArrayInputStream byis = new ByteArrayInputStream(data);
             Base64InputStream bos = new Base64InputStream(byis, Base64.DEFAULT);
-            GzipCompressorInputStream gzis = new GzipCompressorInputStream(bos);
-            IOUtils.copy(gzis, fos);
+         //   GzipCompressorInputStream gzis = new GzipCompressorInputStream(bos);
+      //      IOUtils.copy(gzis, fos);
             fos.flush();
             fos.close();
 
@@ -137,8 +137,8 @@ public final class ImageUtils {
             byte[] data = theImage.getBytes();
             ByteArrayInputStream byis = new ByteArrayInputStream(data);
             Base64InputStream bos = new Base64InputStream(byis, Base64.DEFAULT);
-            GzipCompressorInputStream gzis = new GzipCompressorInputStream(bos);
-            IOUtils.copy(gzis, fos);
+        //    GzipCompressorInputStream gzis = new GzipCompressorInputStream(bos);
+       //     IOUtils.copy(gzis, fos);
             fos.flush();
             fos.close();
 
@@ -181,14 +181,14 @@ public final class ImageUtils {
             //create the data into an input stream
             InputStream is = new FileInputStream(filePath);
             ByteArrayOutputStream bos = new ByteArrayOutputStream();
-            GzipCompressorOutputStream gos = new GzipCompressorOutputStream(bos);
+            //GzipCompressorOutputStream gos = new GzipCompressorOutputStream(bos);
 
 
-            byte[] readData = IOUtils.toByteArray(is);
+            //byte[] readData = IOUtils.toByteArray(is);
 
-            gos.write(readData);
-            gos.flush();
-            gos.close();
+            //gos.write(readData);
+            //gos.flush();
+            //gos.close();
 
             image = Base64.encodeToString(bos.toByteArray(), Base64.DEFAULT);
 

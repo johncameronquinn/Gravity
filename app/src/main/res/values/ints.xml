@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <integer name="number_of_fragments">5</integer>
+    <integer name="number_of_fragments_dev">7</integer>
+</resources>

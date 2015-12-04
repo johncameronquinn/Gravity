@@ -10,12 +10,14 @@ android {
         versionCode 8
         versionName "4.3.3"
     }
+
     buildTypes {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+
     packagingOptions {
         exclude 'META-INF/DEPENDENCIES.txt'
         exclude 'META-INF/LICENSE.txt'
@@ -29,14 +31,13 @@ android {
         exclude 'META-INF/LGPL2.1'
     }
     productFlavors {
-        developerConfig {
+        dev {
             minSdkVersion 17
             applicationId 'com.jokrapp.android'
             targetSdkVersion 23
             versionCode 8
-            versionName '4.3.3-developer'
+            versionName '4.3.3-dev'
         }
-
 
         prototypeConfig {
             minSdkVersion 17
@@ -49,10 +50,10 @@ android {
 
 }
 
+
 dependencies {
     compile fileTree(include: ['*.jar'], dir: 'libs')
     //  compile 'com.android.support:appcompat-v7:23.0.1'
-    compile 'org.apache.commons:commons-compress:1.9'
     compile 'com.android.support:support-v13:23.1.1'
     compile 'com.github.castorflex.verticalviewpager:library:19.0.1'
     compile 'com.fasterxml.jackson.core:jackson-databind:2.6.1'
@@ -60,7 +61,9 @@ dependencies {
     compile 'com.amazonaws:aws-android-sdk-core:2.2.6'
     compile 'com.amazonaws:aws-android-sdk-cognito:2.2.6'
     compile 'com.amazonaws:aws-android-sdk-mobileanalytics:2.2.5'
+    compile 'com.amazonaws:aws-android-sdk-sns:2.2.8'
     compile 'com.google.android.gms:play-services-location:8.3.0'
     compile 'com.google.android.gms:play-services-base:8.3.0'
+    compile 'com.google.android.gms:play-services-gcm:8.3.0'
     compile 'com.android.support:support-v4:23.1.1'
 }

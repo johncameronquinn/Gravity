@@ -35,6 +35,7 @@ import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.view.ViewPager;
 import android.util.AttributeSet;
 import android.util.Log;
+import android.util.SparseArray;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.TextureView;
@@ -53,8 +54,12 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.amazonaws.mobile.AWSMobileClient;
 import com.amazonaws.mobileconnectors.amazonmobileanalytics.MobileAnalyticsManager;
-import com.jokrapp.android.user.IdentityManager;
+import com.amazonaws.mobile.user.IdentityManager;
+import com.jokrapp.android.dev.ContentDeliveryDemoFragment;
+import com.jokrapp.android.dev.DeveloperFragment;
+import com.jokrapp.android.dev.PushDemoFragment;
 import com.jokrapp.android.util.ImageUtils;
 import com.jokrapp.android.util.LogUtils;
 
@@ -165,6 +170,23 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
     private FragmentDisplayer mFragmentDisplayer = new FragmentDisplayer();
 
 
+    private final BroadcastReceiver notificationReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            Log.d(TAG, "Received notification from local broadcast. Display it in a dialog.");
+
+            Bundle data = intent.getBundleExtra(PushListenerService.INTENT_SNS_NOTIFICATION_DATA);
+            String message = PushListenerService.getMessage(data);
+
+            new AlertDialog.Builder(MainActivity.this)
+                    .setTitle(R.string.push_demo_title)
+                    .setMessage(message)
+                    .setPositiveButton(android.R.string.ok, null)
+                    .show();
+        }
+    };
+
+
     /**
      * ********************************************************************************************
      * <p>
@@ -181,6 +203,20 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
         if (savedInstanceState != null) {
            //Restore the camerafragment's instance
         }
+
+        // Obtain a reference to the mobile client. It is created in the Splash Activity.
+        AWSMobileClient awsMobileClient = AWSMobileClient.defaultMobileClient();
+
+        if (awsMobileClient == null) {
+            // In the case that the activity is restarted by the OS after the application
+            // is killed we must redirect to the splash activity to handle initialization.
+            Intent intent = new Intent(this, SplashActivity.class);
+            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+            startActivity(intent);
+            return;
+        }
+
+
         super.onCreate(savedInstanceState);
 
         uiHandler.setParent(this);
@@ -229,7 +265,6 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
 
         mSettingsListView = (ListView)findViewById(R.id.content);
         mSettingsListView.setOnItemClickListener(this);
-
 
         mAdapter = new MainAdapter(getFragmentManager());
         mPager = (CustomViewPager) findViewById(R.id.pager);
@@ -371,7 +406,34 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
     protected void onResume() {
         super.onResume();
         Log.d(TAG, "enter onResume...");
-        mTracker.getSessionClient().resumeSession();
+        //mTracker.getSessionClient().resumeSession();
+
+        // Obtain a reference to the mobile client. It is created in the Splash Activity.
+        final AWSMobileClient awsMobileClient = AWSMobileClient.defaultMobileClient();
+
+        if (awsMobileClient == null) {
+            // At this point, the app is resuming after being shut down and the onCreate
+            // method has already fired an intent to launch the splash activity. The splash
+            // activity will refresh the user's credentials and re-initialize all required
+            // components. We bail out here, because without that initialization, the steps
+            // that follow here would fail. Note that if you don't have any features enabled,
+            // then there may not be any steps here to skip.
+            return;
+        }
+
+        // pause/resume Mobile Analytics collection
+        awsMobileClient.handleOnResume();
+
+        // register notification receiver
+        LocalBroadcastManager.getInstance(this).registerReceiver(notificationReceiver,
+                new IntentFilter(PushListenerService.ACTION_SNS_NOTIFICATION));
+
+        // pause/resume Mobile Analytics collection
+        awsMobileClient.handleOnResume();
+
+        // register notification receiver
+        LocalBroadcastManager.getInstance(this).registerReceiver(notificationReceiver,
+                new IntentFilter(PushListenerService.ACTION_SNS_NOTIFICATION));
         Log.d(TAG, "exit onResume...");
     }
 
@@ -380,8 +442,20 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
     protected void onPause() {
         super.onPause();
         Log.d(TAG, "enter onPause...");
-        mTracker.getSessionClient().pauseSession();
-        mTracker.getEventClient().submitEvents();
+//        mTracker.getSessionClient().pauseSession();
+//        mTracker.getEventClient().submitEvents();
+
+        // Obtain a reference to the mobile client.
+        final AWSMobileClient awsMobileClient = AWSMobileClient.defaultMobileClient();
+
+        if (awsMobileClient != null) {
+            // pause/resume Mobile Analytics collection
+            awsMobileClient.handleOnPause();
+        }
+
+        // unregister notification receiver
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(notificationReceiver);
+
         Log.d(TAG, "exit onPause...");
     }
 
@@ -997,7 +1071,12 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
 
         @Override
         public int getCount() {
-            return NUMBER_OF_FRAGMENTS;
+
+            if (BuildConfig.FLAVOR.equals("dev")) {
+                return R.integer.number_of_fragments_dev;
+            } else {
+                return R.integer.number_of_fragments;
+            }
         }
 
         /**
@@ -1013,41 +1092,67 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
             if (VERBOSE) {
                 Log.v(TAG,"getting item at position " + position);
             }
-            if (position == MESSAGE_LIST_POSITION) {
-                if (MessageFragReference.get() == null){
-                    MessageFragReference = new WeakReference<>(new MessageFragment());
-                } return MessageFragReference.get();
-            } else if (position == LOCAL_LIST_POSITION) {
-                if (LocalFragReference.get() == null) {
-                    LocalFragReference = new WeakReference<>(new LocalFragment());
-                }
 
-                return LocalFragReference.get();
-            } else if (position == LIVE_LIST_POSITION) {
-                if (LiveFragReference.get() == null){
-                    LiveFragReference = new WeakReference<>(LiveFragment.newInstance("a","a"));
-                }
+            Fragment out;
 
-                return LiveFragReference.get();
-            } else if (position == CAMERA_LIST_POSITION) {
-                if (CameraFragReference.get() == null){
-                    CameraFragReference = new WeakReference<>(CameraFragment.newInstance(0));
-                }
+            switch (position) {
+                case MESSAGE_LIST_POSITION:
+                    if (MessageFragReference.get() == null){
+                        MessageFragReference = new WeakReference<>(new MessageFragment());
+                    }
 
-                return CameraFragReference.get();
-            } else if (position == REPLY_LIST_POSITION) {
-                if (ReplyFragReference.get() == null) {
-                    ReplyFragment f = ReplyFragment.newInstance(LiveFragReference.get()
-                            .getCurrentThread());
-                    ReplyFragReference = new WeakReference<>(f);
-                    return f;
-                } else {
-                    return ReplyFragReference.get();
-                }
-            } else {
-                Log.e(TAG, "Invalid fragment position loaded");
-                return null;
+                    out = MessageFragReference.get();
+                    break;
+
+                case LOCAL_LIST_POSITION:
+                    if (LocalFragReference.get() == null) {
+                        LocalFragReference = new WeakReference<>(new LocalFragment());
+                    }
+
+                    out = LocalFragReference.get();
+                    break;
+
+                case CAMERA_LIST_POSITION:
+                    if (CameraFragReference.get() == null){
+                        CameraFragReference = new WeakReference<>(CameraFragment.newInstance(0));
+                    }
+
+                    out = CameraFragReference.get();
+                    break;
+
+                case LIVE_LIST_POSITION:
+                    if (LiveFragReference.get() == null){
+                        LiveFragReference = new WeakReference<>(LiveFragment.newInstance("a","a"));
+                    }
+
+                    out = LiveFragReference.get();
+                    break;
+
+                case REPLY_LIST_POSITION:
+                    if (ReplyFragReference.get() == null) {
+                        ReplyFragment f = ReplyFragment.newInstance(LiveFragReference.get()
+                                .getCurrentThread());
+                        ReplyFragReference = new WeakReference<>(f);
+                        out = f;
+                    } else {
+                        out = ReplyFragReference.get();
+                    }
+
+                    break;
+
+                case 5:
+                    out = new PushDemoFragment();
+                    break;
+
+                case 6:
+                    out = new ContentDeliveryDemoFragment();
+                    break;
+
+                default:
+                    out = new PhotoFragment();
             }
+
+            return out;
         }
 
         /**
@@ -2342,7 +2447,8 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
             if (VERBOSE) Log.v(TAG,"entering onShutter");
 
             Intent intent = new Intent(CameraFragment.ACTION_PICTURE_TAKEN);
-            LocalBroadcastManager.getInstance(mWeakActivity.get().getApplicationContext()).sendBroadcastSync(intent);
+            LocalBroadcastManager.getInstance(mWeakActivity.get().getApplicationContext())
+                    .sendBroadcastSync(intent);
 
             if (VERBOSE) Log.v(TAG,"exiting onShutter");
         }

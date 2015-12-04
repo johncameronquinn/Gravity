@@ -17,6 +17,12 @@
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="com.google.android.providers.gsf.permission.READ_GSERVICES" />
 
+    <!-- aws permissions -->
+    <uses-permission android:name="com.google.android.c2dm.permission.RECEIVE" />
+    <permission android:name="com.amazon.mysampleapp.permission.C2D_MESSAGE"
+        android:protectionLevel="signature" />
+    <uses-permission android:name="com.amazon.mysampleapp.permission.C2D_MESSAGE" />
+
     <application
         android:name=".AnalyticsApplication"
         android:allowBackup="true"
@@ -33,7 +39,7 @@
         <!-- api key for google maps -->
         <meta-data
             android:name="com.google.android.maps.v2.API_KEY"
-            android:value="AIzaSyCUsfBVBXBWPoQ--EXeqH2f_cYBviewyOY" />
+            android:value="AIzaSyDRWtyNXeyGA85-4e7rrDv-15UhdRDO7ng" />
 
         <activity
             android:name=".MainActivity"
@@ -68,6 +74,28 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="com.jokrapp.android.MainActivity" />
         </activity>
+
+        <!-- BEGIN - PUSH NOTIFICATIONS WITH GOOGLE CLOUD MESSAGING (GCM) -->
+
+        <receiver
+            android:name="com.google.android.gms.gcm.GcmReceiver"
+            android:exported="true"
+            android:permission="com.google.android.c2dm.permission.SEND" >
+            <intent-filter>
+                <action android:name="com.google.android.c2dm.intent.RECEIVE" />
+                <category android:name="@string/google_cloud_messaging_package" />
+            </intent-filter>
+        </receiver>
+
+        <service
+            android:name=".PushListenerService"
+            android:exported="false" >
+            <intent-filter>
+                <action android:name="com.google.android.c2dm.intent.RECEIVE" />
+            </intent-filter>
+        </service>
+
+        <!-- END - PUSH NOTIFICATIONS WITH GOOGLE CLOUD MESSAGING (GCM) -->
 
         <!--
             No intent filters are specified, so android:exported defaults to "false". The
