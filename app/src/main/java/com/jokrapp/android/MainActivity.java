@@ -53,8 +53,9 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.amazonaws.mobile.AWSMobileClient;
 import com.amazonaws.mobileconnectors.amazonmobileanalytics.MobileAnalyticsManager;
-import com.jokrapp.android.user.IdentityManager;
+import com.amazonaws.mobile.user.IdentityManager;
 import com.jokrapp.android.util.ImageUtils;
 import com.jokrapp.android.util.LogUtils;
 
@@ -165,6 +166,23 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
     private FragmentDisplayer mFragmentDisplayer = new FragmentDisplayer();
 
 
+    private final BroadcastReceiver notificationReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            Log.d(TAG, "Received notification from local broadcast. Display it in a dialog.");
+
+            Bundle data = intent.getBundleExtra(PushListenerService.INTENT_SNS_NOTIFICATION_DATA);
+            String message = PushListenerService.getMessage(data);
+
+            new AlertDialog.Builder(MainActivity.this)
+                    .setTitle(R.string.push_demo_title)
+                    .setMessage(message)
+                    .setPositiveButton(android.R.string.ok, null)
+                    .show();
+        }
+    };
+
+
     /**
      * ********************************************************************************************
      * <p>
@@ -181,6 +199,20 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
         if (savedInstanceState != null) {
            //Restore the camerafragment's instance
         }
+
+        // Obtain a reference to the mobile client. It is created in the Splash Activity.
+        AWSMobileClient awsMobileClient = AWSMobileClient.defaultMobileClient();
+
+        if (awsMobileClient == null) {
+            // In the case that the activity is restarted by the OS after the application
+            // is killed we must redirect to the splash activity to handle initialization.
+            Intent intent = new Intent(this, SplashActivity.class);
+            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+            startActivity(intent);
+            return;
+        }
+
+
         super.onCreate(savedInstanceState);
 
         uiHandler.setParent(this);
@@ -371,7 +403,34 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
     protected void onResume() {
         super.onResume();
         Log.d(TAG, "enter onResume...");
-        mTracker.getSessionClient().resumeSession();
+        //mTracker.getSessionClient().resumeSession();
+
+        // Obtain a reference to the mobile client. It is created in the Splash Activity.
+        final AWSMobileClient awsMobileClient = AWSMobileClient.defaultMobileClient();
+
+        if (awsMobileClient == null) {
+            // At this point, the app is resuming after being shut down and the onCreate
+            // method has already fired an intent to launch the splash activity. The splash
+            // activity will refresh the user's credentials and re-initialize all required
+            // components. We bail out here, because without that initialization, the steps
+            // that follow here would fail. Note that if you don't have any features enabled,
+            // then there may not be any steps here to skip.
+            return;
+        }
+
+        // pause/resume Mobile Analytics collection
+        awsMobileClient.handleOnResume();
+
+        // register notification receiver
+        LocalBroadcastManager.getInstance(this).registerReceiver(notificationReceiver,
+                new IntentFilter(PushListenerService.ACTION_SNS_NOTIFICATION));
+
+        // pause/resume Mobile Analytics collection
+        awsMobileClient.handleOnResume();
+
+        // register notification receiver
+        LocalBroadcastManager.getInstance(this).registerReceiver(notificationReceiver,
+                new IntentFilter(PushListenerService.ACTION_SNS_NOTIFICATION));
         Log.d(TAG, "exit onResume...");
     }
 
@@ -380,8 +439,20 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
     protected void onPause() {
         super.onPause();
         Log.d(TAG, "enter onPause...");
-        mTracker.getSessionClient().pauseSession();
-        mTracker.getEventClient().submitEvents();
+//        mTracker.getSessionClient().pauseSession();
+//        mTracker.getEventClient().submitEvents();
+
+        // Obtain a reference to the mobile client.
+        final AWSMobileClient awsMobileClient = AWSMobileClient.defaultMobileClient();
+
+        if (awsMobileClient != null) {
+            // pause/resume Mobile Analytics collection
+            awsMobileClient.handleOnPause();
+        }
+
+        // unregister notification receiver
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(notificationReceiver);
+
         Log.d(TAG, "exit onPause...");
     }
 

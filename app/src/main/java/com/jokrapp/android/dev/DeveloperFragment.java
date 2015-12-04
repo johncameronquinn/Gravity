@@ -274,7 +274,8 @@ public class DeveloperFragment extends Fragment implements View.OnClickListener 
                         .CONTENT_URI_LIVE, "1");
                 is = object.getObjectContent();
                 os = getActivity().getContentResolver().openOutputStream(uri);
-                org.apache.commons.compress.utils.IOUtils.copy(is,os);
+                //com.amazonaws.util.IOUtils.
+              //  org.apache.commons.compress.utils.IOUtils.copy(is,os);
 
             } catch (IOException e) {
                 Log.e(TAG,"error retrieving content and saving to file path",e);
