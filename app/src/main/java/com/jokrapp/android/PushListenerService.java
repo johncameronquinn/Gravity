@@ -166,6 +166,7 @@ public class PushListenerService extends GcmListenerService {
             values.put("fromUser", jsonMap.get("fromUser"));
             values.put("text", jsonMap.get("text"));
             values.put("url", jsonMap.get("url"));
+            values.put("arn", jsonMap.get("arn"));
             //values.put("url", jsonMap.get("default"));
 
             getContentResolver().insert(FireFlyContentProvider.CONTENT_URI_MESSAGE,values);

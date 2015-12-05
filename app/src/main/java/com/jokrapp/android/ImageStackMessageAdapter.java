@@ -28,7 +28,7 @@ import java.util.UUID;
  * and dynamically swaps the cursors with their actual data once the data is finished loading
  */
 public class ImageStackMessageAdapter extends ImageStackCursorAdapter implements View.OnClickListener{
-    private final boolean VERBOSE = false;
+    private final boolean VERBOSE = true;
     private final String TAG = "ImageMessageAdapter";
 
     private MainActivity context;
@@ -118,7 +118,7 @@ public class ImageStackMessageAdapter extends ImageStackCursorAdapter implements
                     cursor.getColumnIndex(SQLiteDbContract.MessageEntry.COLUMN_RESPONSE_ARN)
             );
 
-            if (VERBOSE) Log.v(TAG,"UUID setting is : " + UUID);
+            if (VERBOSE) Log.v(TAG,"Incoming ARN which I am setting is : " + UUID);
 
             ((TextView)vView.findViewById(R.id.userID)).setText(UUID);
             context.findViewById(R.id.button_message_reply).setTag(UUID);
