@@ -346,21 +346,42 @@ public class PushManager implements GCMTokenHelper.GCMTokenUpdateObserver {
         //publishRequest.setTargetArn(data.getString(MessageEntry.COLUMN_RESPONSE_ARN));
 
         publishRequest.setTargetArn(endpointArn);
+        //publishRequest.setMessageStructure("json");
 
+        //String caption = data.getString(MessageEntry.COLUMN_NAME_TEXT,"");
 
-        String caption = data.getString(MessageEntry.COLUMN_NAME_TEXT,"");
-
-        if (!"".equals(caption)) {
+        /*if (!"".equals(caption)) {
             MessageAttributeValue textValue = new MessageAttributeValue()
                     .withDataType("String").withStringValue(caption);
 
             publishRequest.addMessageAttributesEntry(MessageEntry.COLUMN_NAME_TEXT,textValue);
-        }
+        }*/
 
         String url = data.getString(MessageEntry.COLUMN_NAME_FILEPATH);
-        publishRequest.setMessage(url);
+        String arn = data.getString(MessageEntry.COLUMN_RESPONSE_ARN);
+        String text = data.getString(MessageEntry.COLUMN_NAME_TEXT);
+        //publishRequest.setMessage(url);
 
+        JSONObject jsonObject;
 
+        Map<String,String> dataMap = new HashMap<>();
+        dataMap.put(MessageEntry.COLUMN_NAME_FILEPATH,url);
+        dataMap.put(MessageEntry.COLUMN_RESPONSE_ARN,arn);
+        dataMap.put(MessageEntry.COLUMN_NAME_TIME,String.valueOf(System.currentTimeMillis()));
+        dataMap.put(MessageEntry.COLUMN_NAME_TEXT, text);
+        JSONObject dataObject = new JSONObject(dataMap);
+        publishRequest.setMessage(dataObject.toString());
+
+        //Map<String,String> gcmMap = new HashMap<>();
+        //gcmMap.put("data",dataObject.toString());
+        //JSONObject gcmObject = new JSONObject(gcmMap);
+
+        //Map<String,String> jsonMap = new HashMap<>();
+        //jsonMap.put("GCM","\"data\":{\"message\":\"Check out these awesome deals!\",\"url\":\"www.amazon.com\"}");
+        //jsonMap.put("default",url);
+        //jsonMap.put("collapse_key","key");
+        //jsonObject = new JSONObject(jsonMap);
+        //publishRequest.setMessage(jsonObject.toString());
 
         Log.v(LOG_TAG, "publishRequest print: " + publishRequest.toString());
 

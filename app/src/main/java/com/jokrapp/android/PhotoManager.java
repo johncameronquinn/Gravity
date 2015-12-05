@@ -55,7 +55,7 @@ public class PhotoManager {
 
     static final int AWS_DOWNLOAD_COMPLETE = 5;
 
-    static final boolean VERBOSE = true;
+    static final boolean VERBOSE = false;
 
 
     private static final String TAG = "PhotoManager";
@@ -271,7 +271,7 @@ public class PhotoManager {
 
                             // If the download has started, sets background color to dark green
                             case REQUEST_STARTED:
-                                Log.d(TAG, "Request Started...");
+                                if (VERBOSE) Log.d(TAG, "Request Started...");
                                 localView.setStatusResource(R.drawable.imagedownloading);
                                 break;
 
@@ -280,7 +280,7 @@ public class PhotoManager {
                              * background color to golden yellow
                              */
                             case REQUEST_COMPLETE:
-                                Log.d(TAG, "Request Complete...");
+                                if (VERBOSE) Log.d(TAG, "Request Complete...");
                                 handleState(photoTask, DOWNLOAD_COMPLETE);
                                 // Sets background color to golden yellow
                                 localView.setStatusResource(R.drawable.decodequeued);
@@ -301,10 +301,10 @@ public class PhotoManager {
 
                             // If the decode has started, sets background color to orange
                             case DISKLOAD_STARTED:
-                                Log.d(TAG, "Diskload Started...");
+                                if (VERBOSE) Log.d(TAG, "Diskload Started...");
                                 break;
                             case DISKLOAD_COMPLETE:
-                                Log.d(TAG, "Diskload Complete...");
+                                if (VERBOSE) Log.d(TAG, "Diskload Complete...");
                                 break;
 
                             case DECODE_STARTED:
@@ -318,7 +318,7 @@ public class PhotoManager {
                              */
 
                             case TASK_COMPLETE:
-                                Log.d(TAG,"setting image bitmap");
+                                if (VERBOSE) Log.d(TAG,"setting image bitmap");
                                 localView.setImageBitmap(photoTask.getImage());
                                 recycleTask(photoTask);
 
@@ -367,7 +367,7 @@ public class PhotoManager {
      */
     @SuppressLint("HandlerLeak")
     public void handleState(PhotoTask photoTask, int state) {
-        if (Constants.LOGV) Log.v(TAG,"entering handleState...");
+        if (VERBOSE) Log.v(TAG,"entering handleState...");
 
         switch (state) {
 
@@ -454,7 +454,7 @@ public class PhotoManager {
                 break;
         }
 
-        if (Constants.LOGV) Log.v(TAG,"exiting handleState...");
+        if (VERBOSE) Log.v(TAG,"exiting handleState...");
     }
 
     /**
@@ -552,7 +552,7 @@ public class PhotoManager {
      * @param imageKey The URL being downloaded
      */
     static public void removeDownload(PhotoTask downloaderTask, String imageKey) {
-        if (Constants.LOGV) Log.v(TAG,"entering removeDownload...");
+        if (VERBOSE) Log.v(TAG,"entering removeDownload...");
         // If the Thread object still exists and the download matches the specified URL
         if (downloaderTask != null && downloaderTask.getImageKey().equals(imageKey)) {
             if (Constants.LOGV) Log.v(TAG,"removing task for image key " + imageKey);
@@ -583,7 +583,7 @@ public class PhotoManager {
 
 
 
-        if (Constants.LOGV) Log.v(TAG,"exiting removeDownload...");
+        if (VERBOSE) Log.v(TAG,"exiting removeDownload...");
     }
 
 
@@ -598,7 +598,7 @@ public class PhotoManager {
     static public PhotoTask startDownload(
             PhotoView imageView,
             boolean cacheFlag) {
-        if (Constants.LOGV) Log.v(TAG, "entering startDownload...");
+        if (VERBOSE) Log.v(TAG, "entering startDownload...");
 
         /*
          * Gets a task from the pool of tasks, returning null if the pool is empty
@@ -672,7 +672,7 @@ public class PhotoManager {
 
         // Returns a task object, either newly-created or one from the task pool
 
-        if (Constants.LOGV) Log.v(TAG, "exiting startDownload...");
+        if (VERBOSE) Log.v(TAG, "exiting startDownload...");
         return downloadTask;
     }
 
@@ -682,14 +682,14 @@ public class PhotoManager {
      * @param downloadTask The task to recycle
      */
     void recycleTask(PhotoTask downloadTask) {
-        if (Constants.LOGV)  Log.v(TAG,"entering recycleTask...");
+        if (VERBOSE)  Log.v(TAG,"entering recycleTask...");
         // Frees up memory in the task
         downloadTask.recycle();
 
         // Puts the task object back into the queue for re-use.
         mPhotoTaskWorkQueue.offer(downloadTask);
 
-        if (Constants.LOGV)  Log.v(TAG,"exiting recycleTask...");
+        if (VERBOSE)  Log.v(TAG,"exiting recycleTask...");
     }
 
 

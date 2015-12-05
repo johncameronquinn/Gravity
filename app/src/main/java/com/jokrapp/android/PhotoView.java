@@ -30,7 +30,7 @@ public class PhotoView extends ImageView {
     // Status flag that indicates if onDraw has completed
     private boolean mIsDrawn;
 
-    private final boolean VERBOSE = true;
+    private final boolean VERBOSE = false;
 
     private final String TAG = "PhotoView";
 

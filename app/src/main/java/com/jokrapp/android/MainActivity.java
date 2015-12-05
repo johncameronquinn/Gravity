@@ -1,5 +1,7 @@
 package com.jokrapp.android;
 
+import android.animation.Animator;
+import android.animation.ValueAnimator;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.FragmentManager;
@@ -43,6 +45,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
+import android.view.animation.Animation;
+import android.view.animation.TranslateAnimation;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.CheckBox;
@@ -915,8 +919,17 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
         if (VERBOSE) {
             Toast.makeText(this,"Message pressed: " + view.getTag(),Toast.LENGTH_LONG).show();
         }
-        CameraFragReference.get().setMessageTarget((String) view.getTag());
+        CameraFragment.setMessageTarget((String) view.getTag());
+        mPager.setCurrentItem(CAMERA_LIST_POSITION);
+        mPager.setPagingEnabled(false);
 
+    }
+
+    public void onMessageReplyPressed(View view) {
+        if (VERBOSE) {
+            Toast.makeText(this,"Message pressed: " + view.getTag(),Toast.LENGTH_LONG).show();
+        }
+        CameraFragment.setMessageTarget((String) view.getTag());
         mPager.setCurrentItem(CAMERA_LIST_POSITION);
         mPager.setPagingEnabled(false);
 
@@ -1039,15 +1052,23 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
             b.putString(Constants.KEY_S3_KEY, filePath);
             if (messageTarget != null) {
                 Log.d(TAG, "Sending message to user : " + messageTarget);
-                b.putString(Constants.MESSAGE_TARGET, messageTarget);
+                b.putString(SQLiteDbContract.MessageEntry.COLUMN_RESPONSE_ARN, messageTarget);
+                b.putString(Constants.KEY_S3_DIRECTORY,Constants.KEY_S3_MESSAGE_DIRECTORY);
+                msg = Message.obtain(null, DataHandlingService.MSG_UPLOAD_IMAGE);
+                msg.setData(b);
+
 
                 //DOING SOMETHING ELSE NOW, BECAUSE TESTING AND LEARNING REASONS
                 //todo reimplement proper systems
                 try {
+                    mService.send(msg);
                     AWSMobileClient.defaultMobileClient().getPushManager().publishMessage(b);
                 } catch (AmazonClientException e) {
                     Log.e(TAG,"AmazonClientException when sending message to user...",e);
+                } catch (RemoteException e) {
+                    Log.e(TAG,"error sending message to upload image...",e);
                 }
+
 
                 messageTarget = null;
                 if (VERBOSE) Log.w(TAG,"remove this strange system sah");
@@ -1208,37 +1229,44 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
 
     }
 
+    private final int TAB_TRANSITION_DURATION = 300;
+
     @Override
     public void onPageSelected(int position) {
+
+        View tabStrip = mPager.findViewById(R.id.pager_tab_strip);
+        View settingsDrawer = findViewById(R.id.drawer_settings);
+
         switch (position) {
             case CAMERA_LIST_POSITION:
                 setAnalyticsScreenName(("Fragment :" + CAMERA_PAGER_TITLE));
-                mPager.findViewById(R.id.pager_tab_strip).setVisibility(View.VISIBLE);
-                findViewById(R.id.handle).setVisibility(View.VISIBLE);
+                //tabStrip.animate().scaleY(0).setDuration(TAB_TRANSITION_DURATION);
+                tabStrip.setVisibility(View.VISIBLE);
+                settingsDrawer.setVisibility(View.VISIBLE);
                 break;
 
             case LOCAL_LIST_POSITION:
                 setAnalyticsScreenName(("Fragment :" + LOCAL_PAGER_TITLE));
-                mPager.findViewById(R.id.pager_tab_strip).setVisibility(View.VISIBLE);
-                findViewById(R.id.handle).setVisibility(View.VISIBLE);
+                tabStrip.setVisibility(View.VISIBLE);
+                settingsDrawer.setVisibility(View.VISIBLE);
                 break;
 
             case MESSAGE_LIST_POSITION:
                 setAnalyticsScreenName(("Fragment :" + MESSAGE_PAGER_TITLE));
-                mPager.findViewById(R.id.pager_tab_strip).setVisibility(View.GONE);
-                findViewById(R.id.handle).setVisibility(View.GONE);
+                tabStrip.setVisibility(View.GONE);
+                settingsDrawer.setVisibility(View.GONE);
                 break;
 
             case LIVE_LIST_POSITION:
                 setAnalyticsScreenName(("Fragment :" + LIVE_PAGER_TITLE));
-                mPager.findViewById(R.id.pager_tab_strip).setVisibility(View.VISIBLE);
-                findViewById(R.id.handle).setVisibility(View.VISIBLE);
+                tabStrip.setVisibility(View.VISIBLE);
+                settingsDrawer.setVisibility(View.VISIBLE);
                 break;
 
             case REPLY_LIST_POSITION:
                 setAnalyticsScreenName(("Fragment :" + REPLY_PAGER_TITLE));
-                mPager.findViewById(R.id.pager_tab_strip).setVisibility(View.GONE);
-                findViewById(R.id.handle).setVisibility(View.GONE);
+                tabStrip.setVisibility(View.GONE);
+                settingsDrawer.setVisibility(View.GONE);
                 break;
         }
     }

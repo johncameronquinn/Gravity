@@ -13,12 +13,23 @@ import android.support.v4.app.NotificationCompat;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
+import com.amazonaws.mobileconnectors.amazonmobileanalytics.internal.core.util.JSONBuilder;
+import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.android.gms.gcm.GcmListenerService;
 import com.jokrapp.android.util.LogUtils;
 
+import java.io.IOException;
+import java.text.ParseException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import com.jokrapp.android.SQLiteDbContract.MessageEntry;
+
+import org.json.JSONObject;
 
 /**
  * A service that listens to GCM notifications.
@@ -123,24 +134,49 @@ public class PushListenerService extends GcmListenerService {
         public static final String COLUMN_NAME_TEXT = "text";
         public static final String COLUMN_NAME_FILEPATH = "url";
          */
-        ContentValues values = new ContentValues(data.size());
-        values.put(SQLiteDbContract.LiveReplies.COLUMN_ID, data.getString("id"));
-        values.put("time", data.getString("time"));
-        values.put("fromUser", data.getString("fromUser"));
-        values.put("text", data.getString("text"));
-        values.put("url", data.getString("url"));
 
+        /*
+         * Get the message String, parse to json, and read as a map.
+         */
         String message = getMessage(data);
 
+
+        Map<String,String> jsonMap = new HashMap<>();
+        try {
+            JsonFactory jsonFactory = new JsonFactory();
+            JsonParser jsonParser = jsonFactory.createParser(message);
+
+            ObjectMapper objectMapper = new ObjectMapper();
+            jsonMap = objectMapper.readValue(jsonParser,Map.class);
+
+        } catch (com.fasterxml.jackson.core.JsonParseException pe) {
+            Log.e(LOG_TAG,"failed to parse incoming json... ",pe);
+        } catch (IOException e) {
+            Log.e(LOG_TAG,"IOException parsing JSON...",e);
+        }
+        if (jsonMap != null) {
+            if (Constants.LOGV) {
+                Log.v(LOG_TAG, "mapping succeeded... continuing...");
+                LogUtils.printStringMapToVerbose(jsonMap, LOG_TAG);
+            }
+
+            ContentValues values = new ContentValues(data.size());
+            //values.put(SQLiteDbContract.LiveReplies.COLUMN_ID, data.getString("id"));
+            values.put("time", jsonMap.get("time"));
+            values.put("fromUser", jsonMap.get("fromUser"));
+            values.put("text", jsonMap.get("text"));
+            values.put("url", jsonMap.get("url"));
+            //values.put("url", jsonMap.get("default"));
+
+            getContentResolver().insert(FireFlyContentProvider.CONTENT_URI_MESSAGE,values);
+        }
         // Display a notification in the notification center if the app is in the background.
         // Otherwise, send a local broadcast to the app and let the app handle it.
         if (isForeground(this)) {
             // broadcast notification, then store
             broadcast(from, data);
-            getContentResolver().insert(FireFlyContentProvider.CONTENT_URI_MESSAGE,values);
         } else {
             //just store and display
-            getContentResolver().insert(FireFlyContentProvider.CONTENT_URI_MESSAGE,values);
             displayNotification(message);
         }
 

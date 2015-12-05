@@ -60,7 +60,7 @@ public class CameraFragment extends Fragment implements Camera.AutoFocusCallback
     private static boolean isComment = false;
 
     private EditText commentText = null;
-    private String messageTarget = null;
+    private static String messageTarget = null;
 
     private FrameLayout captureLayout;
 
@@ -1016,7 +1016,7 @@ n  */
        return messageTarget;
    }
 
-   public void setMessageTarget(String target) {
+   public static void setMessageTarget(String target) {
        messageTarget = target;
    }
 

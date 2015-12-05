@@ -355,6 +355,8 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
 
     static final int MSG_REPORT_ANALYTIC_TIMING = 101;
 
+    static final int MSG_UPLOAD_IMAGE = 19;
+
     /**
      * class 'IncomingHandler'
      * <p/>
@@ -513,6 +515,12 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
                     Log.d(TAG, "received a message to download an image...");
                     imageResponseMessenger = msg.replyTo;
                     downloadImageFromS3(data);
+                    break;
+
+                case MSG_UPLOAD_IMAGE:
+                    Log.d(TAG, "received a message to upload an image...");
+                    imageResponseMessenger = msg.replyTo;
+                    uploadImageToS3(data);
                     break;
 
                 case MSG_REPORT_ANALYTICS:
@@ -967,7 +975,7 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
             initializeTransferUtility();
         }
 
-        String directory = b.getString(Constants.KEY_S3_DIRECTORY);
+        String directory = b.getString(Constants.KEY_S3_DIRECTORY,"");
 
         String key = b.getString(Constants.KEY_S3_KEY,"");
 

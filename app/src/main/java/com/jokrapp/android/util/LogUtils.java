@@ -25,12 +25,20 @@ public final class LogUtils {
             }
         }
 
-        Log.v(TAG,"done printing bundle.");
+        Log.v(TAG, "done printing bundle.");
     }
 
     public static void printMapToVerbose(Map<String, Object> toPrint, String TAG) {
         Log.d(TAG, "printing map...");
         for (Map.Entry<String, Object> entry : toPrint.entrySet()) {
+            Log.v(TAG, ":  " + entry.getKey() + ":  " + String.valueOf(entry.getValue()));
+        }
+    }
+
+
+    public static void printStringMapToVerbose(Map<String, String> toPrint, String TAG) {
+        Log.d(TAG, "printing map...");
+        for (Map.Entry<String, String> entry : toPrint.entrySet()) {
             Log.v(TAG, ":  " + entry.getKey() + ":  " + String.valueOf(entry.getValue()));
         }
     }

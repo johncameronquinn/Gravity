@@ -194,6 +194,7 @@ public class MessageFragment extends Fragment implements
                 SQLiteDbContract.MessageEntry.COLUMN_FROM_USER,
                 SQLiteDbContract.MessageEntry.COLUMN_NAME_FILEPATH,
                 SQLiteDbContract.MessageEntry.COLUMN_NAME_TEXT,
+                SQLiteDbContract.MessageEntry.COLUMN_RESPONSE_ARN,
         };
 
         if (VERBOSE) {

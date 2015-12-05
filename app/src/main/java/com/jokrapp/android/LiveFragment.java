@@ -43,7 +43,7 @@ import com.jokrapp.android.SQLiteDbContract.LiveEntry;
  */
 public class LiveFragment extends Fragment implements
         LoaderManager.LoaderCallbacks<Cursor>, ViewPager.OnPageChangeListener {
-    public static final boolean VERBOSE = true;
+    public static final boolean VERBOSE = false;
     private static final String TAG = "LiveFragment";
 
     // TODO: Rename parameter arguments, choose names that match

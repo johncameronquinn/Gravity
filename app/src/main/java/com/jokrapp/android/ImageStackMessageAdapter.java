@@ -115,12 +115,14 @@ public class ImageStackMessageAdapter extends ImageStackCursorAdapter implements
              */
 
             String UUID = cursor.getString(
-                    cursor.getColumnIndex(SQLiteDbContract.MessageEntry.COLUMN_FROM_USER)
+                    cursor.getColumnIndex(SQLiteDbContract.MessageEntry.COLUMN_RESPONSE_ARN)
             );
 
+            if (VERBOSE) Log.v(TAG,"UUID setting is : " + UUID);
+
             ((TextView)vView.findViewById(R.id.userID)).setText(UUID);
-            context.findViewById(R.id.button_local_message).setTag(UUID);
-            context.findViewById(R.id.button_local_block).setTag(UUID);
+            context.findViewById(R.id.button_message_reply).setTag(UUID);
+            context.findViewById(R.id.button_message_block).setTag(UUID);
 
         }
 
@@ -157,7 +159,7 @@ public class ImageStackMessageAdapter extends ImageStackCursorAdapter implements
             //set the state to be either received or pending
 
             String suuid = c.getString(
-                    c.getColumnIndex(SQLiteDbContract.MessageEntry.COLUMN_FROM_USER)
+                    c.getColumnIndex(SQLiteDbContract.MessageEntry.COLUMN_RESPONSE_ARN)
             );
 
 

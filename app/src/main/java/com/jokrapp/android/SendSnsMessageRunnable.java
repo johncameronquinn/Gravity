@@ -79,6 +79,8 @@ public class SendSnsMessageRunnable implements Runnable{
 
         b.putString(MessageEntry.COLUMN_RESPONSE_ARN,b.getString(Constants.MESSAGE_TARGET));
 
+        Log.w(TAG,"This is disabled...");
+        /*
         int responseCode = -10;
         try {
 
@@ -93,7 +95,8 @@ public class SendSnsMessageRunnable implements Runnable{
             if (conn != null) {
                 conn.disconnect();
             }
-        }
+        }*/
+
 
         mTask.setTaskThread(null);
         if (VERBOSE) {
