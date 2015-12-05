@@ -5,6 +5,7 @@ import android.app.ActivityManager;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
@@ -13,8 +14,11 @@ import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
 import com.google.android.gms.gcm.GcmListenerService;
+import com.jokrapp.android.util.LogUtils;
 
 import java.util.List;
+
+import com.jokrapp.android.SQLiteDbContract.MessageEntry;
 
 /**
  * A service that listens to GCM notifications.
@@ -73,6 +77,7 @@ public class PushListenerService extends GcmListenerService {
         // Display a notification with an icon, message as content, and default sound. It also
         // opens the app when the notification is clicked.
         NotificationCompat.Builder builder = new NotificationCompat.Builder(this)
+                .setSmallIcon(R.id.icon_only)
                 .setContentTitle(getString(R.string.push_demo_title))
                 .setContentText(message)
                 .setDefaults(Notification.DEFAULT_SOUND)
@@ -88,10 +93,14 @@ public class PushListenerService extends GcmListenerService {
     }
 
     private void broadcast(final String from, final Bundle data) {
+        if (Constants.LOGD) Log.d(LOG_TAG,"entering broadcast");
+
         Intent intent = new Intent(ACTION_SNS_NOTIFICATION);
         intent.putExtra(INTENT_SNS_NOTIFICATION_FROM, from);
         intent.putExtra(INTENT_SNS_NOTIFICATION_DATA, data);
         LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
+
+        if (Constants.LOGD) Log.d(LOG_TAG,"exiting broadcast");
     }
 
     /**
@@ -103,20 +112,38 @@ public class PushListenerService extends GcmListenerService {
      */
     @Override
     public void onMessageReceived(final String from, final Bundle data) {
-        Log.d(LOG_TAG, "entering onMessageReceived...");
+        if (Constants.LOGD) Log.d(LOG_TAG, "entering onMessageReceived...");
+
+        if (Constants.LOGV) LogUtils.printBundle(data,LOG_TAG);
+
+        /*
+        public static final String COLUMN_ID = "_ID";
+        public static final String COLUMN_NAME_TIME = "time";
+        public static final String COLUMN_FROM_USER = "fromUser";
+        public static final String COLUMN_NAME_TEXT = "text";
+        public static final String COLUMN_NAME_FILEPATH = "url";
+         */
+        ContentValues values = new ContentValues(data.size());
+        values.put(SQLiteDbContract.LiveReplies.COLUMN_ID, data.getString("id"));
+        values.put("time", data.getString("time"));
+        values.put("fromUser", data.getString("fromUser"));
+        values.put("text", data.getString("text"));
+        values.put("url", data.getString("url"));
 
         String message = getMessage(data);
-        Log.d(LOG_TAG, "From: " + from);
-        Log.d(LOG_TAG, "Message: " + message);
+
         // Display a notification in the notification center if the app is in the background.
         // Otherwise, send a local broadcast to the app and let the app handle it.
         if (isForeground(this)) {
-            // broadcast notification
+            // broadcast notification, then store
             broadcast(from, data);
+            getContentResolver().insert(FireFlyContentProvider.CONTENT_URI_MESSAGE,values);
         } else {
+            //just store and display
+            getContentResolver().insert(FireFlyContentProvider.CONTENT_URI_MESSAGE,values);
             displayNotification(message);
         }
 
-        Log.d(LOG_TAG, "exiting onMessageReceived...");
+        if (Constants.LOGD) Log.d(LOG_TAG, "exiting onMessageReceived...");
     }
 }
