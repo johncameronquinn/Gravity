@@ -3,6 +3,8 @@ package com.jokrapp.android;
 import android.os.Bundle;
 import android.util.Log;
 
+import com.amazonaws.AmazonClientException;
+import com.amazonaws.mobile.AWSMobileClient;
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.jokrapp.android.SQLiteDbContract.MessageEntry;
@@ -37,7 +39,7 @@ import java.net.HttpURLConnection;
  * the server marks the time the image is received, and gives the image an ID
  *
  */
-public class SendMessageRunnable implements Runnable{
+public class SendSnsMessageRunnable implements Runnable{
 
     interface MessageMethods {
 
@@ -46,8 +48,6 @@ public class SendMessageRunnable implements Runnable{
         void setTaskThread(Thread thread);
 
         Bundle getDataBundle();
-
-        HttpURLConnection getURLConnection();
     }
 
     static final int REQUEST_FAILED = -1;
@@ -62,7 +62,7 @@ public class SendMessageRunnable implements Runnable{
 
     private final MessageMethods mTask;
 
-    public SendMessageRunnable(MessageMethods methods) {
+    public SendSnsMessageRunnable(MessageMethods methods) {
         mTask = methods;
     }
 
@@ -77,55 +77,23 @@ public class SendMessageRunnable implements Runnable{
         Bundle b = mTask.getDataBundle();
         if (VERBOSE) LogUtils.printBundle(b, TAG);
 
-        String text = b.getString(MessageEntry.COLUMN_NAME_TEXT, "");
-        String imageKey = b.getString(MessageEntry.COLUMN_NAME_FILEPATH, "");
-        String messageTarget = b.getString(Constants.MESSAGE_TARGET);
-
-        if (!"".equals(messageTarget)) {
-            if (VERBOSE) {
-                Log.v(TAG,"sending image message to :" + messageTarget);
-            } else {
-                Log.e(TAG,"messageTarget is null...");
-                mTask.handleMessageState(REQUEST_FAILED);
-                return;
-            }
-        }
-
+        b.putString(MessageEntry.COLUMN_RESPONSE_ARN,b.getString(Constants.MESSAGE_TARGET));
 
         int responseCode = -10;
         try {
-            conn = mTask.getURLConnection();
-            JsonFactory jsonFactory = new JsonFactory();
-            JsonGenerator jGen = jsonFactory.
-                    createGenerator(conn.getOutputStream()); //tcp connection to server
-            jGen.writeStartObject();
-            jGen.writeStringField(TO, messageTarget);
-            jGen.writeStringField(MessageEntry.COLUMN_NAME_FILEPATH, imageKey);
-            jGen.writeStringField(Constants.KEY_TEXT, text);
-            jGen.writeEndObject();
-            jGen.flush();
-            jGen.close();
 
-            responseCode = conn.getResponseCode();
-        } catch (IOException e) {
+            AWSMobileClient.defaultMobileClient().getPushManager().publishMessage(b);
+
+        } catch (AmazonClientException e) {
             Log.e(TAG, "error handling JSON", e);
             mTask.handleMessageState(REQUEST_FAILED);
         } finally {
-            if (responseCode == HttpURLConnection.HTTP_OK) {
-                mTask.handleMessageState(REQUEST_SUCCESS);
-                File file = new File(imageKey);
-                Log.i(TAG,"file is stored at" + imageKey);
-                file.delete();
-            } else {
-                mTask.handleMessageState(REQUEST_FAILED);
-                //todo retry request
-            }
+            mTask.handleMessageState(REQUEST_SUCCESS);
 
             if (conn != null) {
                 conn.disconnect();
             }
         }
-
 
         mTask.setTaskThread(null);
         if (VERBOSE) {

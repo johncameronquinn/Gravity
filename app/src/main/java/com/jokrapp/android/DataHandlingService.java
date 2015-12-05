@@ -10,6 +10,7 @@ import android.os.*;
 import android.util.Log;
 import android.widget.Toast;
 import com.amazonaws.auth.BasicAWSCredentials;
+import com.amazonaws.mobile.AWSMobileClient;
 import com.amazonaws.mobileconnectors.amazonmobileanalytics.AnalyticsEvent;
 import com.amazonaws.mobileconnectors.amazonmobileanalytics.MobileAnalyticsManager;
 import com.amazonaws.mobileconnectors.s3.transferutility.TransferListener;
@@ -192,6 +193,8 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
         if (mGoogleApiClient != null) {
             mGoogleApiClient.connect();
         }
+//        AWSMobileClient.initializeMobileClientIfNecessary(this);
+
         mTracker = ((AnalyticsApplication) getApplication()).getAnalyticsManager();
 
         SharedPreferences settings = getSharedPreferences(TAG, MODE_PRIVATE);

@@ -150,8 +150,7 @@ public class ImageStackCursorAdapter extends CursorAdapter {
 
             /* grab the caption from incoming files*/
             String caption_text = c.getString(
-                    c.getColumnIndex(
-                            SQLiteDbContract.LocalEntry.COLUMN_NAME_TEXT)
+                    c.getColumnIndex(SQLiteDbContract.LocalEntry.COLUMN_NAME_TEXT)
             );
 
             /* if the caption is not empty (or null) set and display*/
@@ -163,7 +162,13 @@ public class ImageStackCursorAdapter extends CursorAdapter {
 
             ViewHolder vh = (ViewHolder) v.getTag();
             if (VERBOSE) Log.v(TAG,"incoming filepath is: " + vh.path);
-            vh.photoView.setImageKey(Constants.KEY_S3_LOCAL_DIRECTORY,vh.path,true,this.mEmptyDrawable);
+            vh.photoView.setImageKey(Constants.KEY_S3_LOCAL_DIRECTORY,
+                    vh.path,
+                    true,
+                    this.mEmptyDrawable
+            );
+
+            v.setTag(c.getString(c.getColumnIndexOrThrow(SQLiteDbContract.LocalEntry.COLUMN_FROM_USER)));
 
             if (VERBOSE) {
                 Log.v(TAG,"exiting bindView...");

@@ -253,7 +253,7 @@ public class MessageFragment extends Fragment implements
         View cardView = imageAdapterView.getChildAt(position);
 
         //show
-        cardView.bringToFront();
+        //cardView.bringToFront();
     }
 
     /**

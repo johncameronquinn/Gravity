@@ -278,7 +278,8 @@ public class LiveThreadFragment extends Fragment implements View.OnClickListener
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.live_thread_infoLayout:
-                View threadTextView = ((RelativeLayout) v.getParent()).findViewById(R.id.live_thread_text);
+                View threadTextView = ((RelativeLayout) v.getParent())
+                        .findViewById(R.id.live_thread_text);
 
                 threadTextView.setVisibility(View.VISIBLE);
                 threadTextView.bringToFront();
@@ -287,7 +288,8 @@ public class LiveThreadFragment extends Fragment implements View.OnClickListener
 
 
             case R.id.live_thread_text:
-                ((RelativeLayout)v.getParent()).findViewById(R.id.live_thread_infoLayout).setVisibility(View.VISIBLE);
+                ((RelativeLayout)v.getParent()).findViewById(R.id.live_thread_infoLayout)
+                        .setVisibility(View.VISIBLE);
                 v.setVisibility(View.INVISIBLE);
                 break;
         }

@@ -1,7 +1,7 @@
 package com.jokrapp.android;
 import android.util.Log;
 
-import com.jokrapp.android.SendMessageRunnable.MessageMethods;
+import com.jokrapp.android.SendSnsMessageRunnable.MessageMethods;
 
 /**
  * Created by John Quinn on 11/9/15.
@@ -20,7 +20,7 @@ class SendMessageTask extends ServerTask implements MessageMethods {
 
     public SendMessageTask() {
         mServerConnectRunnable = new ServerConnectRunnable(this);
-        mRequestRunnable = new SendMessageRunnable(this);
+        mRequestRunnable = new SendSnsMessageRunnable(this);
     }
 
     public Runnable getServerConnectRunnable() {

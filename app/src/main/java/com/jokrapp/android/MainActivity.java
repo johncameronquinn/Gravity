@@ -54,6 +54,7 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.amazonaws.AmazonClientException;
 import com.amazonaws.mobile.AWSMobileClient;
 import com.amazonaws.mobileconnectors.amazonmobileanalytics.MobileAnalyticsManager;
 import com.amazonaws.mobile.user.IdentityManager;
@@ -1007,8 +1008,8 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
             ContentValues values = new ContentValues();
             values.put(SQLiteDbContract.LocalEntry.COLUMN_ID, randomgen.nextInt());
             values.put(SQLiteDbContract.LocalEntry.COLUMN_NAME_FILEPATH, filePath);
-            values.put(Constants.KEY_TEXT,text);
-            values.put(SQLiteDbContract.LocalEntry.COLUMN_FROM_USER,"client-only-mode enabled");
+            values.put(Constants.KEY_TEXT, text);
+            values.put(SQLiteDbContract.LocalEntry.COLUMN_FROM_USER, "client-only-mode enabled");
             values.put(SQLiteDbContract.LocalEntry.COLUMN_NAME_TIME, randomgen.nextInt());
 
             if (messageTarget != null) {
@@ -1034,11 +1035,25 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
             Message msg = Message.obtain(null, DataHandlingService.MSG_SEND_IMAGE,currentCamera,0);
             Bundle b = new Bundle();
             b.putString(SQLiteDbContract.LocalEntry.COLUMN_NAME_FILEPATH, filePath);
-            b.putString(SQLiteDbContract.LocalEntry.COLUMN_NAME_TEXT,text);
+            b.putString(SQLiteDbContract.LocalEntry.COLUMN_NAME_TEXT, text);
             b.putString(Constants.KEY_S3_KEY, filePath);
             if (messageTarget != null) {
                 Log.d(TAG, "Sending message to user : " + messageTarget);
                 b.putString(Constants.MESSAGE_TARGET, messageTarget);
+
+                //DOING SOMETHING ELSE NOW, BECAUSE TESTING AND LEARNING REASONS
+                //todo reimplement proper systems
+                try {
+                    AWSMobileClient.defaultMobileClient().getPushManager().publishMessage(b);
+                } catch (AmazonClientException e) {
+                    Log.e(TAG,"AmazonClientException when sending message to user...",e);
+                }
+
+                messageTarget = null;
+                if (VERBOSE) Log.w(TAG,"remove this strange system sah");
+                if (VERBOSE) Log.v(TAG,"exiting sendImageToLocal...");
+                return;
+
             } else {
                 Log.d(TAG, "Sending local broadcast...");
             }
@@ -1199,26 +1214,31 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
             case CAMERA_LIST_POSITION:
                 setAnalyticsScreenName(("Fragment :" + CAMERA_PAGER_TITLE));
                 mPager.findViewById(R.id.pager_tab_strip).setVisibility(View.VISIBLE);
+                findViewById(R.id.handle).setVisibility(View.VISIBLE);
                 break;
 
             case LOCAL_LIST_POSITION:
                 setAnalyticsScreenName(("Fragment :" + LOCAL_PAGER_TITLE));
                 mPager.findViewById(R.id.pager_tab_strip).setVisibility(View.VISIBLE);
+                findViewById(R.id.handle).setVisibility(View.VISIBLE);
                 break;
 
             case MESSAGE_LIST_POSITION:
                 setAnalyticsScreenName(("Fragment :" + MESSAGE_PAGER_TITLE));
                 mPager.findViewById(R.id.pager_tab_strip).setVisibility(View.GONE);
+                findViewById(R.id.handle).setVisibility(View.GONE);
                 break;
 
             case LIVE_LIST_POSITION:
                 setAnalyticsScreenName(("Fragment :" + LIVE_PAGER_TITLE));
                 mPager.findViewById(R.id.pager_tab_strip).setVisibility(View.VISIBLE);
+                findViewById(R.id.handle).setVisibility(View.VISIBLE);
                 break;
 
             case REPLY_LIST_POSITION:
                 setAnalyticsScreenName(("Fragment :" + REPLY_PAGER_TITLE));
                 mPager.findViewById(R.id.pager_tab_strip).setVisibility(View.GONE);
+                findViewById(R.id.handle).setVisibility(View.GONE);
                 break;
         }
     }
@@ -2390,7 +2410,7 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
 
                 mWeakActivity.get().runOnUiThread(new Runnable() {
                     @Override
-                    public void run() {
+                    public void run() { //todo random crashes occur - sometimes the view isn't ready
                         ((CheckBox)findViewById(R.id.switch_camera))
                                 .setButtonDrawable(R.drawable.switch_camera_default);
                     }
@@ -3002,7 +3022,7 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
 
                 case DataHandlingService.MSG_REQUEST_MESSAGES:
                     if (MessageFragReference.get() != null) {
-                        MessageFragReference.get().handleMessageResponseState(msg);
+                     //   MessageFragReference.get().handleMessageResponseState(msg);
                     }
                     break;
 

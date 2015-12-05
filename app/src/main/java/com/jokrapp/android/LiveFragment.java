@@ -485,8 +485,8 @@ public class LiveFragment extends Fragment implements
                         break;
 
                     default:
-                    Toast.makeText(getActivity(), "Request threads response code : " + msg.arg2,
-                            Toast.LENGTH_SHORT).show();
+                    //Toast.makeText(getActivity(), "Request threads response code : " + msg.arg2,
+                      //      Toast.LENGTH_SHORT).show();
 
                 }
 

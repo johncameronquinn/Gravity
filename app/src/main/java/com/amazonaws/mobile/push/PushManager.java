@@ -11,6 +11,7 @@ package com.amazonaws.mobile.push;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.nfc.Tag;
+import android.os.Bundle;
 import android.util.Log;
 
 import com.amazonaws.AmazonClientException;
@@ -21,11 +22,15 @@ import com.amazonaws.services.sns.AmazonSNS;
 import com.amazonaws.services.sns.AmazonSNSClient;
 import com.amazonaws.services.sns.model.CreatePlatformEndpointRequest;
 import com.amazonaws.services.sns.model.CreatePlatformEndpointResult;
+import com.amazonaws.services.sns.model.MessageAttributeValue;
 import com.amazonaws.services.sns.model.PublishRequest;
 import com.amazonaws.services.sns.model.SetEndpointAttributesRequest;
 import com.amazonaws.services.sns.model.SubscribeRequest;
 import com.amazonaws.services.sns.model.SubscribeResult;
 import com.amazonaws.services.sns.model.UnsubscribeRequest;
+import com.jokrapp.android.SQLiteDbContract.MessageEntry;
+
+import org.json.JSONObject;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -333,6 +338,33 @@ public class PushManager implements GCMTokenHelper.GCMTokenUpdateObserver {
         } catch (AmazonClientException e) {
             Log.e(LOG_TAG,"Exception publishing... ",e);
         }
+    }
+
+    public void publishMessage(Bundle data) throws AmazonClientException {
+        PublishRequest publishRequest = new PublishRequest();
+
+        //publishRequest.setTargetArn(data.getString(MessageEntry.COLUMN_RESPONSE_ARN));
+
+        publishRequest.setTargetArn(endpointArn);
+
+
+        String caption = data.getString(MessageEntry.COLUMN_NAME_TEXT,"");
+
+        if (!"".equals(caption)) {
+            MessageAttributeValue textValue = new MessageAttributeValue()
+                    .withDataType("String").withStringValue(caption);
+
+            publishRequest.addMessageAttributesEntry(MessageEntry.COLUMN_NAME_TEXT,textValue);
+        }
+
+        String url = data.getString(MessageEntry.COLUMN_NAME_FILEPATH);
+        publishRequest.setMessage(url);
+
+
+
+        Log.v(LOG_TAG, "publishRequest print: " + publishRequest.toString());
+
+        sns.publish(publishRequest);
     }
 
     /**
