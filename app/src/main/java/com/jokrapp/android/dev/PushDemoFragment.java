@@ -1,5 +1,6 @@
 package com.jokrapp.android.dev;
 
+        import android.app.Activity;
         import android.app.AlertDialog;
         import android.app.Fragment;
         import android.app.ProgressDialog;
@@ -12,19 +13,28 @@ package com.jokrapp.android.dev;
         import android.view.ViewGroup;
         import android.widget.AdapterView;
         import android.widget.ArrayAdapter;
+        import android.widget.Button;
         import android.widget.CheckBox;
         import android.widget.CheckedTextView;
+        import android.widget.EditText;
         import android.widget.ListView;
+        import android.widget.Toast;
 
         import com.amazonaws.AmazonClientException;
+        import com.amazonaws.mobile.AWSConfiguration;
         import com.amazonaws.mobile.AWSMobileClient;
+        import com.amazonaws.mobile.push.GCMTokenHelper;
         import com.amazonaws.mobile.push.PushManager;
         import com.amazonaws.mobile.push.SnsTopic;
         import com.google.android.gms.common.ConnectionResult;
         import com.google.android.gms.common.GoogleApiAvailability;
+        import com.google.android.gms.gcm.GoogleCloudMessaging;
         import com.jokrapp.android.R;
+        import com.jokrapp.android.SQLiteDbContract.MessageEntry;
 
-public class PushDemoFragment extends Fragment {
+        import java.io.IOException;
+
+public class PushDemoFragment extends Fragment implements View.OnClickListener{
 
     // Arbitrary activity request ID. You can handle this in the main activity,
     // if you want to take action when a google services result is received.
@@ -33,10 +43,18 @@ public class PushDemoFragment extends Fragment {
     private static final String LOG_TAG = PushDemoFragment.class.getSimpleName();
 
     private PushManager pushManager;
-
     private CheckBox enablePushCheckBox;
     private ListView topicsListView;
     private ArrayAdapter<SnsTopic> topicsAdapter;
+
+    private Button sendUpstreamButton;
+    private EditText editTextGcmUpstream;
+
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+
+    }
 
     @Override
     public View onCreateView(final LayoutInflater inflater, final ViewGroup container,
@@ -46,8 +64,20 @@ public class PushDemoFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_demo_push, container, false);
         enablePushCheckBox = (CheckBox) view.findViewById(R.id.push_demo_enable_push_checkbox);
         topicsListView = (ListView) view.findViewById(R.id.push_demo_topics_list);
+        editTextGcmUpstream = (EditText) view.findViewById(R.id.editText_Gcm_Upstream);
+        sendUpstreamButton = (Button) view.findViewById(R.id.button_send_upstream);
 
         return view;
+    }
+
+    @Override
+    public void onDestroyView() {
+
+        enablePushCheckBox = null;
+        topicsListView = null;
+        editTextGcmUpstream = null;
+        sendUpstreamButton = null;
+        super.onDestroyView();
     }
 
     @Override
@@ -55,6 +85,8 @@ public class PushDemoFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
 
         pushManager = AWSMobileClient.defaultMobileClient().getPushManager();
+
+        sendUpstreamButton.setOnClickListener(this);
 
         enablePushCheckBox.setChecked(pushManager.isPushEnabled());
         enablePushCheckBox.setOnClickListener(new View.OnClickListener() {
@@ -215,4 +247,76 @@ public class PushDemoFragment extends Fragment {
                 getString(R.string.push_demo_progress_dialog_title),
                 getString(resId, (Object[]) args));
     }
+
+    @Override
+    public void onClick(View v) {
+
+        switch (v.getId()) {
+            case R.id.button_send_upstream:
+                /*Bundle b = new Bundle();
+                b.putString(MessageEntry.COLUMN_NAME_TEXT,
+                        );
+                doGcmSendUpstreamMessage(b);*/
+
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        AWSMobileClient.defaultMobileClient().getPushManager()
+                                .publishMessage(AWSMobileClient
+                                                .defaultMobileClient()
+                                                .getPushManager()
+                                                .getEndpointArn(),
+                                        editTextGcmUpstream.getText()
+                                                .toString()
+                                );
+                    }
+                }).start();
+                break;
+        }
+    }
+
+    private void doGcmSendUpstreamMessage(Bundle upstreamData) {
+        final Activity activity = getActivity();
+        final GoogleCloudMessaging gcm = GoogleCloudMessaging.getInstance(activity);
+        final String senderId = AWSConfiguration.GOOGLE_CLOUD_MESSAGING_SENDER_ID;
+        final String msgId = "102020";
+        final String ttl = "120";
+        final Bundle data = upstreamData;
+
+//        final String text = upstreamData.getString(MessageEntry
+//                .COLUMN_NAME_TEXT);
+
+        new AsyncTask<Void, Void, String>() {
+            @Override
+            protected String doInBackground(Void... params) {
+                try {
+                    if (!ttl.isEmpty()) {
+                        try {
+                            gcm.send(senderId + "@gcm.googleapis.com", msgId,
+                                    Long.parseLong(ttl), data);
+                        } catch (NumberFormatException ex) {
+                            Log.e(LOG_TAG,"Error sending upstream message: could not parse ttl", ex);
+                            return "Error sending upstream message: could not parse ttl";
+                        }
+                    } else {
+                        gcm.send(senderId + "@gcm.googleapis.com", msgId, data);
+                    }
+                    Log.i(LOG_TAG, "Successfully sent upstream message");
+                    return null;
+                } catch (IOException ex) {
+                    Log.e(LOG_TAG, "Error sending upstream message", ex);
+                    return "Error sending upstream message:" + ex.getMessage();
+                }
+            }
+
+            @Override
+            protected void onPostExecute(String result) {
+                if (result != null) {
+                    Toast.makeText(activity,
+                            "send message failed: " + result, Toast.LENGTH_LONG).show();
+                }
+            }
+        }.execute(null, null, null);
+    }
 }
+

@@ -3,7 +3,8 @@
               android:orientation="vertical"
               android:layout_width="match_parent"
               android:layout_height="match_parent"
-              android:gravity="center_vertical">
+              android:gravity="center_vertical"
+    android:background="@color/pallete_accent_gray">
 
     <CheckBox
         android:layout_width="fill_parent"
@@ -13,11 +14,12 @@
         android:checked="false"
         android:padding="12dp"
         android:gravity="left|center_vertical"
-        android:layout_marginLeft="8dp"
-        android:layout_marginTop="30dp"
-        android:layout_marginBottom="20dp"
+        android:layout_marginLeft="@dimen/side_screen_margin"
+        android:layout_marginTop="@dimen/side_screen_margin"
         android:textAppearance="?android:attr/textAppearanceMedium"
-        android:layout_alignParentTop="true"/>
+        android:layout_alignParentTop="true"
+        android:layout_alignParentEnd="true"
+        android:layout_marginRight="@dimen/side_screen_margin" />
 
     <ListView
         android:layout_width="wrap_content"
@@ -25,6 +27,27 @@
         android:id="@+id/push_demo_topics_list"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"
-        android:layout_below="@+id/push_demo_enable_push_checkbox"/>
+        android:layout_below="@+id/button_send_upstream"
+        android:layout_marginLeft="@dimen/side_screen_margin"
+        android:layout_marginRight="@dimen/side_screen_margin" />
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:text="Send Upstream"
+        android:id="@+id/button_send_upstream"
+        android:layout_centerHorizontal="true"
+        android:layout_margin="5dp"
+        android:layout_below="@+id/editText_Gcm_Upstream"
+        android:background="@drawable/bg_reply_textbox"
+        android:gravity="center" />
+
+    <EditText
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/editText_Gcm_Upstream"
+        android:layout_below="@+id/push_demo_enable_push_checkbox"
+        android:layout_margin="@dimen/side_screen_margin" />
 
 </RelativeLayout>

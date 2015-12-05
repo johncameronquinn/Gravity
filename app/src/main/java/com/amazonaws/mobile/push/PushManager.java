@@ -10,6 +10,7 @@ package com.amazonaws.mobile.push;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.nfc.Tag;
 import android.util.Log;
 
 import com.amazonaws.AmazonClientException;
@@ -20,6 +21,7 @@ import com.amazonaws.services.sns.AmazonSNS;
 import com.amazonaws.services.sns.AmazonSNSClient;
 import com.amazonaws.services.sns.model.CreatePlatformEndpointRequest;
 import com.amazonaws.services.sns.model.CreatePlatformEndpointResult;
+import com.amazonaws.services.sns.model.PublishRequest;
 import com.amazonaws.services.sns.model.SetEndpointAttributesRequest;
 import com.amazonaws.services.sns.model.SubscribeRequest;
 import com.amazonaws.services.sns.model.SubscribeResult;
@@ -279,7 +281,7 @@ public class PushManager implements GCMTokenHelper.GCMTokenUpdateObserver {
         request.setAttributes(attr);
         sns.setEndpointAttributes(request);
         Log.d(LOG_TAG, String.format("Set push %s for endpoint arn: %s",
-            enabled ? "enabled" : "disabled", endpointArn));
+                enabled ? "enabled" : "disabled", endpointArn));
         this.pushEnabled = enabled;
     }
     /**
@@ -315,6 +317,22 @@ public class PushManager implements GCMTokenHelper.GCMTokenUpdateObserver {
      */
     public String getEndpointArn() {
         return endpointArn;
+    }
+
+    /**
+     * Publish message -- publishes a message with a target ARN and message
+     */
+    public void publishMessage(String targetArn, String message) {
+
+        PublishRequest publishRequest = new PublishRequest();
+        publishRequest.setTargetArn(targetArn);
+        publishRequest.setMessage(message);
+
+        try {
+            sns.publish(publishRequest);
+        } catch (AmazonClientException e) {
+            Log.e(LOG_TAG,"Exception publishing... ",e);
+        }
     }
 
     /**
