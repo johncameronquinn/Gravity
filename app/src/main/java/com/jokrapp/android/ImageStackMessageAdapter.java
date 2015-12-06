@@ -118,7 +118,7 @@ public class ImageStackMessageAdapter extends ImageStackCursorAdapter implements
                     cursor.getColumnIndex(SQLiteDbContract.MessageEntry.COLUMN_RESPONSE_ARN)
             );
 
-            if (VERBOSE) Log.v(TAG,"Incoming ARN which I am setting is : " + UUID);
+            if (VERBOSE) Log.v(TAG, "Incoming ARN which I am setting is : " + UUID);
 
             ((TextView)vView.findViewById(R.id.userID)).setText(UUID);
             context.findViewById(R.id.button_message_reply).setTag(UUID);
@@ -230,20 +230,18 @@ public class ImageStackMessageAdapter extends ImageStackCursorAdapter implements
         }
         String filePath = c.getString(c.getColumnIndex(SQLiteDbContract.MessageEntry.
                 COLUMN_NAME_FILEPATH));
+
+
+        String arn = c.getString(c.getColumnIndex(SQLiteDbContract.MessageEntry.
+                COLUMN_RESPONSE_ARN));
         String out = "'" + filePath + "'";
-
-        context.getContentResolver().
-                delete(table,
-                        SQLiteDbContract.MessageEntry.COLUMN_NAME_FILEPATH + " = " + out,
-                        null);
-
-        context.sendMsgRequestLocalPosts(1);
+        mListener.onPop(out,arn);
 
         if (VERBOSE) {
             Log.v(TAG,"exiting pop...");
         }
 
-        return filePath;
+        return "filePath";
     }
 
     public void onClick(View v) {
@@ -253,6 +251,7 @@ public class ImageStackMessageAdapter extends ImageStackCursorAdapter implements
 
     public interface onIndicatorClick {
         void onIndicatorClick(View v);
+        void onPop(String filePath, String ARN);
     }
 
 

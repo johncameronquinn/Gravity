@@ -160,16 +160,28 @@ public class PushListenerService extends GcmListenerService {
                 LogUtils.printStringMapToVerbose(jsonMap, LOG_TAG);
             }
 
-            ContentValues values = new ContentValues(data.size());
-            //values.put(SQLiteDbContract.LiveReplies.COLUMN_ID, data.getString("id"));
-            values.put("time", jsonMap.get("time"));
-            values.put("fromUser", jsonMap.get("fromUser"));
-            values.put("text", jsonMap.get("text"));
-            values.put("url", jsonMap.get("url"));
-            values.put("arn", jsonMap.get("arn"));
-            //values.put("url", jsonMap.get("default"));
+            if (jsonMap.containsKey(MessageEntry.COLUMN_NAME_FILEPATH)) {
+                Log.i(LOG_TAG,"received incoming message URL");
 
-            getContentResolver().insert(FireFlyContentProvider.CONTENT_URI_MESSAGE,values);
+                ContentValues values = new ContentValues(data.size());
+                //values.put(SQLiteDbContract.LiveReplies.COLUMN_ID, data.getString("id"));
+                values.put(MessageEntry.COLUMN_NAME_TIME, jsonMap.get("time"));
+                values.put(MessageEntry.COLUMN_FROM_USER, jsonMap.get("fromUser"));
+                values.put(MessageEntry.COLUMN_NAME_TEXT, jsonMap.get("text"));
+                values.put(MessageEntry.COLUMN_NAME_FILEPATH, jsonMap.get("url"));
+                values.put(MessageEntry.COLUMN_RESPONSE_ARN, jsonMap.get("arn"));
+                //values.put("url", jsonMap.get("default"));
+
+                getContentResolver().insert(FireFlyContentProvider.CONTENT_URI_MESSAGE, values);
+            } else {
+                Log.i(LOG_TAG, "received read receipt");
+
+                getContentResolver().
+                        delete(FireFlyContentProvider.CONTENT_URI_MESSAGE,
+                                MessageEntry.COLUMN_RESPONSE_ARN + " = "
+                                        + jsonMap.get(MessageEntry.COLUMN_RESPONSE_ARN),
+                                null);
+            }
         }
         // Display a notification in the notification center if the app is in the background.
         // Otherwise, send a local broadcast to the app and let the app handle it.

@@ -18,6 +18,7 @@ import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.SimpleCursorAdapter;
 
+import com.amazonaws.mobile.AWSMobileClient;
 import com.jokrapp.android.view.ImageCursorAdapterView;
 
 import java.net.HttpURLConnection;
@@ -255,6 +256,24 @@ public class MessageFragment extends Fragment implements
 
         //show
         //cardView.bringToFront();
+    }
+
+    @Override
+    public void onPop(final String filepath, final String ARN) {
+
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                /*getActivity().getContentResolver().
+                        delete(FireFlyContentProvider.CONTENT_URI_MESSAGE,
+                                SQLiteDbContract.MessageEntry.COLUMN_NAME_FILEPATH
+                                        + " = " + filepath,
+                                null);*/
+                AWSMobileClient.defaultMobileClient().getPushManager().sendReadReceipt(ARN);
+            }
+        }).start();
+
+
     }
 
     /**

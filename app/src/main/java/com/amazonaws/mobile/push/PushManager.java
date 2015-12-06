@@ -366,7 +366,7 @@ public class PushManager implements GCMTokenHelper.GCMTokenUpdateObserver {
 
         Map<String,String> dataMap = new HashMap<>();
         dataMap.put(MessageEntry.COLUMN_NAME_FILEPATH,url);
-        dataMap.put(MessageEntry.COLUMN_RESPONSE_ARN,arn);
+        dataMap.put(MessageEntry.COLUMN_RESPONSE_ARN,endpointArn);
         dataMap.put(MessageEntry.COLUMN_NAME_TIME,String.valueOf(System.currentTimeMillis()));
         dataMap.put(MessageEntry.COLUMN_NAME_TEXT, text);
         JSONObject dataObject = new JSONObject(dataMap);
@@ -386,6 +386,25 @@ public class PushManager implements GCMTokenHelper.GCMTokenUpdateObserver {
         Log.v(LOG_TAG, "publishRequest print: " + publishRequest.toString());
 
         sns.publish(publishRequest);
+    }
+
+    public void sendReadReceipt(String arn) {
+        PublishRequest publishRequest = new PublishRequest();
+
+        //publishRequest.setTargetArn(data.getString(MessageEntry.COLUMN_RESPONSE_ARN));
+
+        publishRequest.setTargetArn(arn);
+
+        Map<String,String> dataMap = new HashMap<>();
+        dataMap.put(MessageEntry.COLUMN_RESPONSE_ARN,arn);
+        dataMap.put(MessageEntry.COLUMN_NAME_TIME,String.valueOf(System.currentTimeMillis()));
+        JSONObject dataObject = new JSONObject(dataMap);
+
+        publishRequest.setMessage(dataObject.toString());
+
+
+        sns.publish(publishRequest);
+
     }
 
     /**
