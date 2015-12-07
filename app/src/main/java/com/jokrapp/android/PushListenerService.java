@@ -94,7 +94,11 @@ public class PushListenerService extends GcmListenerService {
                 .setContentText(message)
                 .setDefaults(Notification.DEFAULT_SOUND)
                 .setAutoCancel(true)
+                .setPriority(Notification.PRIORITY_HIGH)
+                .setLights(0xffed1085,250,250)
                 .setContentIntent(contentIntent);
+
+
 
         NotificationManager notificationManager = (NotificationManager) getSystemService(
                 Context.NOTIFICATION_SERVICE);
