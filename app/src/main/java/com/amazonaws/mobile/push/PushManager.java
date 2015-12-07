@@ -345,7 +345,6 @@ public class PushManager implements GCMTokenHelper.GCMTokenUpdateObserver {
 
         //publishRequest.setTargetArn(data.getString(MessageEntry.COLUMN_RESPONSE_ARN));
 
-        publishRequest.setTargetArn(endpointArn);
         //publishRequest.setMessageStructure("json");
 
         //String caption = data.getString(MessageEntry.COLUMN_NAME_TEXT,"");
@@ -360,6 +359,8 @@ public class PushManager implements GCMTokenHelper.GCMTokenUpdateObserver {
         String url = data.getString(MessageEntry.COLUMN_NAME_FILEPATH);
         String arn = data.getString(MessageEntry.COLUMN_RESPONSE_ARN);
         String text = data.getString(MessageEntry.COLUMN_NAME_TEXT);
+
+        publishRequest.setTargetArn(arn);
         //publishRequest.setMessage(url);
 
         JSONObject jsonObject;

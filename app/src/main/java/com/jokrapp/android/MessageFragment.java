@@ -39,7 +39,7 @@ import java.net.HttpURLConnection;
  * to handle interaction events.
  */
 public class MessageFragment extends Fragment implements
-        LoaderManager.LoaderCallbacks<Cursor> {
+        LoaderManager.LoaderCallbacks<Cursor>, View.OnClickListener {
     private final String TAG = "MessageFragment";
     private final boolean VERBOSE = true;
 
@@ -127,6 +127,7 @@ public class MessageFragment extends Fragment implements
         imageAdapterView.setAdapter(mImageAdapter);
         imageAdapterView.setOnPopListener(mImageAdapter);
         messageIndicatorListView.setAdapter(mIndicatorAdapter);
+        cat.findViewById(R.id.button_message_reply).setOnClickListener(this);
 
         cat.findViewById(R.id.button_message_save).setOnClickListener(new View.OnClickListener() {
             @Override
@@ -325,8 +326,7 @@ public class MessageFragment extends Fragment implements
         if (VERBOSE) Log.v(TAG,"exiting onPop...");
     }
 
-    private class ImageAdapter extends CursorAdapter implements View.OnClickListener,
-            ImageCursorAdapterView.OnPopListener {
+    private class ImageAdapter extends CursorAdapter implements ImageCursorAdapterView.OnPopListener {
 
         LayoutInflater inflater;
         private Drawable mEmptyDrawable;
@@ -378,28 +378,28 @@ public class MessageFragment extends Fragment implements
             view.setTag(R.integer.file_path_key,s3key);
 
                  /* grab the caption from incoming files*/
-                String captionText = c.getString(text_column_index);
+            String captionText = c.getString(text_column_index);
 
                 /* if the caption is not empty (or null) set and display*/
-                if (!"".equals(captionText)) {
-                    TextView caption = ((TextView)
-                            view.findViewById(R.id.textView_message_caption));
-                    caption.setText(captionText);
-                    caption.setVisibility(View.VISIBLE);
-                }
+            if (!"".equals(captionText)) {
+                TextView caption = ((TextView)
+                        view.findViewById(R.id.textView_message_caption));
+                caption.setText(captionText);
+                caption.setVisibility(View.VISIBLE);
+            }
 
-                ((PhotoView)view.findViewById(R.id.photoView))
-                        .setImageKey(Constants.KEY_S3_MESSAGE_DIRECTORY,
-                                s3key,
-                                true,
-                                this.mEmptyDrawable
-                        );
+            ((PhotoView)view.findViewById(R.id.photoView))
+                    .setImageKey(Constants.KEY_S3_MESSAGE_DIRECTORY,
+                            s3key,
+                            true,
+                            this.mEmptyDrawable
+                    );
         }
 
         public void onPop(View topCardView) {
-            final String arn = (String)topCardView.getTag(R.integer.arn_key);
-            final String s3key = (String)topCardView.getTag(R.integer.file_path_key);
-            if (VERBOSE) Log.v(TAG,"entering onPop with : " + s3key + ", " + arn);
+            final String arn = (String) topCardView.getTag(R.integer.arn_key);
+            final String s3key = (String) topCardView.getTag(R.integer.file_path_key);
+            if (VERBOSE) Log.v(TAG, "entering onPop with : " + s3key + ", " + arn);
 
             new Thread(new Runnable() {
                 @Override
@@ -415,12 +415,8 @@ public class MessageFragment extends Fragment implements
                 }
             }).start();
         }
-
-        public void onClick(View v) {
-            //mListener.onIndicatorClick(v);
-        }
-
     }
+
     private class IndicatorAdapter extends CursorAdapter implements View.OnClickListener,
             ImageCursorAdapterView.OnPopListener {
 
@@ -510,6 +506,16 @@ public class MessageFragment extends Fragment implements
             //mListener.onIndicatorClick(v);
         }
 
+    }
+
+    @Override
+    public void onClick(View v) {
+        switch (v.getId()) {
+            case R.id.button_message_reply:
+                String arn = (String)imageAdapterView.getmTopCard().getTag(R.integer.arn_key);
+                ((MainActivity)getActivity()).localMessagePressed(arn);
+                break;
+        }
     }
 
 

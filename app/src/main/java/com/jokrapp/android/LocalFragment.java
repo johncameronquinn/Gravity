@@ -9,6 +9,7 @@ import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.app.Fragment;
 import android.os.Environment;
@@ -18,9 +19,13 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.CursorAdapter;
 import android.widget.ImageView;
+import android.widget.TextView;
 
 import com.jokrapp.android.view.ImageCursorAdapterView;
+
+import com.jokrapp.android.SQLiteDbContract.LocalEntry;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -36,12 +41,12 @@ import java.net.HttpURLConnection;
  *
  */
 public class LocalFragment extends Fragment implements
-        LoaderManager.LoaderCallbacks<Cursor> {
+        LoaderManager.LoaderCallbacks<Cursor>, View.OnClickListener {
     private final String TAG = "LocalFragment";
-    private final boolean VERBOSE = false;
+    private final boolean VERBOSE = true;
     private final int LOCAL_LOADER_ID = 2;
 
-    private ImageStackCursorAdapter adapter;
+    private ImageAdapter adapter;
     private ImageCursorAdapterView imageAdapterView;
 
     private onLocalFragmentInteractionListener mListener;
@@ -148,22 +153,24 @@ public class LocalFragment extends Fragment implements
 
         imageAdapterView = (ImageCursorAdapterView)cat.findViewById(R.id.imageAdapter);
         imageAdapterView.setAdapter(adapter);
+        imageAdapterView.setOnPopListener(adapter);
 
 
 
+        cat.findViewById(R.id.button_local_message).setOnClickListener(this);
         cat.findViewById(R.id.button_local_save).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (VERBOSE) Log.v(TAG,"entering LocalSaveToStash-OnClick...");
+                if (VERBOSE) Log.v(TAG, "entering LocalSaveToStash-OnClick...");
 
                 PhotoView topView = (
-                        (PhotoView)imageAdapterView
+                        (PhotoView) imageAdapterView
                                 .getmTopCard()
                                 .findViewById(R.id.photoView)
                 );
 
                 mListener.saveToStash(topView);
-                if (VERBOSE)Log.v(TAG,"exiting LocalSaveToStash-OnClick...");
+                if (VERBOSE) Log.v(TAG, "exiting LocalSaveToStash-OnClick...");
             }
         });
 
@@ -182,12 +189,14 @@ public class LocalFragment extends Fragment implements
 
         getLoaderManager().restartLoader(LOCAL_LOADER_ID, null, this);
 
-        adapter = new ImageStackCursorAdapter((MainActivity)getActivity(),
+        /*adapter = new ImageStackCursorAdapter((MainActivity)getActivity(),
                 R.layout.std_card_inner,
                 null,
                 FireFlyContentProvider.CONTENT_URI_LOCAL,
-                0);
+                0);*/
                 //to, 0);
+
+        adapter = new ImageAdapter(getActivity(),null);
     }
 
 
@@ -210,10 +219,11 @@ public class LocalFragment extends Fragment implements
         }
 
         String[] projection = {
-                SQLiteDbContract.LocalEntry.COLUMN_ID,
-                SQLiteDbContract.LocalEntry.COLUMN_FROM_USER,
-                SQLiteDbContract.LocalEntry.COLUMN_NAME_FILEPATH,
-                SQLiteDbContract.LocalEntry.COLUMN_NAME_TEXT
+                LocalEntry.COLUMN_ID,
+                LocalEntry.COLUMN_FROM_USER,
+                LocalEntry.COLUMN_NAME_FILEPATH,
+                LocalEntry.COLUMN_NAME_TEXT,
+                LocalEntry.COLUMN_NAME_RESPONSE_ARN,
         };
 
         if (VERBOSE) {
@@ -224,7 +234,7 @@ public class LocalFragment extends Fragment implements
                 projection,
                 null,
                 null,
-                SQLiteDbContract.LocalEntry.COLUMN_NAME_WEIGHT);
+                LocalEntry.COLUMN_NAME_WEIGHT);
 
     }
     public void handleLocalResponseState(Message msg) {
@@ -286,7 +296,105 @@ public class LocalFragment extends Fragment implements
         }
     }
 
+    private class ImageAdapter extends CursorAdapter implements ImageCursorAdapterView.OnPopListener {
 
+        LayoutInflater inflater;
+        private Drawable mEmptyDrawable;
+
+        int arn_column_index;
+        int url_column_index;
+        int fromUser_column_index;
+        int text_column_index;
+
+        public ImageAdapter(Context ctx, Cursor c) {
+            super(ctx,c,FLAG_REGISTER_CONTENT_OBSERVER);
+            inflater = LayoutInflater.from(ctx);
+            mEmptyDrawable = ctx.getResources().getDrawable(R.drawable.imagenotqueued);
+        }
+
+        @Override
+        public Cursor swapCursor(Cursor newCursor) {
+
+            if (newCursor != null) {
+                /* preset column indexes for better performance */
+                arn_column_index = newCursor.getColumnIndexOrThrow(LocalEntry.COLUMN_NAME_RESPONSE_ARN);
+                url_column_index = newCursor.getColumnIndexOrThrow(LocalEntry.COLUMN_NAME_FILEPATH);
+                fromUser_column_index = newCursor.getColumnIndexOrThrow(LocalEntry.COLUMN_FROM_USER);
+                text_column_index = newCursor.getColumnIndexOrThrow(LocalEntry.COLUMN_NAME_TEXT);
+            }
+
+            return super.swapCursor(newCursor);
+        }
+
+        @Override
+        public View newView(Context context, Cursor cursor, ViewGroup parent) {
+            View outView = inflater.inflate(R.layout.std_card_inner, parent, false);
+            return outView;
+        }
+
+        @Override
+        public void bindView(View view, Context context, Cursor c) {
+            /* Message_Indicator has a FrameLayout
+            * as a root, std_card_inner users a RelativeLayout
+            */
+
+            /* grab the s3key from incoming files*/
+            String s3key = c.getString(url_column_index);
+
+            /* grab the arn from files*/
+            String arn = c.getString(arn_column_index);
+
+            view.setTag(R.integer.arn_key,arn);
+            view.setTag(R.integer.file_path_key,s3key);
+
+                 /* grab the caption from incoming files*/
+            String captionText = c.getString(text_column_index);
+
+                /* if the caption is not empty (or null) set and display*/
+            if (!"".equals(captionText)) {
+                TextView caption = ((TextView)
+                        view.findViewById(R.id.textView_message_caption));
+                caption.setText(captionText);
+                caption.setVisibility(View.VISIBLE);
+            }
+
+            ((PhotoView)view.findViewById(R.id.photoView))
+                    .setImageKey(Constants.KEY_S3_LOCAL_DIRECTORY,
+                            s3key,
+                            true,
+                            this.mEmptyDrawable
+                    );
+        }
+
+        public void onPop(View topCardView) {
+            final String arn = (String) topCardView.getTag(R.integer.arn_key);
+            final String s3key = (String) topCardView.getTag(R.integer.file_path_key);
+            if (VERBOSE) Log.v(TAG, "entering onPop with : " + s3key + ", " + arn);
+
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    String[] selectionArgs = {s3key};
+
+                    getActivity().getContentResolver().
+                            delete(FireFlyContentProvider.CONTENT_URI_LOCAL,
+                                    SQLiteDbContract.MessageEntry.COLUMN_NAME_FILEPATH
+                                            + " = ?",
+                                    selectionArgs);
+                }
+            }).start();
+        }
+    }
+
+    @Override
+    public void onClick(View v) {
+        switch (v.getId()) {
+            case R.id.button_local_message:
+                String arn = (String)imageAdapterView.getmTopCard().getTag(R.integer.arn_key);
+                ((MainActivity)getActivity()).localMessagePressed(arn);
+                break;
+        }
+    }
 
     /**
      * interface 'onLocalFragmentInteractionListener'

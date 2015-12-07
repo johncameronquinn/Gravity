@@ -1005,9 +1005,12 @@ n  */
        //FrameLayout layout = (FrameLayout)getView().findViewById(R.id.camera_root);
        //layout.addView(cancel);
        Button cancel;
-       cancel = (Button)getView().findViewById(R.id.button_cancel_message);
-       cancel.setVisibility(View.VISIBLE);
-       cancel.setOnClickListener(cameraButtonInstance);
+
+       if (getView() != null) {
+           cancel = (Button) getView().findViewById(R.id.button_cancel_message);
+           cancel.setVisibility(View.VISIBLE);
+           cancel.setOnClickListener(cameraButtonInstance);
+       }
        messageTarget = id;
        currentCameraMode = CAMERA_MESSAGE_MODE;
    }

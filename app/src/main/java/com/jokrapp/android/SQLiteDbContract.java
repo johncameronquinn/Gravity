@@ -24,6 +24,7 @@ public final class SQLiteDbContract {
         public static final String COLUMN_NAME_LATITUDE = "latitude";
         public static final String COLUMN_NAME_LONGITUDE = "longitude";
         public static final String COLUMN_NAME_TEXT = "text";
+        public static final String COLUMN_NAME_RESPONSE_ARN = "arn";
         public static final String COLUMN_NAME_FILEPATH = "url";
     }
 

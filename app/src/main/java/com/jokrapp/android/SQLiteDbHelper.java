@@ -55,6 +55,7 @@ public class SQLiteDbHelper extends SQLiteOpenHelper {
                     LocalEntry.COLUMN_NAME_LATITUDE + TEXT_TYPE + COMMA_SEP +
                     LocalEntry.COLUMN_NAME_LONGITUDE + TEXT_TYPE + COMMA_SEP +
                     LocalEntry.COLUMN_NAME_TEXT + TEXT_TYPE + COMMA_SEP +
+                    LocalEntry.COLUMN_NAME_RESPONSE_ARN + TEXT_TYPE + COMMA_SEP +
                     LocalEntry.COLUMN_NAME_FILEPATH + TEXT_TYPE +
                     " )";
 

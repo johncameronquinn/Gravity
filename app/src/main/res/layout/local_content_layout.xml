@@ -35,7 +35,6 @@
     <Button
         style="@style/radicalContentButton"
         android:id="@+id/button_local_message"
-        android:onClick="onLocalMessagePressed"
         android:background="@drawable/ic_local_message"
         android:layout_below="@+id/button_local_block"
         android:contextClickable="false" />

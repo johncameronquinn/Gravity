@@ -35,7 +35,6 @@
     <Button
         style="@style/radicalContentButton"
         android:id="@+id/button_message_reply"
-        android:onClick="onMessageReplyPressed"
         android:background="@drawable/ic_local_message"
         android:layout_below="@+id/button_message_block"/>
 

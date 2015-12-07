@@ -605,18 +605,19 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
         return true;
     }
 
-    public void onLocalMessagePressed(View view) {
+    public void localMessagePressed(String arn) {
         if (VERBOSE) {
-            Toast.makeText(this,"Message pressed: " + view.getTag(),Toast.LENGTH_LONG).show();
+            Toast.makeText(this,"Message pressed: " + arn,Toast.LENGTH_LONG).show();
         }
 
         Bundle b = new Bundle();
         b.putString(Constants.KEY_ANALYTICS_CATEGORY,Constants.ANALYTICS_CATEGORY_LOCAL);
         b.putString(Constants.KEY_ANALYTICS_ACTION,"message");
-        b.putString(Constants.KEY_ANALYTICS_LABEL,(String)view.getTag());
+        b.putString(Constants.KEY_ANALYTICS_LABEL,(String)arn);
         sendMsgReportAnalyticsEvent(b);
 
-        CameraFragReference.get().startMessageMode((String)view.getTag());
+        CameraFragment.setMessageTarget(arn);
+        CameraFragReference.get().startMessageMode((String)arn);
         mPager.setCurrentItem(CAMERA_LIST_POSITION);
         mPager.setPagingEnabled(false);
     }
@@ -1048,6 +1049,8 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
             Log.d(TAG, "sending message to server containing filepath to load...");
             Message msg = Message.obtain(null, DataHandlingService.MSG_SEND_IMAGE,currentCamera,0);
             Bundle b = new Bundle();
+            b.putString(SQLiteDbContract.LocalEntry.COLUMN_NAME_RESPONSE_ARN,
+                    AWSMobileClient.defaultMobileClient().getPushManager().getEndpointArn());
             b.putString(SQLiteDbContract.LocalEntry.COLUMN_NAME_FILEPATH, filePath);
             b.putString(SQLiteDbContract.LocalEntry.COLUMN_NAME_TEXT, text);
             b.putString(Constants.KEY_S3_KEY, filePath);
@@ -1057,8 +1060,6 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
                 b.putString(Constants.KEY_S3_DIRECTORY, Constants.KEY_S3_MESSAGE_DIRECTORY);
                 msg = Message.obtain(null, DataHandlingService.MSG_UPLOAD_IMAGE);
                 msg.setData(b);
-
-
 
                 //DOING SOMETHING ELSE NOW, BECAUSE TESTING AND LEARNING REASONS
                 //todo reimplement proper systems
@@ -1072,9 +1073,7 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
                     if (VERBOSE) Log.v(TAG, "now logging that this message was sent...");
 
                     String[] projection = {SQLiteDbContract.MessageEntry.COLUMN_RESPONSE_ARN};
-
                     String[] arn = {messageTarget};
-
                     Cursor c = getContentResolver().query(
                             FireFlyContentProvider.CONTENT_URI_MESSAGE,
                             projection,

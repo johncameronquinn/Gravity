@@ -123,6 +123,9 @@ public class RequestLocalRunnable implements Runnable {
 
                 for (int i = 0; i < jsonArray.size(); i++) {
                     map = jsonArray.get(i);
+
+                    if (VERBOSE) LogUtils.printMapToVerbose(map,TAG);
+
                     //swap id for _ID, to allow listview loading, and add the thread ID
                     Object id = map.remove("id");
                     mTask.getImagesSeen().add(String.valueOf(id));

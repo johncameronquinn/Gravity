@@ -569,7 +569,10 @@ public class ImageCursorAdapterView extends AdapterView<CursorAdapter> {
                                     Log.v(TAG,"animation ended, removing topCard view...");
                                 }
 
-                                mListener.onPop(topCard);
+                                if (mListener != null) {
+                                    mListener.onPop(topCard);
+                                }
+
                                 removeViewInLayout(topCard);
                                 mOffset++;
 

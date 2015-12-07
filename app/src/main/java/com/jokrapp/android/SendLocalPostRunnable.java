@@ -79,6 +79,7 @@ public class SendLocalPostRunnable implements Runnable{
         double lon = b.getDouble(LocalEntry.COLUMN_NAME_LONGITUDE, 0.0);
         String text = b.getString(LocalEntry.COLUMN_NAME_TEXT, "");
         String imageKey = b.getString(LocalEntry.COLUMN_NAME_FILEPATH, "");
+        String arn = b.getString(LocalEntry.COLUMN_NAME_RESPONSE_ARN, "");
 
 
         int responseCode = -10;
@@ -93,6 +94,7 @@ public class SendLocalPostRunnable implements Runnable{
             jGen.writeNumberField(LocalEntry.COLUMN_NAME_LONGITUDE, lon);
             jGen.writeStringField(LocalEntry.COLUMN_NAME_TEXT, text);
             jGen.writeStringField(LocalEntry.COLUMN_NAME_FILEPATH, imageKey);
+            jGen.writeStringField(LocalEntry.COLUMN_NAME_RESPONSE_ARN, arn);
             jGen.writeEndObject();
             jGen.flush();
             jGen.close();
