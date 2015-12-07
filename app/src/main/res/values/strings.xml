@@ -24,6 +24,7 @@
 
 
     <string name="capture_button_desc">Press this button to capture a picture</string>
+    <string name="push_notification_title">Gravity</string>
 
     <string name="no_replies">No replies.</string>
 

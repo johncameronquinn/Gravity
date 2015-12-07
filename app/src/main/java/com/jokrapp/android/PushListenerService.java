@@ -22,6 +22,7 @@ import com.google.android.gms.gcm.GcmListenerService;
 import com.jokrapp.android.util.LogUtils;
 
 import java.io.IOException;
+import java.sql.BatchUpdateException;
 import java.text.ParseException;
 import java.util.HashMap;
 import java.util.List;
@@ -88,8 +89,8 @@ public class PushListenerService extends GcmListenerService {
         // Display a notification with an icon, message as content, and default sound. It also
         // opens the app when the notification is clicked.
         NotificationCompat.Builder builder = new NotificationCompat.Builder(this)
-                .setSmallIcon(R.id.icon_only)
-                .setContentTitle(getString(R.string.push_demo_title))
+                .setSmallIcon(R.mipmap.ic_launcher)
+                .setContentTitle(getString(R.string.push_notification_title))
                 .setContentText(message)
                 .setDefaults(Notification.DEFAULT_SOUND)
                 .setAutoCancel(true)
@@ -173,6 +174,14 @@ public class PushListenerService extends GcmListenerService {
                 //values.put("url", jsonMap.get("default"));
 
                 getContentResolver().insert(FireFlyContentProvider.CONTENT_URI_MESSAGE, values);
+
+                if (isForeground(this)) {
+                    // broadcast notification, then store
+                    broadcast(from, data);
+                } else {
+                    //just store and display
+                    displayNotification("You've got mail!");
+                }
             } else {
                 Log.i(LOG_TAG, "received read receipt, removing column for pending images");
                 String[] selectionArgs = { jsonMap.get(MessageEntry.COLUMN_RESPONSE_ARN) };
@@ -183,17 +192,22 @@ public class PushListenerService extends GcmListenerService {
                                 selectionArgs);
 
                 if (Constants.LOGD) Log.v(LOG_TAG,"Rows deleted : " + rows);
+
+                if (isForeground(this)) {
+                    // broadcast notification, then store
+                    broadcast(from, data);
+                }
             }
         }
         // Display a notification in the notification center if the app is in the background.
         // Otherwise, send a local broadcast to the app and let the app handle it.
-        if (isForeground(this)) {
+       /* if (isForeground(this)) {
             // broadcast notification, then store
             broadcast(from, data);
         } else {
             //just store and display
             displayNotification(message);
-        }
+        }*/
 
         if (Constants.LOGD) Log.d(LOG_TAG, "exiting onMessageReceived...");
     }

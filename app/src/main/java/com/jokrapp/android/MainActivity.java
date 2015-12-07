@@ -33,12 +33,15 @@ import android.preference.PreferenceManager;
 import android.provider.MediaStore;
 import android.provider.Settings;
 import android.app.Fragment;
+import android.support.annotation.DimenRes;
 import android.support.v13.app.FragmentStatePagerAdapter;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.view.ViewPager;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.util.SparseArray;
+import android.util.TypedValue;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.TextureView;
@@ -183,12 +186,41 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
 
             Bundle data = intent.getBundleExtra(PushListenerService.INTENT_SNS_NOTIFICATION_DATA);
             String message = PushListenerService.getMessage(data);
+            if (BuildConfig.FLAVOR.equals("dev")) {
+                new AlertDialog.Builder(MainActivity.this)
+                        .setTitle(R.string.push_demo_title)
+                        .setMessage(message)
+                        .setPositiveButton(android.R.string.ok, null)
+                        .show();
+            } else {
+                Log.i(TAG, "Message Notification Received");//todo create "NEW MESSAGE" notification
 
-            new AlertDialog.Builder(MainActivity.this)
-                    .setTitle(R.string.push_demo_title)
-                    .setMessage(message)
-                    .setPositiveButton(android.R.string.ok, null)
-                    .show();
+                final TextView textView = new TextView(context);
+
+                FrameLayout.LayoutParams textviewlayoutParams = new FrameLayout.LayoutParams(
+                        ViewGroup.LayoutParams.MATCH_PARENT,
+                        ViewGroup.LayoutParams.WRAP_CONTENT,
+                        Gravity.CENTER);
+                textView.setLayoutParams(textviewlayoutParams);
+
+                textView.setGravity(Gravity.CENTER);
+                textView.setText("A message has been received!");
+                textView.setTextSize(TypedValue.COMPLEX_UNIT_SP,20);
+                textView.setTextColor(getResources().getColor(R.color.black_overlay));
+                textView.setBackgroundColor(getResources().getColor(R.color.jpallete_neutral_blue));
+
+                final FrameLayout layout = (FrameLayout)findViewById(R.id.rootlayout);
+                layout.addView(textView,layout.getChildCount()-1);
+
+                Runnable removeTextView = new Runnable() {
+                    @Override
+                    public void run() {
+                        layout.removeView(textView);
+                    }
+                };
+
+                uiHandler.postDelayed(removeTextView,5000);
+            }
         }
     };
 
