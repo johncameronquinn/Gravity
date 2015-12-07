@@ -34,6 +34,7 @@ import com.jokrapp.android.ImageStackCursorAdapter;
 public class ImageCursorAdapterView extends AdapterView<CursorAdapter> {
     private final boolean VERBOSE = false;
     private final String TAG = "ImageAdapterView";
+    private OnPopListener mListener;
 
     public static final int INVALID_POINTER_ID = -1;
     private int mActivePointerId = INVALID_POINTER_ID;
@@ -74,6 +75,15 @@ public class ImageCursorAdapterView extends AdapterView<CursorAdapter> {
     private int mNextAdapterPosition;
     private boolean mDragging;
 
+
+    /**callbacks to pop events**/
+    public void setOnPopListener(OnPopListener listener) {
+        mListener = listener;
+    }
+
+    public interface OnPopListener {
+        void onPop(View v);
+    }
 
 
     public ImageCursorAdapterView(Context context) {
@@ -166,6 +176,7 @@ public class ImageCursorAdapterView extends AdapterView<CursorAdapter> {
 
         while (mNextAdapterPosition < mCursorAdapter.getCount() && getChildCount() < mMaxVisible) {
             View view = mCursorAdapter.getView(mNextAdapterPosition, null, this);
+
             view.setLayerType(LAYER_TYPE_SOFTWARE, null);
 
          /*   View btnView = view.findViewById(R.id.messageButton);
@@ -558,7 +569,7 @@ public class ImageCursorAdapterView extends AdapterView<CursorAdapter> {
                                     Log.v(TAG,"animation ended, removing topCard view...");
                                 }
 
-                                ((ImageStackCursorAdapter)getAdapter()).pop();
+                                mListener.onPop(topCard);
                                 removeViewInLayout(topCard);
                                 mOffset++;
 

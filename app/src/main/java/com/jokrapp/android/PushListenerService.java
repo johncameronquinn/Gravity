@@ -123,7 +123,7 @@ public class PushListenerService extends GcmListenerService {
      */
     @Override
     public void onMessageReceived(final String from, final Bundle data) {
-        if (Constants.LOGD) Log.d(LOG_TAG, "entering onMessageReceived...");
+        if (Constants.LOGD) Log.d(LOG_TAG, "entering onMessageReceived... From : " + from);
 
         if (Constants.LOGV) LogUtils.printBundle(data,LOG_TAG);
 
@@ -161,7 +161,7 @@ public class PushListenerService extends GcmListenerService {
             }
 
             if (jsonMap.containsKey(MessageEntry.COLUMN_NAME_FILEPATH)) {
-                Log.i(LOG_TAG,"received incoming message URL");
+                Log.i(LOG_TAG,"received incoming message, storing...");
 
                 ContentValues values = new ContentValues(data.size());
                 //values.put(SQLiteDbContract.LiveReplies.COLUMN_ID, data.getString("id"));
@@ -174,13 +174,15 @@ public class PushListenerService extends GcmListenerService {
 
                 getContentResolver().insert(FireFlyContentProvider.CONTENT_URI_MESSAGE, values);
             } else {
-                Log.i(LOG_TAG, "received read receipt");
+                Log.i(LOG_TAG, "received read receipt, removing column for pending images");
+                String[] selectionArgs = { jsonMap.get(MessageEntry.COLUMN_RESPONSE_ARN) };
 
-                getContentResolver().
+                int rows = getContentResolver().
                         delete(FireFlyContentProvider.CONTENT_URI_MESSAGE,
-                                MessageEntry.COLUMN_RESPONSE_ARN + " = "
-                                        + jsonMap.get(MessageEntry.COLUMN_RESPONSE_ARN),
-                                null);
+                                MessageEntry.COLUMN_RESPONSE_ARN + " LIKE ?",
+                                selectionArgs);
+
+                if (Constants.LOGD) Log.v(LOG_TAG,"Rows deleted : " + rows);
             }
         }
         // Display a notification in the notification center if the app is in the background.

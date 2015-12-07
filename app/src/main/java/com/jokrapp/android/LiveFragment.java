@@ -481,7 +481,10 @@ public class LiveFragment extends Fragment implements
                 switch (msg.arg2) {
                     case HttpURLConnection.HTTP_OK:
                         if (VERBOSE) Log.v(TAG, "Response code : " + msg.arg1);
-                        threadPager.setAdapter(mAdapter);
+
+                        if (threadPager != null) {
+                            threadPager.setAdapter(mAdapter);
+                        }
                         break;
 
                     default:

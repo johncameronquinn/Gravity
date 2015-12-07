@@ -391,7 +391,13 @@ public class PushManager implements GCMTokenHelper.GCMTokenUpdateObserver {
     public void sendReadReceipt(String arn) {
         PublishRequest publishRequest = new PublishRequest();
 
+        if (arn == null) {
+            Log.e(LOG_TAG,"Incoming arn is null... exiting...");
+            return;
+        }
+
         //publishRequest.setTargetArn(data.getString(MessageEntry.COLUMN_RESPONSE_ARN));
+
 
         publishRequest.setTargetArn(arn);
 
@@ -401,7 +407,6 @@ public class PushManager implements GCMTokenHelper.GCMTokenUpdateObserver {
         JSONObject dataObject = new JSONObject(dataMap);
 
         publishRequest.setMessage(dataObject.toString());
-
 
         sns.publish(publishRequest);
 

@@ -15,6 +15,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
+import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
@@ -1053,16 +1054,60 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
             if (messageTarget != null) {
                 Log.d(TAG, "Sending message to user : " + messageTarget);
                 b.putString(SQLiteDbContract.MessageEntry.COLUMN_RESPONSE_ARN, messageTarget);
-                b.putString(Constants.KEY_S3_DIRECTORY,Constants.KEY_S3_MESSAGE_DIRECTORY);
+                b.putString(Constants.KEY_S3_DIRECTORY, Constants.KEY_S3_MESSAGE_DIRECTORY);
                 msg = Message.obtain(null, DataHandlingService.MSG_UPLOAD_IMAGE);
                 msg.setData(b);
+
 
 
                 //DOING SOMETHING ELSE NOW, BECAUSE TESTING AND LEARNING REASONS
                 //todo reimplement proper systems
                 try {
+                    if (VERBOSE) Log.v(TAG, "sending message to upload static content...");
                     mService.send(msg);
+
+                    if (VERBOSE) Log.v(TAG, "now sending dynamic content via Amazon SNS...");
                     AWSMobileClient.defaultMobileClient().getPushManager().publishMessage(b);
+
+                    if (VERBOSE) Log.v(TAG, "now logging that this message was sent...");
+
+                    String[] projection = {SQLiteDbContract.MessageEntry.COLUMN_RESPONSE_ARN};
+
+                    String[] arn = {messageTarget};
+
+                    Cursor c = getContentResolver().query(
+                            FireFlyContentProvider.CONTENT_URI_MESSAGE,
+                            projection,
+                            SQLiteDbContract.MessageEntry.COLUMN_RESPONSE_ARN + "= ?",
+                            arn,
+                            null);
+
+                    if (c == null) {
+                        if (VERBOSE) Log.v(TAG, "Cursor was null... not storing pending row...");
+
+                        ContentValues values = new ContentValues();
+                        values.put(SQLiteDbContract.MessageEntry.COLUMN_NAME_TIME,
+                                String.valueOf(System.currentTimeMillis()));
+                        values.put(SQLiteDbContract.MessageEntry.COLUMN_FROM_USER,messageTarget);
+                        values.put(SQLiteDbContract.MessageEntry.COLUMN_NAME_TEXT, text);
+                        getContentResolver().insert(FireFlyContentProvider.CONTENT_URI_MESSAGE,
+                                values);
+                    } else if (c.getCount() > 0) {
+                        if (VERBOSE) Log.v(TAG, "Reply was already received... " +
+                                "not storing pending row...");
+                        c.close();
+                    } else {
+                        if (VERBOSE) Log.v(TAG, "Storing pending row... : arn " + messageTarget);
+
+                        ContentValues values = new ContentValues();
+                        values.put(SQLiteDbContract.MessageEntry.COLUMN_NAME_TIME,
+                                String.valueOf(System.currentTimeMillis()));
+                        values.put(SQLiteDbContract.MessageEntry.COLUMN_RESPONSE_ARN,messageTarget);
+                        getContentResolver().insert(FireFlyContentProvider.CONTENT_URI_MESSAGE,
+                                values);
+                        c.close();
+                    }
+
                 } catch (AmazonClientException e) {
                     Log.e(TAG,"AmazonClientException when sending message to user...",e);
                 } catch (RemoteException e) {
@@ -1241,32 +1286,32 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
             case CAMERA_LIST_POSITION:
                 setAnalyticsScreenName(("Fragment :" + CAMERA_PAGER_TITLE));
                 //tabStrip.animate().scaleY(0).setDuration(TAB_TRANSITION_DURATION);
-                tabStrip.setVisibility(View.VISIBLE);
-                settingsDrawer.setVisibility(View.VISIBLE);
+                //tabStrip.setVisibility(View.VISIBLE);
+                //settingsDrawer.setVisibility(View.VISIBLE);
                 break;
 
             case LOCAL_LIST_POSITION:
                 setAnalyticsScreenName(("Fragment :" + LOCAL_PAGER_TITLE));
-                tabStrip.setVisibility(View.VISIBLE);
-                settingsDrawer.setVisibility(View.VISIBLE);
+                //tabStrip.setVisibility(View.VISIBLE);
+                //settingsDrawer.setVisibility(View.VISIBLE);
                 break;
 
             case MESSAGE_LIST_POSITION:
                 setAnalyticsScreenName(("Fragment :" + MESSAGE_PAGER_TITLE));
-                tabStrip.setVisibility(View.GONE);
-                settingsDrawer.setVisibility(View.GONE);
+                //tabStrip.setVisibility(View.GONE);
+                //settingsDrawer.setVisibility(View.GONE);
                 break;
 
             case LIVE_LIST_POSITION:
                 setAnalyticsScreenName(("Fragment :" + LIVE_PAGER_TITLE));
-                tabStrip.setVisibility(View.VISIBLE);
-                settingsDrawer.setVisibility(View.VISIBLE);
+                //tabStrip.setVisibility(View.VISIBLE);
+                //settingsDrawer.setVisibility(View.VISIBLE);
                 break;
 
             case REPLY_LIST_POSITION:
                 setAnalyticsScreenName(("Fragment :" + REPLY_PAGER_TITLE));
-                tabStrip.setVisibility(View.GONE);
-                settingsDrawer.setVisibility(View.GONE);
+                //tabStrip.setVisibility(View.GONE);
+                //settingsDrawer.setVisibility(View.GONE);
                 break;
         }
     }

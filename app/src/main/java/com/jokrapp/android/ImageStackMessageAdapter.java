@@ -123,7 +123,6 @@ public class ImageStackMessageAdapter extends ImageStackCursorAdapter implements
             ((TextView)vView.findViewById(R.id.userID)).setText(UUID);
             context.findViewById(R.id.button_message_reply).setTag(UUID);
             context.findViewById(R.id.button_message_block).setTag(UUID);
-
         }
 
         if (VERBOSE) {
@@ -162,14 +161,21 @@ public class ImageStackMessageAdapter extends ImageStackCursorAdapter implements
                     c.getColumnIndex(SQLiteDbContract.MessageEntry.COLUMN_RESPONSE_ARN)
             );
 
+            String url = c.getString(
+                    c.getColumnIndex(SQLiteDbContract.MessageEntry.COLUMN_NAME_FILEPATH)
+            );
 
-            if (!"".equals(suuid)) { // is not null
-                if (VERBOSE) Log.v(TAG, "UUID is not null, setting minifab to colored");
+
+
+            if (url != null) {
+                if (VERBOSE) Log.v(TAG, "URL is not null, setting minifab to colored");
+                Log.v(TAG,"Url: " + url);
 
 
                 int imageButtonColor;
                 if (uuidColorHashMap.containsKey(suuid)) {
                     imageButtonColor = uuidColorHashMap.get(suuid);
+
                 } else {
                     imageButtonColor = ctx.getResources().getColor(R.color.jpallete_neutral_blue);
                     uuidColorHashMap.put(suuid,imageButtonColor);
@@ -178,6 +184,11 @@ public class ImageStackMessageAdapter extends ImageStackCursorAdapter implements
 
                 ((ImageButton) v.findViewById(R.id.message_indicator_image))
                         .setColorFilter(imageButtonColor);
+            } else {
+
+
+                ((ImageButton) v.findViewById(R.id.message_indicator_image))
+                        .setColorFilter(R.color.clear_background);
             }
 
         } else {
@@ -222,18 +233,19 @@ public class ImageStackMessageAdapter extends ImageStackCursorAdapter implements
             Log.v(TAG,"entering pop...");
         }
 
-        Cursor c =  ((Cursor)getItem(0));
+        //Cursor c =  ((Cursor)getItem(0));
+        Cursor c = getCursor();
+        c.moveToFirst();
 
         if (c.getCount() == 0) { //todo this shouldn't have to be here
             Log.e(TAG,"there was no image to pop");
             return "huh";
         }
-        String filePath = c.getString(c.getColumnIndex(SQLiteDbContract.MessageEntry.
+        String filePath = c.getString(c.getColumnIndexOrThrow(SQLiteDbContract.MessageEntry.
                 COLUMN_NAME_FILEPATH));
-
-
-        String arn = c.getString(c.getColumnIndex(SQLiteDbContract.MessageEntry.
+        String arn = c.getString(c.getColumnIndexOrThrow(SQLiteDbContract.MessageEntry.
                 COLUMN_RESPONSE_ARN));
+
         String out = "'" + filePath + "'";
         mListener.onPop(out,arn);
 

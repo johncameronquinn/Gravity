@@ -22,7 +22,7 @@ import com.jokrapp.android.view.ImageCursorAdapterView;
  * and loaded into the view. Maintains a reference to the database using cursors,
  * and dynamically swaps the cursors with their actual data once the data is finished loading
  */
-public class ImageStackCursorAdapter extends CursorAdapter {
+public class ImageStackCursorAdapter extends CursorAdapter implements ImageCursorAdapterView.OnPopListener {
     private final boolean VERBOSE = true;
     private final String TAG = "ImageCursorStackAdapter";
 
@@ -195,7 +195,7 @@ public class ImageStackCursorAdapter extends CursorAdapter {
      * removes the topmost item from the view, then deletes it from the database, then requests
      * a replacement image
      */
-    public String pop() {
+    public void onPop(View v) {
         if (VERBOSE) {
             Log.v(TAG,"entering pop...");
         }
@@ -205,7 +205,7 @@ public class ImageStackCursorAdapter extends CursorAdapter {
 
         if (c.getCount() == 0) { //todo this shouldn't have to be here
             Log.e(TAG,"there was no image to pop");
-            return "huh";
+            return;
         }
 
         String filePath = c.getString(c.getColumnIndex(SQLiteDbContract.LocalEntry.
@@ -223,7 +223,7 @@ public class ImageStackCursorAdapter extends CursorAdapter {
             Log.v(TAG,"exiting pop...");
         }
 
-        return filePath;
+        return;
     }
 
 
