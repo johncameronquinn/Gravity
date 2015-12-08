@@ -23,11 +23,12 @@
             android:id="@+id/button_capture"
             android:contentDescription="@string/capture_button_desc"
             android:src="@drawable/ic_capture"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_width="70dp"
+            android:layout_height="70dp"
             android:layout_gravity="center"
             android:visibility="visible"
-            android:background="@android:color/transparent" />
+            android:background="@android:color/transparent"
+            android:scaleType="fitXY" />
 
         <ImageView
             android:layout_width="wrap_content"
@@ -96,9 +97,10 @@
 
     <CheckBox
         android:id="@+id/switch_camera"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:button="@drawable/switch_camera_default"
+        android:layout_width="45dp"
+        android:layout_height="70dp"
+        android:button="@null"
+        android:background="@drawable/switch_camera_default"
         android:layout_gravity="left|bottom"
         android:layout_margin="@dimen/side_screen_margin"
         android:visibility="visible" />
@@ -114,17 +116,19 @@
 
     <CheckBox
         android:id="@+id/button_flash"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="40dp"
+        android:layout_height="70dp"
         android:onClick="setFlash"
         android:layout_gravity="bottom|right"
-        android:button="@drawable/custom_flash"
         android:visibility="visible"
-        android:layout_margin="@dimen/side_screen_margin" />
+        android:layout_margin="@dimen/side_screen_margin"
+        android:button="@null"
+        android:background="@drawable/custom_flash"
+        android:allowUndo="false" />
 
     <ImageView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
         android:id="@+id/camera_focus"
         android:src="@drawable/ic_capture"
         android:scaleX="0"

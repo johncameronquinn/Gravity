@@ -267,6 +267,25 @@ public class MessageFragment extends Fragment implements
             Log.v(TAG,"enter onLoadFinished...");
         }
 
+        /* only set the action buttons to visible if there is content */
+        if (data.getCount() > 0) {
+            View v = getView();
+            if (v!=null) {
+                v.findViewById(R.id.button_message_reply).setVisibility(View.VISIBLE);
+                v.findViewById(R.id.button_message_save).setVisibility(View.VISIBLE);
+                v.findViewById(R.id.button_message_block).setVisibility(View.VISIBLE);
+                v.findViewById(R.id.button_local_report).setVisibility(View.VISIBLE);
+            }
+        } else {
+            View v = getView();
+            if (v!=null) {
+                v.findViewById(R.id.button_message_reply).setVisibility(View.GONE);
+                v.findViewById(R.id.button_message_save).setVisibility(View.GONE);
+                v.findViewById(R.id.button_message_block).setVisibility(View.GONE);
+                v.findViewById(R.id.button_local_report).setVisibility(View.GONE);
+            }
+        }
+
         if (loader.getId() == IMAGE_LOADER_ID) {
             mImageAdapter.swapCursor(data);
         } else {
@@ -337,7 +356,7 @@ public class MessageFragment extends Fragment implements
         int text_column_index;
 
         public ImageAdapter(Context ctx, Cursor c) {
-            super(ctx,c,FLAG_REGISTER_CONTENT_OBSERVER);
+            super(ctx,c,0);
             inflater = LayoutInflater.from(ctx);
             mEmptyDrawable = ctx.getResources().getDrawable(R.drawable.imagenotqueued);
         }
@@ -427,7 +446,8 @@ public class MessageFragment extends Fragment implements
         int fromUser_column_index;
 
         public IndicatorAdapter(Context ctx, Cursor c) {
-            super(ctx,c,FLAG_REGISTER_CONTENT_OBSERVER);
+
+            super(ctx,c,0);
             inflater = LayoutInflater.from(ctx);
         }
 

@@ -205,7 +205,7 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
 
                 textView.setGravity(Gravity.CENTER);
                 textView.setText("A message has been received!");
-                textView.setTextSize(TypedValue.COMPLEX_UNIT_SP,20);
+                textView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 20);
                 textView.setTextColor(getResources().getColor(R.color.black_overlay));
                 textView.setBackgroundColor(getResources().getColor(R.color.jpallete_neutral_blue));
 
@@ -430,7 +430,7 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
             Log.d(TAG, "sending message to connect GoogleApiClient...");
             // Create and send a message to the service, using a supported 'what' value
             Message msg1 = Message.obtain(null, DataHandlingService.MSG_CONNECT_CLIENT, 0, 0);
-              try {
+            try {
                 mService.send(msg1);
              } catch (RemoteException e) {
                   e.printStackTrace();
@@ -438,6 +438,13 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
         }
 
         Log.d(TAG, "exit onStart...");
+    }
+
+    @Override
+    protected void onRestart() {
+        Log.d(TAG, "entering onRestart...");
+        super.onRestart();
+        Log.d(TAG, "exiting onRestart...");
     }
 
     @Override
@@ -473,6 +480,16 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
         LocalBroadcastManager.getInstance(this).registerReceiver(notificationReceiver,
                 new IntentFilter(PushListenerService.ACTION_SNS_NOTIFICATION));
         Log.d(TAG, "exit onResume...");
+    }
+
+
+    @Override
+    protected void onPostResume() {
+        super.onPostResume();
+        if (VERBOSE) Log.v(TAG,"entering onPostResume...");
+
+
+        if (VERBOSE) Log.v(TAG,"exiting onPostResume...");
     }
 
 
@@ -590,6 +607,16 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
     public View onCreateView(String name, Context context, AttributeSet attrs) {
         return super.onCreateView(name, context, attrs);
     }
+
+    @Override
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+        if (VERBOSE) Log.v(TAG,"entering onRestoreInstanceState...");
+
+        super.onRestoreInstanceState(savedInstanceState);
+
+        if (VERBOSE) Log.v(TAG,"exiting onRestoreInstanceState...");
+    }
+
 
     public void onNotImplemented(View v) {
         Toast.makeText(this,"Not yet implemented...",Toast.LENGTH_SHORT).show();
@@ -1048,7 +1075,7 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
     public void sendImageToLocal(String filePath, int currentCamera, String text) {
         if (VERBOSE) Log.v(TAG,"entering sendImageToLocal...");
 
-        if (Constants.client_only_mode) {
+        if (BuildConfig.FLAVOR.equals("sales") || Constants.client_only_mode) {
             Random randomgen = new Random(System.currentTimeMillis());
 
             Log.w(TAG, "client only mode is enabled... saving internally");
@@ -1058,6 +1085,8 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
             values.put(Constants.KEY_TEXT, text);
             values.put(SQLiteDbContract.LocalEntry.COLUMN_FROM_USER, "client-only-mode enabled");
             values.put(SQLiteDbContract.LocalEntry.COLUMN_NAME_TIME, randomgen.nextInt());
+            values.put(SQLiteDbContract.LocalEntry.COLUMN_NAME_RESPONSE_ARN,
+                    AWSMobileClient.defaultMobileClient().getPushManager().getEndpointArn());
 
             if (messageTarget != null) {
                 Log.d(TAG, "Sending message internally : " + messageTarget);
@@ -1069,6 +1098,8 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
                 values.put(SQLiteDbContract.LocalEntry.COLUMN_NAME_WEIGHT, randomgen.nextInt());
                 values.put(SQLiteDbContract.LocalEntry.COLUMN_NAME_LATITUDE, String.valueOf(randomgen.nextDouble()));
                 values.put(SQLiteDbContract.LocalEntry.COLUMN_NAME_LONGITUDE, String.valueOf(randomgen.nextDouble()));
+                values.put(SQLiteDbContract.LocalEntry.COLUMN_NAME_RESPONSE_ARN,
+                        AWSMobileClient.defaultMobileClient().getPushManager().getEndpointArn());
 
                 getContentResolver().insert(FireFlyContentProvider.CONTENT_URI_LOCAL,values);
             }
@@ -1636,7 +1667,7 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
     public void sendMsgCreateThread(Bundle liveData) {
         if (VERBOSE) Log.v(TAG,"entering sendMsgCreateThread...");
 
-        if (Constants.client_only_mode) {
+        if (BuildConfig.FLAVOR.equals("sales") || Constants.client_only_mode) {
             Random randomgen = new Random(System.currentTimeMillis());
 
             Log.w(TAG, "client only mode is enabled... saving internally");
@@ -1680,7 +1711,7 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
             LogUtils.printBundle(replyData,TAG);
         }
 
-        if (Constants.client_only_mode) {
+        if (BuildConfig.FLAVOR.equals("sales") || Constants.client_only_mode) {
             Random randomgen = new Random(System.currentTimeMillis());
 
             Log.w(TAG, "client only mode is enabled... saving internally");
@@ -2504,7 +2535,7 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
                     @Override
                     public void run() {
                         ((CheckBox)findViewById(R.id.switch_camera))
-                                .setButtonDrawable(R.drawable.switch_camera_selfie);
+                                .setBackgroundResource(R.drawable.switch_camera_selfie);
 
                     }
                 });
@@ -2515,8 +2546,8 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
                 mWeakActivity.get().runOnUiThread(new Runnable() {
                     @Override
                     public void run() { //todo random crashes occur - sometimes the view isn't ready
-                        ((CheckBox)findViewById(R.id.switch_camera))
-                                .setButtonDrawable(R.drawable.switch_camera_default);
+                        CheckBox v = ((CheckBox)findViewById(R.id.switch_camera));
+                        if (v != null) v.setBackgroundResource(R.drawable.switch_camera_default);
                     }
                 });
             }
@@ -2736,7 +2767,7 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
         }
 
         Matrix matrix = new Matrix();
-        int focusAreaSize = 75;
+        int focusAreaSize = 50;
 
         /**
          * Convert touch position x:y to {@link Camera.Area} position -1000:-1000 to 1000:1000.

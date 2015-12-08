@@ -307,7 +307,7 @@ public class LocalFragment extends Fragment implements
         int text_column_index;
 
         public ImageAdapter(Context ctx, Cursor c) {
-            super(ctx,c,FLAG_REGISTER_CONTENT_OBSERVER);
+            super(ctx,c,0);
             inflater = LayoutInflater.from(ctx);
             mEmptyDrawable = ctx.getResources().getDrawable(R.drawable.imagenotqueued);
         }
@@ -353,7 +353,7 @@ public class LocalFragment extends Fragment implements
                 /* if the caption is not empty (or null) set and display*/
             if (!"".equals(captionText)) {
                 TextView caption = ((TextView)
-                        view.findViewById(R.id.textView_message_caption));
+                        view.findViewById(R.id.textView_local_caption));
                 caption.setText(captionText);
                 caption.setVisibility(View.VISIBLE);
             }

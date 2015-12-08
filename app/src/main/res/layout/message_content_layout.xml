@@ -7,7 +7,8 @@
     <Button
         style="@style/radicalContentButton"
         android:id="@+id/button_local_report"
-        android:background="@drawable/ic_local_report"/>
+        android:background="@drawable/ic_local_report"
+        android:visibility="gone" />
 
 
     <Button
@@ -22,7 +23,9 @@
         style="@style/radicalContentButton"
         android:id="@+id/button_message_save"
         android:background="@drawable/ic_minifab2"
-        android:layout_below="@+id/button_message_refresh"/>
+        android:layout_below="@+id/button_message_refresh"
+        android:visibility="gone"
+        android:text="Save" />
 
 
     <Button
@@ -30,12 +33,14 @@
         android:id="@+id/button_message_block"
         android:background="@drawable/ic_local_blockjester"
         android:onClick="onLocalBlockPressed"
-        android:layout_below="@+id/button_message_save"/>
+        android:layout_below="@+id/button_message_save"
+        android:visibility="gone" />
 
     <Button
         style="@style/radicalContentButton"
         android:id="@+id/button_message_reply"
         android:background="@drawable/ic_local_message"
-        android:layout_below="@+id/button_message_block"/>
+        android:layout_below="@+id/button_message_block"
+        android:visibility="gone" />
 
 </RelativeLayout>

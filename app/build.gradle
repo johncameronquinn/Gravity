@@ -39,7 +39,15 @@ android {
             versionName '4.5.2-dev'
         }
 
-        prototypeConfig {
+        sales {
+            minSdkVersion 17
+            applicationId 'com.jokrapp.android'
+            targetSdkVersion 23
+            versionCode 8
+            versionName '4.5.2-sales'
+        }
+
+        user {
             minSdkVersion 17
             applicationId 'com.jokrapp.android'
             targetSdkVersion 23

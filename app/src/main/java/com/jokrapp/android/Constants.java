@@ -39,6 +39,8 @@ public final class Constants {
 
     public static final String STASH_GALLERY_DIRECTORY = "Stash_Gallery";
 
+    public static final String IS_FROM_NOTIFICATION = "isNotification";
+
 
     /** threadSample
      */

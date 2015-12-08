@@ -382,7 +382,9 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
         public void handleMessage(Message msg) {
             Log.d(TAG, "enter handleMessage");
 
-            if (Constants.client_only_mode) {
+
+            Log.v(TAG,"Flavor outputted is : " + BuildConfig.FLAVOR);
+            if (BuildConfig.FLAVOR.equals("sales") || Constants.client_only_mode) {
                 Log.w(TAG,"client only mode is enabled, discarding request...");
                 return;
             }

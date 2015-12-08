@@ -80,6 +80,7 @@ public class PushListenerService extends GcmListenerService {
         if (Constants.LOGD) Log.d(LOG_TAG,"entering displayNotification : " + message);
 
         Intent notificationIntent = new Intent(this, MainActivity.class);
+        notificationIntent.putExtra(Constants.IS_FROM_NOTIFICATION,true);
         notificationIntent.setFlags(
                 Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
         int requestID = (int) System.currentTimeMillis();
@@ -95,7 +96,7 @@ public class PushListenerService extends GcmListenerService {
                 .setDefaults(Notification.DEFAULT_SOUND)
                 .setAutoCancel(true)
                 .setPriority(Notification.PRIORITY_HIGH)
-                .setLights(0xffed1085,250,250)
+                .setLights(0xffed1085, 250, 250)
                 .setContentIntent(contentIntent);
 
 

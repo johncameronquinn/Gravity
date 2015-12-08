@@ -626,8 +626,10 @@ public class PhotoManager {
         if (null == downloadTask.getByteBuffer()) {
 
 
-            if (downloadTask.getImageDirectory().equals(Constants.KEY_S3_LOCAL_DIRECTORY) ||
-                    downloadTask.getImageDirectory().equals(Constants.KEY_S3_MESSAGE_DIRECTORY)) {
+            if ((downloadTask.getImageDirectory().equals(Constants.KEY_S3_LOCAL_DIRECTORY) ||
+                    downloadTask.getImageDirectory().equals(Constants.KEY_S3_MESSAGE_DIRECTORY))
+                    && !BuildConfig.FLAVOR.equals("sales")) {
+
                 if (VERBOSE) Log.w(TAG, "file is from local or message, direct downloading...");
 
                 sInstance.mDownloadThreadPool.execute(downloadTask.getS3DownloadRunnable());

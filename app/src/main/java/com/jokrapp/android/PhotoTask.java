@@ -136,8 +136,12 @@ public class PhotoTask implements
         mImageKey = photoView.getImageKey();
         mImageDirectory = photoView.getmImageDirectory();
 
-        if (mImageDirectory.equals(Constants.KEY_S3_LOCAL_DIRECTORY) ||
-                mImageDirectory.equals(Constants.KEY_S3_MESSAGE_DIRECTORY)) {
+        /* do not create the downloadrunnable for local or message, they only memorycache, so
+         * it will not be used, UNLESS - its a salesConfig - then client_only_mode is enabled
+         */
+        if ((mImageDirectory.equals(Constants.KEY_S3_LOCAL_DIRECTORY) ||
+                mImageDirectory.equals(Constants.KEY_S3_MESSAGE_DIRECTORY))
+                && !BuildConfig.FLAVOR.equals("sales")) {
             mPhotoDownloadRunnable = new PhotoDownloadRunnable(this);
         } else {
             mRequestRunnable = new PhotoRequestDownloadRunnable(this);
