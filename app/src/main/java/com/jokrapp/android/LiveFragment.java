@@ -618,6 +618,29 @@ public class LiveFragment extends Fragment implements
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
         if (VERBOSE) Log.v(TAG,"enter onLoadFinished...");
 
+
+        /* only set the action buttons to visible if there is content */
+        if (data.getCount() > 0) {
+            View v = getView();
+            if (v!=null) {
+                v.findViewById(R.id.button_live_save).setVisibility(View.VISIBLE);
+                v.findViewById(R.id.button_live_load).setVisibility(View.VISIBLE);
+                v.findViewById(R.id.button_live_hide).setVisibility(View.VISIBLE);
+                v.findViewById(R.id.button_live_report).setVisibility(View.VISIBLE);
+            }
+        } else {
+            View v = getView();
+            if (v!=null) {
+                v.findViewById(R.id.button_live_save).setVisibility(View.GONE);
+                v.findViewById(R.id.button_live_load).setVisibility(View.GONE);
+                v.findViewById(R.id.button_live_hide).setVisibility(View.GONE);
+                v.findViewById(R.id.button_live_report).setVisibility(View.GONE);
+            }
+
+            Log.i(TAG,"there are no messages pending or received... display something...?");
+            //todo, show text that explains to the user what message is and how use
+        }
+
         if (mAdapter!= null) {
             Log.i(TAG, "Live cursor finished loading data");
             mAdapter.swapCursor(data);

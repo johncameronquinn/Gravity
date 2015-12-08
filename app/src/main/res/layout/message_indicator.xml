@@ -12,5 +12,6 @@
         android:layout_height="match_parent"
         android:adjustViewBounds="true"
         android:scaleType="fitCenter"
+        android:alpha=".7"
         style="@android:style/Widget.Holo.Button.Borderless"/>
 </FrameLayout>

@@ -70,7 +70,7 @@ public class PhotoManager {
 
 
     // Sets the duration of the crossfade for all image view
-    private static final int CROSSFADE_DURATION = 150; 
+    private static final int CROSSFADE_DURATION = 150;
 
 
     // Sets the Time Unit to seconds
@@ -300,7 +300,7 @@ public class PhotoManager {
 
                             case REQUEST_FAILED:
                                 handleState(photoTask, DOWNLOAD_FAILED);
-                                //localView.setStatusResource(R.drawable.imagedownloadfailed);
+                                localView.setStatusResource(R.drawable.imagedownloadfailed);
 
                                 // Attempts to re-use the Task object
                                 recycleTask(photoTask);
@@ -348,7 +348,6 @@ public class PhotoManager {
                                 mWaitingPhotoTasks.remove(photoTask.getImageKey());
                                 break;
                             // The download failed, sets the background color to dark red
-
 
 
                             default:

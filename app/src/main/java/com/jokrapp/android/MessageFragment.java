@@ -472,7 +472,7 @@ public class MessageFragment extends Fragment implements
         public View newView(Context context, Cursor cursor, ViewGroup parent) {
             View outView;
                 outView = inflater.inflate(R.layout.message_indicator, parent, false);
-                outView.findViewById(R.id.message_indicator_image).setOnClickListener(this);
+            outView.findViewById(R.id.message_indicator_image).setOnClickListener(this);
             return outView;
         }
 
@@ -499,7 +499,13 @@ public class MessageFragment extends Fragment implements
                 Log.v(TAG, "Url: " + s3key);
 
                 ((ImageButton) view.findViewById(R.id.message_indicator_image))
-                        .setColorFilter(R.color.jpallete_accent_peach);
+                        .setColorFilter(
+                                getActivity()
+                                        .getResources()
+                                        .getColor(R.color.jpallete_neutral_blue
+                                        ),
+                        android.graphics.PorterDuff.Mode.MULTIPLY
+                        );
             } else {
                 ((ImageButton) view.findViewById(R.id.message_indicator_image))
                         .setColorFilter(R.color.jpallete_neutral_blue);

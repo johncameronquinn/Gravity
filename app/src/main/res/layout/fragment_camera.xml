@@ -98,7 +98,7 @@
     <CheckBox
         android:id="@+id/switch_camera"
         android:layout_width="45dp"
-        android:layout_height="70dp"
+        android:layout_height="68dp"
         android:button="@null"
         android:background="@drawable/switch_camera_default"
         android:layout_gravity="left|bottom"
