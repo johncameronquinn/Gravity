@@ -6,13 +6,14 @@
 
     <Button
         style="@style/radicalContentButton"
-        android:background="@drawable/ic_live_report"
-        android:id="@+id/button_reply_report"/>
+        android:id="@+id/button_reply_report"
+        android:background="@drawable/ic_live_report"/>
+
 
     <Button
         style="@style/radicalContentButton"
-        android:background="@drawable/ic_live_refresh"
         android:id="@+id/button_reply_refresh"
+        android:background="@drawable/ic_live_refresh"
         android:layout_below="@id/button_reply_report"/>
 
 
@@ -21,7 +22,7 @@
         android:id="@+id/button_reply_load"
         android:text="Load"
         android:background="@drawable/ic_minifab5"
-        android:layout_below="@+id/button_reply_report"
+        android:layout_below="@+id/button_reply_refresh"
         android:onClick="loadFromStash" />
 
 

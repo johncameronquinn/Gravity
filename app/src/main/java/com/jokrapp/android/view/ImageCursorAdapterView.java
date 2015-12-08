@@ -23,6 +23,7 @@ import android.view.animation.LinearInterpolator;
 import android.widget.AdapterView;
 import android.widget.CursorAdapter;
 import android.widget.FrameLayout;
+import android.widget.RelativeLayout;
 
 import com.jokrapp.android.ImageStackCursorAdapter;
 
@@ -111,8 +112,8 @@ public class ImageCursorAdapterView extends AdapterView<CursorAdapter> {
 
     private void init() {
 
-        setLayoutParams(new FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT,
-                FrameLayout.LayoutParams.MATCH_PARENT));
+        setLayoutParams(new RelativeLayout.LayoutParams(LayoutParams.MATCH_PARENT,
+                LayoutParams.MATCH_PARENT));
 
         ViewConfiguration viewConfiguration = ViewConfiguration.get(getContext());
         mFlingSlop = viewConfiguration.getScaledMinimumFlingVelocity();
@@ -121,8 +122,9 @@ public class ImageCursorAdapterView extends AdapterView<CursorAdapter> {
     }
 
     private void initFromXml(AttributeSet attr) {
-        setLayoutParams(new FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT,
-                FrameLayout.LayoutParams.MATCH_PARENT));
+
+        setLayoutParams(new RelativeLayout.LayoutParams(LayoutParams.MATCH_PARENT,
+                LayoutParams.MATCH_PARENT));
     }
 
     @Override
@@ -187,8 +189,12 @@ public class ImageCursorAdapterView extends AdapterView<CursorAdapter> {
             data.moveToNext();*/
 
 
-            addViewInLayout(view, 0, new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT,
-                    mCursorAdapter.getItemViewType(mNextAdapterPosition)), false);
+            //idea
+            RelativeLayout.LayoutParams layoutParams =
+                    new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT,
+                            ViewGroup.LayoutParams.WRAP_CONTENT);
+
+            addViewInLayout(view, 0, layoutParams, false);
 
            requestLayout();
 

@@ -304,7 +304,15 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
         mSettingsListView = (ListView)findViewById(R.id.content);
         mSettingsListView.setOnItemClickListener(this);
 
-        mAdapter = new MainAdapter(getFragmentManager());
+        int numberOfFragments;
+        if (BuildConfig.FLAVOR.equals("dev")) {
+            Log.i(TAG,"Developer mode enabled, creating all fragments");
+            //numberOfFragments = R.integer.number_of_fragments_dev;
+        } else {
+            Log.i(TAG,"setting count to five fragments...");
+            //numberOfFragments =  R.integer.number_of_fragments;
+        }
+        mAdapter = new MainAdapter(getFragmentManager(),5);
         mPager = (CustomViewPager) findViewById(R.id.pager);
         mPager.setAdapter(mAdapter);
         mPager.setCurrentItem(CAMERA_LIST_POSITION);
@@ -1091,7 +1099,8 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
             if (messageTarget != null) {
                 Log.d(TAG, "Sending message internally : " + messageTarget);
 
-                getContentResolver().insert(FireFlyContentProvider.CONTENT_URI_MESSAGE,values);
+                getContentResolver().insert(FireFlyContentProvider.CONTENT_URI_MESSAGE, values);
+                messageTarget = null;
             } else {
                 Log.d(TAG, "Saving local post...");
 
@@ -1208,18 +1217,16 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
      */
     public static class MainAdapter extends FragmentStatePagerAdapter {
 
-        public MainAdapter(FragmentManager fm) {
+        private int count;
+
+        public MainAdapter(FragmentManager fm, int count) {
             super(fm);
+            this.count = count;
         }
 
         @Override
         public int getCount() {
-
-            if (BuildConfig.FLAVOR.equals("dev")) {
-                return R.integer.number_of_fragments_dev;
-            } else {
-                return R.integer.number_of_fragments;
-            }
+            return count;
         }
 
         /**
@@ -2395,11 +2402,16 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
                     break;
 
                 case MSG_SAVE_PICTURE: //6
-                    saveImage(theData,
-                            inputMessage.getData().getString(Constants.KEY_TEXT),
-                            0,
-                            inputMessage.arg2); // local vs live
-                    theData = null;
+
+                    if (theData == null) {
+                        Log.e(TAG,"camera byte[] was null when it should not have been...");
+                    } else {
+                        saveImage(theData,
+                                inputMessage.getData().getString(Constants.KEY_TEXT),
+                                0,
+                                inputMessage.arg2); // local vs live
+                        theData = null;
+                    }
                     break;
                 case MSG_SWITCH_CAMERA: //7
 

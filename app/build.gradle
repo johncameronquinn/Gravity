@@ -8,7 +8,7 @@ android {
         minSdkVersion 17
         targetSdkVersion 23
         versionCode 8
-        versionName "4.5.2"
+        versionName "4.5.5"
     }
 
     buildTypes {
@@ -36,7 +36,7 @@ android {
             applicationId 'com.jokrapp.android'
             targetSdkVersion 23
             versionCode 8
-            versionName '4.5.2-dev'
+            versionName '4.5.5-dev'
         }
 
         sales {
@@ -44,7 +44,7 @@ android {
             applicationId 'com.jokrapp.android'
             targetSdkVersion 23
             versionCode 8
-            versionName '4.5.2-sales'
+            versionName '4.5.5-sales'
         }
 
         user {
@@ -52,7 +52,7 @@ android {
             applicationId 'com.jokrapp.android'
             targetSdkVersion 23
             versionCode 8
-            versionName '4.5.2'
+            versionName '4.5.5'
         }
     }
 

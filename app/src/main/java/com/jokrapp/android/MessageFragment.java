@@ -284,7 +284,12 @@ public class MessageFragment extends Fragment implements
                 v.findViewById(R.id.button_message_block).setVisibility(View.GONE);
                 v.findViewById(R.id.button_local_report).setVisibility(View.GONE);
             }
+
+            Log.i(TAG,"there are no messages pending or received... display something...?");
+            //todo, show text that explains to the user what message is and how use
         }
+
+
 
         if (loader.getId() == IMAGE_LOADER_ID) {
             mImageAdapter.swapCursor(data);
@@ -400,7 +405,7 @@ public class MessageFragment extends Fragment implements
             String captionText = c.getString(text_column_index);
 
                 /* if the caption is not empty (or null) set and display*/
-            if (!"".equals(captionText)) {
+            if (!"".equals(captionText) && captionText != null) {
                 TextView caption = ((TextView)
                         view.findViewById(R.id.textView_message_caption));
                 caption.setText(captionText);

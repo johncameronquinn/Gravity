@@ -1,5 +1,7 @@
 package com.jokrapp.android;
 
+import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
 import android.annotation.SuppressLint;
 import android.os.Handler;
 import android.os.Looper;
@@ -7,6 +9,7 @@ import android.os.Message;
 import android.util.LruCache;
 import android.util.Log;
 import android.view.View;
+import android.widget.ProgressBar;
 
 import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.services.s3.AmazonS3Client;
@@ -64,6 +67,11 @@ public class PhotoManager {
 
     // Sets the amount of time an idle thread will wait for a task before terminating
     private static final int KEEP_ALIVE_TIME = 1;
+
+
+    // Sets the duration of the crossfade for all image view
+    private static final int CROSSFADE_DURATION = 150; 
+
 
     // Sets the Time Unit to seconds
     private static final TimeUnit KEEP_ALIVE_TIME_UNIT;
@@ -252,7 +260,7 @@ public class PhotoManager {
 
                             // If the download has started, sets background color to dark green
                             case DOWNLOAD_STARTED:
-                                localView.setStatusResource(R.drawable.imagedownloading);
+                                //localView.setStatusResource(R.drawable.imagedownloading);
                                 break;
 
                             /*
@@ -261,18 +269,18 @@ public class PhotoManager {
                              */
                             case DOWNLOAD_COMPLETE:
                                 // Sets background color to golden yellow
-                                localView.setStatusResource(R.drawable.decodequeued);
+                                //localView.setStatusResource(R.drawable.decodequeued);
                                 break;
 
                             case DOWNLOAD_FAILED:
-                                localView.setStatusResource(R.drawable.imagedownloadfailed);
+                                //localView.setStatusResource(R.drawable.imagedownloadfailed);
                                 recycleTask(photoTask);
                                 break;
 
                             // If the download has started, sets background color to dark green
                             case REQUEST_STARTED:
                                 if (VERBOSE) Log.d(TAG, "Request Started...");
-                                localView.setStatusResource(R.drawable.imagedownloading);
+                                //localView.setStatusResource(R.drawable.imagedownloading);
                                 break;
 
                             /*
@@ -283,7 +291,7 @@ public class PhotoManager {
                                 if (VERBOSE) Log.d(TAG, "Request Complete...");
                                 handleState(photoTask, DOWNLOAD_COMPLETE);
                                 // Sets background color to golden yellow
-                                localView.setStatusResource(R.drawable.decodequeued);
+                                //localView.setStatusResource(R.drawable.decodequeued);
                                 if (localView.getVisibility()== View.GONE) {
                                     if (Constants.LOGV) Log.v(TAG, "View was set to GONE, setting to visible");
                                     localView.setVisibility(View.VISIBLE);
@@ -292,7 +300,7 @@ public class PhotoManager {
 
                             case REQUEST_FAILED:
                                 handleState(photoTask, DOWNLOAD_FAILED);
-                                localView.setStatusResource(R.drawable.imagedownloadfailed);
+                                //localView.setStatusResource(R.drawable.imagedownloadfailed);
 
                                 // Attempts to re-use the Task object
                                 recycleTask(photoTask);
@@ -308,7 +316,7 @@ public class PhotoManager {
                                 break;
 
                             case DECODE_STARTED:
-                                localView.setStatusResource(R.drawable.decodedecoding);
+                                //localView.setStatusResource(R.drawable.decodedecoding);
                                 break;
 
                             /*
@@ -319,8 +327,23 @@ public class PhotoManager {
 
                             case TASK_COMPLETE:
                                 if (VERBOSE) Log.d(TAG,"setting image bitmap");
+
+                                /*
+                                 *fade the view in because it looks like shit otherwise
+                                 */
+
+                                //start with setting the visibility to visible, and alpha to 0
+                                localView.setAlpha(0f);
+                                localView.setVisibility(View.VISIBLE);
+
+                                //now set the bitmap
                                 localView.setImageBitmap(photoTask.getImage());
-                                recycleTask(photoTask);
+
+                                //now fade it in
+                                localView.animate()
+                                        .alpha(1f)
+                                        .setDuration(CROSSFADE_DURATION)
+                                        .setListener(null);crossfade(localView,null);
 
                                 mWaitingPhotoTasks.remove(photoTask.getImageKey());
                                 break;
@@ -337,6 +360,45 @@ public class PhotoManager {
         };
 
         if (Constants.LOGV) Log.v(TAG,"exiting PhotoManager constructor...");
+    }
+
+    private static void crossfade(View mContentView, final View mLoadingView) {
+        if (mContentView == null) {
+            Log.e(TAG,"crossfade cannot have a null contentView...");
+            return;
+        }
+
+        // Set the content view to 0% opacity but visible, so that it is visible
+        // (but fully transparent) during the animation.
+        mContentView.setAlpha(0f);
+        mContentView.setVisibility(View.VISIBLE);
+
+        if (mLoadingView!=null) {
+            // Animate the content view to 100% opacity, and clear any animation
+            // listener set on the view.
+            mContentView.animate()
+                    .alpha(1f)
+                    .setDuration(CROSSFADE_DURATION)
+                    .setListener(null);
+
+            // Animate the loading view to 0% opacity. After the animation ends,
+            // set its visibility to GONE as an optimization step (it won't
+            // participate in layout passes, etc.)
+            mLoadingView.animate()
+                    .alpha(0f)
+                    .setDuration(CROSSFADE_DURATION)
+                    .setListener(new AnimatorListenerAdapter() {
+                        @Override
+                        public void onAnimationEnd(Animator animation) {
+                            mLoadingView.setVisibility(View.GONE);
+                        }
+                    });
+        } else {
+            mContentView.animate()
+                    .alpha(1f)
+                    .setDuration(CROSSFADE_DURATION)
+                    .setListener(null);
+        }
     }
 
     public byte[] getCachedImage(String key) {

@@ -395,7 +395,26 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
         if (VERBOSE) Log.v(TAG,"entering onLoadFinished...");
-        if (data!= null) Log.v(TAG,"data returned " + data.getCount() + " rows.");
+
+          /* only set the action buttons to visible if there is content */
+        if (data.getCount() > 0) {
+            View v = getView();
+            if (v!=null) {
+                v.findViewById(R.id.button_reply_load).setVisibility(View.VISIBLE);
+                v.findViewById(R.id.button_reply_report).setVisibility(View.VISIBLE);
+            }
+        } else {
+            View v = getView();
+            if (v!=null) {
+                v.findViewById(R.id.button_reply_load).setVisibility(View.GONE);
+                v.findViewById(R.id.button_reply_report).setVisibility(View.GONE);
+            }
+
+            Log.i(TAG,"There are no replies... notify user?");
+            //todo, explain what replies are, and suggest a reply
+        }
+
+
         mAdapter.swapCursor(data);
         if (VERBOSE) Log.v(TAG,"exiting onLoadFinished...");
     }

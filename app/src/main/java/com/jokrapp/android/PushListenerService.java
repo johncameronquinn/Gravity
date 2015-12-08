@@ -200,7 +200,7 @@ public class PushListenerService extends GcmListenerService {
 
                 if (isForeground(this)) {
                     // broadcast notification, then store
-                    broadcast(from, data);
+                    //broadcast(from, data);
                 }
             }
         }

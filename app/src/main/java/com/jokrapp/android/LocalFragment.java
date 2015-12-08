@@ -277,6 +277,29 @@ public class LocalFragment extends Fragment implements
         if (VERBOSE) {
             Log.v(TAG,"enter onLoadFinished...");
         }
+
+        /* only set the action buttons to visible if there is content */
+        if (data.getCount() > 0) {
+            View v = getView();
+            if (v!=null) {
+                v.findViewById(R.id.button_local_message).setVisibility(View.VISIBLE);
+                v.findViewById(R.id.button_local_save).setVisibility(View.VISIBLE);
+                v.findViewById(R.id.button_local_block).setVisibility(View.VISIBLE);
+                v.findViewById(R.id.button_local_report).setVisibility(View.VISIBLE);
+            }
+        } else {
+            View v = getView();
+            if (v!=null) {
+                v.findViewById(R.id.button_local_message).setVisibility(View.GONE);
+                v.findViewById(R.id.button_local_save).setVisibility(View.GONE);
+                v.findViewById(R.id.button_local_block).setVisibility(View.GONE);
+                v.findViewById(R.id.button_local_report).setVisibility(View.GONE);
+            }
+
+            Log.i(TAG,"Local has no local posts... display something...?");
+            //todo, suggest that user check connection or other tasks, maybe display loading bar
+        }
+
         adapter.swapCursor(data);
         if (VERBOSE) {
             Log.v(TAG,"exit onLoadFinished...");
@@ -351,7 +374,7 @@ public class LocalFragment extends Fragment implements
             String captionText = c.getString(text_column_index);
 
                 /* if the caption is not empty (or null) set and display*/
-            if (!"".equals(captionText)) {
+            if (!"".equals(captionText) && captionText != null) {
                 TextView caption = ((TextView)
                         view.findViewById(R.id.textView_local_caption));
                 caption.setText(captionText);

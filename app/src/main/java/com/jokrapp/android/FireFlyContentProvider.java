@@ -492,6 +492,7 @@ public class FireFlyContentProvider extends ContentProvider {
                 throw new IllegalArgumentException("Unknown URI: " + uri);
         }
 
+
         getContext().getContentResolver().notifyChange(uri, null);
         return Uri.parse(uriType + "/" + id);
     }
