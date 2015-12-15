@@ -179,7 +179,8 @@ class PhotoDownloadRunnable implements Runnable {
                     // Opens an HTTP connection to the image's URL
                     S3Object s3Object =
                             mPhotoTask.getS3Client().getObject(mPhotoTask.getImageBucket(),
-                                    mPhotoTask.getImageDirectory() + "/" + mPhotoTask.getImageKey());
+                            //        mPhotoTask.getImageDirectory() + "/"
+                            mPhotoTask.getImageKey());
 
                     // Before continuing, checks to see that the Thread
                     // hasn't been interrupted

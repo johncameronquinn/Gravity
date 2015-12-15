@@ -382,9 +382,8 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
         public void handleMessage(Message msg) {
             Log.d(TAG, "enter handleMessage");
 
-
-            Log.v(TAG,"Flavor outputted is : " + BuildConfig.FLAVOR);
             if (BuildConfig.FLAVOR.equals("sales") || Constants.client_only_mode) {
+                Log.v(TAG,"Flavor outputted is : " + BuildConfig.FLAVOR);
                 Log.w(TAG,"client only mode is enabled, discarding request...");
                 return;
             }
@@ -998,7 +997,7 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
 
         TransferObserver observer = transferUtility.upload(
                 BUCKET_NAME,     /* The bucket to upload to */
-                directory + "/" + b.getString(Constants.KEY_S3_KEY), /* The key for the uploaded object */
+                b.getString(Constants.KEY_S3_KEY), /* The key for the uploaded object */
                 file /* The file where the data to upload exists */
         );
 
@@ -1012,7 +1011,7 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
 
              observer = transferUtility.upload(
                     BUCKET_NAME,     /* The bucket to upload to */
-                    directory + "/" + b.getString(Constants.KEY_S3_KEY)+"s", /* The key for the uploaded object */
+                    b.getString(Constants.KEY_S3_KEY)+"s", /* The key for the uploaded object */
                     new File(getCacheDir(),b.getString(Constants.KEY_S3_KEY)+"s") /* The file where the data to upload exists */
             );
             b.putInt(REQUEST_TYPE,MSG_REPLY_TO_THREAD);
@@ -1052,7 +1051,7 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
 
         TransferObserver observer = transferUtility.download(
                 BUCKET_NAME,     /* The bucket to upload to */
-                directory + "/" + key,/* The key for the uploaded object */
+                key,/* The key for the uploaded object */
                 file /* The file where the data to upload exists */
         );
 
