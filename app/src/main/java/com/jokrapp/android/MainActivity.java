@@ -2634,7 +2634,7 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
             Log.d(TAG,"incoming string comment " + commentText);
 
             UUID name = UUID.nameUUIDFromBytes(data);
-            String key = name.toString()+ ".jpg";
+            String key = name.toString();
 
             File file = new File(mWeakActivity.get().getCacheDir(),key);
 
