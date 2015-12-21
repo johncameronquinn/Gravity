@@ -486,7 +486,7 @@ n  */
         private Button switchButton;
         private Button flashButton;
         private Button cancelButton;
-        private Button localButton;
+        //private Button localButton;
         private Button liveButton;
 
         private Button sendMessageButton;
@@ -513,7 +513,7 @@ n  */
                             switchButton = (Button) mActivity.findViewById(R.id.switch_camera);
                             flashButton = (Button) mActivity.findViewById(R.id.button_flash);
                             liveButton = (Button) mActivity.findViewById(R.id.button_live);
-                            localButton = (Button) mActivity.findViewById(R.id.button_local);
+                            //localButton = (Button) mActivity.findViewById(R.id.button_local);
                             cancelButton = (Button) mActivity.findViewById(R.id.button_cancel);
                             mListener.sendMsgTakePicture();
                             v.setPressed(true);
@@ -581,12 +581,12 @@ n  */
                     b.putString(Constants.KEY_ANALYTICS_ACTION, "switch camera");
                     break;
 
-                case R.id.button_local:
+                /*case R.id.button_local:
                     mListener.sendMsgSaveImage(commentText, CAMERA_DEFAULT_MODE);
                     resetCameraUI();
 
                     b.putString(Constants.KEY_ANALYTICS_ACTION, "save to local");
-                    break;
+                    break;*/
 
                 case R.id.button_live:
                     mListener.sendMsgSaveImage(commentText, CAMERA_LIVE_MODE); //save the image
@@ -594,7 +594,7 @@ n  */
 
                     liveButton.setVisibility(View.INVISIBLE);
                     cancelButton.setVisibility(View.INVISIBLE);
-                    localButton.setVisibility(View.INVISIBLE);
+                    //localButton.setVisibility(View.INVISIBLE);
 
                     b.putString(Constants.KEY_ANALYTICS_ACTION, "save to live");
                     startLiveMode();
@@ -684,7 +684,7 @@ n  */
                     isPreview = false;
 
                     cancelButton.bringToFront();
-                    localButton.bringToFront();
+                    //localButton.bringToFront();
                     liveButton.bringToFront();
 
                     //captureButton.setVisibility(View.INVISIBLE);
@@ -696,10 +696,10 @@ n  */
                     captureButton.setClickable(true);
 
                     cancelButton.setVisibility(View.VISIBLE);
-                    localButton.setVisibility(View.VISIBLE);
+                    //localButton.setVisibility(View.VISIBLE);
                     liveButton.setVisibility(View.VISIBLE);
 
-                    localButton.setOnClickListener(this);
+                    //localButton.setOnClickListener(this);
                     liveButton.setOnClickListener(this);
                     cancelButton.setOnClickListener(this);
                     break;
@@ -787,7 +787,7 @@ n  */
                     flashButton.setVisibility(View.VISIBLE);
 
                     cancelButton.setVisibility(View.INVISIBLE);
-                    localButton.setVisibility(View.INVISIBLE);
+                    //localButton.setVisibility(View.INVISIBLE);
                     liveButton.setVisibility(View.INVISIBLE);
 
                     break;

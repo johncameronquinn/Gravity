@@ -1932,9 +1932,9 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
         intent.setAction(Intent.ACTION_GET_CONTENT);
         int requestCode;
         switch (v.getId()) {
-            case R.id.button_live_load:
-                requestCode = UPLOAD_TO_LIVE;
-                break;
+            //case R.id.button_live_load:
+              //  requestCode = UPLOAD_TO_LIVE;
+//                break;
 
             case R.id.button_reply_load:
                 requestCode = UPLOAD_TO_REPLY;

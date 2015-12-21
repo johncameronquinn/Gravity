@@ -8,6 +8,7 @@ import android.os.Looper;
 import android.os.Message;
 import android.util.LruCache;
 import android.util.Log;
+import android.util.TimingLogger;
 import android.view.View;
 import android.widget.ProgressBar;
 

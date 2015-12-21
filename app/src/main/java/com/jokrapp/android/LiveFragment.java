@@ -225,7 +225,7 @@ public class LiveFragment extends Fragment implements
         View rootView = inflater.inflate(R.layout.fragment_live,container,false);
         rootView.findViewById(R.id.button_live_refresh).setOnClickListener(getButtonListener(this));
         rootView.findViewById(R.id.button_new_thread).setOnClickListener(getButtonListener(this));
-        rootView.findViewById(R.id.button_live_save).setOnClickListener(getButtonListener(this));
+        //rootView.findViewById(R.id.button_live_save).setOnClickListener(getButtonListener(this));
         ((SeekBar)rootView.findViewById(R.id.seekBar)).setOnSeekBarChangeListener(getButtonListener(this));
 
         if (VERBOSE) Log.v(TAG,"exiting onCreateView...");
@@ -353,7 +353,7 @@ public class LiveFragment extends Fragment implements
                     mListener.takeLivePicture();
                     break;
 
-                case R.id.button_live_save:
+                /*case R.id.button_live_save:
                     //gets the photoView of the thread currently selected by the pager, and saves.
 
                     //Fragment fragment = mAdapter.getItem(currentThread);
@@ -367,7 +367,7 @@ public class LiveFragment extends Fragment implements
                     } else {
                         Log.e(TAG,"fragment.getView() returned null");
                     }
-                    break;
+                    break;*/
             }
         }
 
@@ -626,16 +626,16 @@ public class LiveFragment extends Fragment implements
         if (data.getCount() > 0) {
             View v = getView();
             if (v!=null) {
-                v.findViewById(R.id.button_live_save).setVisibility(View.VISIBLE);
-                v.findViewById(R.id.button_live_load).setVisibility(View.VISIBLE);
+                //v.findViewById(R.id.button_live_save).setVisibility(View.VISIBLE);
+                //v.findViewById(R.id.button_live_load).setVisibility(View.VISIBLE);
                 v.findViewById(R.id.button_live_hide).setVisibility(View.VISIBLE);
                 v.findViewById(R.id.button_live_report).setVisibility(View.VISIBLE);
             }
         } else {
             View v = getView();
             if (v!=null) {
-                v.findViewById(R.id.button_live_save).setVisibility(View.GONE);
-                v.findViewById(R.id.button_live_load).setVisibility(View.GONE);
+                //v.findViewById(R.id.button_live_save).setVisibility(View.GONE);
+                //v.findViewById(R.id.button_live_load).setVisibility(View.GONE);
                 v.findViewById(R.id.button_live_hide).setVisibility(View.GONE);
                 v.findViewById(R.id.button_live_report).setVisibility(View.GONE);
             }

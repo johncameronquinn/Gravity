@@ -17,27 +17,27 @@
         android:layout_below="@+id/button_live_refresh"/>
 
 
-    <Button
+ <!--   <Button
         style="@style/radicalContentButton"
         android:id="@+id/button_live_save"
         android:text="Save"
         android:background="@drawable/ic_minifab4"
-        android:layout_below="@+id/button_live_hide"/>
+        android:layout_below="@+id/button_live_hide"/-->
 
-    <Button
+ <!--   <Button
         style="@style/radicalContentButton"
         android:id="@+id/button_live_load"
         android:text="Load"
         android:background="@drawable/ic_minifab5"
         android:layout_below="@+id/button_live_save"
-        android:onClick="loadFromStash" />
+        android:onClick="loadFromStash" /-->
 
     <Button
         style="@style/radicalContentButton"
         android:id="@+id/button_new_thread"
         android:background="@drawable/ic_live_newthread"
         android:layout_gravity="center_horizontal|top"
-        android:layout_below="@+id/button_live_load" />
+        android:layout_below="@+id/button_live_hide" />
 
     <Button
         style="@style/radicalContentButton"
