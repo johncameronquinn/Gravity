@@ -3,10 +3,8 @@ package com.jokrapp.android;
 import android.content.ContentValues;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Messenger;
-
-import java.net.HttpURLConnection;
 import java.util.UUID;
+import javax.net.ssl.HttpsURLConnection;
 
 
 /**
@@ -23,13 +21,46 @@ import java.util.UUID;
  */
 public abstract class ServerTask implements ServerConnectRunnable.ServerConnectMethods {
 
+    /**
+     * methods that all tasks under ServerTask must implement
+     * these methods are defined in their respective runnables, and handled accordingly
+     */
+    interface ServerTaskMethods {
+
+        /*
+        * allows the ServerTask to maintain a reference to its current thread.
+        * this is used to allow interrupts on this thread, if necessary
+        */
+        void setTaskThread(Thread thread);
+
+
+        /*
+         * allows access to the current connection held by the servertask, on which the
+         * derivative classes will write from/to
+         */
+        HttpsURLConnection getURLConnection();
+
+        /*
+        * every task contains a dataBundle, passed by the client. This bundle contains
+        * all necessary data to retry the transaction as necessary
+        */
+        Bundle getDataBundle();
+
+        /* used by the runnables to set the HTTP response code */
+        void setResponseCode(int ResponseCode);
+
+        /* used by the service to access the response code */
+        int getResponseCode();
+    }
+
 
     private DataHandlingService mService;
     private Bundle dataBundle;
     private Thread mThread;
     private UUID userID;
-    private HttpURLConnection mConnection;
+    private HttpsURLConnection mConnection;
     private int responseWhat;
+    private int responseCode;
 
     protected Runnable mServerConnectRunnable;
 
@@ -55,7 +86,7 @@ public abstract class ServerTask implements ServerConnectRunnable.ServerConnectM
         responseWhat = resp;
     }
 
-    public void setServerConnection(HttpURLConnection connection) {
+    public void setServerConnection(HttpsURLConnection connection) {
         mConnection = connection;
     }
 
@@ -67,7 +98,7 @@ public abstract class ServerTask implements ServerConnectRunnable.ServerConnectM
         mService.handleUploadState(outstate,task);
     }
 
-    public HttpURLConnection getURLConnection() {
+    public HttpsURLConnection getURLConnection() {
         return mConnection;
     }
 
@@ -103,6 +134,14 @@ public abstract class ServerTask implements ServerConnectRunnable.ServerConnectM
 
     public DataHandlingService getService() {
         return mService;
+    }
+
+    public void setResponseCode(int responseCode) {
+        this.responseCode = responseCode;
+    }
+
+    public int getResponseCode() {
+        return responseCode;
     }
 
     public void recycle() {

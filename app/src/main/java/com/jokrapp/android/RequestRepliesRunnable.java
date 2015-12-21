@@ -15,8 +15,20 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 
+import javax.net.ssl.HttpsURLConnection;
+
 /**
- * Created by ev0x on 11/9/15.
+ * Created by John C. Quinn on 11/9/15.
+ *
+ * Last modified: 12/21/2015
+ *
+ * class 'RequestRepliesRunnable'
+ *
+ * this runnable is used to post a request to the server, parse any incoming json, and store
+ * that json in the relevant ContentProvider
+ *
+ * it attempts to accurately track its status, and reports success only if the HTTP response code
+ * is 200, AND no exceptions have occurred saving and storing the data
  */
 class RequestRepliesRunnable implements Runnable {
 
@@ -30,16 +42,9 @@ class RequestRepliesRunnable implements Runnable {
     static final int REQUEST_REPLIES_STARTED = 0;
     static final int REQUEST_REPLIES_SUCCESS = 1;
 
-    interface ReplyRequestMethods {
+    interface ReplyRequestMethods extends ServerTask.ServerTaskMethods {
 
         void handleRepliesRequestState(int state);
-
-
-        void setTaskThread(Thread thread);
-
-        Bundle getDataBundle();
-
-        HttpURLConnection getURLConnection();
 
         void insert(Uri uri, ContentValues values);
     }
@@ -57,11 +62,13 @@ class RequestRepliesRunnable implements Runnable {
 
         mService.setTaskThread(Thread.currentThread());
 
-        HttpURLConnection conn = null;
+        HttpsURLConnection conn = null;
         Bundle b = mService.getDataBundle();
         LogUtils.printBundle(b,TAG);
 
         boolean success = true;
+
+        int responseCode = -1;
 
         try {
             if (Thread.interrupted()) {
@@ -76,6 +83,7 @@ class RequestRepliesRunnable implements Runnable {
                 return;
             }
 
+            /* send necessary data to the server */
             if (VERBOSE) Log.v(TAG, "opening outputStream to send JSON...");
             JsonFactory jsonFactory = new JsonFactory();
             JsonGenerator jGen = jsonFactory.
@@ -96,6 +104,7 @@ class RequestRepliesRunnable implements Runnable {
                 return;
             }
 
+            /* send receive incoming data from the server, parsing as JSON */
             if (VERBOSE) Log.v(TAG, "opening inputStream to receive JSON..");
             JsonParser jParser = new JsonFactory().createParser(conn.getInputStream());
             ObjectMapper objectMapper = new ObjectMapper();
@@ -120,17 +129,28 @@ class RequestRepliesRunnable implements Runnable {
                 }
             }
 
-
-            if (VERBOSE) Log.v(TAG, "now saving JSON...");
+            /* store incoming data in the content provider */
             for (ContentValues row : valuesList) {
                 mService.insert(FireFlyContentProvider.CONTENT_URI_REPLY_LIST,row); //todo implement bulkinsert
             }
 
+            responseCode = conn.getResponseCode();
+
         } catch (IOException e) {
             Log.e(TAG, "IOException when retrieving replies...", e);
             success = false;
+
+            /*get the response code if it hasn't already been gotten*/
+            try {
+                responseCode = conn.getResponseCode();
+            } catch (IOException ex) {
+                Log.e(TAG,"error getting response code",ex);
+            }
+
         } finally {
-            if (success) {
+            mService.setResponseCode(responseCode);
+
+            if (success && responseCode == HttpsURLConnection.HTTP_OK) {
                 mService.handleRepliesRequestState(REQUEST_REPLIES_SUCCESS);
             } else {
                 mService.handleRepliesRequestState(REQUEST_REPLIES_FAILED);

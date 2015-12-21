@@ -96,11 +96,11 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
 
     /** FRAGMENT MANAGEMENT
      */
-    private static final int MESSAGE_LIST_POSITION = 0;
-    private static final int LOCAL_LIST_POSITION = 1;
-    private static final int CAMERA_LIST_POSITION = 2;
-    private static final int LIVE_LIST_POSITION = 3;
-    private static final int REPLY_LIST_POSITION = 4;
+    //private static final int MESSAGE_LIST_POSITION = 0;
+    //private static final int LOCAL_LIST_POSITION = 1;
+    private static final int CAMERA_LIST_POSITION = 0;
+    private static final int LIVE_LIST_POSITION = 1;
+    //private static final int REPLY_LIST_POSITION = 4;
 
     private static final String MESSAGE_PAGER_TITLE = "Message";
     private static final String LOCAL_PAGER_TITLE = "Local";
@@ -108,7 +108,7 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
     private static final String CAMERA_PAGER_TITLE = "Camera";
     private static final String REPLY_PAGER_TITLE = "Reply";
 
-    private static final int NUMBER_OF_FRAGMENTS = 5;
+    private static final int NUMBER_OF_FRAGMENTS = 2;
 
     private static WeakReference<MessageFragment> MessageFragReference = new WeakReference<>(null);
     private static WeakReference<CameraFragment> CameraFragReference = new WeakReference<>(null);
@@ -291,8 +291,8 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
     private void initializeUI() {
         setContentView(R.layout.activity_main);
 
-        mSettingsListView = (ListView)findViewById(R.id.content);
-        mSettingsListView.setOnItemClickListener(this);
+        //mSettingsListView = (ListView)findViewById(R.id.content);
+        //mSettingsListView.setOnItemClickListener(this);
 
         int numberOfFragments;
         if (BuildConfig.FLAVOR.equals("dev")) {
@@ -302,7 +302,7 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
             Log.i(TAG,"setting count to five fragments...");
             //numberOfFragments =  R.integer.number_of_fragments;
         }
-        mAdapter = new MainAdapter(getFragmentManager(),5);
+        mAdapter = new MainAdapter(getFragmentManager(),NUMBER_OF_FRAGMENTS);
         mPager = (CustomViewPager) findViewById(R.id.pager);
         mPager.setAdapter(mAdapter);
         mPager.setCurrentItem(CAMERA_LIST_POSITION);
@@ -321,11 +321,11 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
             int startPage = GALLERY;
             switch (mPager.getCurrentItem()) {
 
-                case MESSAGE_LIST_POSITION:
+/*                case MESSAGE_LIST_POSITION:
                 case LOCAL_LIST_POSITION:
                     Toast.makeText(getApplicationContext(),"Opening Local Settings...",Toast.LENGTH_SHORT).show();
                     startPage = LOCAL_SETTINGS;
-                    break;
+                    break;*/
 
                 case CAMERA_LIST_POSITION:
                     Toast.makeText(getApplicationContext(),"Opening Stash Gallery...",Toast.LENGTH_SHORT).show();
@@ -333,7 +333,7 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
                     break;
 
                 case LIVE_LIST_POSITION:
-                case REPLY_LIST_POSITION:
+                //case REPLY_LIST_POSITION:
                     Toast.makeText(getApplicationContext(),"Opening Live Settings...",Toast.LENGTH_SHORT).show();
                     startPage = LIVE_SETTINGS;
                     break;
@@ -640,17 +640,17 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
         int startPage = GALLERY;
         switch (mPager.getCurrentItem()) {
 
-            case MESSAGE_LIST_POSITION:
+            /*case MESSAGE_LIST_POSITION:
             case LOCAL_LIST_POSITION:
                 startPage = LOCAL_SETTINGS;
-                break;
+                break;*/
 
             case CAMERA_LIST_POSITION:
                 startPage = GALLERY;
                 break;
 
             case LIVE_LIST_POSITION:
-            case REPLY_LIST_POSITION:
+            //case REPLY_LIST_POSITION:
                 startPage = LIVE_SETTINGS;
                 break;
         }
@@ -688,11 +688,11 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
             int startPage = GALLERY;
             switch (mPager.getCurrentItem()) {
 
-                case MESSAGE_LIST_POSITION:
+                /*case MESSAGE_LIST_POSITION:
                 case LOCAL_LIST_POSITION:
                     Toast.makeText(getApplicationContext(),"Opening Local Settings...",Toast.LENGTH_SHORT).show();
                     startPage = LOCAL_SETTINGS;
-                    break;
+                    break;*/
 
                 case CAMERA_LIST_POSITION:
                     Toast.makeText(getApplicationContext(),"Opening Stash Gallery...",Toast.LENGTH_SHORT).show();
@@ -700,7 +700,7 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
                     break;
 
                 case LIVE_LIST_POSITION:
-                case REPLY_LIST_POSITION:
+                //case REPLY_LIST_POSITION:
                     Toast.makeText(getApplicationContext(),"Opening Live Settings...",Toast.LENGTH_SHORT).show();
                     startPage = LIVE_SETTINGS;
                     break;
@@ -1236,7 +1236,7 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
             Fragment out;
 
             switch (position) {
-                case MESSAGE_LIST_POSITION:
+                /*case MESSAGE_LIST_POSITION:
                     if (MessageFragReference.get() == null){
                         MessageFragReference = new WeakReference<>(new MessageFragment());
                     }
@@ -1250,7 +1250,7 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
                     }
 
                     out = LocalFragReference.get();
-                    break;
+                    break;*/
 
                 case CAMERA_LIST_POSITION:
                     if (CameraFragReference.get() == null){
@@ -1268,7 +1268,7 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
                     out = LiveFragReference.get();
                     break;
 
-                case REPLY_LIST_POSITION:
+                /*case REPLY_LIST_POSITION:
                     if (ReplyFragReference.get() == null) {
                         ReplyFragment f = ReplyFragment.newInstance(LiveFragReference.get()
                                 .getCurrentThread());
@@ -1278,7 +1278,7 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
                         out = ReplyFragReference.get();
                     }
 
-                    break;
+                    break;*/
 
                 case 5:
                     out = new PushDemoFragment();
@@ -1307,16 +1307,16 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
         @Override
         public CharSequence getPageTitle(int position) {
                     switch (position) {
-                    case MESSAGE_LIST_POSITION:
-                        return MESSAGE_PAGER_TITLE;
-                    case LOCAL_LIST_POSITION:
-                        return LOCAL_PAGER_TITLE;
+               //     case MESSAGE_LIST_POSITION:
+//                        return MESSAGE_PAGER_TITLE;
+  //                  case LOCAL_LIST_POSITION:
+    //                    return LOCAL_PAGER_TITLE;
                     case CAMERA_LIST_POSITION:
                         return CAMERA_PAGER_TITLE;
                     case LIVE_LIST_POSITION:
                         return LIVE_PAGER_TITLE;
-                    case REPLY_LIST_POSITION:
-                        return REPLY_PAGER_TITLE;
+      //              case REPLY_LIST_POSITION:
+        //                return REPLY_PAGER_TITLE;
                 }
 
                 return null;
@@ -1338,8 +1338,8 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
     @Override
     public void onPageSelected(int position) {
 
-        View tabStrip = mPager.findViewById(R.id.pager_tab_strip);
-        View settingsDrawer = findViewById(R.id.drawer_settings);
+        //View tabStrip = mPager.findViewById(R.id.pager_tab_strip);
+        //View settingsDrawer = findViewById(R.id.drawer_settings);
 
         switch (position) {
             case CAMERA_LIST_POSITION:
@@ -1349,7 +1349,7 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
                 //settingsDrawer.setVisibility(View.VISIBLE);
                 break;
 
-            case LOCAL_LIST_POSITION:
+          /*  case LOCAL_LIST_POSITION:
                 setAnalyticsScreenName(("Fragment :" + LOCAL_PAGER_TITLE));
                 //tabStrip.setVisibility(View.VISIBLE);
                 //settingsDrawer.setVisibility(View.VISIBLE);
@@ -1359,7 +1359,7 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
                 setAnalyticsScreenName(("Fragment :" + MESSAGE_PAGER_TITLE));
                 //tabStrip.setVisibility(View.GONE);
                 //settingsDrawer.setVisibility(View.GONE);
-                break;
+                break;*/
 
             case LIVE_LIST_POSITION:
                 setAnalyticsScreenName(("Fragment :" + LIVE_PAGER_TITLE));
@@ -1367,11 +1367,11 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
                 //settingsDrawer.setVisibility(View.VISIBLE);
                 break;
 
-            case REPLY_LIST_POSITION:
+            /*case REPLY_LIST_POSITION:
                 setAnalyticsScreenName(("Fragment :" + REPLY_PAGER_TITLE));
                 //tabStrip.setVisibility(View.GONE);
                 //settingsDrawer.setVisibility(View.GONE);
-                break;
+                break;*/
         }
     }
 

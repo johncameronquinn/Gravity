@@ -73,7 +73,6 @@ public class SendSnsMessageRunnable implements Runnable{
 
         mTask.setTaskThread(Thread.currentThread());
 
-        HttpURLConnection conn = null;
         Bundle b = mTask.getDataBundle();
         if (VERBOSE) LogUtils.printBundle(b, TAG);
 

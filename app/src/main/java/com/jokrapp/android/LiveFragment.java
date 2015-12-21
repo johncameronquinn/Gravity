@@ -620,6 +620,9 @@ public class LiveFragment extends Fragment implements
 
 
         /* only set the action buttons to visible if there is content */
+        if (data == null) {
+            return;
+        }
         if (data.getCount() > 0) {
             View v = getView();
             if (v!=null) {

@@ -9,6 +9,8 @@ import com.fasterxml.jackson.core.JsonGenerator;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 
+import javax.net.ssl.HttpsURLConnection;
+
 /**
  * Created by John C. Quinn on 11/14/15.
  *
@@ -26,7 +28,7 @@ public class SendLocalBlockRunnable implements Runnable{
 
         Bundle getDataBundle();
 
-        HttpURLConnection getURLConnection();
+        HttpsURLConnection getURLConnection();
     }
 
     static final int REQUEST_FAILED = -1;
@@ -60,7 +62,7 @@ public class SendLocalBlockRunnable implements Runnable{
             return;
         }
 
-        HttpURLConnection conn;
+        HttpsURLConnection conn;
 
         int responseCode = -10;
         try {

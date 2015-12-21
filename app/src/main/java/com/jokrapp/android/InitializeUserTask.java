@@ -11,6 +11,8 @@ import com.jokrapp.android.ServerConnectRunnable.ServerConnectMethods;
 import java.net.HttpURLConnection;
 import java.util.UUID;
 
+import javax.net.ssl.HttpsURLConnection;
+
 /**
  * Created by John Quinn on 11/9/15.
  *
@@ -26,7 +28,7 @@ class InitializeUserTask extends ServerTask implements InitializeUserMethods, Se
     private boolean VERBOSE = true;
     private final String TAG = "RequestRepliesTask";
 
-    private HttpURLConnection mConnection;
+    private HttpsURLConnection mConnection;
 
     private Runnable mServerConnectRunnable;
     private Runnable mRequestRunnable;
@@ -45,11 +47,11 @@ class InitializeUserTask extends ServerTask implements InitializeUserMethods, Se
         this.userID = userID;
     }
 
-    public void setServerConnection(HttpURLConnection connection) {
+    public void setServerConnection(HttpsURLConnection connection) {
         mConnection = connection;
     }
 
-    public HttpURLConnection getURLConnection() {
+    public HttpsURLConnection getURLConnection() {
         return mConnection;
     }
 

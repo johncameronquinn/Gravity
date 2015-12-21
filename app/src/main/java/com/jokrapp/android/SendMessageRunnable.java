@@ -10,7 +10,8 @@ import com.jokrapp.android.util.LogUtils;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.HttpURLConnection;
+
+import javax.net.ssl.HttpsURLConnection;
 
 /**
  * Created by John C. Quinn on 11/14/15.
@@ -47,7 +48,7 @@ public class SendMessageRunnable implements Runnable{
 
         Bundle getDataBundle();
 
-        HttpURLConnection getURLConnection();
+        HttpsURLConnection getURLConnection();
     }
 
     static final int REQUEST_FAILED = -1;
@@ -73,7 +74,7 @@ public class SendMessageRunnable implements Runnable{
 
         mTask.setTaskThread(Thread.currentThread());
 
-        HttpURLConnection conn = null;
+        HttpsURLConnection conn = null;
         Bundle b = mTask.getDataBundle();
         if (VERBOSE) LogUtils.printBundle(b, TAG);
 
@@ -111,7 +112,7 @@ public class SendMessageRunnable implements Runnable{
             Log.e(TAG, "error handling JSON", e);
             mTask.handleMessageState(REQUEST_FAILED);
         } finally {
-            if (responseCode == HttpURLConnection.HTTP_OK) {
+            if (responseCode == HttpsURLConnection.HTTP_OK) {
                 mTask.handleMessageState(REQUEST_SUCCESS);
                 File file = new File(imageKey);
                 Log.i(TAG,"file is stored at" + imageKey);

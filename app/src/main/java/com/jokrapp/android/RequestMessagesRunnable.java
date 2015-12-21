@@ -17,6 +17,8 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 
+import javax.net.ssl.HttpsURLConnection;
+
 /**
  * Created by ev0x on 11/14/15.
  */
@@ -30,7 +32,7 @@ public class RequestMessagesRunnable implements Runnable {
 
         Bundle getDataBundle();
 
-        HttpURLConnection getURLConnection();
+        HttpsURLConnection getURLConnection();
 
         void insert(Uri uri, ContentValues values);
     }
@@ -56,7 +58,7 @@ public class RequestMessagesRunnable implements Runnable {
 
         mTask.setTaskThread(Thread.currentThread());
 
-        HttpURLConnection conn = null;
+        HttpsURLConnection conn = null;
         Bundle b = mTask.getDataBundle();
         LogUtils.printBundle(b, TAG);
 

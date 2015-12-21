@@ -15,6 +15,8 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 
+import javax.net.ssl.HttpsURLConnection;
+
 
 /**
  * Created by ev0x on 11/12/15.
@@ -31,13 +33,9 @@ public class RequestLiveThreadsRunnable implements Runnable {
     static final int REQUEST_THREADS_SUCCESS = 1;
 
 
-    interface ThreadRequestMethods {
+    interface ThreadRequestMethods extends ServerTask.ServerTaskMethods {
 
         void handleThreadsRequestState(int state);
-
-        void setTaskThread(Thread thread);
-
-        HttpURLConnection getURLConnection();
 
         void insert(Uri uri, ContentValues values);
 
@@ -58,8 +56,10 @@ public class RequestLiveThreadsRunnable implements Runnable {
         mService.setTaskThread(Thread.currentThread());
         mService.handleThreadsRequestState(REQUEST_THREADS_STARTED);
 
-        HttpURLConnection conn = null;
+        HttpsURLConnection conn = null;
         boolean success = true;
+
+        int responseCode = -1;
 
         try {
             if (Thread.interrupted()) {
@@ -101,7 +101,8 @@ public class RequestLiveThreadsRunnable implements Runnable {
                     android.os.Parcel myParcel = android.os.Parcel.obtain();
                     myParcel.writeMap(map);
                     myParcel.setDataPosition(0);
-                    android.content.ContentValues values = android.content.ContentValues.CREATOR.createFromParcel(myParcel);
+                    android.content.ContentValues values = android.content.ContentValues
+                            .CREATOR.createFromParcel(myParcel);
                     valuesList.add(values);
                 }
 
@@ -112,13 +113,27 @@ public class RequestLiveThreadsRunnable implements Runnable {
                 }
             }
 
+            responseCode = conn.getResponseCode();
+
         } catch (IOException e) {
             Log.e(TAG, "IOException when retrieving replies...", e);
             success = false;
+
+            /*get the response code if it hasn't already been gotten*/
+            try {
+                responseCode = conn.getResponseCode();
+            } catch (IOException ex) {
+                Log.e(TAG,"error getting response code",ex);
+            }
+
         } finally {
-            if (success) {
+            mService.setResponseCode(responseCode);
+
+            if (success && responseCode == HttpsURLConnection.HTTP_OK) {
+                Log.d(TAG, "No Exceptions and the response code is OK, success :3");
                 mService.handleThreadsRequestState(REQUEST_THREADS_SUCCESS);
             } else {
+                Log.d(TAG, "Something went wrong...");
                 mService.handleThreadsRequestState(REQUEST_THREADS_FAILED);
             }
 

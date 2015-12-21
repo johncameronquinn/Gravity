@@ -19,6 +19,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jokrapp.android.SQLiteDbContract.LocalEntry;
 import com.jokrapp.android.util.LogUtils;
 
+import javax.net.ssl.HttpsURLConnection;
+
 /**
  * Created by ev0x on 11/14/15.
  */
@@ -32,7 +34,7 @@ public class RequestLocalRunnable implements Runnable {
 
         Bundle getDataBundle();
 
-        HttpURLConnection getURLConnection();
+        HttpsURLConnection getURLConnection();
 
         List<String> getImagesSeen();
 
@@ -60,7 +62,7 @@ public class RequestLocalRunnable implements Runnable {
 
         mTask.setTaskThread(Thread.currentThread());
 
-        HttpURLConnection conn = null;
+        HttpsURLConnection conn = null;
         Bundle b = mTask.getDataBundle();
         if (VERBOSE) LogUtils.printBundle(b, TAG);
 

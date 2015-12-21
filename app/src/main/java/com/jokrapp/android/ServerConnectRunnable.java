@@ -3,14 +3,29 @@ package com.jokrapp.android;
 import android.os.*;
 import android.util.Log;
 
+import java.io.BufferedInputStream;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.ConnectException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.ProtocolException;
 import java.net.SocketException;
 import java.net.URL;
+import java.security.KeyManagementException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.Certificate;
+import java.security.KeyStore;
+import java.security.cert.CertificateException;
+import java.security.cert.CertificateFactory;
+import java.security.cert.X509Certificate;
 import java.util.UUID;
+
+import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManagerFactory;
 
 /**
  * class 'ServerConnectRunnable'
@@ -36,7 +51,9 @@ public class ServerConnectRunnable implements Runnable {
 
         void setTaskThread(Thread connectThread);
 
-        void setServerConnection(HttpURLConnection serverConnection);
+        void setServerConnection(HttpsURLConnection serverConnection);
+
+        void setResponseCode(int code);
     }
 
     private final ServerConnectMethods mTask;
@@ -53,8 +70,8 @@ public class ServerConnectRunnable implements Runnable {
     static final int CONNECT_STATE_COMPLETED = 1;
 
 
-    private final int SERVER_SOCKET = 80; //does not change
-    private final String CONNECTION_PROTOCOL = "http";
+    private final int SERVER_SOCKET = 443; //does not change
+    private final String CONNECTION_PROTOCOL = "https";
     private final int READ_TIMEOUT = 10000;
     private final int CONNECT_TIMEOUT = 20000;
 
@@ -67,9 +84,61 @@ public class ServerConnectRunnable implements Runnable {
     @Override
     public void run() {
 
+
         mTask.setTaskThread(Thread.currentThread());
         android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_BACKGROUND);
-        HttpURLConnection conn = null;
+        HttpsURLConnection conn = null;
+
+        SSLContext sslContext = null;
+
+        try {
+
+            // Load CAs from an InputStream
+            // (could be from a resource or ByteArrayInputStream or ...)
+            CertificateFactory cf = CertificateFactory.getInstance("X.509");
+            // From https://www.washington.edu/itconnect/security/ca/load-der.crt
+            InputStream caInput = new BufferedInputStream(new FileInputStream("load-der.crt"));
+            Certificate ca;
+            try {
+                ca = cf.generateCertificate(caInput);
+                System.out.println("ca=" + ((X509Certificate) ca).getSubjectDN());
+            } finally {
+                caInput.close();
+            }
+
+            // Create a KeyStore containing our trusted CAs
+            String keyStoreType = KeyStore.getDefaultType();
+            KeyStore keyStore = KeyStore.getInstance(keyStoreType);
+            keyStore.load(null, null);
+            keyStore.setCertificateEntry("ca", ca);
+
+            // Create a TrustManager that trusts the CAs in our KeyStore
+            String tmfAlgorithm = TrustManagerFactory.getDefaultAlgorithm();
+            TrustManagerFactory tmf = TrustManagerFactory.getInstance(tmfAlgorithm);
+            tmf.init(keyStore);
+
+            // Create an SSLContext that uses our TrustManager
+            SSLContext context = SSLContext.getInstance("TLS");
+            context.init(null, tmf.getTrustManagers(), null);
+        } catch (CertificateException e) {
+            Log.e(TAG,"certificate exception...",e);
+        } catch (NoSuchAlgorithmException ex) {
+            Log.e(TAG,"no such algoirthm......",ex);
+        } catch (KeyStoreException exs) {
+            Log.e(TAG,"KeyStoreException......",exs);
+        } catch (KeyManagementException exm) {
+            Log.e(TAG,"KeyManagementException......",exm);
+        } catch (IOException eio) {
+            Log.e(TAG,"IOException......",eio);
+        }
+
+        if (sslContext == null) {
+            Log.e(TAG, "failed to create proper ssl context... cannot connect.");
+            mTask.handleServerConnectState(CONNECT_STATE_STARTED);
+            mTask.handleServerConnectState(CONNECT_STATE_FAILED);
+            mTask.setTaskThread(null);
+            return;
+        }
 
         int responseCode = -1;
 
@@ -116,7 +185,9 @@ public class ServerConnectRunnable implements Runnable {
                     try {
                         success = true;
 
-                        conn = (HttpURLConnection) url.openConnection();
+                        conn = (HttpsURLConnection) url.openConnection();
+
+                        //set client parameters
                         conn.setReadTimeout(READ_TIMEOUT);
                         conn.setConnectTimeout(CONNECT_TIMEOUT);
                         conn.setRequestMethod("POST");
@@ -135,28 +206,28 @@ public class ServerConnectRunnable implements Runnable {
 
                         conn.setUseCaches(false);
 
-                        // < 100 is undetermined.
-                        // 1nn is informal (shouldn't happen on a GET/HEAD)
-                        // 2nn is success
-                        // 3nn is redirect
-                        // 4nn is client error
-                        // 5nn is server error
+                        //set custom TrustManager to trust our CA
+                        conn.setSSLSocketFactory(sslContext.getSocketFactory());
 
                     } catch (ConnectException e) {
                         Log.e(TAG, "Failed to open a connection to the server...", e);
                         success = false;
+                        responseCode = getResponseCode(conn);
                     } catch (ProtocolException e) {
                         Log.e(TAG, "ProtocolException when trying to open a connection to the " +
                                 "server...", e);
                         success = false;
+                        responseCode = getResponseCode(conn);
                     } catch (SocketException e) {
                         Log.e(TAG, "SocketException...", e);
                         success = false;
+                        responseCode = getResponseCode(conn);
                     } catch (IOException e) {
                         Log.e(TAG,
                                 "IOException when trying to open a connection to the server...",
                                 e);
                         success = false;
+                        responseCode = getResponseCode(conn);
                     } finally {
                         if (attempt > 0) {
                             Double delay = BASE_RE_ATTEMPT_DELAY * Math.pow(2, attempt);
@@ -168,20 +239,29 @@ public class ServerConnectRunnable implements Runnable {
                 } while (!success && attempt < NUMBER_OF_CONNECT_TRIES);
 
             } catch (InterruptedException e) {
-                Log.e(TAG,"interruptedException occured...",e);
-                success = false;
+                Log.e(TAG,"interruptedException occurred...",e);
             } finally {
                 mTask.setServerConnection(conn);
                 if (success) {
                     mTask.handleServerConnectState(CONNECT_STATE_COMPLETED);
                 } else {
                     mTask.handleServerConnectState(CONNECT_STATE_FAILED);
+                    mTask.setResponseCode(responseCode);
                 }
-
                 Thread.interrupted();
             }
 
         mTask.setTaskThread(null);
+    }
+
+    private int getResponseCode(HttpsURLConnection sConn) {
+        int responseCode = -1;
+        try {
+            responseCode = sConn.getResponseCode();
+        } catch (IOException e) {
+            Log.e(TAG,"error getting response code...");
+        }
+        return responseCode;
     }
 
 }
