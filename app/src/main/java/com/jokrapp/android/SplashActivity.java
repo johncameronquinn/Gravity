@@ -253,6 +253,22 @@ public class SplashActivity extends Activity {
 
         Log.d(LOG_TAG, "enter onStop...");
 
+        //unbind the service now
+        if (isBound) {
+
+            Log.d(LOG_TAG, "sending message to disconnect GoogleApiClient...");
+            Message msg1 = Message.obtain(null, DataHandlingService.MSG_DISCONNECT_CLIENT, 0, 0);
+
+            try {
+                mService.send(msg1);
+            } catch (RemoteException e) {
+                e.printStackTrace();
+            }
+
+            Log.d(LOG_TAG, "unbinding the service...");
+            unbindService(mConnection);
+            isBound = false;
+        }
         Log.d(LOG_TAG, "exit onStop...");
     }
 
