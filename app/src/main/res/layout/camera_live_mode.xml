@@ -41,8 +41,9 @@
         android:layout_alignParentRight="true"
         android:background="@drawable/camera_live_mode_button_base"
         android:textSize="20dp"
-        android:textColor="@color/wpallete_neutral_gray"
+
         android:layout_below="@+id/editText_live_mode_description" />
+    <!--android:textColor="@color/wpallete_neutral_gray"-->
 
     <Button
         android:layout_width="100dp"
@@ -55,7 +56,9 @@
         android:layout_alignParentLeft="true"
         android:background="@drawable/camera_live_mode_button_base"
         android:layout_alignTop="@+id/button_camera_live_mode_confirm"
-        android:textColor="@color/wpallete_neutral_gray"
+
         android:textSize="20dp"
         android:layout_alignBottom="@+id/button_camera_live_mode_confirm" />
+    <!--android:textColor="@color/wpallete_neutral_gray"-->
+
 </RelativeLayout>

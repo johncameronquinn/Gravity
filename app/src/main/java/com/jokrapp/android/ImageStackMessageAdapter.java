@@ -177,13 +177,13 @@ public class ImageStackMessageAdapter extends ImageStackCursorAdapter implements
                     imageButtonColor = uuidColorHashMap.get(suuid);
 
                 } else {
-                    imageButtonColor = ctx.getResources().getColor(R.color.jpallete_neutral_blue);
-                    uuidColorHashMap.put(suuid,imageButtonColor);
+                    //imageButtonColor = ctx.getResources().getColor(R.color.jpallete_neutral_blue);
+                    //uuidColorHashMap.put(suuid,imageButtonColor);
                 }
 
 
-                ((ImageButton) v.findViewById(R.id.message_indicator_image))
-                        .setColorFilter(imageButtonColor);
+/*                ((ImageButton) v.findViewById(R.id.message_indicator_image))
+                        .setColorFilter(imageButtonColor);*/
             } else {
 
 

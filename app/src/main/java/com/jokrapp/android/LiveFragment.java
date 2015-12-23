@@ -3,6 +3,7 @@ package com.jokrapp.android;
 import android.animation.ValueAnimator;
 import android.app.Activity;
 import android.app.LoaderManager;
+import android.app.Fragment;
 import android.content.Context;
 import android.content.CursorLoader;
 import android.content.Intent;
@@ -12,7 +13,6 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
-import android.app.Fragment;
 import android.os.Message;
 import android.support.v4.view.ViewPager;
 import android.util.Log;
@@ -49,29 +49,19 @@ public class LiveFragment extends Fragment implements
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String ARG_PARAM1 = "param1";
-    private static final String ARG_ADAPTER = "ada";
-
     private final String CURRENT_THREAD_KEY = "threadkey";
-   // private final String THREAD_PAGER_KEY = "pagerkey";
+    // private final String THREAD_PAGER_KEY = "pagerkey";
     private final String VIEW_HACK_KEY = "pagerkey";
 
     private final int LIVE_LOADER_ID = 1;
-
     private final int LIVE_OFFSCREEN_LIMIT = 2;
-
-    private int numberOfThreads;
-
     private int currentThread;
 
     public static final int NO_LIVE_THREADS_ID = -1;
 
     private VerticalViewPager threadPager;
     private CursorPagerAdapter mAdapter;
-
-
     private onLiveFragmentInteractionListener mListener;
-
-
 
     /**
      * Use this factory method to create a new instance of
@@ -129,8 +119,6 @@ public class LiveFragment extends Fragment implements
             currentThread = savedInstanceState.getInt(CURRENT_THREAD_KEY);
         } else {
             currentThread = NO_LIVE_THREADS_ID;
-
-
         }
 
         if (getArguments() != null) {
@@ -139,8 +127,8 @@ public class LiveFragment extends Fragment implements
         }
         if (savedInstanceState != null) {
         } else {
-            }
 
+        }
 
         if (VERBOSE) Log.v(TAG,"initializing loader at id " + LIVE_LOADER_ID);
         getLoaderManager().restartLoader(LIVE_LOADER_ID, null, this);
@@ -183,8 +171,6 @@ public class LiveFragment extends Fragment implements
         super.onAttach(context);
         mListener = (onLiveFragmentInteractionListener)context;
         mListener.sendMsgRequestLiveThreads();
-
-
     }
 
 
@@ -195,12 +181,10 @@ public class LiveFragment extends Fragment implements
         if (VERBOSE) Log.v(TAG,"entering onSaveInstanceState...");
         outState.putInt(CURRENT_THREAD_KEY, currentThread);
     //    outState.putInt(THREAD_PAGER_KEY, threadPager.getCurrentItem());
-
         /*View v = threadPager.getChildAt(threadPager.getCurrentItem());
         SparseArray<Parcelable> viewsave = new SparseArray<>();
         v.saveHierarchyState(viewsave);
         outState.putSparseParcelableArray(VIEW_HACK_KEY, viewsave);*/
-
 
         if (VERBOSE) Log.v(TAG,"exiting onSaveInstanceState...");
     }
@@ -225,7 +209,6 @@ public class LiveFragment extends Fragment implements
         View rootView = inflater.inflate(R.layout.fragment_live,container,false);
         rootView.findViewById(R.id.button_live_refresh).setOnClickListener(getButtonListener(this));
         rootView.findViewById(R.id.button_new_thread).setOnClickListener(getButtonListener(this));
-        //rootView.findViewById(R.id.button_live_save).setOnClickListener(getButtonListener(this));
         ((SeekBar)rootView.findViewById(R.id.seekBar)).setOnSeekBarChangeListener(getButtonListener(this));
 
         if (VERBOSE) Log.v(TAG,"exiting onCreateView...");
@@ -241,7 +224,6 @@ public class LiveFragment extends Fragment implements
         threadPager.setOnPageChangeListener(this);
         threadPager.setAdapter(mAdapter);
         threadPager.setOffscreenPageLimit(LIVE_OFFSCREEN_LIMIT);
-
 
         if (savedInstanceState != null) {
             Log.d(TAG,"savedState was not null");
@@ -265,18 +247,6 @@ public class LiveFragment extends Fragment implements
         threadPager = null;
 
         super.onDestroyView();
-    }
-
-    /*
-    @Override
-    public void onAttach(Activity activity) {
-        super.onAttach(activity);
-        ((MainActivity)activity).sendMsgRequestLiveThreads();
-    }*/
-
-    @Override
-    public void onDetach() {
-        super.onDetach();
     }
 
     public int getCurrentThread() {
@@ -347,9 +317,8 @@ public class LiveFragment extends Fragment implements
                     triggerLiveRefresh();
                     break;
 
-
                 case R.id.button_new_thread:
-                 //   setSeekMode(v);
+                    //setSeekMode(v);
                     mListener.takeLivePicture();
                     break;
 
@@ -370,7 +339,6 @@ public class LiveFragment extends Fragment implements
                     break;*/
             }
         }
-
 
         final int OPEN_CAMERA_VALUE = 0;
         final int STARTING_VALUE = 50;
@@ -490,7 +458,6 @@ public class LiveFragment extends Fragment implements
                     default:
                     //Toast.makeText(getActivity(), "Request threads response code : " + msg.arg2,
                       //      Toast.LENGTH_SHORT).show();
-
                 }
 
                 default:
@@ -532,11 +499,10 @@ public class LiveFragment extends Fragment implements
     public void onPageSelected(int position) {
         if (VERBOSE) Log.v(TAG, "entering onPageSelected... page " + position + " selected.");
         //Toast.makeText(getActivity(),"page " + position + " selected.",Toast.LENGTH_SHORT).show();
-        ((TextView) getActivity().findViewById(R.id.live_thread_number)).setText(String.valueOf(position));
-
+        ((TextView) getActivity().findViewById(R.id.live_thread_number))
+                .setText(String.valueOf(position));
         currentThread = getCurrentThreadID();
         mListener.sendMsgRequestReplies(currentThread);
-
 
         if (VERBOSE) Log.v(TAG,"initializing loader at id " + ReplyFragment.REPLY_LOADER_ID);
 
@@ -575,13 +541,10 @@ public class LiveFragment extends Fragment implements
                 LiveEntry.COLUMN_NAME_UNIQUE
         };
 
-
         mAdapter = new CursorPagerAdapter<>(getChildFragmentManager(),
                 LiveThreadFragment.class,
                 projection,
                 null);
-
-
 
         if (VERBOSE) Log.v(TAG,"loader created.");
         if (VERBOSE) Log.v(TAG,"exit onCreateLoader...");
@@ -610,7 +573,6 @@ public class LiveFragment extends Fragment implements
         }
 
         return out;
-      //  return  Integer.valueOf(((LiveThreadFragment)mAdapter.getItem(threadPager.getCurrentItem())).getThreadID());
     }
 
 

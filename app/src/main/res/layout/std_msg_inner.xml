@@ -10,8 +10,7 @@
 
     <com.jokrapp.android.PhotoView
         android:id="@+id/photoView" android:layout_width="match_parent"
-        android:layout_height="match_parent" android:scaleType="fitXY"
-        android:background="@color/jpallete_main_blue"/>
+        android:layout_height="match_parent" android:scaleType="fitXY"/>
 
     <TextView
         android:layout_width="wrap_content"
@@ -29,7 +28,6 @@
         android:id="@+id/textView_message_caption"
         android:background="@drawable/ic_comment"
         android:padding="10dp"
-        android:textColor="@color/jpallete_neutral_blue"
         android:text="Error"
         android:textSize="15dp"
         android:visibility="invisible"

@@ -10,8 +10,7 @@
 
     <com.jokrapp.android.PhotoView
         android:id="@+id/photoView" android:layout_width="match_parent"
-        android:layout_height="match_parent" android:scaleType="fitXY"
-        android:background="@color/jpallete_main_blue" />
+        android:layout_height="match_parent" android:scaleType="fitXY"/>
 
 
     <TextView
@@ -37,7 +36,6 @@
         android:layout_alignParentStart="true"
         android:layout_marginLeft="@dimen/side_screen_margin"
         android:padding="10dp"
-        android:textColor="@color/jpallete_neutral_blue"
         android:text="Error"
         android:textSize="15dp"
         android:visibility="invisible" />

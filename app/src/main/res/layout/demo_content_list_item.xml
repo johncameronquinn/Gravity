@@ -11,8 +11,8 @@
         android:layout_marginTop="6dp"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"
-        android:textSize="@dimen/text_size_small_medium"
-        android:textColor="@color/jpallete_accent_grey" />
+        android:textSize="@dimen/text_size_small_medium"/>
+        <!--android:textColor="@color/jpallete_accent_grey" /-->
     <TextView
         android:id="@+id/content_delivery_file_size_text"
         android:layout_width="wrap_content"

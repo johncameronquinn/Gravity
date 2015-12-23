@@ -1,13 +1,31 @@
 <resources>
 
     <!-- Base application theme. -->
-    <style name="AppTheme" parent="@android:style/Theme.Holo">
+    <style name="AppTheme" parent="Theme.AppCompat">
        <item name="android:windowActionBar">false</item>
         <item name="android:windowNoTitle">true</item>
         <item name="android:windowActionBarOverlay">true</item>
+        <item name="colorPrimary">@color/cyber_black</item>
+        <item name="colorPrimaryDark">@color/cyber_black</item>
+        <item name="colorAccent">@color/cyber_dark_blue</item>
+        <item name="android:colorBackground">@color/cyber_background</item>
+        <item name="android:colorForeground">@color/cyber_black</item>
+        <item name="android:textColorPrimary">@color/cyber_light_blue</item>
+        <item name="android:windowBackground">@color/cyber_background</item>
+        <item name="android:textColorSecondary">@color/cyber_dark_orange</item>
+        <item name="android:textColorPrimaryInverse">@color/cyber_light_orange</item>
+        <item name="android:textColorSecondaryInverse">@color/cyber_light_orange</item>
     </style>
 
     <style name="StashTheme" parent="@android:style/Theme.Holo">
+    </style>
+
+    <style name="fab">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">@dimen/button_height</item>
+        <item name="android:layout_marginBottom">8dp</item>
+        <item name="android:scaleType">fitXY</item>
+        <item name="android:onClick">onNotImplemented</item>
     </style>
 
     <style name="FullscreenTheme" parent="AppTheme">
@@ -31,7 +49,7 @@
     </style>
 
     <style name="liveTextStyle">
-        <item name="android:textColor">@color/jpallete_neutral_green</item>
+       <!-- <item name="android:textColor">@color/jpallete_neutral_green</item>-->
         <item name="android:textSize">16sp</item>
         <item name="android:padding">8dp</item>
     </style>
@@ -51,7 +69,7 @@
     </style>
 
     <style name="nameTextStyle">
-        <item name="android:textColor">@color/jpallete_accent_peach</item>
+        <!--<item name="android:textColor">@color/jpallete_accent_peach</item>-->
     </style>
 
 

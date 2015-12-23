@@ -502,13 +502,13 @@ public class MessageFragment extends Fragment implements
                         .setColorFilter(
                                 getActivity()
                                         .getResources()
-                                        .getColor(R.color.jpallete_neutral_blue
+                                        .getColor(R.color.cyber_light_blue
                                         ),
                         android.graphics.PorterDuff.Mode.MULTIPLY
                         );
             } else {
                 ((ImageButton) view.findViewById(R.id.message_indicator_image))
-                        .setColorFilter(R.color.jpallete_neutral_blue);
+                        .setColorFilter(R.color.clear_background);
             }
 
         }

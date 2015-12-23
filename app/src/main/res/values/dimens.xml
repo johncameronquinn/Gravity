@@ -17,8 +17,6 @@
     <dimen name="text_font_size">12sp</dimen>
 
     <dimen name="autofocus_size">40dp</dimen>
-
-
     <!-- AWS Mobile Hub Example Dimens -->
 
     <dimen name="text_size_small_medium">16sp</dimen>

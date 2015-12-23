@@ -23,7 +23,6 @@
         android:text="0"
         android:id="@+id/live_thread_number"
         android:textSize="25dp"
-        android:textColor="@color/wpallete_complementary_green"
         android:gravity="center"
         android:background="@drawable/ic_comment"
         android:layout_alignTop="@+id/live_thread_infoLayout"

@@ -7,8 +7,17 @@
     <color name="image_outline">#D0D0CE</color>
     <color name="clear_background">#00ffffff</color>
 
+    <color name="cyber_dark_blue">#92fef1</color>
+    <color name="cyber_light_blue">#cff5f7</color>
+    <color name="cyber_background">#393139</color>
+    <color name="cyber_dark_orange">#fabb3e</color>
+    <color name="cyber_light_orange">#f9d896</color>
+    <color name="cyber_grey">#9b9495</color>
+    <color name="cyber_black">#30050e</color>
 
-    <color name="pallete_main_orange">#ff7400</color>
+    <color name="jpallete_main_grey">#e8f3ff</color>
+
+  <!--  <color name="pallete_main_orange">#ff7400</color>
     <color name="pallete_main_blue">#0FAAE8</color>
     <color name="pallete_accent_orange">#F7941E</color>
     <color name="pallete_accent_blue">#6DCFF6</color>
@@ -25,14 +34,14 @@
     <color name="wpallete_complementary_green">#9AEF5B</color>
 
     <color name="jpallete_main_blue">#5d8bea</color>
-    <color name="jpallete_main_grey">#e8f3ff</color>
+
     <color name="jpallete_main_green">#00c44b</color>
     <color name="jpallete_neutral_blue">#80f2e6</color>
     <color name="jpallete_neutral_green">#24F24C</color>
     <color name="jpallete_accent_purple">#636C7F</color>
     <color name="jpallete_accent_grey">#648063</color>
     <color name="jpallete_accent_orange">#F38C08</color>
-    <color name="jpallete_accent_peach">#FEF18D</color>
+    <color name="jpallete_accent_peach">#FEF18D</color>-->
 
     <color name="black_overlay">#66000000</color>
 </resources>

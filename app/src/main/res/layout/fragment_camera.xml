@@ -133,6 +133,6 @@
         android:src="@drawable/ic_capture"
         android:scaleX="0"
         android:scaleY="0"
-        android:tint="@color/jpallete_neutral_blue"/>
+        android:tint="@color/cyber_light_blue"/>
 
 </FrameLayout>

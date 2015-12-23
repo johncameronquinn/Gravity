@@ -1,16 +1,11 @@
 package com.jokrapp.android;
 
-import android.animation.Animator;
-import android.animation.AnimatorInflater;
-import android.animation.AnimatorListenerAdapter;
-import android.animation.AnimatorSet;
 import android.animation.ValueAnimator;
 import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.res.Resources;
 import android.hardware.Camera;
 import android.os.Bundle;
 import android.app.Fragment;
@@ -28,14 +23,10 @@ import android.view.animation.AnimationUtils;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.CheckBox;
-import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
-
-
 import java.lang.ref.WeakReference;
-
 
 /**
  * Author/Copyright John C. Quinn All Rights Reserved
@@ -54,17 +45,12 @@ public class CameraFragment extends Fragment implements Camera.AutoFocusCallback
         ValueAnimator.AnimatorUpdateListener{
     private static final boolean VERBOSE = true;
     private static final String TAG = "CameraFragment";
-
     private GestureDetector gestureDetector;
     private static boolean isPreview = true;
     private static boolean isComment = false;
-
     private EditText commentText = null;
     private static String messageTarget = null;
-
     private FrameLayout captureLayout;
-
-
     private int currentCameraMode;
     private CameraReceiver cameraReceiver;
 
@@ -84,7 +70,6 @@ public class CameraFragment extends Fragment implements Camera.AutoFocusCallback
     TextureView mPreview;
 
     View container;
-
 
     private OnCameraFragmentInteractionListener mListener;
 
@@ -120,7 +105,6 @@ n  */
                 new IntentFilter(ACTION_PICTURE_TAKEN));
 
         mListener = (OnCameraFragmentInteractionListener) activity;
-
     }
 
     @Override
@@ -132,8 +116,6 @@ n  */
 
         super.onDetach();
     }
-
-
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -148,7 +130,6 @@ n  */
             Log.d(TAG, "restoring state...");
         }
 
-
         GestureDoubleTap gestureDoubleTap = new GestureDoubleTap();
         gestureDetector = new GestureDetector(getActivity(), gestureDoubleTap);
         cameraButtonInstance = new CameraButtonManager();
@@ -157,34 +138,27 @@ n  */
         currentCameraMode = 0;
     }
 
-
     @Override
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
         if (VERBOSE) {
             Log.v(TAG, "entering onSaveInstanceState...");
         }
-
         outState.putBoolean(KEY_PREVIEW,isPreview);
-
         if (VERBOSE) {
             Log.v(TAG, "exiting onSaveInstanceState...");
         }
     }
 
-
     @Override
     public void onViewStateRestored(Bundle savedInstanceState) {
         if (VERBOSE) Log.v(TAG,"entering onViewStateRestored...");
         super.onViewStateRestored(savedInstanceState);
-
         if (savedInstanceState != null) {
             isPreview = savedInstanceState.getBoolean(KEY_PREVIEW);
         }
-
         if (VERBOSE) Log.v(TAG,"exiting onViewStateRestored...");
     }
-
 
     @Override
     public void onPause() {
@@ -204,7 +178,6 @@ n  */
         if (VERBOSE) {
             Log.v(TAG, "enter onResume...");
         }
-
         if (VERBOSE) {
             Log.v(TAG, "exit onResume...");
         }
@@ -219,8 +192,6 @@ n  */
 
         if (getView() != null) {
         }
-
-
         if (VERBOSE) {
             Log.v(TAG, "exit onStart...");
         }
@@ -236,7 +207,6 @@ n  */
             commentText.setVisibility(View.INVISIBLE);
             messageTarget = null;
         }
-
         if (VERBOSE) {
             Log.v(TAG, "exit onStop...");
         }
@@ -244,11 +214,9 @@ n  */
 
     @Override
     public void onDestroy() {
-
         if (VERBOSE) {
             Log.v(TAG, "enter onDestroy...");
         }
-
         cameraButtonInstance = null;
         if (VERBOSE) {
             Log.v(TAG, "exit onDestroy...");
@@ -369,9 +337,7 @@ n  */
             if (VERBOSE) {
 //                Log.v(TAG,"Event: " + event.toString());
             }
-
             return gestureDetector.onTouchEvent(event);
-
         }
 
     }
@@ -410,7 +376,6 @@ n  */
         CheckBox switchButton = (CheckBox) view.findViewById(R.id.switch_camera);
         switchButton.setOnClickListener(cameraButtonInstance);
 
-
         ImageButton captureButton = (ImageButton) view.findViewById(R.id.button_capture);
         captureButton.setOnClickListener(cameraButtonInstance);
         captureButton.bringToFront();
@@ -438,7 +403,6 @@ n  */
 
     @Override
     public void onDestroyView() {
-
         if (VERBOSE) {
             Log.v(TAG,"enter onDestroyView...");
         }
@@ -448,11 +412,9 @@ n  */
         mPreview = null;
         commentText = null;
 
-
         if (VERBOSE) {
             Log.v(TAG,"exit onDestroyView...");
         }
-
         super.onDestroyView();
     }
     /***********************************************************************************************
@@ -466,7 +428,6 @@ n  */
      *
      * this is used to create a singleton reference to a buttonlistener, allowing one
      * buttonlistener to handle all button interactions
-     *
      *
      * @param parent the context in which this functions
      * @return a ButtonListener to be used by all the buttons in CameraFragment
@@ -868,8 +829,6 @@ n  */
         animator.setDuration(CAPTURE_LAYOUT_ANIMATION_DURATION);
         animator.addUpdateListener(this);
 
-
-
         /*
          * Animates the focusView and dodads on the UI thread
          */
@@ -885,12 +844,9 @@ n  */
                             .scaleY(0.0f)
                             .setDuration(FOCUS_AREA_ANIMATION_DURATION);
                     if (success) {
-
                         // this does nothing special currently, just logs.
                         Log.i(TAG, "success!");
-
                     } else {
-
                         //since the operation failed, make the dodad's shake now.
                         Animation shake = AnimationUtils.loadAnimation(getActivity(),
                                 R.anim.shake);
@@ -904,12 +860,10 @@ n  */
 
                         //logs the failure
                         Log.i(TAG, "fail!");
-
                     }
 
                     //starts the layout animation
                     animator.start();
-
                 }
 
             });
@@ -1082,14 +1036,16 @@ n  */
                     cameraButtonInstance.resetCameraUI();
                     buttonPostListenerReference = null;
                     break;
+
                 case R.id.button_camera_live_mode_confirm:
                     FrameLayout layout = (FrameLayout) v.getParent().getParent();
-                    String title = ((EditText)layout.findViewById(R.id.editText_live_mode_title)).getText().toString();
-                    String description = ((EditText)layout.findViewById(R.id.editText_live_mode_description)).getText().toString();
+                    String title = ((EditText)layout.findViewById(R.id.editText_live_mode_title))
+                            .getText().toString();
+                    String description = ((EditText)layout
+                           .findViewById(R.id.editText_live_mode_description)).getText().toString();
                     activity.setLiveCreateThreadInfo(title, description);
                     layout.removeView((View) v.getParent());
                     imm.hideSoftInputFromWindow(createThreadView.getWindowToken(), 0);
-
                     activity.enableScrolling();
 
                     cameraButtonInstance.resetCameraUI();
@@ -1121,8 +1077,10 @@ n  */
         commentText.setText("");
 
         getLiveModeButtonListener(this).setCreateView(v);
-        v.findViewById(R.id.button_camera_live_mode_cancel).setOnClickListener(getLiveModeButtonListener(this));
-        v.findViewById(R.id.button_camera_live_mode_confirm).setOnClickListener(getLiveModeButtonListener(this));
+        v.findViewById(R.id.button_camera_live_mode_cancel)
+                .setOnClickListener(getLiveModeButtonListener(this));
+        v.findViewById(R.id.button_camera_live_mode_confirm)
+                .setOnClickListener(getLiveModeButtonListener(this));
         root.addView(v,root.getChildCount());
 
         if (VERBOSE) {
@@ -1182,8 +1140,10 @@ n  */
                     break;
                 case R.id.button_camera_live_mode_confirm:
                     FrameLayout layout = (FrameLayout) v.getParent().getParent();
-                    String description = ((EditText)layout.findViewById(R.id.editText_reply_mode_comment)).getText().toString();
-                    activity.setLiveCreateReplyInfo("unset", description,0);//todo load name from sharedpreferences
+                    String description = ((EditText)layout
+                            .findViewById(R.id.editText_reply_mode_comment)).getText().toString();
+                    activity.setLiveCreateReplyInfo("unset", description,0);
+                    //todo load name from sharedpreferences
                     layout.removeView((View) v.getParent());
                     imm.hideSoftInputFromWindow(createReplyView.getWindowToken(), 0);
 
@@ -1210,8 +1170,10 @@ n  */
                 false);
 
         getReplyModeButtonListener(this).setCreateView(v);
-        v.findViewById(R.id.button_camera_reply_mode_cancel).setOnClickListener(getReplyModeButtonListener(this));
-        v.findViewById(R.id.button_camera_reply_mode_confirm).setOnClickListener(getReplyModeButtonListener(this));
+        v.findViewById(R.id.button_camera_reply_mode_cancel)
+                .setOnClickListener(getReplyModeButtonListener(this));
+        v.findViewById(R.id.button_camera_reply_mode_confirm)
+                .setOnClickListener(getReplyModeButtonListener(this));
         root.addView(v,root.getChildCount());
 
         if (VERBOSE) {
@@ -1232,15 +1194,12 @@ n  */
         imm.showSoftInput(input, InputMethodManager.SHOW_IMPLICIT);
     }
 
-
     public void stopLiveMode() {
        currentCameraMode = CAMERA_DEFAULT_MODE;
    }
 
    public void startReplyMode() {
        Log.i(TAG,"Camera is entering reply mode...");
-
-
        Button cancel;
        cancel = (Button)getView().findViewById(R.id.button_cancel_message);
        cancel.setVisibility(View.VISIBLE);

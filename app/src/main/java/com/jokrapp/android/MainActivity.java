@@ -96,11 +96,11 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
 
     /** FRAGMENT MANAGEMENT
      */
-    //private static final int MESSAGE_LIST_POSITION = 0;
-    //private static final int LOCAL_LIST_POSITION = 1;
+    private static final int MESSAGE_LIST_POSITION = 3;
+    private static final int LOCAL_LIST_POSITION = 4;
     private static final int CAMERA_LIST_POSITION = 0;
     private static final int LIVE_LIST_POSITION = 1;
-    //private static final int REPLY_LIST_POSITION = 4;
+    private static final int REPLY_LIST_POSITION = 2;
 
     private static final String MESSAGE_PAGER_TITLE = "Message";
     private static final String LOCAL_PAGER_TITLE = "Local";
@@ -164,10 +164,8 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
     // Tracks whether the app is in full-screen mode
     boolean mFullScreen;
 
-
     // Instantiates a new broadcast receiver for handling Fragment state
     private FragmentDisplayer mFragmentDisplayer = new FragmentDisplayer();
-
 
     private final BroadcastReceiver notificationReceiver = new BroadcastReceiver() {
         @Override
@@ -197,7 +195,7 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
                 textView.setText("A message has been received!");
                 textView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 20);
                 textView.setTextColor(getResources().getColor(R.color.black_overlay));
-                textView.setBackgroundColor(getResources().getColor(R.color.jpallete_neutral_blue));
+                textView.setBackgroundColor(getResources().getColor(R.color.cyber_light_blue));
 
                 final FrameLayout layout = (FrameLayout)findViewById(R.id.rootlayout);
                 layout.addView(textView,layout.getChildCount()-1);
@@ -244,7 +242,6 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
             return;
         }
 
-
         super.onCreate(savedInstanceState);
 
         uiHandler.setParent(this);
@@ -255,7 +252,7 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
         sHandler.setParent(this);
         cameraMessenger = new Messenger(sHandler);
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+        /*if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
 
             Window window = getWindow();
 
@@ -265,7 +262,7 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
             // add FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS flag to the window
             window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
             window.setStatusBarColor(getResources().getColor(R.color.jpallete_neutral_blue));
-        }
+        }*/
 
         checkForLocationEnabled(this);
 
@@ -297,12 +294,13 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
         int numberOfFragments;
         if (BuildConfig.FLAVOR.equals("dev")) {
             Log.i(TAG,"Developer mode enabled, creating all fragments");
-            //numberOfFragments = R.integer.number_of_fragments_dev;
+            numberOfFragments = getResources().getInteger(R.integer.number_of_fragments_dev);
         } else {
             Log.i(TAG,"setting count to five fragments...");
-            //numberOfFragments =  R.integer.number_of_fragments;
+            numberOfFragments =  getResources().getInteger(R.integer.number_of_fragments);
         }
-        mAdapter = new MainAdapter(getFragmentManager(),NUMBER_OF_FRAGMENTS);
+        Log.d(TAG,"Number of fragments = " + numberOfFragments);
+        mAdapter = new MainAdapter(getFragmentManager(),numberOfFragments);
         mPager = (CustomViewPager) findViewById(R.id.pager);
         mPager.setAdapter(mAdapter);
         mPager.setCurrentItem(CAMERA_LIST_POSITION);
@@ -321,11 +319,11 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
             int startPage = GALLERY;
             switch (mPager.getCurrentItem()) {
 
-/*                case MESSAGE_LIST_POSITION:
+                case MESSAGE_LIST_POSITION:
                 case LOCAL_LIST_POSITION:
                     Toast.makeText(getApplicationContext(),"Opening Local Settings...",Toast.LENGTH_SHORT).show();
                     startPage = LOCAL_SETTINGS;
-                    break;*/
+                    break;
 
                 case CAMERA_LIST_POSITION:
                     Toast.makeText(getApplicationContext(),"Opening Stash Gallery...",Toast.LENGTH_SHORT).show();
@@ -333,7 +331,7 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
                     break;
 
                 case LIVE_LIST_POSITION:
-                //case REPLY_LIST_POSITION:
+                case REPLY_LIST_POSITION:
                     Toast.makeText(getApplicationContext(),"Opening Live Settings...",Toast.LENGTH_SHORT).show();
                     startPage = LIVE_SETTINGS;
                     break;
@@ -620,48 +618,6 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
         Toast.makeText(this,"Not yet implemented...",Toast.LENGTH_SHORT).show();
     }
 
-    /**
-     * method 'onLongClick'
-     *
-     * callback from each respective fragment
-     *
-     * StashActivity is started onLongPress at any point in the app, with which page it loads
-     * correlating to the fragment which it was launched from
-     *
-     * @param v the view that was clicked
-     * @return whether or not the clickEvent was consumed
-     */
-    public boolean onLongClick(View v) {
-
-        final int LOCAL_SETTINGS = 0;
-        final int GALLERY = 1;
-        final int LIVE_SETTINGS = 2;
-
-        int startPage = GALLERY;
-        switch (mPager.getCurrentItem()) {
-
-            /*case MESSAGE_LIST_POSITION:
-            case LOCAL_LIST_POSITION:
-                startPage = LOCAL_SETTINGS;
-                break;*/
-
-            case CAMERA_LIST_POSITION:
-                startPage = GALLERY;
-                break;
-
-            case LIVE_LIST_POSITION:
-            //case REPLY_LIST_POSITION:
-                startPage = LIVE_SETTINGS;
-                break;
-        }
-
-        Intent stashActivtyIntent = new Intent(this,StashActivity.class);
-        stashActivtyIntent.putExtra(StashActivity.STARTING_PAGE_POSITION_KEY, startPage);
-        startActivity(stashActivtyIntent);
-
-        return true;
-    }
-
     public void localMessagePressed(String arn) {
         if (VERBOSE) {
             Toast.makeText(this,"Message pressed: " + arn,Toast.LENGTH_LONG).show();
@@ -700,7 +656,7 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
                     break;
 
                 case LIVE_LIST_POSITION:
-                //case REPLY_LIST_POSITION:
+                case REPLY_LIST_POSITION:
                     Toast.makeText(getApplicationContext(),"Opening Live Settings...",Toast.LENGTH_SHORT).show();
                     startPage = LIVE_SETTINGS;
                     break;
@@ -1236,7 +1192,7 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
             Fragment out;
 
             switch (position) {
-                /*case MESSAGE_LIST_POSITION:
+                case MESSAGE_LIST_POSITION:
                     if (MessageFragReference.get() == null){
                         MessageFragReference = new WeakReference<>(new MessageFragment());
                     }
@@ -1250,7 +1206,7 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
                     }
 
                     out = LocalFragReference.get();
-                    break;*/
+                    break;
 
                 case CAMERA_LIST_POSITION:
                     if (CameraFragReference.get() == null){
@@ -1268,7 +1224,7 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
                     out = LiveFragReference.get();
                     break;
 
-                /*case REPLY_LIST_POSITION:
+                case REPLY_LIST_POSITION:
                     if (ReplyFragReference.get() == null) {
                         ReplyFragment f = ReplyFragment.newInstance(LiveFragReference.get()
                                 .getCurrentThread());
@@ -1278,7 +1234,7 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
                         out = ReplyFragReference.get();
                     }
 
-                    break;*/
+                    break;
 
                 case 5:
                     out = new PushDemoFragment();
@@ -1315,8 +1271,8 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
                         return CAMERA_PAGER_TITLE;
                     case LIVE_LIST_POSITION:
                         return LIVE_PAGER_TITLE;
-      //              case REPLY_LIST_POSITION:
-        //                return REPLY_PAGER_TITLE;
+                    case REPLY_LIST_POSITION:
+                        return REPLY_PAGER_TITLE;
                 }
 
                 return null;
@@ -1367,11 +1323,11 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
                 //settingsDrawer.setVisibility(View.VISIBLE);
                 break;
 
-            /*case REPLY_LIST_POSITION:
+            case REPLY_LIST_POSITION:
                 setAnalyticsScreenName(("Fragment :" + REPLY_PAGER_TITLE));
                 //tabStrip.setVisibility(View.GONE);
                 //settingsDrawer.setVisibility(View.GONE);
-                break;*/
+                break;
         }
     }
 
