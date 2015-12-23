@@ -1,13 +1,10 @@
 <resources>
-
     <!-- Base application theme. -->
-    <style name="AppTheme" parent="Theme.AppCompat">
+    <style name="AppTheme" parent="@android:style/Theme.Holo">
        <item name="android:windowActionBar">false</item>
         <item name="android:windowNoTitle">true</item>
         <item name="android:windowActionBarOverlay">true</item>
-        <item name="colorPrimary">@color/cyber_black</item>
-        <item name="colorPrimaryDark">@color/cyber_black</item>
-        <item name="colorAccent">@color/cyber_dark_blue</item>
+
         <item name="android:colorBackground">@color/cyber_background</item>
         <item name="android:colorForeground">@color/cyber_black</item>
         <item name="android:textColorPrimary">@color/cyber_light_blue</item>
@@ -20,12 +17,14 @@
     <style name="StashTheme" parent="@android:style/Theme.Holo">
     </style>
 
-    <style name="fab">
-        <item name="android:layout_width">match_parent</item>
-        <item name="android:layout_height">@dimen/button_height</item>
-        <item name="android:layout_marginBottom">8dp</item>
-        <item name="android:scaleType">fitXY</item>
+    <style name="FabNormal">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
         <item name="android:onClick">onNotImplemented</item>
+        <item name="fab_size">normal</item>
+        <item name="fab_colorNormal">@color/cyber_dark_blue</item>
+        <item name="fab_colorPressed">@color/cyber_light_blue</item>
+        <item name="fab_colorRipple">@color/cyber_light_blue</item>
     </style>
 
     <style name="FullscreenTheme" parent="AppTheme">

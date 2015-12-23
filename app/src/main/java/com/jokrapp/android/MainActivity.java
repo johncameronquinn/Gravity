@@ -1892,22 +1892,22 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
               //  requestCode = UPLOAD_TO_LIVE;
 //                break;
 
-            case R.id.button_reply_load:
+            /*case R.id.button_reply_load:
                 requestCode = UPLOAD_TO_REPLY;
 
                 if (replyData == null) replyData = new Bundle();
 
                 replyData.putInt(SQLiteDbContract.LiveReplies.COLUMN_NAME_THREAD_ID,
                         ReplyFragReference.get().getCurrentThread());
-                break;
+                break;*/
             default:
                 /* If you're not live load or reply load, then why are you calling this method?*/
                 throw new RuntimeException("Invalid Source button");
         }
 
 
-        startActivityForResult(Intent.createChooser(intent,
-                "Select Picture"), requestCode);
+        /*startActivityForResult(Intent.createChooser(intent,
+                "Select Picture"), requestCode);*/
 
     }
 

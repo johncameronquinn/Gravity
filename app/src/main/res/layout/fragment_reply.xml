@@ -1,6 +1,6 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    xmlns:expandable="http://schemas.android.com/apk/res-auto"
+    xmlns:fab="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/jpallete_main_grey"
@@ -20,15 +20,38 @@
         android:layout_alignStart="@+id/replyexpandable" />
 
 
-    <com.jokrapp.android.view.ExpandableLayout
-        android:id="@+id/replyexpandable"
-        android:layout_width="@dimen/button_width"
+    <com.github.clans.fab.FloatingActionMenu
+        android:id="@+id/reply_radical_menu"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        expandable:el_headerLayout="@layout/live_header_layout"
-        expandable:el_contentLayout="@layout/reply_content_layout"
         android:layout_alignParentBottom="true"
-        android:layout_marginBottom="12dp"
-        android:layout_marginLeft="@dimen/side_screen_margin" />
+        android:layout_alignParentStart="true"
+        fab:menu_animationDelayPerItem="30"
+        fab:menu_shadowColor="#444"
+        fab:menu_colorNormal="@color/cyber_dark_blue"
+        fab:menu_colorPressed="@color/cyber_light_blue"
+        fab:menu_colorRipple="@color/cyber_grey"
+        fab:menu_labels_position="right"
+        android:layout_marginLeft="10dp"
+        android:layout_marginBottom="10dp">
+
+        <com.github.clans.fab.FloatingActionButton
+            style="@style/FabNormal"
+            android:id="@+id/button_reply_report"
+            fab:fab_label="New Topic" />
+
+        <com.github.clans.fab.FloatingActionButton
+            style="@style/FabNormal"
+            android:id="@+id/button_reply_refresh"
+            fab:fab_label="Refresh" />
+
+        <com.github.clans.fab.FloatingActionButton
+            style="@style/FabNormal"
+            android:id="@+id/button_reply_capture"
+            fab:fab_label="Add Image"/>
+
+    </com.github.clans.fab.FloatingActionMenu>
+
 
     <RelativeLayout
         android:orientation="horizontal"
@@ -36,10 +59,10 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
-        android:background="@drawable/bg_reply_textbox"
         android:layout_marginRight="@dimen/side_screen_margin"
         android:layout_marginBottom="@dimen/side_screen_margin"
-        android:layout_marginLeft="@dimen/local_card_margin">
+        android:layout_marginLeft="@dimen/local_card_margin"
+        android:background="@drawable/rectangle">
 
         <EditText
             android:layout_width="match_parent"
@@ -54,7 +77,7 @@
             android:layout_height="wrap_content"
             android:id="@+id/button_send_reply"
             android:src="@drawable/ic_reply_send"
-            android:scaleType="matrix"
+            android:scaleType="fitXY"
             android:background="@android:color/transparent"
             android:layout_alignParentRight="true"
             android:layout_alignParentBottom="false"
@@ -62,7 +85,8 @@
             android:layout_alignBottom="@+id/editText_reply_comment"
             android:layout_marginTop="5dp"
             android:layout_marginRight="5dp"
-            android:layout_marginLeft="5dp" />
+            android:layout_marginLeft="5dp"
+            android:layout_marginBottom="5dp" />
     </RelativeLayout>
 
     <ImageView
@@ -78,12 +102,12 @@
         android:textAppearance="?android:attr/textAppearanceLarge"
         android:text="No Replies Found"
         android:id="@+id/textView_reply_error"
-        android:layout_centerVertical="true"
-        android:layout_centerHorizontal="true"
         android:visibility="invisible"
         android:autoText="false"
         android:background="@drawable/ic_comment"
-        android:gravity="center" />
+        android:gravity="center"
+        android:layout_centerVertical="true"
+        android:layout_alignStart="@+id/reply_texting_layout" />
 
 
 </RelativeLayout>

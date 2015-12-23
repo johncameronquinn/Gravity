@@ -29,6 +29,8 @@ import java.lang.ref.WeakReference;
 import java.net.HttpURLConnection;
 
 import fr.castorflex.android.verticalviewpager.VerticalViewPager;
+
+import com.github.clans.fab.FloatingActionButton;
 import com.jokrapp.android.SQLiteDbContract.LiveEntry;
 
 
@@ -207,9 +209,9 @@ public class LiveFragment extends Fragment implements
         // rootLayout.addView(threadView);
 
         View rootView = inflater.inflate(R.layout.fragment_live,container,false);
-        rootView.findViewById(R.id.button_live_refresh).setOnClickListener(getButtonListener(this));
-        rootView.findViewById(R.id.button_new_thread).setOnClickListener(getButtonListener(this));
-        ((SeekBar)rootView.findViewById(R.id.seekBar)).setOnSeekBarChangeListener(getButtonListener(this));
+//        rootView.findViewById(R.id.button_live_refresh).setOnClickListener(getButtonListener(this));
+//        rootView.findViewById(R.id.button_new_thread).setOnClickListener(getButtonListener(this));
+        //((SeekBar)rootView.findViewById(R.id.seekBar)).setOnSeekBarChangeListener(getButtonListener(this));
 
         if (VERBOSE) Log.v(TAG,"exiting onCreateView...");
         return rootView;
@@ -419,20 +421,20 @@ public class LiveFragment extends Fragment implements
                 if (vg != null) {
                     vg.findViewById(R.id.button_new_thread).setVisibility(View.INVISIBLE);
                     vg.findViewById(R.id.live_thread_number).setVisibility(View.INVISIBLE);
-                    SeekBar bar = ((SeekBar) vg.findViewById(R.id.seekBar));
-                    bar.setVisibility(View.VISIBLE);
-                    bar.setOnSeekBarChangeListener(this);
+                    //SeekBar bar = ((SeekBar) vg.findViewById(R.id.seekBar));
+                    //bar.setVisibility(View.VISIBLE);
+                    //bar.setOnSeekBarChangeListener(this);
                 }
             } else {
                 if (getView() != null) {
                     View group = getView();
                     group.findViewById(R.id.button_new_thread).setVisibility(View.VISIBLE);
                     group.findViewById(R.id.live_thread_number).setVisibility(View.VISIBLE);
-                    SeekBar bar = ((SeekBar)group.findViewById(R.id.seekBar));
-                    bar.setProgress(STARTING_VALUE);
+                   // SeekBar bar = ((SeekBar)group.findViewById(R.id.seekBar));
+                 //   bar.setProgress(STARTING_VALUE);
                     value = STARTING_VALUE;
-                    bar.setVisibility(View.INVISIBLE);
-                    bar.setOnSeekBarChangeListener(null);
+                   // bar.setVisibility(View.INVISIBLE);
+                    //bar.setOnSeekBarChangeListener(null);
                 }
             }
         }
@@ -590,16 +592,16 @@ public class LiveFragment extends Fragment implements
             if (v!=null) {
                 //v.findViewById(R.id.button_live_save).setVisibility(View.VISIBLE);
                 //v.findViewById(R.id.button_live_load).setVisibility(View.VISIBLE);
-                v.findViewById(R.id.button_live_hide).setVisibility(View.VISIBLE);
-                v.findViewById(R.id.button_live_report).setVisibility(View.VISIBLE);
+                //v.findViewById(R.id.button_live_hide).setVisibility(View.VISIBLE);
+                //v.findViewById(R.id.button_live_report).setVisibility(View.VISIBLE);
             }
         } else {
             View v = getView();
             if (v!=null) {
                 //v.findViewById(R.id.button_live_save).setVisibility(View.GONE);
                 //v.findViewById(R.id.button_live_load).setVisibility(View.GONE);
-                v.findViewById(R.id.button_live_hide).setVisibility(View.GONE);
-                v.findViewById(R.id.button_live_report).setVisibility(View.GONE);
+                //(v.findViewById(R.id.button_live_hide)).setEnabled(false);
+                //v.findViewById(R.id.button_live_report).setVisibility(View.GONE);
             }
 
             Log.i(TAG,"there are no messages pending or received... display something...?");

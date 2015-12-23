@@ -400,13 +400,13 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
         if (data.getCount() > 0) {
             View v = getView();
             if (v!=null) {
-                v.findViewById(R.id.button_reply_load).setVisibility(View.VISIBLE);
+                //v.findViewById(R.id.button_reply_load).setVisibility(View.VISIBLE);
                 v.findViewById(R.id.button_reply_report).setVisibility(View.VISIBLE);
             }
         } else {
             View v = getView();
             if (v!=null) {
-                v.findViewById(R.id.button_reply_load).setVisibility(View.GONE);
+                //v.findViewById(R.id.button_reply_load).setVisibility(View.GONE);
                 v.findViewById(R.id.button_reply_report).setVisibility(View.GONE);
             }
 
@@ -415,7 +415,9 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
         }
 
 
-        mAdapter.swapCursor(data);
+        if (mAdapter != null) {
+            mAdapter.swapCursor(data);
+        } //todo why is this necessary? (occasional NPE occurred because of this line)
         if (VERBOSE) Log.v(TAG,"exiting onLoadFinished...");
     }
 
