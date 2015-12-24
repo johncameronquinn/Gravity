@@ -173,7 +173,6 @@ public class LiveThreadFragment extends Fragment implements View.OnClickListener
          */
         mPhotoView.setOnClickListener(this);
         textView.setOnClickListener(this);
-        detailView.setOnClickListener(this);
 
         mPhotoView.setImageKey(Constants.KEY_S3_LIVE_DIRECTORY,mImageKey,true,mEmptyDrawable);
 
@@ -194,7 +193,6 @@ public class LiveThreadFragment extends Fragment implements View.OnClickListener
 
             mPhotoView.setOnClickListener(null);
             textView.setOnClickListener(null);
-            detailView.setOnClickListener(null);
             this.mPhotoView = null;
             this.textView = null;
             this.detailView = null;
@@ -278,19 +276,22 @@ public class LiveThreadFragment extends Fragment implements View.OnClickListener
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.live_thread_infoLayout:
-                View threadTextView = ((RelativeLayout) v.getParent())
-                        .findViewById(R.id.live_thread_text);
+                View threadTextView = v.findViewById(R.id.live_thread_text);
+                if (threadTextView.getVisibility() == View.GONE) {
+                    threadTextView.setVisibility(View.VISIBLE);
 
-                threadTextView.setVisibility(View.VISIBLE);
-                threadTextView.bringToFront();
-                v.setVisibility(View.INVISIBLE);
-                break;
+                    v.findViewById(R.id.live_thread_name).setVisibility(View.GONE);
+                    v.findViewById(R.id.live_thread_title).setVisibility(View.GONE);
+                    v.findViewById(R.id.live_thread_unique).setVisibility(View.GONE);
+                    v.findViewById(R.id.live_thread_replies).setVisibility(View.GONE);
+                } else {
+                    threadTextView.setVisibility(View.GONE);
 
-
-            case R.id.live_thread_text:
-                ((RelativeLayout)v.getParent()).findViewById(R.id.live_thread_infoLayout)
-                        .setVisibility(View.VISIBLE);
-                v.setVisibility(View.INVISIBLE);
+                    v.findViewById(R.id.live_thread_name).setVisibility(View.VISIBLE);
+                    v.findViewById(R.id.live_thread_title).setVisibility(View.VISIBLE);
+                    v.findViewById(R.id.live_thread_unique).setVisibility(View.VISIBLE);
+                    v.findViewById(R.id.live_thread_replies).setVisibility(View.VISIBLE);
+                }
                 break;
         }
     }

@@ -13,6 +13,7 @@
     <color name="cyber_dark_orange">#fabb3e</color>
     <color name="cyber_light_orange">#f9d896</color>
     <color name="cyber_grey">#9b9495</color>
+    <color name="cyber_grey_alpha">#a89b9495</color>
     <color name="cyber_black">#30050e</color>
 
     <color name="jpallete_main_grey">#e8f3ff</color>

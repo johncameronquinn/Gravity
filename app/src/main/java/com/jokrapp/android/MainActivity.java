@@ -305,6 +305,7 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
         mPager.setAdapter(mAdapter);
         mPager.setCurrentItem(CAMERA_LIST_POSITION);
         mPager.addOnPageChangeListener(this);
+        mPager.setOffscreenPageLimit(2);
     }
 
     @Override

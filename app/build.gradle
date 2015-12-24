@@ -9,7 +9,7 @@ android {
         minSdkVersion 17
         targetSdkVersion 23
         versionCode 8
-        versionName "4.5.6"
+        versionName "4.6.3"
     }
 
     buildTypes {
@@ -37,7 +37,7 @@ android {
             applicationId 'com.jokrapp.android'
             targetSdkVersion 23
             versionCode 8
-            versionName '4.5.6-dev'
+            versionName '4.6.3-dev'
         }
 
         sales {
@@ -45,7 +45,7 @@ android {
             applicationId 'com.jokrapp.android'
             targetSdkVersion 23
             versionCode 8
-            versionName '4.5.6-sales'
+            versionName '4.6.3-sales'
         }
 
         user {
@@ -53,7 +53,7 @@ android {
             applicationId 'com.jokrapp.android'
             targetSdkVersion 23
             versionCode 8
-            versionName '4.5.6'
+            versionName '4.6.3'
         }
     }
 

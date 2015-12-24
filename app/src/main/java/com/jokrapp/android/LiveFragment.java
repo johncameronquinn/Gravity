@@ -209,8 +209,8 @@ public class LiveFragment extends Fragment implements
         // rootLayout.addView(threadView);
 
         View rootView = inflater.inflate(R.layout.fragment_live,container,false);
-//        rootView.findViewById(R.id.button_live_refresh).setOnClickListener(getButtonListener(this));
-//        rootView.findViewById(R.id.button_new_thread).setOnClickListener(getButtonListener(this));
+        rootView.findViewById(R.id.button_live_refresh).setOnClickListener(getButtonListener(this));
+        rootView.findViewById(R.id.button_new_thread).setOnClickListener(getButtonListener(this));
         //((SeekBar)rootView.findViewById(R.id.seekBar)).setOnSeekBarChangeListener(getButtonListener(this));
 
         if (VERBOSE) Log.v(TAG,"exiting onCreateView...");

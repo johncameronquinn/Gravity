@@ -5,7 +5,7 @@
     android:layout_height="wrap_content"
     android:layout_alignParentTop="true"
     android:gravity="top"
-    android:background="@drawable/ic_comment"
+    android:background="@drawable/rectangle"
     android:padding="10dp"
     android:visibility="visible">
 
@@ -33,7 +33,7 @@
         android:text="comment text goes here"
         android:layout_below="@+id/reply_detail_row_time"
         android:layout_alignParentTop="false"
-        android:layout_alignParentRight="true"
+        android:layout_alignParentStart="true"
         android:layout_toRightOf="@+id/photoProgress"
         android:focusable="true"
         android:textColor="@color/jpallete_main_grey">

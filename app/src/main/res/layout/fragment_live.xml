@@ -43,19 +43,14 @@
      </fr.castorflex.android.verticalviewpager.VerticalViewPager>
 
     <com.github.clans.fab.FloatingActionMenu
+        style="@style/LiveFabMenu"
         android:id="@+id/live_radical_menu"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
         android:layout_gravity="bottom|start"
-        fab:menu_animationDelayPerItem="30"
-        fab:menu_shadowColor="#444"
-        fab:menu_colorNormal="@color/cyber_dark_blue"
-        fab:menu_colorPressed="@color/cyber_light_blue"
-        fab:menu_colorRipple="@color/cyber_grey"
-        fab:menu_labels_position="right"
-        android:layout_marginStart="10dp"
-        android:layout_marginBottom="10dp">
-
+        android:paddingStart="10dp"
+        android:paddingEnd="10dp"
+        android:paddingBottom="@dimen/side_screen_margin">
 
         <com.github.clans.fab.FloatingActionButton
             style="@style/FabNormal"

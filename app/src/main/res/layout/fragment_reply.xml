@@ -7,33 +7,24 @@
     android:id="@+id/layout_reply_root"
     tools:context="com.jokrapp.android.ReplyFragment">
 
-
     <ListView
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:id="@+id/reply_list_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:id="@+id/reply_list_view"
         android:dividerHeight="4dp"
         android:layout_alignParentTop="true"
-        android:layout_alignLeft="@+id/replyexpandable"
         android:layout_marginRight="@dimen/side_screen_margin"
-        android:layout_marginLeft="@dimen/side_screen_margin"
-        android:layout_alignStart="@+id/replyexpandable" />
-
+        android:layout_margin="@dimen/side_screen_margin"
+        android:layout_marginLeft="@dimen/side_screen_margin"/>
 
     <com.github.clans.fab.FloatingActionMenu
+        style="@style/LiveFabMenu"
         android:id="@+id/reply_radical_menu"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:padding="10dp"
         android:layout_alignParentBottom="true"
-        android:layout_alignParentStart="true"
-        fab:menu_animationDelayPerItem="30"
-        fab:menu_shadowColor="#444"
-        fab:menu_colorNormal="@color/cyber_dark_blue"
-        fab:menu_colorPressed="@color/cyber_light_blue"
-        fab:menu_colorRipple="@color/cyber_grey"
-        fab:menu_labels_position="right"
-        android:layout_marginLeft="10dp"
-        android:layout_marginBottom="10dp">
+        android:layout_alignParentStart="true">
 
         <com.github.clans.fab.FloatingActionButton
             style="@style/FabNormal"

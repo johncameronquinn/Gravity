@@ -401,13 +401,13 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
             View v = getView();
             if (v!=null) {
                 //v.findViewById(R.id.button_reply_load).setVisibility(View.VISIBLE);
-                v.findViewById(R.id.button_reply_report).setVisibility(View.VISIBLE);
+                //v.findViewById(R.id.button_reply_report).setVisibility(View.VISIBLE);
             }
         } else {
             View v = getView();
             if (v!=null) {
                 //v.findViewById(R.id.button_reply_load).setVisibility(View.GONE);
-                v.findViewById(R.id.button_reply_report).setVisibility(View.GONE);
+                //v.findViewById(R.id.button_reply_report).setVisibility(View.GONE);
             }
 
             Log.i(TAG,"There are no replies... notify user?");
