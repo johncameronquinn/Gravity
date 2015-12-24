@@ -6,21 +6,8 @@
     android:layout_alignParentTop="true"
     android:gravity="top"
     android:background="@drawable/rectangle"
-    android:padding="10dp"
-    android:visibility="visible">
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceSmall"
-        android:text="unixtime"
-        android:id="@+id/reply_detail_row_time"
-        android:layout_gravity="right"
-        android:layout_alignParentTop="true"
-        android:layout_alignParentRight="true"
-        android:layout_alignParentEnd="true"
-        android:layout_marginRight="5dp"
-        style="@style/liveTextStyle" />
+    android:visibility="visible"
+    android:padding="5dp">
 
 
     <TextView
@@ -31,26 +18,44 @@
         android:gravity="center_vertical|left"
         android:padding="2dp"
         android:text="comment text goes here"
-        android:layout_below="@+id/reply_detail_row_time"
         android:layout_alignParentTop="false"
         android:layout_alignParentStart="true"
-        android:layout_toRightOf="@+id/photoProgress"
         android:focusable="true"
-        android:textColor="@color/jpallete_main_grey">
+        android:textColor="@color/jpallete_main_grey"
+        android:layout_toRightOf="@+id/thumbImage"
+        android:layout_toStartOf="@+id/linearLayout">
     </TextView>
 
-    <TextView
+    <LinearLayout
+        android:orientation="vertical"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceSmall"
-        android:text="jester"
-        android:id="@+id/reply_detail_row_name"
-        android:layout_alignWithParentIfMissing="true"
-        android:layout_alignParentTop="true"
-        android:layout_marginLeft="5dp"
-        android:layout_toRightOf="@+id/photoProgress"
-        android:layout_alignParentLeft="false"
-        style="@style/nameTextStyle" />
+        android:layout_alignParentEnd="true"
+        android:id="@+id/linearLayout">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:text="unixtime"
+            android:id="@+id/reply_detail_row_time"
+            android:layout_gravity="right"
+            android:layout_below="@+id/reply_detail_row_name"
+            android:layout_marginRight="5dp"
+            android:textColor="#ffffff" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:textAppearance="?android:attr/textAppearanceSmallInverse"
+            android:text="jester"
+            android:id="@+id/reply_detail_row_name"
+            android:layout_alignWithParentIfMissing="true"
+            android:layout_alignParentTop="true"
+            android:layout_alignParentEnd="true"
+            android:layout_marginLeft="5dp"
+            android:textColor="@color/cyber_grey" />
+
+    </LinearLayout>
 
     <com.jokrapp.android.PhotoView
         android:id="@+id/thumbImage" android:layout_width="100dp"
