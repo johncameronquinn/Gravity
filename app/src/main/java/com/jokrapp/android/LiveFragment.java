@@ -56,7 +56,7 @@ public class LiveFragment extends Fragment implements
     private final String VIEW_HACK_KEY = "pagerkey";
 
     private final int LIVE_LOADER_ID = 1;
-    private final int LIVE_OFFSCREEN_LIMIT = 2;
+    private final int LIVE_OFFSCREEN_LIMIT = 3;
     private int currentThread;
 
     public static final int NO_LIVE_THREADS_ID = -1;
