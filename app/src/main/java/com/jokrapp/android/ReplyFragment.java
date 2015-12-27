@@ -397,6 +397,11 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
         if (VERBOSE) Log.v(TAG,"entering onLoadFinished...");
 
           /* only set the action buttons to visible if there is content */
+        if (data == null) {
+            Log.e(TAG,"why was the returned cursor null?");
+            return;
+        }
+
         if (data.getCount() > 0) {
             View v = getView();
             if (v!=null) {

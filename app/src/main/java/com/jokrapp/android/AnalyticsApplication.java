@@ -14,7 +14,7 @@ import com.amazonaws.mobileconnectors.amazonmobileanalytics.MobileAnalyticsManag
 /**
  * Created by ev0x on 9/29/15.
  */
-public class AnalyticsApplication extends Application {
+public class  AnalyticsApplication extends Application {
     private MobileAnalyticsManager mTracker;
 
     /**

@@ -155,5 +155,9 @@ public final class Constants {
     public static final String ANALYTICS_CATEGORY_SCREEN ="screen";
     public static final String ANALYTICS_ATTRIBUTE_USER_ID="userID";
 
+    public static final String SCREEN_TITLE = "Screen Title";
+
     public static final String ANALYTICS_CATEGORY_ERROR = "error";
+    public static final String ANALYTICS_ERROR_METHOD = "ErrorMethod";
+    public static final String ANALYTICS_ERROR_MESSAGE = "ErrorMessage";
 }

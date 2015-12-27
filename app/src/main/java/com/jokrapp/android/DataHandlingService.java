@@ -12,6 +12,7 @@ import android.widget.Toast;
 import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.mobile.AWSMobileClient;
 import com.amazonaws.mobileconnectors.amazonmobileanalytics.AnalyticsEvent;
+import com.amazonaws.mobileconnectors.amazonmobileanalytics.EventClient;
 import com.amazonaws.mobileconnectors.amazonmobileanalytics.MobileAnalyticsManager;
 import com.amazonaws.mobileconnectors.s3.transferutility.TransferListener;
 import com.amazonaws.mobileconnectors.s3.transferutility.TransferObserver;
@@ -255,6 +256,8 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
             Log.v(TAG, "saving ImagesSeen to sharedPreferences, size: " + imagesSeen.size());
         }
 
+        mTracker.getEventClient().submitEvents();
+
         SharedPreferences settings = getSharedPreferences(TAG, MODE_PRIVATE);
         settings.edit().putStringSet(IMAGESSEEN_KEY, new HashSet<>(imagesSeen)).apply();
         cancelAll();
@@ -354,6 +357,10 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
     static final int MSG_REPORT_ANALYTICS= 100;
 
     static final int MSG_REPORT_ANALYTIC_TIMING = 101;
+
+    static final int MSG_REPORT_ANALYTIC_ERROR = 102;
+
+    static final int MSG_REPORT_ANALYTIC_SCREEN = 103;
 
     static final int MSG_UPLOAD_IMAGE = 19;
 
@@ -532,6 +539,16 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
                 case MSG_REPORT_ANALYTIC_TIMING:
                     if (Constants.LOGD) Log.d(TAG, "Received a message to report timing events");
                     reportAnalyticsTimingEvent(msg.getData());
+                    break;
+
+                case MSG_REPORT_ANALYTIC_ERROR:
+                    if (Constants.LOGD) Log.d(TAG, "Received a message to report an error");
+                    reportAnalyticsError(data);
+                    break;
+
+                case MSG_REPORT_ANALYTIC_SCREEN:
+                    if (Constants.LOGD) Log.d(TAG, "Received a message to set the current screen");
+                    reportAnalyticsScreen(data);
                     break;
 
                 default:
@@ -889,7 +906,7 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
                         .createEvent(Constants.ANALYTICS_CATEGORY_LIFECYCLE)
                         .withAttribute(Constants.ANALYTICS_CATEGORY_MESSAGE, userID
                         ));
-        mTracker.getEventClient().addGlobalAttribute(Constants.ANALYTICS_ATTRIBUTE_USER_ID,userID);
+        mTracker.getEventClient().addGlobalAttribute(Constants.ANALYTICS_ATTRIBUTE_USER_ID, userID);
 
 
     }
@@ -943,11 +960,56 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
             Log.v(TAG, "entering reportAnalyticsEvent");
             LogUtils.printBundle(data, TAG);
         }
-        Log.w(TAG,"not implemented...");
+        Log.w(TAG, "not implemented...");
 
         //mTracker.send(event.build()); todo fix this
 
         Log.v(TAG, "exiting reportAnalyticsEvent");
+    }
+
+    /**
+     * method 'reportAnalyticsTimingEvent'
+     * <p/>
+     * reports a timing event to Google analytics.
+     * <p/>
+     * {@link com.jokrapp.android.LiveFragment.onLiveFragmentInteractionListener}
+     * {@link com.jokrapp.android.LocalFragment.onLocalFragmentInteractionListener}
+     * Called by these linked interface callbacks.
+     *
+     */
+    public void reportAnalyticsError(Bundle data) {
+        if (VERBOSE) {
+            Log.v(TAG, "entering reportAnalyticsError");
+            LogUtils.printBundle(data, TAG);
+        }
+
+        EventClient client = mTracker.getEventClient();
+
+        AnalyticsEvent event =
+                client.createEvent(Constants.ANALYTICS_CATEGORY_ERROR);
+
+        event.addAttribute(Constants.ANALYTICS_ERROR_METHOD,
+                data.getString(Constants.ANALYTICS_ERROR_METHOD));
+
+        event.addAttribute(Constants.ANALYTICS_ERROR_MESSAGE,
+                data.getString(Constants.ANALYTICS_ERROR_MESSAGE));
+
+        client.recordEvent(event);
+
+        if (VERBOSE) Log.v(TAG, "exiting reportAnalyticsError");
+    }
+
+    public void reportAnalyticsScreen(Bundle data) {
+        if (VERBOSE) {
+            Log.v(TAG, "entering reportAnalyticsScreen");
+            LogUtils.printBundle(data, TAG);
+        }
+
+        mTracker.getEventClient()
+                .addGlobalAttribute(Constants.SCREEN_TITLE, data.getString(Constants.SCREEN_TITLE)
+                );
+
+        if (VERBOSE) Log.v(TAG, "exiting reportAnalyticsScreen");
     }
 
 

@@ -424,7 +424,7 @@ public class LocalFragment extends Fragment implements
      *
      */
     public interface onLocalFragmentInteractionListener {
-        void setAnalyticsScreenName(String name);
+        //void setAnalyticsScreenName(String name);
         void sendMsgReportAnalyticsEvent(Bundle b);
         void sendMsgDownloadImage(String s3Directroy, String s3Key);
         void saveToStash(PhotoView imageToSave);

@@ -514,7 +514,7 @@ public class LiveFragment extends Fragment implements
 
         //report thread view to analytics service
         if (mListener != null) {
-            mListener.setAnalyticsScreenName( "Thread-Position: " + position);
+            //mListener.setAnalyticsScreenName( "Thread-Position: " + position);
         }
         if (VERBOSE) Log.v(TAG, "exiting onPageSelected...");
     }
@@ -641,7 +641,7 @@ public class LiveFragment extends Fragment implements
 
     public interface onLiveFragmentInteractionListener {
         void sendMsgReportAnalyticsEvent(Bundle b);
-        void setAnalyticsScreenName(String name);
+        //void setAnalyticsScreenName(String name);
         void sendMsgRequestLiveThreads();
         void sendMsgRequestReplies(int threadID);
         void setCurrentThread(String threadID);
