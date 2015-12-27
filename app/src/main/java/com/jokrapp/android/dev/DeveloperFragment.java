@@ -21,6 +21,7 @@ import android.widget.Toast;
 import com.amazonaws.AmazonClientException;
 import com.amazonaws.AmazonServiceException;
 import com.amazonaws.auth.BasicAWSCredentials;
+import com.amazonaws.mobile.AWSMobileClient;
 import com.amazonaws.mobileconnectors.s3.transferutility.TransferListener;
 import com.amazonaws.mobileconnectors.s3.transferutility.TransferObserver;
 import com.amazonaws.mobileconnectors.s3.transferutility.TransferState;
@@ -147,6 +148,7 @@ public class DeveloperFragment extends Fragment implements View.OnClickListener 
                 Log.i(TAG, "downloading image");
                 networkHandler.post(new DownloadImageRunnable());
                 break;
+
         }
     }
 

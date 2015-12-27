@@ -58,6 +58,6 @@ public class AWSConfiguration {
     // SNS PLATFORM TOPIC ARNS
     public static final String[] AMAZON_SNS_TOPIC_ARNS =
         {};
-    public static final String AMAZON_CONTENT_DELIVERY_S3_BUCKET =
-        "gravity-contentdelivery-mobilehub-735100335";
+    public static final String AMAZON_CONTENT_DELIVERY_S3_BUCKET = "launch-zone";
+        //"gravity-contentdelivery-mobilehub-735100335";
 }

@@ -271,6 +271,7 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
         switch (msg.arg2) {
             case HttpURLConnection.HTTP_OK:
                 if (VERBOSE) Log.v(TAG,"Response code : " + msg.arg2);
+
                 mListView.setAdapter(mAdapter);
                 break;
 
@@ -398,7 +399,11 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
 
           /* only set the action buttons to visible if there is content */
         if (data == null) {
-            Log.e(TAG,"why was the returned cursor null?");
+            Log.e(TAG, "why was the returned cursor null?");
+
+            if (mAdapter != null) {
+                mAdapter.swapCursor(null);
+            } //todo why is this necessary? (occasional NPE occurred because of this line)
             return;
         }
 
@@ -415,7 +420,7 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
                 //v.findViewById(R.id.button_reply_report).setVisibility(View.GONE);
             }
 
-            Log.i(TAG,"There are no replies... notify user?");
+            Log.i(TAG, "There are no replies... notify user?");
             //todo, explain what replies are, and suggest a reply
         }
 

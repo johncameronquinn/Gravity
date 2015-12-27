@@ -59,10 +59,13 @@ public class PhotoManager {
 
     static final int AWS_DOWNLOAD_COMPLETE = 5;
 
-    static final boolean VERBOSE = false;
+    static final boolean VERBOSE = true;
 
 
     private static final String TAG = "PhotoManager";
+
+    static final String STORAGE_PREFIX = "/s3_launch-zone/content/";
+
     // Sets the size of the storage that's used to cache images
     private static final int IMAGE_CACHE_SIZE = 1024 * 1024 * 10; //10MiB
 
@@ -290,7 +293,7 @@ public class PhotoManager {
                              */
                             case REQUEST_COMPLETE:
                                 if (VERBOSE) Log.d(TAG, "Request Complete...");
-                                handleState(photoTask, DOWNLOAD_COMPLETE);
+                                handleState(photoTask, REQUEST_COMPLETE);
                                 // Sets background color to golden yellow
                                 //localView.setStatusResource(R.drawable.decodequeued);
                                 if (localView.getVisibility()== View.GONE) {
@@ -460,7 +463,7 @@ public class PhotoManager {
 
             case REQUEST_COMPLETE:
 
-                if (VERBOSE) Log.v(TAG,"received download_complete message from service... " +
+                if (VERBOSE) Log.v(TAG,"received request_complete message from service... " +
                         "starting diskload.");
                 /*
                  * Decodes the image, by queuing the decoder object to run in the decoder
@@ -476,7 +479,7 @@ public class PhotoManager {
 
 
             case REQUEST_STARTED:
-                if (VERBOSE) Log.v(TAG,"image download started... saving task");
+                if (VERBOSE) Log.v(TAG,"image download request started... saving task");
 
                 //add it to waiting tasks map
                 mWaitingPhotoTasks.put(photoTask.getImageKey(), photoTask);
@@ -503,6 +506,8 @@ public class PhotoManager {
                 break;
 
             case DOWNLOAD_COMPLETE:
+                if (VERBOSE) Log.v(TAG,"image download complete... starting decode");
+
                 /*
                  * Decodes the image, by queuing the decoder object to run in the decoder
                  * thread pool
@@ -699,7 +704,7 @@ public class PhotoManager {
             } else {
 
                 //is it in the disk cache?
-                File imagePath = new File(downloadTask.getCacheDirectory(), downloadTask.getImageKey());
+                File imagePath = new File(downloadTask.getCacheDirectory()+STORAGE_PREFIX, downloadTask.getImageKey());
 
                 if (VERBOSE) Log.v(TAG,"does the path : " + imagePath.getAbsolutePath() + " exist?");
                 if (imagePath.exists()) {

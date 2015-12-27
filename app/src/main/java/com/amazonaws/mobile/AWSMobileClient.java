@@ -9,6 +9,7 @@
 package com.amazonaws.mobile;
 
 import android.content.Context;
+import android.os.Bundle;
 import android.util.Log;
 
 import com.amazonaws.ClientConfiguration;
@@ -279,11 +280,29 @@ public class AWSMobileClient {
      */
     public void createDefaultContentManager(final ContentManager.BuilderResultHandler resultHandler) {
         new ContentManager.Builder()
-            .withContext(context)
-            .withIdentityManager(identityManager)
-            .withS3Bucket(AWSConfiguration.AMAZON_CONTENT_DELIVERY_S3_BUCKET)
-            .withLocalBasePath(context.getFilesDir().getAbsolutePath())
-            .withClientConfiguration(clientConfiguration)
-            .build(resultHandler);
+                .withContext(context)
+                .withIdentityManager(identityManager)
+                .withS3Bucket(AWSConfiguration.AMAZON_CONTENT_DELIVERY_S3_BUCKET)
+                .withLocalBasePath(context.getFilesDir().getAbsolutePath())
+                .withClientConfiguration(clientConfiguration)
+                .build(resultHandler);
     }
+
+    /**
+     * Creates a Cache Content Manager, which differs from the default in that its local base
+     * directory is in the "cache" instead of files
+     *
+     * @param resultHandler handles the resulting ContentManager instance
+     */
+    public void createCacheContentManager(final ContentManager.BuilderResultHandler resultHandler) {
+        new ContentManager.Builder()
+                .withContext(context)
+                .withIdentityManager(identityManager)
+                .withS3Bucket(AWSConfiguration.AMAZON_CONTENT_DELIVERY_S3_BUCKET)
+                .withLocalBasePath(context.getCacheDir().getAbsolutePath())
+                .withClientConfiguration(clientConfiguration)
+                .build(resultHandler);
+    }
+
 }
+

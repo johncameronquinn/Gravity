@@ -8,12 +8,17 @@ import android.location.Location;
 import android.net.Uri;
 import android.os.*;
 import android.util.Log;
+import android.view.View;
 import android.widget.Toast;
 import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.mobile.AWSMobileClient;
+import com.amazonaws.mobile.content.ContentItem;
+import com.amazonaws.mobile.content.ContentManager;
+import com.amazonaws.mobile.content.ContentProgressListener;
 import com.amazonaws.mobileconnectors.amazonmobileanalytics.AnalyticsEvent;
 import com.amazonaws.mobileconnectors.amazonmobileanalytics.EventClient;
 import com.amazonaws.mobileconnectors.amazonmobileanalytics.MobileAnalyticsManager;
+import com.amazonaws.mobileconnectors.s3.transfermanager.internal.S3ProgressListener;
 import com.amazonaws.mobileconnectors.s3.transferutility.TransferListener;
 import com.amazonaws.mobileconnectors.s3.transferutility.TransferObserver;
 import com.amazonaws.mobileconnectors.s3.transferutility.TransferState;
@@ -62,7 +67,8 @@ import com.jokrapp.android.SQLiteDbContract.StashEntry;
  * Communication is managed via a broadcastManager
  */
 public class DataHandlingService extends Service implements GoogleApiClient.ConnectionCallbacks,
-        GoogleApiClient.OnConnectionFailedListener, LocationListener, TransferListener {
+        GoogleApiClient.OnConnectionFailedListener, LocationListener, TransferListener,
+        ContentProgressListener {
     private static final String TAG = "DataHandlingService";
     private static final boolean VERBOSE = true;
     private static final boolean ALLOW_DUPLICATES = false;
@@ -77,9 +83,13 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
      * S3 INFO
      */
     private final String BUCKET_NAME = "launch-zone";
+
     private MobileAnalyticsManager mTracker;
+
     private static String serverAddress = "jokrbackend.ddns.net"; //changes when resolved
     private static UUID userID;
+
+    private ContentManager contentManager;
 
     /**
      * RESPONSE CODES
@@ -194,9 +204,10 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
         if (mGoogleApiClient != null) {
             mGoogleApiClient.connect();
         }
-//        AWSMobileClient.initializeMobileClientIfNecessary(this);
+        AWSMobileClient.initializeMobileClientIfNecessary(this);
 
-        mTracker = ((AnalyticsApplication) getApplication()).getAnalyticsManager();
+        mTracker = AWSMobileClient.defaultMobileClient().getMobileAnalyticsManager();
+        //((AnalyticsApplication) getApplication()).getAnalyticsManager();
 
         SharedPreferences settings = getSharedPreferences(TAG, MODE_PRIVATE);
         boolean isFirstRun = settings.getBoolean(ISFIRSTRUN_KEY, true);
@@ -238,7 +249,7 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
             }
 
             //todo this should use a more secure system involving amazon cognito
-            initializeTransferUtility();
+
 
         } else {
             if (VERBOSE) Log.v(TAG, "Duplicates are allowed, not loaded imagesSeen");
@@ -256,8 +267,6 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
             Log.v(TAG, "saving ImagesSeen to sharedPreferences, size: " + imagesSeen.size());
         }
 
-        mTracker.getEventClient().submitEvents();
-
         SharedPreferences settings = getSharedPreferences(TAG, MODE_PRIVATE);
         settings.edit().putStringSet(IMAGESSEEN_KEY, new HashSet<>(imagesSeen)).apply();
         cancelAll();
@@ -266,20 +275,24 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
     }
 
     public void initializeTransferUtility() {
-        if (VERBOSE) Log.v(TAG,"entering initializeTransferUtility...");
 
-        transferUtility =
-                new TransferUtility(
-                        new AmazonS3Client(
-                                new BasicAWSCredentials(
-                                        "AKIAIZ42NH277ZC764XQ",
-                                        "pMYCGMq+boy6858OfITL4CTXWgdkVbVreyROHckG"
-                                )
-                        ),getApplicationContext()
-                );
+        if (VERBOSE) Log.v(TAG, "creating initializeTransferUtility...");
+        AWSMobileClient.defaultMobileClient().
+                createCacheContentManager(new ContentManager.BuilderResultHandler() {
+                    @Override
+                    public void onComplete(final ContentManager contentManager) {
+                        Log.v(TAG, "ContentManager created!");
+                        DataHandlingService.this.contentManager = contentManager;
+                        contentManager.setContentCacheSize(1024*1024*20);
+                    }
+                });
+
+
+
 
         if (VERBOSE) Log.v(TAG,"exiting initializeTransferUtility...");
     }
+
 
     public List<String> getImagesSeen() {
         return imagesSeen;
@@ -570,6 +583,7 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
     @Override
     public IBinder onBind(Intent intent) {
         Log.i(TAG, "client is binding to the Service");
+        initializeTransferUtility();
         return mMessenger.getBinder();
     }
 
@@ -1024,7 +1038,15 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
         }
 
         if (transferUtility == null) {
-            initializeTransferUtility();
+            transferUtility =
+                    new TransferUtility(
+                            new AmazonS3Client(
+                                    new BasicAWSCredentials(
+                                            "AKIAIZ42NH277ZC764XQ",
+                                            "pMYCGMq+boy6858OfITL4CTXWgdkVbVreyROHckG"
+                                    )
+                            ),getApplicationContext()
+                    );
         }
 
         String directory = b.getString(Constants.KEY_S3_DIRECTORY,"");
@@ -1062,7 +1084,7 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
 
              observer = transferUtility.upload(
                     BUCKET_NAME,     /* The bucket to upload to */
-                    b.getString(Constants.KEY_S3_KEY)+"s", /* The key for the uploaded object */
+                    b.getString(Constants.KEY_S3_KEY) + "s", /* The key for the uploaded object */
                     new File(getCacheDir(),b.getString(Constants.KEY_S3_KEY)+"s") /* The file where the data to upload exists */
             );
             b.putInt(REQUEST_TYPE,MSG_REPLY_TO_THREAD);
@@ -1081,9 +1103,7 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
             LogUtils.printBundle(b, TAG);
         }
 
-        if (transferUtility == null) {
-            initializeTransferUtility();
-        }
+
 
         String directory = b.getString(Constants.KEY_S3_DIRECTORY,"");
         String key = b.getString(Constants.KEY_S3_KEY,"");
@@ -1100,14 +1120,23 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
             Log.d(TAG, "storing downloaded imaged at: " + file.getPath());
         }
 
-        TransferObserver observer = transferUtility.download(
-                BUCKET_NAME,     /* The bucket to upload to */
-                key,/* The key for the uploaded object */
-                file /* The file where the data to upload exists */
-        );
+        if (contentManager == null) {
 
-        pendingMap.put(observer.getId(), b);
-        observer.setTransferListener(this);
+            Log.v(TAG, "ContentManager was null...");
+            //initializeTransferUtility();
+        } else {
+            contentManager.getContent(key,this);
+        }
+
+
+        //TransferObserver observer = transferUtility.download(
+//                BUCKET_NAME,     /* The bucket to upload to */
+//                key,/* The key for the uploaded object */
+//                file /* The file where the data to upload exists */
+ //       );
+
+   //     pendingMap.put(observer.getId(), b);
+//        observer.setTransferListener(this);
 
         if (VERBOSE) {
             Log.v(TAG,"exiting downloadImageFromS3...");
@@ -1181,7 +1210,6 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
                 } else if (VERBOSE){
                     LogUtils.printBundle(data,TAG);
                 }
-
 
                 ContentValues values = new ContentValues();
                 values.put(StashEntry.IMAGE_URL_COLUMN,data.getString(Constants.KEY_S3_KEY));
@@ -1281,5 +1309,54 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
         Log.e(TAG, "exiting onError...", ex);
     }
 
+    @Override
+    public void onProgressUpdate(String filePath, boolean isWaiting, long bytesCurrent,
+                                 long bytesTotal) {
 
+
+    }
+
+    @Override
+    public void onError(String filePath, Exception ex) {
+        Log.e(TAG,"error with filepath: " + filePath);
+        ex.printStackTrace();
+        Bundle b = new Bundle();
+        b.putString(Constants.KEY_S3_KEY, filePath);
+        Message msg = Message.obtain(null,PhotoManager.REQUEST_FAILED);
+        msg.setData(b);
+
+        if (imageResponseMessenger != null) {
+            try {
+                imageResponseMessenger.send(msg);
+            } catch (RemoteException e) {
+                Log.e(TAG, "error responding that an image that failed to download...");
+            }
+        } else {
+            Log.e(TAG,"imageResponseMessenger was null, cannot send.");
+        }
+
+
+    }
+
+    @Override
+    public void onSuccess(ContentItem contentItem) {
+        Log.i(TAG, "success for item " + contentItem.getFile().getAbsolutePath());
+
+        Bundle b = new Bundle();
+        b.putString(Constants.KEY_S3_KEY,contentItem.getFilePath());
+        Message msg = Message.obtain(null,PhotoManager.REQUEST_COMPLETE);
+        msg.setData(b);
+
+        if (imageResponseMessenger != null) {
+            try {
+                if (VERBOSE) Log.v(TAG, "Sending success message.");
+                imageResponseMessenger.send(msg);
+            } catch (RemoteException e) {
+                Log.e(TAG, "error responding that an image has finished downloading...");
+            }
+        } else {
+            Log.e(TAG,"imageResponseMessenger was null, cannot send.");
+        }
+
+    }
 }

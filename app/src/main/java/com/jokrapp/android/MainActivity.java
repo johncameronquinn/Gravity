@@ -318,18 +318,21 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
 
                 case MESSAGE_LIST_POSITION:
                 case LOCAL_LIST_POSITION:
-                    Toast.makeText(getApplicationContext(),"Opening Local Settings...",Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getApplicationContext(),"Opening Local Settings...",
+                            Toast.LENGTH_SHORT).show();
                     startPage = LOCAL_SETTINGS;
                     break;
 
                 case CAMERA_LIST_POSITION:
-                    Toast.makeText(getApplicationContext(),"Opening Stash Gallery...",Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getApplicationContext(),"Opening Stash Gallery...",
+                            Toast.LENGTH_SHORT).show();
                     startPage = GALLERY;
                     break;
 
                 case LIVE_LIST_POSITION:
                 case REPLY_LIST_POSITION:
-                    Toast.makeText(getApplicationContext(),"Opening Live Settings...",Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getApplicationContext(),"Opening Live Settings...",
+                            Toast.LENGTH_SHORT).show();
                     startPage = LIVE_SETTINGS;
                     break;
             }
