@@ -8,8 +8,8 @@ android {
         applicationId "com.jokrapp.android"
         minSdkVersion 17
         targetSdkVersion 23
-        versionCode 8
-        versionName "4.7.0"
+        versionCode 9
+        versionName "4.7.1"
     }
 
     buildTypes {
@@ -37,24 +37,24 @@ android {
             minSdkVersion 17
             applicationId 'com.jokrapp.android'
             targetSdkVersion 23
-            versionCode 8
-            versionName '4.7.0-dev'
+            versionCode 9
+            versionName '4.7.1-dev'
         }
 
         sales {
             minSdkVersion 17
             applicationId 'com.jokrapp.android'
             targetSdkVersion 23
-            versionCode 8
-            versionName '4.7.0-sales'
+            versionCode 9
+            versionName '4.7.1-sales'
         }
 
         user {
             minSdkVersion 17
             applicationId 'com.jokrapp.android'
             targetSdkVersion 23
-            versionCode 8
-            versionName '4.7.0-user'
+            versionCode 9
+            versionName '4.7.1-user'
         }
     }
 

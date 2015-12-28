@@ -1,6 +1,8 @@
 package com.jokrapp.android.dev;
 
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.Context;
 import android.content.CursorLoader;
 import android.content.Intent;
 import android.database.Cursor;
@@ -15,13 +17,19 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.ProgressBar;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.amazonaws.AmazonClientException;
 import com.amazonaws.AmazonServiceException;
 import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.mobile.AWSMobileClient;
+import com.amazonaws.mobile.user.IdentityManager;
+import com.amazonaws.mobile.user.IdentityProvider;
+import com.amazonaws.mobile.user.signin.SignInManager;
+import com.amazonaws.mobile.user.signin.SignInProvider;
 import com.amazonaws.mobileconnectors.s3.transferutility.TransferListener;
 import com.amazonaws.mobileconnectors.s3.transferutility.TransferObserver;
 import com.amazonaws.mobileconnectors.s3.transferutility.TransferState;
@@ -34,6 +42,7 @@ import com.amazonaws.services.s3.model.GetObjectRequest;
 import com.amazonaws.services.s3.model.S3Object;
 import com.amazonaws.services.s3.model.S3ObjectInputStream;
 import com.jokrapp.android.FireFlyContentProvider;
+import com.jokrapp.android.MainActivity;
 import com.jokrapp.android.R;
 
 import java.io.File;
@@ -48,7 +57,7 @@ import java.util.List;
  * {@link DeveloperFragment.OnFragmentInteractionListener} interface
  * to handle interaction events.
  */
-public class DeveloperFragment extends Fragment implements View.OnClickListener {
+public class DeveloperFragment extends Fragment implements View.OnClickListener, IdentityManager.SignInStateChangeListener {
 
     private final String TAG = "DeveloperFragment";
 
@@ -56,6 +65,23 @@ public class DeveloperFragment extends Fragment implements View.OnClickListener 
 
     HandlerThread handlerThread = new HandlerThread("DevpanelHandler");
     Handler networkHandler;
+
+
+    /** The identity manager used to keep track of the current user account. */
+    private IdentityManager identityManager;
+
+    /** This fragment's view. */
+    private View mFragmentView;
+
+    /** Text view for showing the user identity. */
+    private TextView userIdTextView;
+
+    /** Text view for showing the user name. */
+    private TextView userNameTextView;
+
+    /** Image view for showing the user image. */
+    private ImageView userImageView;
+
 
 
     private OnFragmentInteractionListener mListener;
@@ -70,18 +96,36 @@ public class DeveloperFragment extends Fragment implements View.OnClickListener 
 
         handlerThread.start();
         networkHandler = new Handler(handlerThread.getLooper());
-        s3Client = new AmazonS3Client(
-                new BasicAWSCredentials("AKIAIZ42NH277ZC764XQ","pMYCGMq+boy6858OfITL4CTXWgdkVbVreyROHckG"));
-        s3Client.setRegion(Region.getRegion(Regions.US_EAST_1));
 
-        networkHandler.post(new ListBucketsRunnable());
+
+        signInManager = SignInManager.getSignInProviderManager();
+
+        signInManager.setResultsHandler(getActivity(), new SignInResultsHandler());
+
+        //s3Client = new AmazonS3Client(
+//                new BasicAWSCredentials("AKIAIZ42NH277ZC764XQ","pMYCGMq+boy6858OfITL4CTXWgdkVbVreyROHckG"));
+        //s3Client.setRegion(Region.getRegion(Regions.US_EAST_1));
+
+       // networkHandler.post(new ListBucketsRunnable());
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_developer, container, false);
+        View mFragmentView = inflater.inflate(R.layout.fragment_developer, container, false);
+
+        userNameTextView = (TextView) mFragmentView.findViewById(R.id.textView_demoIdentityUserName);
+        userIdTextView = (TextView) mFragmentView.findViewById(R.id.textView_demoIdentityUserID);
+        userImageView = (ImageView)mFragmentView.findViewById(R.id.imageView_demoIdentityUserImage);
+
+        // Obtain a reference to the identity manager.
+        identityManager = AWSMobileClient.defaultMobileClient()
+                .getIdentityManager();
+        identityManager.addSignInStateChangeListener(this);
+        fetchUserIdentity();
+
+        return mFragmentView;
     }
 
     @Override
@@ -96,7 +140,7 @@ public class DeveloperFragment extends Fragment implements View.OnClickListener 
     public void onAttach(Activity activity) {
         super.onAttach(activity);
         try {
-            mListener = (OnFragmentInteractionListener) activity;
+//            mListener = (OnFragmentInteractionListener) activity;
         } catch (ClassCastException e) {
             throw new ClassCastException(activity.toString()
                     + " must implement OnFragmentInteractionListener");
@@ -149,7 +193,172 @@ public class DeveloperFragment extends Fragment implements View.OnClickListener 
                 networkHandler.post(new DownloadImageRunnable());
                 break;
 
+            case R.id.signIn:
+                Log.i(TAG, "attempting to sign in...");
+                break;
+
         }
+    }
+
+
+    private SignInManager signInManager;
+
+    /**
+     * SignInResultsHandler handles the final result from sign in. Making it static is a best
+     * practice since it may outlive the SplashActivity's life span.
+     */
+    private class SignInResultsHandler implements IdentityManager.SignInResultsHandler {
+        /**
+         * Receives the successful sign-in result and starts the main activity.
+         * @param provider the identity provider used for sign-in.
+         */
+        @Override
+        public void onSuccess(final IdentityProvider provider) {
+            Log.d(TAG, String.format("User sign-in with %s succeeded",
+                    provider.getDisplayName()));
+
+            Toast.makeText(DeveloperFragment.this.getActivity(), String.format("Sign-in with %s succeeded.",
+                    provider.getDisplayName()), Toast.LENGTH_LONG).show();
+
+            // Load user name and image.
+            AWSMobileClient.defaultMobileClient()
+                    .getIdentityManager().loadUserInfoAndImage(provider, new Runnable() {
+                @Override
+                public void run() {
+                    Log.d(TAG, "Launching Main Activity...");
+                    // finish should always be called on the main thread.
+                }
+            });
+        }
+
+        /**
+         * Recieves the sign-in result indicating the user canceled and shows a toast.
+         * @param provider the identity provider with which the user attempted sign-in.
+         */
+        @Override
+        public void onCancel(final IdentityProvider provider) {
+            Log.d(TAG, String.format("User sign-in with %s canceled.",
+                    provider.getDisplayName()));
+
+            Toast.makeText(DeveloperFragment.this.getActivity(), String.format("Sign-in with %s canceled.",
+                    provider.getDisplayName()), Toast.LENGTH_LONG).show();
+        }
+
+        /**
+         * Receives the sign-in result that an error occurred signing in and shows a toast.
+         * @param provider the identity provider with which the user attempted sign-in.
+         * @param ex the exception that occurred.
+         */
+        @Override
+        public void onError(final IdentityProvider provider, final Exception ex) {
+            Log.e(TAG, String.format("User Sign-in failed for %s : %s",
+                    provider.getDisplayName(), ex.getMessage()), ex);
+
+            final AlertDialog.Builder errorDialogBuilder = new AlertDialog.Builder(
+                    DeveloperFragment.this.getActivity()
+            );
+            errorDialogBuilder.setTitle("Sign-In Error");
+            errorDialogBuilder.setMessage(
+                    String.format("Sign-in with %s failed.\n%s", provider.getDisplayName(), ex.getMessage()));
+            errorDialogBuilder.setNeutralButton("Ok", null);
+            errorDialogBuilder.show();
+        }
+    }
+
+    /**
+     * Fetches the user identity safely on the background thread.  It may make a network call.
+     */
+    private void fetchUserIdentity() {
+        Log.d(TAG, "fetchUserIdentity");
+
+        // Pre-fetched to avoid race condition where fragment is no longer active.
+        final String unknownUserIdentityText =
+                getString(R.string.identity_demo_unknown_identity_text);
+
+        AWSMobileClient.defaultMobileClient()
+                .getIdentityManager()
+                .getUserID(new IdentityManager.IdentityHandler() {
+
+                    @Override
+                    public void handleIdentityID(String identityId) {
+
+                        clearUserInfo();
+
+                        // We have successfully retrieved the user's identity. You can use the
+                        // user identity value to uniquely identify the user. For demonstration
+                        // purposes here, we will display the value in a text view.
+                        userIdTextView.setText(identityId);
+
+                        if (identityManager.isUserSignedIn()) {
+
+                            userNameTextView.setText(identityManager.getUserName());
+
+                            if (identityManager.getUserImage() != null) {
+                                userImageView.setImageBitmap(identityManager.getUserImage());
+                            }
+                        }
+                    }
+
+                    @Override
+                    public void handleError(Exception exception) {
+
+                        clearUserInfo();
+
+                        // We failed to retrieve the user's identity. Set unknown user identitier
+                        // in text view.
+                        userIdTextView.setText(unknownUserIdentityText);
+
+                        final Context context = getActivity();
+
+                        if (context != null && isAdded()) {
+                            new AlertDialog.Builder(getActivity())
+                                    .setTitle(R.string.identity_demo_error_dialog_title)
+                                    .setMessage(getString(R.string.identity_demo_error_message_failed_get_identity)
+                                            + exception.getMessage())
+                                    .setNegativeButton(R.string.identity_demo_dialog_dismiss_text, null)
+                                    .create()
+                                    .show();
+                        }
+                    }
+                });
+    }
+
+    private void clearUserInfo() {
+
+        clearUserImage();
+
+        if (isAdded()) {
+            try {
+                userNameTextView.setText(getString(R.string.unknown_user));
+            } catch (final IllegalStateException e) {
+                // This can happen when app shuts down and activity is gone
+                Log.w(TAG, "Unable to reset user name back to default.");
+            }
+        }
+    }
+
+    private void clearUserImage() {
+
+        if (isAdded()) {
+            try {
+                userImageView.setImageResource(R.mipmap.user);
+            } catch (final IllegalStateException e) {
+                // This can happen when app shuts down and activity is gone
+                Log.w(TAG, "Unable to reset user image back to default image.");
+            }
+        }
+    }
+
+    @Override
+    public void onUserSignedIn() {
+        // Update the user identity to account for the user signing in.
+        fetchUserIdentity();
+    }
+
+    @Override
+    public void onUserSignedOut() {
+        // Update the user identity to account for the user signing out.
+        fetchUserIdentity();
     }
 
     public class ListBucketsRunnable implements Runnable {

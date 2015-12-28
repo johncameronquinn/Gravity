@@ -38,6 +38,45 @@
         android:text="Download"
         android:id="@+id/devdownload"
         android:layout_below="@+id/imageView"
+        android:layout_alignStart="@+id/devprogress" />
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Sign In"
+        android:id="@+id/signIn"
+        android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true"
-        android:layout_marginTop="51dp" />
+        android:layout_marginBottom="41dp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:inputType="textPersonName"
+        android:text="UserName"
+        android:ems="10"
+        android:id="@+id/textView_demoIdentityUserName"
+        android:layout_above="@+id/textView_demoIdentityUserID"
+        android:layout_centerHorizontal="true"
+        android:gravity="center" />
+
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="UserID"
+        android:ems="10"
+        android:id="@+id/textView_demoIdentityUserID"
+        android:layout_above="@+id/signIn"
+        android:layout_centerHorizontal="true"
+        android:gravity="center" />
+
+    <ImageView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/imageView_demoIdentityUserImage"
+        android:layout_below="@+id/devdownload"
+        android:layout_centerHorizontal="true" />
+
+
 </RelativeLayout>

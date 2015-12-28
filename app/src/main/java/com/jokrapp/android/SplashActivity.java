@@ -239,7 +239,6 @@ public class SplashActivity extends Activity {
      */
     protected void goSignIn() {
         Log.d(LOG_TAG, "Launching Sign-in Activity...");
-        //goAfterSplashTimeout(new Intent(this, SignInActivity.class));
     }
 
     @Override

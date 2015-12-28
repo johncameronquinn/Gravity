@@ -56,9 +56,9 @@ import android.widget.Toast;
 
 import com.amazonaws.AmazonClientException;
 import com.amazonaws.mobile.AWSMobileClient;
-import com.amazonaws.mobileconnectors.amazonmobileanalytics.MobileAnalyticsManager;
 import com.amazonaws.mobile.user.IdentityManager;
 import com.jokrapp.android.dev.ContentDeliveryDemoFragment;
+import com.jokrapp.android.dev.DeveloperFragment;
 import com.jokrapp.android.dev.PushDemoFragment;
 import com.jokrapp.android.util.ImageUtils;
 import com.jokrapp.android.util.LogUtils;
@@ -96,11 +96,13 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
 
     /** FRAGMENT MANAGEMENT
      */
-    private static final int MESSAGE_LIST_POSITION = 3;
+    private static final int MESSAGE_LIST_POSITION = 5;
     private static final int LOCAL_LIST_POSITION = 4;
-    private static final int CAMERA_LIST_POSITION = 0;
-    private static final int LIVE_LIST_POSITION = 1;
-    private static final int REPLY_LIST_POSITION = 2;
+    private static final int DEV_LIST_POSITION = 0;
+    private static final int CAMERA_LIST_POSITION = 1;
+    private static final int LIVE_LIST_POSITION = 2;
+    private static final int REPLY_LIST_POSITION = 3;
+
 
     private static final String MESSAGE_PAGER_TITLE = "Message";
     private static final String LOCAL_PAGER_TITLE = "Local";
@@ -1223,8 +1225,8 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
 
                     break;
 
-                case 5:
-                    out = new PushDemoFragment();
+                case DEV_LIST_POSITION:
+                    out = new DeveloperFragment();
                     break;
 
                 case 6:
@@ -1260,6 +1262,8 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
                         return LIVE_PAGER_TITLE;
                     case REPLY_LIST_POSITION:
                         return REPLY_PAGER_TITLE;
+                    case DEV_LIST_POSITION:
+                        return "DEV";
                 }
 
                 return null;
@@ -3044,7 +3048,6 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
                         LocalFragReference.get().handleLocalResponseState(msg);
                     }
                     break;
-
 
                 case DataHandlingService.MSG_REQUEST_MESSAGES:
                     if (MessageFragReference.get() != null) {

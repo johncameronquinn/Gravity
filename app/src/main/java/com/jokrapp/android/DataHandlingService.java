@@ -15,10 +15,11 @@ import com.amazonaws.mobile.AWSMobileClient;
 import com.amazonaws.mobile.content.ContentItem;
 import com.amazonaws.mobile.content.ContentManager;
 import com.amazonaws.mobile.content.ContentProgressListener;
+import com.amazonaws.mobile.user.IdentityManager;
+import com.amazonaws.mobile.user.signin.SignInManager;
 import com.amazonaws.mobileconnectors.amazonmobileanalytics.AnalyticsEvent;
 import com.amazonaws.mobileconnectors.amazonmobileanalytics.EventClient;
 import com.amazonaws.mobileconnectors.amazonmobileanalytics.MobileAnalyticsManager;
-import com.amazonaws.mobileconnectors.s3.transfermanager.internal.S3ProgressListener;
 import com.amazonaws.mobileconnectors.s3.transferutility.TransferListener;
 import com.amazonaws.mobileconnectors.s3.transferutility.TransferObserver;
 import com.amazonaws.mobileconnectors.s3.transferutility.TransferState;
@@ -68,11 +69,13 @@ import com.jokrapp.android.SQLiteDbContract.StashEntry;
  */
 public class DataHandlingService extends Service implements GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener, LocationListener, TransferListener,
-        ContentProgressListener {
+        ContentProgressListener,
+        IdentityManager.SignInStateChangeListener {
     private static final String TAG = "DataHandlingService";
     private static final boolean VERBOSE = true;
     private static final boolean ALLOW_DUPLICATES = false;
     private boolean isLocalRequesting = false;
+    private SignInManager signInManager;
 
     /**
      * NETWORK COMMUNICATION
@@ -206,6 +209,11 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
         }
         AWSMobileClient.initializeMobileClientIfNecessary(this);
 
+        AWSMobileClient
+                .defaultMobileClient()
+                .getIdentityManager()
+                .addSignInStateChangeListener(this);
+
         mTracker = AWSMobileClient.defaultMobileClient().getMobileAnalyticsManager();
         //((AnalyticsApplication) getApplication()).getAnalyticsManager();
 
@@ -288,8 +296,6 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
                 });
 
 
-
-
         if (VERBOSE) Log.v(TAG,"exiting initializeTransferUtility...");
     }
 
@@ -306,6 +312,20 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
         getContentResolver().delete(uri,null,null);
     }
 
+/***************************************************************************************************
+ * SECURITY
+ **/
+    @Override
+    public void onUserSignedIn() {
+        Log.i(TAG,"entering onUserSignedIn...");
+
+    }
+
+    @Override
+    public void onUserSignedOut() {
+        Log.i(TAG,"entering onUserSignedOut...");
+
+    }
 
     /***********************************************************************************************
      * SERVICE - ACTIVITY COMMUNICATION
