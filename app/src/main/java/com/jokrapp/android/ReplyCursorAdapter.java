@@ -98,7 +98,7 @@ public class ReplyCursorAdapter extends CursorAdapter implements PhotoView.OnCli
 
             localImageDownloaderView.setImageKey(
                     Constants.KEY_S3_REPLIES_DIRECTORY,
-                    path+"s", true, mEmptyDrawable
+                    path, true, mEmptyDrawable
             );
             localImageDownloaderView.setTag(path);
             localImageDownloaderView.setVisibility(View.VISIBLE);

@@ -1379,7 +1379,7 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
 
 
                 if (Constants.LOGV) Log.v(TAG,"Received string is: " + urlString);
-                if (Constants.LOGV) Log.v(TAG,"Received directory string is: " + urlString);
+                if (Constants.LOGV) Log.v(TAG,"Received directory string is: " + directory);
 
                 // If the photo Fragment exists from a previous display
                 if (null != photoFragment) {
@@ -1390,8 +1390,6 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
 
                         // Sets the Fragment to use the URL from the Intent for the photo
                         photoFragment.setPhoto(directory,urlString,isPreview);
-
-                        Log.w(TAG,"for now, replies is assumed for fullscreened images...");
 
                         // Loads the photo into the Fragment
                         photoFragment.loadPhoto();

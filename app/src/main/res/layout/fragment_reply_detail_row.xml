@@ -10,6 +10,12 @@
     android:padding="5dp">
 
 
+    <com.jokrapp.android.PhotoView
+        android:id="@+id/thumbImage" android:layout_width="match_parent"
+        android:layout_height="500dp" android:scaleType="fitXY"
+        android:visibility="gone"
+        android:layout_alignParentStart="true" />
+
     <TextView
         android:id="@+id/reply_detail_row_text"
         android:layout_width="wrap_content"
@@ -23,7 +29,8 @@
         android:focusable="true"
         android:textColor="@color/jpallete_main_grey"
         android:layout_toRightOf="@+id/thumbImage"
-        android:layout_toStartOf="@+id/linearLayout">
+        android:layout_toStartOf="@+id/linearLayout"
+        android:layout_below="@+id/thumbImage">
     </TextView>
 
     <LinearLayout
@@ -31,7 +38,8 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentEnd="true"
-        android:id="@+id/linearLayout">
+        android:id="@+id/linearLayout"
+        android:layout_below="@+id/thumbImage">
 
         <TextView
             android:layout_width="wrap_content"
@@ -56,10 +64,5 @@
             android:textColor="@color/cyber_grey" />
 
     </LinearLayout>
-
-    <com.jokrapp.android.PhotoView
-        android:id="@+id/thumbImage" android:layout_width="100dp"
-        android:layout_height="100dp" android:scaleType="fitXY"
-        android:visibility="gone"/>
 
 </RelativeLayout>
