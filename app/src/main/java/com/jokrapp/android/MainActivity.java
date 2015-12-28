@@ -100,8 +100,8 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
     private static final int LOCAL_LIST_POSITION = 4;
     private static final int DEV_LIST_POSITION = 0;
     private static final int CAMERA_LIST_POSITION = 1;
-    private static final int LIVE_LIST_POSITION = 2;
-    private static final int REPLY_LIST_POSITION = 3;
+    private static final int LIVE_LIST_POSITION = 3;
+    private static final int REPLY_LIST_POSITION = 2;
 
 
     private static final String MESSAGE_PAGER_TITLE = "Message";
@@ -1215,10 +1215,17 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
 
                 case REPLY_LIST_POSITION:
                     if (ReplyFragReference.get() == null) {
-                        ReplyFragment f = ReplyFragment.newInstance(LiveFragReference.get()
-                                .getCurrentThread());
+
+                        ReplyFragment f;
+                        if (LiveFragReference.get() == null) {
+                            f = ReplyFragment.newInstance(0);
+                        } else {
+                            f = ReplyFragment.newInstance(LiveFragReference.get()
+                                    .getCurrentThread());
+                        }
                         ReplyFragReference = new WeakReference<>(f);
                         out = f;
+
                     } else {
                         out = ReplyFragReference.get();
                     }

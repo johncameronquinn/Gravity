@@ -12,10 +12,7 @@
         android:layout_height="match_parent"
         android:id="@+id/reply_list_view"
         android:dividerHeight="4dp"
-        android:layout_alignParentTop="true"
-        android:layout_marginRight="@dimen/side_screen_margin"
-        android:layout_margin="@dimen/side_screen_margin"
-        android:layout_marginLeft="@dimen/side_screen_margin"/>
+        android:layout_alignParentTop="true" />
 
     <com.github.clans.fab.FloatingActionMenu
         style="@style/LiveFabMenu"

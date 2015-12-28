@@ -43,9 +43,6 @@ public class ReplyCursorAdapter extends CursorAdapter implements PhotoView.OnCli
                 parent,
                 false
         );
-
-        View thumbView = view.findViewById(R.id.thumbImage);
-        view.setTag(thumbView);
         return view;
     }
 
@@ -85,12 +82,9 @@ public class ReplyCursorAdapter extends CursorAdapter implements PhotoView.OnCli
                 )
         );
 
-
         // Gets a handle to the View
-        PhotoView localImageDownloaderView = (PhotoView) view.getTag();
+        PhotoView localImageDownloaderView = ((PhotoView)view.findViewById(R.id.thumbImage));
         localImageDownloaderView.setOnClickListener(this);
-
-
 
         if(!path.equals("")) {
             if (VERBOSE) Log.v(TAG,"a filepath was provided... " + path +
@@ -98,7 +92,7 @@ public class ReplyCursorAdapter extends CursorAdapter implements PhotoView.OnCli
 
             localImageDownloaderView.setImageKey(
                     Constants.KEY_S3_REPLIES_DIRECTORY,
-                    path, true, mEmptyDrawable
+                    path, false, mEmptyDrawable
             );
             localImageDownloaderView.setTag(path);
             localImageDownloaderView.setVisibility(View.VISIBLE);
