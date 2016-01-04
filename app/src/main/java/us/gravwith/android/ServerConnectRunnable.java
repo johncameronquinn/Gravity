@@ -207,6 +207,7 @@ public class ServerConnectRunnable implements Runnable {
                             conn.setRequestProperty("X-Client-UserID", "");
                         } else {
                             conn.setRequestProperty("X-Client-UserID", userID.toString());
+                            conn.setRequestProperty("X-Client-SessionToken","");
                         }
 
                         conn.setUseCaches(false);

@@ -99,12 +99,12 @@ public class SendLivePostRunnable implements Runnable{
             jGen.writeStartObject();
           ///  jGen.writeNumberField("boardID",0);
 
-            jGen.writeStringField(SQLiteDbContract.LiveEntry.COLUMN_NAME_TITLE,
+            /*jGen.writeStringField(SQLiteDbContract.LiveEntry.COLUMN_NAME_TITLE,
                     b.getString(SQLiteDbContract.LiveEntry.COLUMN_NAME_TITLE,"")
-            );
-            jGen.writeStringField(SQLiteDbContract.LiveEntry.COLUMN_NAME_NAME,
+            );*/
+            /*jGen.writeStringField(SQLiteDbContract.LiveEntry.COLUMN_NAME_NAME,
                     b.getString(SQLiteDbContract.LiveEntry.COLUMN_NAME_NAME,"")
-            );
+            );*/
             jGen.writeStringField(SQLiteDbContract.LiveEntry.COLUMN_NAME_DESCRIPTION,
                     b.getString(SQLiteDbContract.LiveEntry.COLUMN_NAME_DESCRIPTION,"")
             );
