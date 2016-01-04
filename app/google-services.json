@@ -8,10 +8,10 @@
     {
       "client_info": {
         "mobilesdk_app_id": "1:625139449339:android:5a00949d0d357d8e",
-        "client_id": "android:com.jokrapp.android",
+        "client_id": "android:us.gravwith.android",
         "client_type": 1,
         "android_client_info": {
-          "package_name": "com.jokrapp.android"
+          "package_name": "us.gravwith.android"
         }
       },
       "oauth_client": [],

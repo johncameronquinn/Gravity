@@ -5,11 +5,11 @@ android {
     compileSdkVersion 23
     buildToolsVersion '23.0.1'
     defaultConfig {
-        applicationId "com.gravwith.android"
+        applicationId "us.gravwith.android"
         minSdkVersion 17
         targetSdkVersion 23
-        versionCode 9
-        versionName "4.7.2"
+        versionCode 10
+        versionName "4.7.4"
     }
 
     buildTypes {
@@ -35,26 +35,26 @@ android {
     productFlavors {
         dev {
             minSdkVersion 17
-            applicationId 'com.gravwith.android'
+            applicationId 'us.gravwith.android'
             targetSdkVersion 23
-            versionCode 9
-            versionName '4.7.2-dev'
+            versionCode 10
+            versionName '4.7.4-dev'
         }
 
         sales {
             minSdkVersion 17
-            applicationId 'com.gravwith.android'
+            applicationId 'us.gravwith.android'
             targetSdkVersion 23
-            versionCode 9
-            versionName '4.7.2-sales'
+            versionCode 10
+            versionName '4.7.4-sales'
         }
 
         user {
             minSdkVersion 17
-            applicationId 'com.gravwith.android'
+            applicationId 'us.gravwith.android'
             targetSdkVersion 23
-            versionCode 9
-            versionName '4.7.2-user'
+            versionCode 10
+            versionName '4.7.4-user'
         }
     }
 

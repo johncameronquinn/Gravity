@@ -472,9 +472,24 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
 
                 case MSG_CREATE_THREAD:
                     Log.d(TAG, "received a message to create a thread");
-                    data.putInt(REQUEST_TYPE, MSG_CREATE_THREAD);
+                    /*data.putInt(REQUEST_TYPE, MSG_CREATE_THREAD);
                     data.putString(Constants.KEY_S3_DIRECTORY, Constants.KEY_S3_LIVE_DIRECTORY);
-                    uploadImageToS3(data);
+                    uploadImageToS3(data);*/
+
+                    data.putInt(REQUEST_TYPE, MSG_CREATE_THREAD);
+
+                    if (data.getString(Constants.KEY_S3_KEY,"").equals("")){
+                        if (Constants.LOGD) Log.d(TAG,"no image filepath was provided," +
+                                " this must be a text post, so uploading straight to the server.");
+                        task = new SendLivePostTask();
+                    } else {
+                        if (Constants.LOGD) Log.d(TAG,"contained an image filepath, uploading " +
+                                "the image there to s3 first...");
+
+                        data.putString(Constants.KEY_S3_DIRECTORY, Constants.KEY_S3_LIVE_DIRECTORY);
+                        uploadImageToS3(data);
+                    }
+
                     break;
 
                 case MSG_RESOLVE_HOST:
