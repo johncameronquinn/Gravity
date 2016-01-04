@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <integer name="number_of_fragments">3</integer>
+    <integer name="number_of_fragments">2</integer>
     <integer name="number_of_fragments_dev">7</integer>
 
     <integer name="arn_key">0</integer>

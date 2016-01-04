@@ -94,12 +94,12 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
 
     /** FRAGMENT MANAGEMENT
      */
-    private static final int MESSAGE_LIST_POSITION = 5;
-    private static final int LOCAL_LIST_POSITION = 4;
-    private static final int DEV_LIST_POSITION = 0;
-    private static final int CAMERA_LIST_POSITION = 1;
-    private static final int LIVE_LIST_POSITION = 3;
-    private static final int REPLY_LIST_POSITION = 2;
+    private static final int MESSAGE_LIST_POSITION = -3;
+    private static final int LOCAL_LIST_POSITION = -2;
+    private static final int DEV_LIST_POSITION = -1;
+    private static final int CAMERA_LIST_POSITION = 0;
+    private static final int LIVE_LIST_POSITION = 2;
+    private static final int REPLY_LIST_POSITION = 1;
 
 
     private static final String MESSAGE_PAGER_TITLE = "Message";
