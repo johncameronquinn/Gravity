@@ -5,7 +5,7 @@ android {
     compileSdkVersion 23
     buildToolsVersion '23.0.1'
     defaultConfig {
-        applicationId "com.jokrapp.android"
+        applicationId "com.gravwith.android"
         minSdkVersion 17
         targetSdkVersion 23
         versionCode 9
@@ -35,7 +35,7 @@ android {
     productFlavors {
         dev {
             minSdkVersion 17
-            applicationId 'com.jokrapp.android'
+            applicationId 'com.gravwith.android'
             targetSdkVersion 23
             versionCode 9
             versionName '4.7.2-dev'
@@ -43,7 +43,7 @@ android {
 
         sales {
             minSdkVersion 17
-            applicationId 'com.jokrapp.android'
+            applicationId 'com.gravwith.android'
             targetSdkVersion 23
             versionCode 9
             versionName '4.7.2-sales'
@@ -51,7 +51,7 @@ android {
 
         user {
             minSdkVersion 17
-            applicationId 'com.jokrapp.android'
+            applicationId 'com.gravwith.android'
             targetSdkVersion 23
             versionCode 9
             versionName '4.7.2-user'

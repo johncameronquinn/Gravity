@@ -10,7 +10,6 @@ package com.amazonaws.mobile.push;
 
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.nfc.Tag;
 import android.os.Bundle;
 import android.util.Log;
 
@@ -22,13 +21,12 @@ import com.amazonaws.services.sns.AmazonSNS;
 import com.amazonaws.services.sns.AmazonSNSClient;
 import com.amazonaws.services.sns.model.CreatePlatformEndpointRequest;
 import com.amazonaws.services.sns.model.CreatePlatformEndpointResult;
-import com.amazonaws.services.sns.model.MessageAttributeValue;
 import com.amazonaws.services.sns.model.PublishRequest;
 import com.amazonaws.services.sns.model.SetEndpointAttributesRequest;
 import com.amazonaws.services.sns.model.SubscribeRequest;
 import com.amazonaws.services.sns.model.SubscribeResult;
 import com.amazonaws.services.sns.model.UnsubscribeRequest;
-import com.jokrapp.android.SQLiteDbContract.MessageEntry;
+import us.gravwith.android.SQLiteDbContract.MessageEntry;
 
 import org.json.JSONObject;
 

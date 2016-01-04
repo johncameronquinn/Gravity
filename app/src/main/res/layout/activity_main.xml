@@ -2,10 +2,10 @@
     xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:id="@+id/rootlayout"
-    tools:context=".MainActivity">
+    tools:context="us.gravwith.android.MainActivity">
 
 
-    <com.jokrapp.android.CustomViewPager
+    <us.gravwith.android.CustomViewPager
         android:id="@+id/pager"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -23,7 +23,7 @@
             android:paddingBottom="4dp"
           />-->
 
-    </com.jokrapp.android.CustomViewPager>
+    </us.gravwith.android.CustomViewPager>
 
 
     <RelativeLayout

@@ -6,7 +6,7 @@ import android.content.SharedPreferences;
 import android.util.Log;
 
 import com.google.android.gms.gcm.GoogleCloudMessaging;
-import com.jokrapp.android.Constants;
+import us.gravwith.android.Constants;
 
 import java.util.HashSet;
 import java.util.Set;

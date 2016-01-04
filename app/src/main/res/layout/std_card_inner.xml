@@ -8,7 +8,7 @@
     android:background="@color/jpallete_main_grey"
     android:orientation="horizontal">
 
-    <com.jokrapp.android.PhotoView
+    <us.gravwith.android.PhotoView
         android:id="@+id/photoView" android:layout_width="match_parent"
         android:layout_height="match_parent" android:scaleType="fitXY"/>
 

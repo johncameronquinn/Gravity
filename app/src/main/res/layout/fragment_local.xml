@@ -7,14 +7,14 @@
     android:background="@color/jpallete_main_grey">
 
 
-    <com.jokrapp.android.view.ImageCursorAdapterView
+    <us.gravwith.android.view.ImageCursorAdapterView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:id="@+id/imageAdapter">
-    </com.jokrapp.android.view.ImageCursorAdapterView>
+    </us.gravwith.android.view.ImageCursorAdapterView>
 
 
-    <com.jokrapp.android.view.ExpandableLayout
+    <us.gravwith.android.view.ExpandableLayout
         android:id="@+id/localexpandable"
         android:layout_width="@dimen/button_width"
         android:layout_height="wrap_content"

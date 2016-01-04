@@ -4,7 +4,7 @@
     android:layout_width="match_parent" android:layout_height="match_parent"
     android:background="@color/jpallete_main_grey">
 
-    <com.jokrapp.android.PhotoView
+    <us.gravwith.android.PhotoView
         android:id="@+id/thumbImage"
         android:layout_width="match_parent"
         android:layout_height="match_parent"

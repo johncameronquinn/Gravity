@@ -4,11 +4,11 @@
     android:layout_height="match_parent"
     android:background="@color/jpallete_main_grey">
 
-    <com.jokrapp.android.view.ImageCursorAdapterView
+    <us.gravwith.android.view.ImageCursorAdapterView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:id="@+id/message_images_view">
-    </com.jokrapp.android.view.ImageCursorAdapterView>
+    </us.gravwith.android.view.ImageCursorAdapterView>
 
     <ListView
         android:layout_width="wrap_content"
@@ -20,7 +20,7 @@
         android:dividerHeight="10dp"
         android:layout_margin="@dimen/side_screen_margin" />
 
-    <com.jokrapp.android.view.ExpandableLayout
+    <us.gravwith.android.view.ExpandableLayout
         android:id="@+id/replyexpandable"
         android:layout_width="@dimen/button_width"
         android:layout_height="wrap_content"
