@@ -8,9 +8,11 @@ import org.json.JSONArray;
 import org.json.JSONException;
 
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.TimeZone;
 
 /**
  * Created by John C. Quinn on 1/4/16.
@@ -47,6 +49,13 @@ public class Utility {
         } else {
             return new Date(dateBase.getTime() + (secondsFromBase * 1000L));
         }
+    }
+
+    public static String getDateStringFromLong(Long inSeconds) {
+        Date date = new Date(inSeconds*1000L); // *1000 is to convert seconds to milliseconds
+        SimpleDateFormat sdf = new SimpleDateFormat("h:mm a"); // the format of your date
+        sdf.setTimeZone(TimeZone.getDefault());
+        return sdf.format(date);
     }
 
     public static void writeBundleAsJsonStringObject(Bundle inbundle, JsonGenerator jGen)

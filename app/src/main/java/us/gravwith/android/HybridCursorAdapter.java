@@ -13,6 +13,7 @@ import android.widget.CursorAdapter;
 import android.widget.TextView;
 
 import us.gravwith.android.SQLiteDbContract.LiveEntry;
+import us.gravwith.android.util.Utility;
 
 /**
  * Created by John C. Quinn on 10/24/15.
@@ -61,9 +62,15 @@ public class HybridCursorAdapter extends CursorAdapter implements PhotoView.OnCl
         // Extract properties from cursor
         text.setText(
                 cursor.getString(
-                cursor.getColumnIndexOrThrow(
-                        LiveEntry.COLUMN_NAME_DESCRIPTION)
+                        cursor.getColumnIndexOrThrow(
+                                LiveEntry.COLUMN_NAME_DESCRIPTION)
                 )
+        );
+        date.setText(Utility.getDateStringFromLong(Long.parseLong(
+                cursor.getString(
+                cursor.getColumnIndexOrThrow(
+                        LiveEntry.COLUMN_NAME_TIME)
+                )))
         );
         String path = (
                 cursor.getString(
