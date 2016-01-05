@@ -149,6 +149,11 @@ class PhotoDecodeRunnable implements Runnable {
             int targetWidth = mPhotoTask.getTargetWidth();
             int targetHeight = mPhotoTask.getTargetHeight();
 
+            if (targetWidth == 0|| targetHeight == 0) {
+                Log.e(LOG_TAG,"TargetWidth or TargetHeight is zero, the bitmap is hidden... quitting");
+                return;
+            }
+
             // Before continuing, checks to see that the Thread hasn't
             // been interrupted
             if (Thread.interrupted()) {

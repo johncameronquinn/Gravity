@@ -6,8 +6,7 @@
     android:layout_alignParentTop="true"
     android:gravity="top"
     android:background="@drawable/rectangle"
-    android:visibility="visible"
-    android:padding="5dp">
+    android:visibility="visible">
 
     <us.gravwith.android.PhotoView
         android:id="@+id/thumbImage" android:layout_width="match_parent"

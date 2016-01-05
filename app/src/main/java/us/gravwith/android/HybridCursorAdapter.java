@@ -93,6 +93,8 @@ public class HybridCursorAdapter extends CursorAdapter implements PhotoView.OnCl
             );
             localImageDownloaderView.setTag(path);
             localImageDownloaderView.setVisibility(View.VISIBLE);
+        } else {
+            localImageDownloaderView.clearImage();
         }
     }
 
