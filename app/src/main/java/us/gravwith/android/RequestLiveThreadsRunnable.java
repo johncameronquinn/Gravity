@@ -16,6 +16,9 @@ import java.util.List;
 
 import javax.net.ssl.HttpsURLConnection;
 
+import us.gravwith.android.util.LogUtils;
+import us.gravwith.android.util.ThreadUtils;
+
 
 /**
  * Created by ev0x on 11/12/15.
@@ -94,8 +97,9 @@ public class RequestLiveThreadsRunnable implements Runnable {
 
                 for (int i = 0; i < jsonArray.size(); i++) {
                     map = jsonArray.get(i);
-                    map.put(SQLiteDbContract.LiveEntry.COLUMN_ID, map.remove("order"));
-                    map.put(SQLiteDbContract.LiveEntry.COLUMN_NAME_THREAD_ID, map.remove("id"));
+                    //map.put(SQLiteDbContract.LiveEntry.COLUMN, map.get("order"));
+                    map.put(SQLiteDbContract.LiveEntry.COLUMN_ID, map.remove("id"));
+                    //map.put(SQLiteDbContract.LiveEntry.COLUMN_NAME_THREAD_ID, map.remove("id"));
 
                     android.os.Parcel myParcel = android.os.Parcel.obtain();
                     myParcel.writeMap(map);
@@ -103,6 +107,12 @@ public class RequestLiveThreadsRunnable implements Runnable {
                     android.content.ContentValues values = android.content.ContentValues
                             .CREATOR.createFromParcel(myParcel);
                     valuesList.add(values);
+
+                    if (VERBOSE)  {
+                        Log.v(TAG,"printing incoming post object...");
+                        LogUtils.printMapToVerbose(map, TAG);
+                        Log.v(TAG,"done printing incoming post object.");
+                    }
                 }
 
                 mService.delete(FireFlyContentProvider.CONTENT_URI_LIVE,null);

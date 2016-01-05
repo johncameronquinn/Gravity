@@ -1352,7 +1352,7 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
 
     @Override
     public void onError(String filePath, Exception ex) {
-        Log.e(TAG,"error with filepath: " + filePath);
+        Log.e(TAG,"error with filepath: " + filePath,ex);
         ex.printStackTrace();
         Bundle b = new Bundle();
         b.putString(Constants.KEY_S3_KEY, filePath);

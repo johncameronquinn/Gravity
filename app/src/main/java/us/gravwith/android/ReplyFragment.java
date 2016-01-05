@@ -21,6 +21,8 @@ import android.widget.RelativeLayout;
 
 
 import java.net.HttpURLConnection;
+import java.util.LinkedList;
+import java.util.List;
 
 
 /**
@@ -41,6 +43,8 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
     private ListView mListView;
 
     private static ReplyButtonListener replyButtonListener;
+
+    private int[] contentButtonArray = new int[]{0,1,2};
 
     HybridCursorAdapter mAdapter;
 
@@ -73,6 +77,9 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
                 currentThread = b.getInt(SQLiteDbContract.LiveReplies.COLUMN_NAME_THREAD_ID);
                 Bundle args = new Bundle();
                 args.putInt(SQLiteDbContract.LiveReplies.COLUMN_NAME_THREAD_ID, currentThread);
+
+                mAdapter = new HybridCursorAdapter(getActivity(),null,0);
+
                 getLoaderManager().restartLoader(ReplyFragment.REPLY_LOADER_ID, args, this);
             } else {
                 currentThread = b.getInt(SQLiteDbContract.LiveReplies.COLUMN_NAME_THREAD_ID);
@@ -110,13 +117,7 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
 //        filter.addAction(Constants.ACTION_IMAGE_REPLY_LOADED);
       //  activity.registerReceiver(receiver, filter);
 
-
-
         mListener = (MainActivity)activity;
-
-        Bundle b = new Bundle();
-        b.putString(SQLiteDbContract.LiveReplies.COLUMN_NAME_THREAD_ID, String.valueOf(currentThread));
-        getLoaderManager().restartLoader(REPLY_LOADER_ID, b, this);
     }
 
     @Override
@@ -147,6 +148,7 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
         View v = inflater.inflate(R.layout.fragment_reply, container, false);
 
         mListView = (ListView)v.findViewById(R.id.reply_list_view);
+        mListView.setAdapter(mAdapter);
 
 /*        String[] fromColumns = {
                 SQLiteDbContract.LiveReplies.COLUMN_NAME_NAME,
@@ -159,9 +161,11 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
             //mAdapter = new SimpleCursorAdapter(getActivity(),
 //                    R.layout.fragment_reply_detail_row, null, fromColumns, toViews, 0);
 
-            mAdapter = new HybridCursorAdapter(getActivity(),null,0);
-            mListView.setAdapter(mAdapter);
+            //mAdapter = new HybridCursorAdapter(getActivity(),null,0);
+
         }
+
+        //contentButtonViews.add(v.findViewById(R.id.button_reply_load))
 
         if (VERBOSE) {Log.v(TAG, "exiting onCreateView...");}
         return v;
@@ -256,7 +260,7 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
     }
 
     public void triggerReplyRefresh() {
-        mListView.setAdapter(null);
+        //mListView.setAdapter(null);
         mListener.sendMsgRequestLiveThreads();
     }
 
@@ -325,7 +329,7 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
 
                         //activity.setReplyFilePath("");
                         activity.setLiveFilePath("");
-                        activity.setLiveCreateThreadInfo("", "", commentText.getText().toString());
+                        activity.setLiveCreateThreadInfo("", commentText.getText().toString());
                         //activity.setLiveCreateReplyInfo(commentText.getText().toString(), getCurrentThread());
                         triggerReplyRefresh();
 
@@ -408,6 +412,7 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
 
         if (VERBOSE) Log.v(TAG,"loader created.");
         if (VERBOSE) Log.v(TAG,"exit onCreateLoader...");
+
         return new CursorLoader(
                 getActivity(),
                 FireFlyContentProvider.CONTENT_URI_LIVE,
@@ -425,13 +430,11 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
           /* only set the action buttons to visible if there is content */
         if (data == null) {
             Log.e(TAG, "why was the returned cursor null?");
-
-            if (mAdapter != null) {
-                mAdapter.swapCursor(null);
-            } //todo why is this necessary? (occasional NPE occurred because of this line)
+            mAdapter.swapCursor(null);
             return;
         }
 
+        Log.e(TAG,"cursor row count : " + data.getCount());
         if (data.getCount() > 0) {
             View v = getView();
             if (v!=null) {
@@ -449,10 +452,9 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
             //todo, explain what replies are, and suggest a reply
         }
 
+        mAdapter.swapCursor(data);
+        mListView.setAdapter(mAdapter);
 
-        if (mAdapter != null) {
-            mAdapter.swapCursor(data);
-        } //todo why is this necessary? (occasional NPE occurred because of this line)
         if (VERBOSE) Log.v(TAG,"exiting onLoadFinished...");
     }
 
@@ -462,122 +464,5 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
         mAdapter.swapCursor(null);
         if (VERBOSE) Log.v(TAG,"exiting onLoaderReset...");
     }
-
-
-  /*  private ReplyReceiver receiver;
-
-    public class ReplyReceiver extends BroadcastReceiver {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            if (LiveFragment.VERBOSE) {
-
-            }
-            Log.v(TAG, "received reply intent...");
-            switch (intent.getAction()) {
-
-                case Constants.ACTION_IMAGE_REPLY_THUMBNAIL_LOADED:
-                Bundle data = intent.getExtras();
-                String path = data.getString(Constants.KEY_S3_KEY);
-
-                Log.d(TAG, "searching for image with tag: " + path.substring(0,path.length()-1));
-                View layout = getActivity().findViewById(R.id.reply_list_view);
-                View v = layout.findViewWithTag(path.substring(0,path.length()-1));
-                if (v != null) {
-                    if (v.isShown()) {
-                        Log.i(TAG, v.toString());
-                        if (VERBOSE)
-                            Log.v(TAG, "Image loaded from view is visible, decoding and displaying...");
-                        ImageView imageView = (ImageView) v.findViewById(R.id.reply_detail_row_image);
-                        imageView.setVisibility(View.VISIBLE);
-                        imageView.setOnClickListener(new View.OnClickListener() {
-                            @Override
-                            public void onClick(View v) {
-
-                                switch (v.getId()) {
-                                    case R.id.reply_detail_row_image:
-                                        Toast.makeText(getActivity(),"requesting fullscreen mode...",Toast.LENGTH_SHORT).show();
-
-                                        String tag =String.valueOf(((RelativeLayout)v.getParent()).getTag());
-
-                                        MainActivity activity = (MainActivity) getActivity();
-                                        activity.sendMsgDownloadImage(Constants.KEY_S3_REPLIES_DIRECTORY, tag
-                                        );
-                                        activity.findViewById(R.id.imageView_reply_fullscreen).setTag(tag);
-                                        activity.findViewById(R.id.imageView_reply_fullscreen).setOnClickListener(this);
-
-                                        break;
-
-                                    case R.id.imageView_reply_fullscreen:
-                                        Toast.makeText(getActivity(),"exiting fullscreen mode...",Toast.LENGTH_SHORT).show();
-                                        v.setVisibility(View.INVISIBLE);
-                                        break;
-                                }
-                            }
-                        });
-
-                        /* create full path from tag - DECODE THUMBNAIL ONLY (so add "s") */
-/*                        String[] params = {getActivity().getCacheDir() + "/" + path};
-
-
-                        new ImageLoadTask(imageView, null).execute(params);
-
-                    } else {
-                        if (VERBOSE) Log.v(TAG, "image is now shown do nothing...");
-                    }
-                } else {
-                    Log.e(TAG, "searching for image tag failed...");
-                }
-                    break;
-
-                case Constants.ACTION_IMAGE_REPLY_LOADED:
-                    ImageView fullScreenView= (ImageView)getActivity().findViewById(R.id.imageView_reply_fullscreen);
-                    new ImageLoadTask(fullScreenView
-                            , null).execute(String.valueOf(getActivity().getCacheDir()+ "/" + fullScreenView.getTag()));
-                    break;
-
-            }
-        }
-    }*/
-
-    /**
-     * method 'handleErrorCode'
-     *
-     * intended to handle relevant error codes passed by the activity
-     * @param code
-     */
-  /*  public void handleResponseCode(int code) {
-        if (VERBOSE) Log.v(TAG,"Handling response code... " + code);
-
-        switch (code) {
-            case MainActivity.MSG_NOTHING_RETURNED:
-                if (Constants.LOGV) Log.v(TAG, "Handling response message : MSG_NOTHING_RETURNED");
-                if (getView()!=null) {
-                    getView().findViewById(R.id.textView_reply_error).setVisibility(View.VISIBLE);
-                } else {
-                    Log.v(TAG,"View was null");
-                }
-                break;
-            case MainActivity.MSG_NOT_FOUND:
-                if (Constants.LOGV) Log.v(TAG,"Handling response message : MSG_NOT_FOUND");
-                if (getView()!=null) {
-                    Toast.makeText(getActivity(),"404 returned...",Toast.LENGTH_SHORT).show();
-                }
-                break;
-            case MainActivity.MSG_SUCCESS:
-                if (Constants.LOGV) Log.v(TAG,"Handling response message : MSG_SUCCESS");
-                if (getView()!=null) {
-                    getView().findViewById(R.id.textView_reply_error).setVisibility(View.INVISIBLE);
-                }
-                break;
-            case MainActivity.MSG_UPLOAD_SUCCESS:
-                if (Constants.LOGV) Log.v(TAG,"Handling response message : MSG_UPLOAD_SUCCESS");
-                if (getView()!=null) {
-                    Toast.makeText(getActivity(),"Post Successful:3",Toast.LENGTH_SHORT).show();
-                    getView().findViewById(R.id.textView_reply_error).setVisibility(View.INVISIBLE);
-                }
-                break;
-        }
-    }*/
-
 
 }

@@ -2,9 +2,12 @@ package us.gravwith.android.util;
 
 import android.os.Bundle;
 
+import com.fasterxml.jackson.core.JsonGenerator;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -44,6 +47,15 @@ public class Utility {
         } else {
             return new Date(dateBase.getTime() + (secondsFromBase * 1000L));
         }
+    }
+
+    public static void writeBundleAsJsonStringObject(Bundle inbundle, JsonGenerator jGen)
+            throws IOException {
+        jGen.writeStartObject();
+        for (String key : inbundle.keySet()) {
+            jGen.writeStringField(key,inbundle.getString(key,""));
+        }
+        jGen.writeEndObject();
     }
 
     public static List<String> jsonArrayToStringList(JSONArray jsonArray) throws JSONException {

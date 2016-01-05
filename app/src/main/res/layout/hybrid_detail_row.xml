@@ -9,7 +9,6 @@
     android:visibility="visible"
     android:padding="5dp">
 
-
     <us.gravwith.android.PhotoView
         android:id="@+id/thumbImage" android:layout_width="match_parent"
         android:layout_height="wrap_content" android:scaleType="fitXY"
@@ -51,18 +50,6 @@
             android:layout_below="@+id/reply_detail_row_name"
             android:layout_marginRight="5dp"
             android:textColor="#ffffff" />
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:textAppearance="?android:attr/textAppearanceSmallInverse"
-            android:text="jester"
-            android:id="@+id/reply_detail_row_name"
-            android:layout_alignWithParentIfMissing="true"
-            android:layout_alignParentTop="true"
-            android:layout_alignParentEnd="true"
-            android:layout_marginLeft="5dp"
-            android:textColor="@color/cyber_grey" />
 
     </LinearLayout>
 

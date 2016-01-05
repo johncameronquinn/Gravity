@@ -7,6 +7,7 @@ import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
 
 import us.gravwith.android.util.LogUtils;
+import us.gravwith.android.util.Utility;
 
 import java.io.File;
 import java.io.IOException;
@@ -96,6 +97,7 @@ public class SendLivePostRunnable implements Runnable{
             JsonGenerator jGen = jsonFactory.
                     createGenerator(conn.getOutputStream()); //tcp connection to server
 
+//            Utility.writeBundleAsJsonStringObject(b,jGen);
             jGen.writeStartObject();
           ///  jGen.writeNumberField("boardID",0);
 

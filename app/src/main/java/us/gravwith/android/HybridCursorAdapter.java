@@ -37,12 +37,15 @@ public class HybridCursorAdapter extends CursorAdapter implements PhotoView.OnCl
     // you don't bind any data to the view at this point.
     @Override
     public View newView(Context context, Cursor cursor, ViewGroup parent) {
+        if (VERBOSE) Log.v(TAG,"entering newView...");
 
         View view = LayoutInflater.from(context).inflate(
                 R.layout.hybrid_detail_row,
                 parent,
                 false
         );
+
+        if (VERBOSE) Log.v(TAG,"exiting newView...");
         return view;
     }
 
@@ -60,12 +63,6 @@ public class HybridCursorAdapter extends CursorAdapter implements PhotoView.OnCl
                 cursor.getString(
                 cursor.getColumnIndexOrThrow(
                         LiveEntry.COLUMN_NAME_DESCRIPTION)
-                )
-        );
-        date.setText(
-                cursor.getString(
-                cursor.getColumnIndexOrThrow(
-                        LiveEntry.COLUMN_NAME_TIME)
                 )
         );
         String path = (

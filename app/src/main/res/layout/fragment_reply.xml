@@ -11,8 +11,9 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:id="@+id/reply_list_view"
-        android:dividerHeight="4dp"
-        android:layout_alignParentTop="true" />
+        android:dividerHeight="2dp"
+        android:layout_alignParentTop="true"
+        android:layout_margin="2dp" />
 
     <com.github.clans.fab.FloatingActionMenu
         style="@style/LiveFabMenu"
@@ -26,7 +27,7 @@
         <com.github.clans.fab.FloatingActionButton
             style="@style/FabNormal"
             android:id="@+id/button_reply_report"
-            fab:fab_label="New Topic" />
+            fab:fab_label="Report" />
 
         <com.github.clans.fab.FloatingActionButton
             style="@style/FabNormal"
