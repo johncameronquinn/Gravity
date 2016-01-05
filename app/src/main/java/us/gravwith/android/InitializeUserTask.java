@@ -5,7 +5,9 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 
-import us.gravwith.android.InitializeUserRunnable.InitializeUserMethods;
+import us.gravwith.android.user.InitializeUserRunnable;
+import us.gravwith.android.user.InitializeUserRunnable.InitializeUserMethods;
+import us.gravwith.android.user.LoginManager;
 
 import java.util.UUID;
 
@@ -85,12 +87,15 @@ class InitializeUserTask extends ServerTask implements InitializeUserMethods, Se
                 break;
 
         }
+        mService.handleDownloadState(outState, this);
+    }
 
-        mService.handleDownloadState(outState,this);
+    public void handleLoginState(int state) {
+        LoginManager.handleLoginState(state);
     }
 
     public void handleInitializeState(int state) {
-        int outState = -1;
+        int outState = LoginManager.INVALID_STATE_RETURNED;
 
         switch (state) {
             case RequestLocalRunnable.REQUEST_FAILED:

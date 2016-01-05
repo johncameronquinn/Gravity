@@ -1,4 +1,4 @@
-package us.gravwith.android;
+package us.gravwith.android.user;
 
 import android.util.Log;
 import com.fasterxml.jackson.core.JsonFactory;
@@ -25,13 +25,13 @@ public class InitializeUserRunnable implements Runnable {
 
     private boolean VERBOSE = true;
 
-    private String TAG = "InitializeUserRunnable";
+    private String TAG = InitializeUserRunnable.class.getSimpleName();
 
-    static final int INITIALIZE_FAILED = -1;
-    static final int INITIALIZE_STARTED = 0;
-    static final int INITIALIZE_SUCCESS = 1;
+    static final int GET_UUID_FAILED = -1;
+    static final int GET_UUID_STARTED = 0;
+    static final int GET_UUID_SUCCESS = 1;
 
-    interface InitializeUserMethods {
+    public interface InitializeUserMethods {
 
         HttpURLConnection getURLConnection();
 
@@ -45,7 +45,7 @@ public class InitializeUserRunnable implements Runnable {
 
     final InitializeUserMethods mService;
 
-    public InitializeUserRunnable(InitializeUserMethods methods ) {
+    public InitializeUserRunnable(InitializeUserMethods methods) {
         mService = methods;
     }
 
@@ -63,7 +63,7 @@ public class InitializeUserRunnable implements Runnable {
             return;
         }
 
-        mService.handleInitializeState(INITIALIZE_STARTED);
+        mService.handleInitializeState(GET_UUID_STARTED);
         HttpURLConnection conn;
         conn = mService.getURLConnection();
 
@@ -98,12 +98,12 @@ public class InitializeUserRunnable implements Runnable {
 
         if (userID == null) {
             Log.e(TAG, "userID was not successfully retrieved...");
-            mService.handleInitializeState(INITIALIZE_FAILED);
+            mService.handleInitializeState(GET_UUID_FAILED);
         } else {
             Log.i(TAG,"userID retrieved : " + userID.toString());
 
             mService.setUserID(userID);
-            mService.handleInitializeState(INITIALIZE_SUCCESS);
+            mService.handleInitializeState(GET_UUID_SUCCESS);
         }
 
         mService.setTaskThread(null);

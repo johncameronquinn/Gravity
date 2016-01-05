@@ -126,7 +126,7 @@ public class GravitySignInProvider implements SignInProvider {
     /** {@inheritDoc} */
     @Override
     public String getDisplayName() {
-        return "Facebook";
+        return "Gravity";
     }
 
     /** {@inheritDoc} */
