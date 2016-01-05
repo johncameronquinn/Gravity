@@ -1596,10 +1596,10 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
 
     /** LIVE POST and REPLY HANDLING
      */
-    Bundle liveData;
+    Bundle liveData = new Bundle();
     private boolean cancelPost = false;
 
-    Bundle replyData;
+    Bundle replyData = new Bundle();
     private boolean cancelReply = false;
 
     /**
@@ -2590,7 +2590,7 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
 
             switch (callBack) {
                 case CameraFragment.CAMERA_MESSAGE_MODE:
-                case CameraFragment.CAMERA_DEFAULT_MODE:
+              //  case CameraFragment.CAMERA_DEFAULT_MODE:
                     if (Constants.LOGD) Log.d(TAG, "notifying MainActivity to post image to Local");
                     mWeakActivity.get().sendImageToLocal(key, 2, commentText);
                     break;

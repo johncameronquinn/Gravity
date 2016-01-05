@@ -28,28 +28,18 @@
         android:focusable="true"
         android:textColor="@color/jpallete_main_grey"
         android:layout_toRightOf="@+id/thumbImage"
-        android:layout_toStartOf="@+id/linearLayout"
-        android:layout_below="@+id/thumbImage">
+        android:layout_below="@+id/reply_detail_row_time">
     </TextView>
 
-    <LinearLayout
-        android:orientation="vertical"
+    <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignParentEnd="true"
-        android:id="@+id/linearLayout"
-        android:layout_below="@+id/thumbImage">
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:text="unixtime"
-            android:id="@+id/reply_detail_row_time"
-            android:layout_gravity="right"
-            android:layout_below="@+id/reply_detail_row_name"
-            android:layout_marginRight="5dp"
-            android:textColor="#ffffff" />
-
-    </LinearLayout>
+        android:text="unixtime"
+        android:id="@+id/reply_detail_row_time"
+        android:layout_gravity="right"
+        android:layout_below="@+id/thumbImage"
+        android:layout_marginRight="5dp"
+        android:textColor="#ffffff"
+        android:layout_alignParentEnd="true" />
 
 </RelativeLayout>

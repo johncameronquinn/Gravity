@@ -55,10 +55,10 @@ public class CameraFragment extends Fragment implements Camera.AutoFocusCallback
     private int currentCameraMode;
     private CameraReceiver cameraReceiver;
 
-    public static final int CAMERA_DEFAULT_MODE = 0;
     public static final int CAMERA_MESSAGE_MODE = 1;
     public static final int CAMERA_LIVE_MODE = 2;
     public static final int CAMERA_REPLY_MODE = 3;
+    public static final int CAMERA_DEFAULT_MODE = CAMERA_REPLY_MODE;
 
     private final int FOCUS_AREA_ANIMATION_DURATION = 300;
     private final int CAPTURE_LAYOUT_ANIMATION_DURATION = 300;
@@ -136,7 +136,7 @@ n  */
         cameraButtonInstance = new CameraButtonManager();
 
         Log.d(TAG, "Setting CameraFragment to default mode");
-        currentCameraMode = 0;
+        currentCameraMode = CAMERA_DEFAULT_MODE;
     }
 
     @Override
@@ -281,8 +281,8 @@ n  */
         @Override
         public boolean onDown(MotionEvent e) {
             switch (currentCameraMode) {
-                case CAMERA_DEFAULT_MODE:
-                    return true;
+                /*case CAMERA_DEFAULT_MODE:
+                    return true;*/
                 case CAMERA_MESSAGE_MODE:
                     return true;
                 case CAMERA_REPLY_MODE:
@@ -469,7 +469,7 @@ n  */
                     Activity mActivity = getActivity();
                     //initialize the buttons while the picture is being taken
                     switch (currentCameraMode) {
-                        case CAMERA_DEFAULT_MODE:
+                        /*case CAMERA_DEFAULT_MODE:
                             if (Constants.LOGD) Log.d(TAG,"Taking a picture in default mode...");
                             captureButton = (ImageButton) v;
                             switchButton = (Button) mActivity.findViewById(R.id.switch_camera);
@@ -484,7 +484,7 @@ n  */
                             b.putString(Constants.KEY_ANALYTICS_LABEL,"default mode");
 
 
-                            break;
+                            break;*/
 
                         case CAMERA_MESSAGE_MODE:
                             if (Constants.LOGD) Log.d(TAG,"Taking a picture in message mode...");
@@ -578,13 +578,12 @@ n  */
                     switch(currentCameraMode) {
                         case CAMERA_REPLY_MODE:
 
-                            mListener.sendMsgSaveImage(commentText, currentCameraMode);
-                            ((MainActivity) getActivity()).setReplyComment(commentText.getText().toString());
+                            mListener.sendMsgSaveImage(commentText, CAMERA_LIVE_MODE);
+                            ((MainActivity) getActivity()).setLiveCreateThreadInfo("",commentText.getText().toString());
                             resetCameraUI();
                             stopReplyMode();
 
                             b.putString(Constants.KEY_ANALYTICS_LABEL, "reply");
-
                             break;
                         case CAMERA_MESSAGE_MODE:
 
@@ -641,7 +640,7 @@ n  */
 
             switch (mode) {
 
-                case CAMERA_DEFAULT_MODE:
+                /*case CAMERA_DEFAULT_MODE:
                     if (VERBOSE) Log.v(TAG,"Image captured in default mode");
                     isPreview = false;
 
@@ -664,7 +663,7 @@ n  */
                     //localButton.setOnClickListener(this);
                     liveButton.setOnClickListener(this);
                     cancelButton.setOnClickListener(this);
-                    break;
+                    break;*/
                 case CAMERA_MESSAGE_MODE:    // message mode
                     if (VERBOSE) Log.v(TAG,"Image captured in message mode");
                     isPreview = false;
@@ -701,6 +700,7 @@ n  */
                     commentText.setVisibility(View.VISIBLE);
                    // startNewReplyInputMode((MainActivity)getActivity());
 
+                    cancelMessageButton.setVisibility(View.VISIBLE);
                     sendMessageButton.setVisibility(View.VISIBLE);
                     sendMessageButton.setOnClickListener(this);
                     break;
@@ -735,7 +735,7 @@ n  */
 
                     break;
 
-                case CAMERA_DEFAULT_MODE:
+                /*case CAMERA_DEFAULT_MODE:
                     isPreview = true;
 
                     mListener.sendMsgStartPreview();
@@ -752,7 +752,7 @@ n  */
                     //localButton.setVisibility(View.INVISIBLE);
                     liveButton.setVisibility(View.INVISIBLE);
 
-                    break;
+                    break;*/
 
                 case CAMERA_LIVE_MODE:
                     isPreview = true;
@@ -1156,30 +1156,6 @@ n  */
             }
         }
 
-    }
-
-    public void startNewReplyInputMode(MainActivity activity) {
-        if (VERBOSE) {
-            Log.v(TAG,"entering startNewReplyInputMode...");
-        }
-        activity.disableScrolling();
-        LayoutInflater inflater = (LayoutInflater)activity.getSystemService
-                (Context.LAYOUT_INFLATER_SERVICE);
-        FrameLayout root = (FrameLayout)activity.findViewById(R.id.camera_root);
-        View v = inflater.inflate(R.layout.camera_reply_mode,
-                root,
-                false);
-
-        getReplyModeButtonListener(this).setCreateView(v);
-        v.findViewById(R.id.button_camera_reply_mode_cancel)
-                .setOnClickListener(getReplyModeButtonListener(this));
-        v.findViewById(R.id.button_camera_reply_mode_confirm)
-                .setOnClickListener(getReplyModeButtonListener(this));
-        root.addView(v,root.getChildCount());
-
-        if (VERBOSE) {
-            Log.v(TAG,"exiting startNewReplyInputMode...");
-        }
     }
 
     private void hideSoftKeyboard(EditText input) {

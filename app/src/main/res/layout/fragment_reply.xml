@@ -20,6 +20,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:padding="10dp"
+        android:background="@drawable/radical_transition"
         android:layout_alignParentBottom="true"
         android:layout_alignParentStart="true">
 
@@ -33,10 +34,10 @@
             android:id="@+id/button_reply_refresh"
             fab:fab_label="Refresh" />
 
-        <com.github.clans.fab.FloatingActionButton
+       <!-- <com.github.clans.fab.FloatingActionButton
             style="@style/FabNormal"
             android:id="@+id/button_reply_capture"
-            fab:fab_label="Add Image"/>
+            fab:fab_label="Add Image"/>-->
 
     </com.github.clans.fab.FloatingActionMenu>
 

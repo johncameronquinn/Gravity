@@ -1,6 +1,8 @@
 package us.gravwith.android.util;
 
 import android.os.Bundle;
+import android.util.Log;
+import android.view.View;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 
@@ -75,5 +77,17 @@ public class Utility {
         }
 
         return result;
+    }
+
+    public static void hideViewsInArray(int[] idList, View parentView) {
+        for (int i : idList) {
+            parentView.findViewById(i).setVisibility(View.GONE);
+        }
+    }
+
+    public static void showViewsInArray(int[] idList, View parentView) {
+        for (int i : idList) {
+            parentView.findViewById(i).setVisibility(View.VISIBLE);
+        }
     }
 }

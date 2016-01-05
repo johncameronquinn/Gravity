@@ -7,6 +7,8 @@ import android.content.Context;
 import android.content.CursorLoader;
 import android.content.Loader;
 import android.database.Cursor;
+import android.graphics.RadialGradient;
+import android.graphics.drawable.TransitionDrawable;
 import android.os.Bundle;
 import android.app.Fragment;
 import android.os.Message;
@@ -19,10 +21,11 @@ import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.RelativeLayout;
 
+import com.github.clans.fab.FloatingActionMenu;
 
 import java.net.HttpURLConnection;
-import java.util.LinkedList;
-import java.util.List;
+
+import us.gravwith.android.util.Utility;
 
 
 /**
@@ -32,7 +35,8 @@ import java.util.List;
  * A simple {@link Fragment} subclass. factory method to
  * create an instance of this fragment.
  */
-public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
+public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor>,
+        FloatingActionMenu.OnMenuToggleListener {
     private static int currentThread = LiveFragment.NO_LIVE_THREADS_ID;
     public static final int REPLY_LOADER_ID = 3;
 
@@ -41,10 +45,16 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
 
     private LiveFragment.onLiveFragmentInteractionListener mListener;
     private ListView mListView;
+    private FloatingActionMenu radicalMenuView;
 
     private static ReplyButtonListener replyButtonListener;
 
-    private int[] contentButtonArray = new int[]{0,1,2};
+    /*
+     * this is an array of the buttons which should be hidden unless there is content to display
+     */
+    private int[] contentButtonsArray = new int[]{
+            R.id.button_reply_report
+    };
 
     HybridCursorAdapter mAdapter;
 
@@ -150,6 +160,9 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
         mListView = (ListView)v.findViewById(R.id.reply_list_view);
         mListView.setAdapter(mAdapter);
 
+        radicalMenuView = (FloatingActionMenu)v.findViewById(R.id.reply_radical_menu);
+        radicalMenuView.setOnMenuToggleListener(this);
+
 /*        String[] fromColumns = {
                 SQLiteDbContract.LiveReplies.COLUMN_NAME_NAME,
                 SQLiteDbContract.LiveReplies.COLUMN_NAME_DESCRIPTION,
@@ -181,8 +194,10 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
         if(view != null) {
             view.findViewById(R.id.button_reply_refresh).setOnClickListener(null);
             view.findViewById(R.id.button_send_reply).setOnClickListener(null);
-            view.findViewById(R.id.button_reply_capture).setOnClickListener(null);
+            //view.findViewById(R.id.button_reply_capture).setOnClickListener(null);
         }
+        mListView = null;
+        radicalMenuView = null;
 
         super.onDestroyView();
     }
@@ -199,7 +214,7 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
         if (VERBOSE) Log.v(TAG,"entering onViewCreated...");
         view.findViewById(R.id.button_reply_refresh).setOnClickListener(replyButtonListener);
         view.findViewById(R.id.button_send_reply).setOnClickListener(replyButtonListener);
-        view.findViewById(R.id.button_reply_capture).setOnClickListener(replyButtonListener);
+        //view.findViewById(R.id.button_reply_capture).setOnClickListener(replyButtonListener);
         setCurrentThread(String.valueOf(currentThread));
         //anything that requires the UI to already exist goes here
         if (VERBOSE) Log.v(TAG,"exiting onViewCreated...");
@@ -214,29 +229,22 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
         if(view != null) {
             view.findViewById(R.id.button_reply_refresh).setOnClickListener(replyButtonListener);
             view.findViewById(R.id.button_send_reply).setOnClickListener(replyButtonListener);
-            view.findViewById(R.id.button_reply_capture).setOnClickListener(replyButtonListener);
+            //view.findViewById(R.id.button_reply_capture).setOnClickListener(replyButtonListener);
             setCurrentThread(String.valueOf(currentThread));
         }
     }
 
     @Override
-    public void onStart() {
-        super.onStart();
-    }
-
-    @Override
-    public void onResume() {
-        super.onResume();
-    }
-
-    @Override
-    public void onPause() {
-        super.onPause();
-    }
-
-    @Override
-    public void onStop() {
-        super.onStop();
+    public void onMenuToggle(boolean opened) {
+        if (opened) {
+            ((TransitionDrawable)radicalMenuView.getBackground()).startTransition(
+                    getResources().getInteger(R.integer.radical_background_transition_duration)
+            );
+        } else {
+            ((TransitionDrawable)radicalMenuView.getBackground()).reverseTransition(
+                    getResources().getInteger(R.integer.radical_background_transition_duration)
+            );
+        }
     }
 
     public void setCurrentThread(String thread) {
@@ -286,6 +294,8 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
             Log.v(TAG,"exiting handleReplyResponseState...");
         }
     }
+
+
 
 
     /**
@@ -346,7 +356,7 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
 
                     break;
 
-                case R.id.button_reply_capture:
+                /*case R.id.button_reply_capture:
 
                     if (isAdded()) {
 
@@ -366,7 +376,7 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
 
                         b.putString(Constants.KEY_ANALYTICS_ACTION,"take picture");
                     }
-                    break;
+                    break;*/
 
 
             }
@@ -407,7 +417,6 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
                 SQLiteDbContract.LiveEntry.COLUMN_NAME_TIME,
                 SQLiteDbContract.LiveEntry.COLUMN_NAME_DESCRIPTION,
                 SQLiteDbContract.LiveEntry.COLUMN_NAME_FILEPATH,
-                SQLiteDbContract.LiveEntry.COLUMN_NAME_THREAD_ID,
         };
 
         if (VERBOSE) Log.v(TAG,"loader created.");
@@ -434,23 +443,21 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
             return;
         }
 
-        Log.e(TAG,"cursor row count : " + data.getCount());
+     /*   Log.e(TAG,"cursor row count : " + data.getCount());
         if (data.getCount() > 0) {
             View v = getView();
             if (v!=null) {
-                //v.findViewById(R.id.button_reply_load).setVisibility(View.VISIBLE);
-                //v.findViewById(R.id.button_reply_report).setVisibility(View.VISIBLE);
+                Utility.showViewsInArray(contentButtonsArray,v);
             }
         } else {
             View v = getView();
             if (v!=null) {
-                //v.findViewById(R.id.button_reply_load).setVisibility(View.GONE);
-                //v.findViewById(R.id.button_reply_report).setVisibility(View.GONE);
+                Utility.hideViewsInArray(contentButtonsArray,v);
             }
 
             Log.i(TAG, "There are no replies... notify user?");
             //todo, explain what replies are, and suggest a reply
-        }
+        }*/
 
         mAdapter.swapCursor(data);
         mListView.setAdapter(mAdapter);
