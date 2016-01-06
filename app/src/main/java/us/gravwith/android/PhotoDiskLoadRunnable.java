@@ -160,7 +160,8 @@ class PhotoDiskLoadRunnable implements Runnable {
 
                 // Defines a handle for the byte download stream
                 InputStream byteStream = null;
-                File f = new File(mPhotoTask.getCacheDirectory()+PhotoManager.STORAGE_PREFIX,mPhotoTask.getImageKey());
+                File f = new File(mPhotoTask.getCacheDirectory()+PhotoManager.STORAGE_PREFIX,
+                        mPhotoTask.getImageKey());
 
                 // Downloads the image and catches IO errors
                 try {

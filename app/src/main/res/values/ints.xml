@@ -5,6 +5,7 @@
 
     <integer name="arn_key">0</integer>
     <integer name="file_path_key">1</integer>
+    <integer name="content_id_key">2</integer>
 
     <integer name="radical_background_transition_duration">200</integer>
 </resources>

@@ -8,12 +8,9 @@ import android.content.Context;
 import android.content.CursorLoader;
 import android.content.Loader;
 import android.database.Cursor;
-import android.graphics.RadialGradient;
 import android.graphics.drawable.TransitionDrawable;
 import android.os.Bundle;
 import android.app.Fragment;
-import android.os.Handler;
-import android.os.Looper;
 import android.os.Message;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -24,8 +21,12 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.RelativeLayout;
+import android.widget.TextView;
+import android.widget.Toast;
 
 import com.github.clans.fab.FloatingActionMenu;
+
+import org.w3c.dom.Text;
 
 import java.net.HttpURLConnection;
 
@@ -40,7 +41,7 @@ import us.gravwith.android.util.Utility;
  * create an instance of this fragment.
  */
 public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor>,
-        FloatingActionMenu.OnMenuToggleListener {
+        FloatingActionMenu.OnMenuToggleListener, ErrorReceiver.SecurityErrorListener {
     private static int currentThread = LiveFragment.NO_LIVE_THREADS_ID;
     public static final int REPLY_LOADER_ID = 3;
 
@@ -49,6 +50,7 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
 
     private LiveFragment.onLiveFragmentInteractionListener mListener;
     private ListView mListView;
+    private TextView replyErrorText;
     private RelativeLayout textingLayoutView;
     private FloatingActionMenu radicalMenuView;
 
@@ -103,6 +105,8 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
         }
 
         replyButtonListener = new ReplyButtonListener();
+
+        ErrorReceiver.addSecurityErrorListener(this);
 
     }
 
@@ -171,10 +175,12 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
         View v = inflater.inflate(R.layout.fragment_reply, container, false);
 
         mListView = (ListView)v.findViewById(R.id.reply_list_view);
+
         mListView.setAdapter(mAdapter);
 
         radicalMenuView = (FloatingActionMenu)v.findViewById(R.id.reply_radical_menu);
         radicalMenuView.setOnMenuToggleListener(this);
+        replyErrorText = (TextView)v.findViewById(R.id.textView_reply_error);
 
         textingLayoutView = (RelativeLayout)v.findViewById(R.id.reply_texting_layout);
 
@@ -230,6 +236,7 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
         mListView = null;
         radicalMenuView = null;
         textingLayoutView = null;
+        replyErrorText = null;
 
         super.onDestroyView();
     }
@@ -246,6 +253,7 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
         if (VERBOSE) Log.v(TAG,"entering onViewCreated...");
         view.findViewById(R.id.button_reply_refresh).setOnClickListener(replyButtonListener);
         view.findViewById(R.id.button_send_reply).setOnClickListener(replyButtonListener);
+        view.findViewById(R.id.button_reply_report).setOnClickListener(replyButtonListener);
         //view.findViewById(R.id.button_reply_capture).setOnClickListener(replyButtonListener);
         setCurrentThread(String.valueOf(currentThread));
         //anything that requires the UI to already exist goes here
@@ -407,6 +415,34 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
                     }
                     break;*/
 
+                case R.id.button_reply_report:
+
+                    ReportManager manager = new ReportManager((MainActivity)getActivity(),
+                            mListView, new ReportManager.ReportStatusListener() {
+                        @Override
+                        public void onRequestSuccess() {
+
+                        }
+
+                        @Override
+                        public void onRequestError(int code) {
+
+                        }
+
+                        @Override
+                        public void onRequestStarted() {
+
+                        }
+
+                        @Override
+                        public void onDialogClosed(boolean didTheyHitYes) {
+
+                        }
+                    });
+
+                    manager.startReportSelection();
+                    break;
+
 
             }
 
@@ -501,4 +537,9 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
         if (VERBOSE) Log.v(TAG,"exiting onLoaderReset...");
     }
 
+    @Override
+    public void onUnauthorizedError(String message) {
+        Toast.makeText(getActivity(),message,Toast.LENGTH_LONG).show();
+    }
 }
+

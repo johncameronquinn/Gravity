@@ -2,6 +2,7 @@ package us.gravwith.android;
 
 import android.app.Service;
 import android.content.ContentValues;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.location.Location;
@@ -92,16 +93,6 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
     private static UUID userID;
 
     private ContentManager contentManager;
-
-    /**
-     * RESPONSE CODES
-     */
-    private final int RESPONSE_SUCCESS = 200;
-    private final int RESPONSE_UNPROCESSABLE_ENTITY = 422;
-    private final int RESPONSE_TOO_MANY_REQUESTS = 429;
-    private final int RESPONSE_BLOCK_CONFLICT = 409;
-    private final int RESPONSE_UNAUTHORIZED = 401;
-    private final int RESPONSE_NOT_FOUND = 404;
 
     /**
      * JSON TAGS
@@ -396,6 +387,8 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
 
     static final int MSG_UPLOAD_IMAGE = 19;
 
+    static final int MSG_REPORT_CONTENT = 21;
+
     /**
      * class 'IncomingHandler'
      * <p/>
@@ -598,6 +591,11 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
                     reportAnalyticsScreen(data);
                     break;
 
+                case MSG_REPORT_CONTENT:
+                    if (Constants.LOGD) Log.d(TAG, "Received a message to report content.");
+
+                    break;
+
                 default:
                     super.handleMessage(msg);
             }
@@ -678,6 +676,9 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
                     try {
                         responseCode = task.getURLConnection().getResponseCode();
                         if (VERBOSE) Log.v(TAG,"grabbed responseCode is: " + responseCode);
+                        sendErrorBroadcast(responseCode,
+                                getResources().getString(R.string.authorization_error)
+                        );
                     } catch (IOException e) {
                         Log.e(TAG, "unable to get error code... ", e);
                     }
@@ -1377,7 +1378,7 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
         Log.i(TAG, "success for item " + contentItem.getFile().getAbsolutePath());
 
         Bundle b = new Bundle();
-        b.putString(Constants.KEY_S3_KEY,contentItem.getFilePath());
+        b.putString(Constants.KEY_S3_KEY, contentItem.getFilePath());
         Message msg = Message.obtain(null,PhotoManager.REQUEST_COMPLETE);
         msg.setData(b);
 
@@ -1391,6 +1392,25 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
         } else {
             Log.e(TAG,"imageResponseMessenger was null, cannot send.");
         }
+
+    }
+
+    private void sendErrorBroadcast(int responseCode, String message) {
+        if (VERBOSE) Log.v(TAG,"sendingErrorBroadcast : " + responseCode + " , " + message);
+        Intent intent = new Intent();
+        intent.setAction(Constants.ACTION_SERVER_ERROR);
+        intent.putExtra(Constants.RESPONSE_CODE, responseCode);
+        intent.putExtra(Constants.RESPONSE_MESSAGE, message);
+        sendBroadcast(intent);
+    }
+
+    private void sendErrorBroadcast(int responseCode, String message, Bundle dataBundle) {
+
+        Intent intent = new Intent(Constants.ACTION_SERVER_ERROR);
+        intent.putExtra(Constants.RESPONSE_CODE,responseCode);
+        intent.putExtra(Constants.RESPONSE_MESSAGE,message);
+        intent.putExtra(Constants.RESPONSE_BUNDLE,dataBundle);
+        sendBroadcast(intent);
 
     }
 }

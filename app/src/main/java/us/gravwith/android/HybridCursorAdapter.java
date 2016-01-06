@@ -26,10 +26,6 @@ public class HybridCursorAdapter extends CursorAdapter implements PhotoView.OnCl
 
     private static final boolean VERBOSE = true;
 
-    private int filepath_column_index;
-    private int time_column_index;
-    private int description_column_index;
-
     // A Drawable for a grid cell that's empty
     private Drawable mEmptyDrawable;
 

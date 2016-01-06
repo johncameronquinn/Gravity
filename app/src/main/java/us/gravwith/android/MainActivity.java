@@ -472,6 +472,8 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
         // register notification receiver
         LocalBroadcastManager.getInstance(this).registerReceiver(notificationReceiver,
                 new IntentFilter(PushListenerService.ACTION_SNS_NOTIFICATION));
+
+
         Log.d(TAG, "exit onResume...");
     }
 
@@ -1607,6 +1609,26 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
             }
         }
     }
+
+    /**
+     * method 'sendMsgSendReportToServer'
+     *
+     * sends a message to the service to report the item
+     */
+    public void sendMsgSendReportToServer(int contentID, Messenger replyMessenger) {
+        if (isBound) {
+            Log.d(TAG, "sending message to report to the server");
+            Message msg = Message.obtain(null, DataHandlingService.MSG_REPORT_CONTENT);
+            msg.arg1 = contentID;
+            msg.replyTo = replyMessenger;
+            try {
+                mService.send(msg);
+            } catch (RemoteException e) {
+                Log.e(TAG, "error sending message to request images", e);
+            }
+        }
+    }
+
 
     /** LIVE POST and REPLY HANDLING
      */
@@ -3369,5 +3391,4 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
         Log.i(TAG, "entering onDeveloperInteraction with request- " + request + " and resource - "
                 + resource.toString());
     }
-
 }

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="us.gravwith.android" >
+    package="us.gravwith.android">
 
     <!-- limits app usage to only devices with cameras -->
     <uses-feature
@@ -19,12 +19,15 @@
 
     <!-- aws permissions -->
     <uses-permission android:name="com.google.android.c2dm.permission.RECEIVE" />
-    <permission android:name="com.amazon.mysampleapp.permission.C2D_MESSAGE"
+
+    <permission
+        android:name="com.amazon.mysampleapp.permission.C2D_MESSAGE"
         android:protectionLevel="signature" />
+
     <uses-permission android:name="com.amazon.mysampleapp.permission.C2D_MESSAGE" />
 
     <application
-        android:name="us.gravwith.android.AnalyticsApplication"
+        android:name=".AnalyticsApplication"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
@@ -42,34 +45,30 @@
             android:value="AIzaSyDRWtyNXeyGA85-4e7rrDv-15UhdRDO7ng" />
 
         <activity
-            android:name="us.gravwith.android.MainActivity"
+            android:name=".MainActivity"
             android:label="@string/app_name"
             android:screenOrientation="portrait"
-            android:theme="@style/AppTheme"
-            >
-        </activity>
+            android:theme="@style/AppTheme"></activity>
 
         <service
-            android:name="us.gravwith.android.DataHandlingService"
+            android:name=".DataHandlingService"
             android:exported="false"
-            android:process=":ServerConnectProcess" >
-        </service>
+            android:process=":ServerConnectProcess"></service>
 
         <provider
-            android:name="us.gravwith.android.FireFlyContentProvider"
+            android:name=".FireFlyContentProvider"
             android:authorities="com.gravwith.android.provider"
             android:enabled="true"
             android:exported="false"
-            android:process=":ServerConnectProcess" >
-        </provider>
+            android:process=":ServerConnectProcess"></provider>
 
         <activity
-            android:name="us.gravwith.android.StashActivity"
+            android:name=".StashActivity"
+            android:hardwareAccelerated="true"
             android:label="@string/title_activity_stash"
-            android:parentActivityName="us.gravwith.android.MainActivity"
-            android:theme="@style/StashTheme"
+            android:parentActivityName=".MainActivity"
             android:screenOrientation="portrait"
-            android:hardwareAccelerated="true" >
+            android:theme="@style/StashTheme">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="us.gravwith.android.MainActivity" />
@@ -80,16 +79,17 @@
         <receiver
             android:name="com.google.android.gms.gcm.GcmReceiver"
             android:exported="true"
-            android:permission="com.google.android.c2dm.permission.SEND" >
+            android:permission="com.google.android.c2dm.permission.SEND">
             <intent-filter>
                 <action android:name="com.google.android.c2dm.intent.RECEIVE" />
+
                 <category android:name="@string/google_cloud_messaging_package" />
             </intent-filter>
         </receiver>
 
         <service
-            android:name="us.gravwith.android.PushListenerService"
-            android:exported="false" >
+            android:name=".PushListenerService"
+            android:exported="false">
             <intent-filter>
                 <action android:name="com.google.android.c2dm.intent.RECEIVE" />
             </intent-filter>
@@ -97,30 +97,40 @@
 
         <!-- END - PUSH NOTIFICATIONS WITH GOOGLE CLOUD MESSAGING (GCM) -->
 
+
         <!--
             No intent filters are specified, so android:exported defaults to "false". The
             service is only available to this app.
         -->
         <service
-            android:name= "com.amazonaws.mobileconnectors.s3.transferutility.TransferService"
-            android:process=":ServerConnectProcess"
-            android:enabled="true" />
+            android:name="com.amazonaws.mobileconnectors.s3.transferutility.TransferService"
+            android:enabled="true"
+            android:process=":ServerConnectProcess" />
 
         <!--
             The attribute "android:exported" must be set to "false" to restrict this content
             provider to its own app. Otherwise, all apps could access it.
         -->
         <activity
-            android:name="us.gravwith.android.SplashActivity"
+            android:name=".SplashActivity"
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:label="@string/app_name"
-            android:theme="@style/FullscreenTheme" >
+            android:theme="@style/FullscreenTheme">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <receiver
+            android:name=".ErrorReceiver"
+            android:enabled="true"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="us.gravwith.android.ACTION_SERVER_ERROR"/>
+            </intent-filter>
+        </receiver>
     </application>
 
 </manifest>

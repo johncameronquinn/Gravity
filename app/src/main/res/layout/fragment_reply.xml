@@ -11,7 +11,10 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:id="@+id/reply_list_view"
+        android:background="@color/cyber_grey"
         android:dividerHeight="2dp"
+        android:paddingBottom="89dp"
+        android:clipToPadding="false"
         android:layout_alignParentTop="true"/>
 
     <com.github.clans.fab.FloatingActionMenu
@@ -50,9 +53,7 @@
         android:layout_alignParentBottom="true"
         android:layout_marginRight="@dimen/side_screen_margin"
         android:layout_marginBottom="@dimen/side_screen_margin"
-        android:layout_marginLeft="@dimen/local_card_margin"
-        android:padding="2dp"
-        android:background="@drawable/rectangle">
+        android:layout_marginLeft="@dimen/local_card_margin">
 
         <EditText
             android:layout_width="match_parent"
@@ -60,18 +61,24 @@
             android:id="@+id/editText_reply_comment"
             android:layout_toStartOf="@+id/button_send_reply"
             android:layout_marginLeft="5dp"
-            android:layout_marginTop="10dp" />
+            android:hint="comment"
+            android:gravity="center_horizontal"
+            android:layout_marginBottom="5dp"
+            android:layout_marginRight="5dp" />
 
-        <ImageButton
+        <!--<Button
             android:id="@+id/button_send_reply"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:src="@drawable/ic_reply_send"
-            android:text="Send"
+            android:text="send"
             android:layout_alignParentEnd="true"
-            android:background="@android:color/transparent" />
+            android:background="@drawable/reply_button_background"
+            android:layout_alignParentStart="false"
+            android:textColor="@color/cyber_darker_blue"
+            android:gravity="center_horizontal|bottom"
+            android:paddingBottom="10dp" /-->
 
-        <!--<com.github.clans.fab.FloatingActionButton
+        <com.github.clans.fab.FloatingActionButton
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:id="@+id/button_send_reply"
@@ -82,7 +89,7 @@
             android:layout_alignParentRight="true"
             android:layout_alignParentBottom="false"
             android:layout_alignParentStart="false"
-            android:layout_alignBottom="@+id/editText_reply_comment" /-->
+            android:src="@android:drawable/ic_menu_send" />
     </RelativeLayout>
 
     <ImageView
@@ -90,20 +97,20 @@
         android:layout_height="match_parent"
         android:scaleType="fitXY"
         android:id="@+id/imageView_reply_fullscreen"
-        android:visibility="visible" />
+        android:visibility="visible"
+        android:layout_alignParentTop="true"
+        android:layout_alignStart="@+id/reply_texting_layout" />
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textAppearance="?android:attr/textAppearanceLarge"
-        android:text="No Replies Found"
         android:id="@+id/textView_reply_error"
-        android:visibility="invisible"
+        android:visibility="visible"
         android:autoText="false"
-        android:background="@drawable/ic_comment"
+        android:layout_marginTop="@dimen/side_screen_margin"
         android:gravity="center"
-        android:layout_centerVertical="true"
-        android:layout_alignStart="@+id/reply_texting_layout" />
+        android:layout_centerHorizontal="true" />
 
 
 </RelativeLayout>

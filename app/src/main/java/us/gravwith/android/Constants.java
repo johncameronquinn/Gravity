@@ -58,6 +58,7 @@ public final class Constants {
 
     public static final String ACTION_ZOOM_IMAGE = "us.gravwith.android.ACTION_ZOOM_IMAGE";
 
+
     // Defines a custom Intent action
     public static final String BROADCAST_ACTION =
             "com.gravwith.android.BROADCAST";
@@ -125,6 +126,15 @@ public final class Constants {
 
     public static final String KEY_PREVIEW_IMAGE = "preview_status";
 
+    /**
+     * ERROR HANDLING
+     */
+
+    public static final String RESPONSE_CODE = "responseCode";
+    public static final String RESPONSE_MESSAGE = "responseMessage";
+    public static final String RESPONSE_BUNDLE = "responseBundle";
+
+    public static final String ACTION_SERVER_ERROR = "us.gravwith.android.ACTION_SERVER_ERROR";
 
 
 

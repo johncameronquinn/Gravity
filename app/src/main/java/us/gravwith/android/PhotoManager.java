@@ -345,7 +345,7 @@ public class PhotoManager {
                                 localView.animate()
                                         .alpha(1f)
                                         .setDuration(CROSSFADE_DURATION)
-                                        .setListener(null);crossfade(localView,null);
+                                        .setListener(null);
 
                                 mWaitingPhotoTasks.remove(photoTask.getImageKey());
                                 break;
@@ -364,42 +364,30 @@ public class PhotoManager {
     }
 
     private static void crossfade(View mContentView, final View mLoadingView) {
-        if (mContentView == null) {
-            Log.e(TAG,"crossfade cannot have a null contentView...");
-            return;
-        }
 
         // Set the content view to 0% opacity but visible, so that it is visible
         // (but fully transparent) during the animation.
         mContentView.setAlpha(0f);
         mContentView.setVisibility(View.VISIBLE);
+        // Animate the content view to 100% opacity, and clear any animation
+        // listener set on the view.
+        mContentView.animate()
+                .alpha(1f)
+                .setDuration(CROSSFADE_DURATION)
+                .setListener(null);
 
-        if (mLoadingView!=null) {
-            // Animate the content view to 100% opacity, and clear any animation
-            // listener set on the view.
-            mContentView.animate()
-                    .alpha(1f)
-                    .setDuration(CROSSFADE_DURATION)
-                    .setListener(null);
-
-            // Animate the loading view to 0% opacity. After the animation ends,
-            // set its visibility to GONE as an optimization step (it won't
-            // participate in layout passes, etc.)
-            mLoadingView.animate()
-                    .alpha(0f)
-                    .setDuration(CROSSFADE_DURATION)
-                    .setListener(new AnimatorListenerAdapter() {
-                        @Override
-                        public void onAnimationEnd(Animator animation) {
-                            mLoadingView.setVisibility(View.GONE);
-                        }
-                    });
-        } else {
-            mContentView.animate()
-                    .alpha(1f)
-                    .setDuration(CROSSFADE_DURATION)
-                    .setListener(null);
-        }
+        // Animate the loading view to 0% opacity. After the animation ends,
+        // set its visibility to GONE as an optimization step (it won't
+        // participate in layout passes, etc.)
+        mLoadingView.animate()
+                .alpha(0f)
+                .setDuration(CROSSFADE_DURATION)
+                .setListener(new AnimatorListenerAdapter() {
+                    @Override
+                    public void onAnimationEnd(Animator animation) {
+                        mLoadingView.setVisibility(View.GONE);
+                    }
+                });
     }
 
     public byte[] getCachedImage(String key) {

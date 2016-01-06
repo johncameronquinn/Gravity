@@ -32,8 +32,7 @@
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="title_activity_stash">Stash</string>
 
-    <string name="hello_world">Hello world!</string>
-
+    <string name="authorization_error">Authorization Error, hold on one moment...</string>
 
     <string name="authority">com.jokrapp.android</string>
     <string name="activity_title">Picasa Images</string>
@@ -49,6 +48,11 @@
     <string name="dummy_button">Dummy Button</string>
     <string name="dummy_content">DUMMY\nCONTENT</string>
 
+    <!--Report Dialog Resources-->
+    <string name="report_dialog_title">Report Content</string>
+    <string name="report_dialog_message">Are you sure you want to report this post?</string>
+    <string name="report_dialog_positive_label">Yes</string>
+    <string name="report_dialog_negative_label">No</string>
 
     <!-- AMAZON AWS DEMO APP EXAMPLES -->
     <string name="fragment_demo_instruction_overview_header">Overview</string>

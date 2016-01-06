@@ -71,7 +71,7 @@ public class PhotoFragment extends Fragment implements View.OnClickListener {
           * at "url" without caching and without providing a Drawable. The result will be
           * a BitMap stored in the PhotoView for this Fragment.
           */
-            mPhotoView.setImageKey(mImageDirectory,mImageKey, false, null);
+            mPhotoView.setImageKey(mImageDirectory,mImageKey, true, null);
 
         }
 
