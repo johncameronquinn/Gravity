@@ -13,7 +13,7 @@
         android:id="@+id/reply_list_view"
         android:background="@color/cyber_grey"
         android:dividerHeight="2dp"
-        android:paddingBottom="89dp"
+        android:paddingBottom="91dp"
         android:clipToPadding="false"
         android:layout_alignParentTop="true"/>
 
@@ -35,7 +35,7 @@
         <com.github.clans.fab.FloatingActionButton
             style="@style/FabNormal"
             android:id="@+id/button_reply_refresh"
-            fab:fab_label="Refresh" />
+            fab:fab_label="Refresh"/>
 
        <!-- <com.github.clans.fab.FloatingActionButton
             style="@style/FabNormal"
@@ -62,6 +62,8 @@
             android:layout_toStartOf="@+id/button_send_reply"
             android:layout_marginLeft="5dp"
             android:hint="comment"
+            android:textColorHint="@android:color/darker_gray"
+            android:textColor="@android:color/white"
             android:gravity="center_horizontal"
             android:layout_marginBottom="5dp"
             android:layout_marginRight="5dp" />
@@ -83,12 +85,16 @@
             android:layout_height="wrap_content"
             android:id="@+id/button_send_reply"
             android:scaleType="fitXY"
-            fab:fab_size="mini"
-            fab:fab_colorNormal="@color/cyber_light_blue"
-            fab:fab_elevationCompat="0dp"
-            android:layout_alignParentRight="true"
+            android:layout_alignParentEnd="true"
             android:layout_alignParentBottom="false"
             android:layout_alignParentStart="false"
+            android:enabled="false"
+            fab:fab_size="mini"
+            fab:fab_showShadow="true"
+            fab:fab_colorDisabled="@color/cyber_grey"
+            fab:fab_colorNormal="@color/cyber_dark_blue"
+            fab:fab_colorPressed="@color/cyber_light_blue"
+            fab:fab_colorRipple="@color/cyber_light_blue"
             android:src="@android:drawable/ic_menu_send" />
     </RelativeLayout>
 

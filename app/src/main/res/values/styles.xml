@@ -7,11 +7,11 @@
 
         <item name="android:colorBackground">@color/cyber_background</item>
         <item name="android:colorForeground">@color/cyber_black</item>
-        <item name="android:textColorPrimary">@color/cyber_light_blue</item>
+        <item name="android:textColorPrimary">@color/cyber_dark_orange</item>
         <item name="android:windowBackground">@color/cyber_background</item>
-        <item name="android:textColorSecondary">@color/cyber_dark_orange</item>
-        <item name="android:textColorPrimaryInverse">@color/cyber_light_orange</item>
-        <item name="android:textColorSecondaryInverse">@color/cyber_light_orange</item>
+        <item name="android:textColorSecondary">@color/cyber_light_orange</item>
+        <item name="android:textColorPrimaryInverse">@color/cyber_dark_blue</item>
+        <item name="android:textColorSecondaryInverse">@color/cyber_light_blue</item>
     </style>
 
     <style name="StashTheme" parent="@android:style/Theme.Holo">
