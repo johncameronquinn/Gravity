@@ -1375,7 +1375,7 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
 
     @Override
     public void onSuccess(ContentItem contentItem) {
-        Log.i(TAG, "success for item " + contentItem.getFile().getAbsolutePath());
+        Log.i(TAG, "success for filepath " + contentItem.getFile().getAbsolutePath());
 
         Bundle b = new Bundle();
         b.putString(Constants.KEY_S3_KEY, contentItem.getFilePath());

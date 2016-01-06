@@ -421,15 +421,8 @@ import java.util.List;
                 cachedFile = localContentCache.addByMoving(relativeFilePath, completedFile);
             } catch (final IOException ex) {
                 Log.d(LOG_TAG, String.format("Can't add file(%s) into the local cache.",
-                    relativeFilePath), ex);
-                if (listener != null) {
-                    ThreadUtils.runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            listener.onError(getRelativeFilePath(completedFile.getAbsolutePath()), ex);
-                        }
-                    });
-                }
+                        relativeFilePath), ex);
+                listener.onError(getRelativeFilePath(completedFile.getAbsolutePath()), ex);
                 return;
             }
 
@@ -446,27 +439,18 @@ import java.util.List;
             cleanUpTransfer(observer);
 
             if (listener != null) {
-                ThreadUtils.runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        listener.onError(filePath, exception);
-                    }
-                });
+                Log.d(LOG_TAG, "Posting error to listener...");
+                listener.onError(filePath, exception);
             }
+
         } else if (state == TransferState.WAITING || state == TransferState.WAITING_FOR_NETWORK ||
             state == TransferState.RESUMED_WAITING) {
             final ContentProgressListener listener = progressListeners.get(id);
             if (listener != null) {
                 observer.refresh();
                 final String filePath = getRelativeFilePath(observer.getAbsoluteFilePath());
-                // Ensure this happens from the UI thread.
-                ThreadUtils.runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        listener.onProgressUpdate(filePath, true, observer.getBytesTransferred(),
-                            observer.getBytesTotal());
-                    }
-                });
+                listener.onProgressUpdate(filePath, true, observer.getBytesTransferred(),
+                        observer.getBytesTotal());
             }
         }
     }
@@ -491,20 +475,15 @@ import java.util.List;
             cleanUpTransfer(observer);
         }
         if (listener != null) {
-            ThreadUtils.runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    if (!isPinned && bytesTotal > maxCacheSize) {
-                        listener.onError(filePath, new IllegalStateException(String.format(
-                            "Cancelled due to transfer size %s exceeds max cache size of %s",
-                            StringFormatUtils.getBytesString(bytesTotal, true),
-                            StringFormatUtils.getBytesString(maxCacheSize, true))));
-                    } else {
-                        listener.onProgressUpdate(filePath, false, bytesCurrent,
-                            bytesTotal);
-                    }
-                }
-            });
+            if (!isPinned && bytesTotal > maxCacheSize) {
+                listener.onError(filePath, new IllegalStateException(String.format(
+                        "Cancelled due to transfer size %s exceeds max cache size of %s",
+                        StringFormatUtils.getBytesString(bytesTotal, true),
+                        StringFormatUtils.getBytesString(maxCacheSize, true))));
+            } else {
+                listener.onProgressUpdate(filePath, false, bytesCurrent,
+                        bytesTotal);
+            }
         }
     }
 
@@ -513,7 +492,6 @@ import java.util.List;
         final ContentProgressListener listener = progressListeners.get(id);
         final TransferObserver observer = transfersInProgress.get(id);
         Log.d(LOG_TAG, ex.getMessage(), ex);
-
         if (listener != null) {
             ThreadUtils.runOnUiThread(new Runnable() {
                 @Override

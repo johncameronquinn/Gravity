@@ -114,7 +114,7 @@ public class HybridCursorAdapter extends CursorAdapter implements PhotoView.OnCl
 
         // Retrieves the urlString from the cursor
         String s3Key = ((PhotoView)view).getImageKey();
-        s3Key = s3Key.substring(0,s3Key.length()-1);
+        //s3Key = s3Key.substring(0,s3Key.length()-1);
 
         Log.d(TAG, "grabbed key is: " + s3Key);
         /*
