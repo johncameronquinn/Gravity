@@ -151,7 +151,7 @@ class PhotoDecodeRunnable implements Runnable {
 
             if (targetWidth == 0|| targetHeight == 0) {
                 Log.e(LOG_TAG,"TargetWidth or TargetHeight is zero, the bitmap is hidden... quitting");
-                return;
+                throw new RuntimeException("Invalid target parameters.");
             }
 
             // Before continuing, checks to see that the Thread hasn't

@@ -51,9 +51,8 @@
         android:layout_marginRight="@dimen/side_screen_margin"
         android:layout_marginBottom="@dimen/side_screen_margin"
         android:layout_marginLeft="@dimen/local_card_margin"
-        android:background="@drawable/rectangle"
-        android:paddingTop="4dp"
-        android:paddingBottom="4dp">
+        android:padding="2dp"
+        android:background="@drawable/rectangle">
 
         <EditText
             android:layout_width="match_parent"
@@ -63,7 +62,16 @@
             android:layout_marginLeft="5dp"
             android:layout_marginTop="10dp" />
 
-        <com.github.clans.fab.FloatingActionButton
+        <ImageButton
+            android:id="@+id/button_send_reply"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/ic_reply_send"
+            android:text="Send"
+            android:layout_alignParentEnd="true"
+            android:background="@android:color/transparent" />
+
+        <!--<com.github.clans.fab.FloatingActionButton
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:id="@+id/button_send_reply"
@@ -74,7 +82,7 @@
             android:layout_alignParentRight="true"
             android:layout_alignParentBottom="false"
             android:layout_alignParentStart="false"
-            android:layout_alignBottom="@+id/editText_reply_comment" />
+            android:layout_alignBottom="@+id/editText_reply_comment" /-->
     </RelativeLayout>
 
     <ImageView

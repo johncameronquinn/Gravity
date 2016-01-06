@@ -24,7 +24,11 @@ public class HybridCursorAdapter extends CursorAdapter implements PhotoView.OnCl
 
     private final String TAG = getClass().getSimpleName();
 
-    private static final boolean VERBOSE = false;
+    private static final boolean VERBOSE = true;
+
+    private int filepath_column_index;
+    private int time_column_index;
+    private int description_column_index;
 
     // A Drawable for a grid cell that's empty
     private Drawable mEmptyDrawable;
@@ -32,6 +36,11 @@ public class HybridCursorAdapter extends CursorAdapter implements PhotoView.OnCl
     public HybridCursorAdapter(Context context, Cursor c, int flags) {
         super(context, c, flags);
         mEmptyDrawable = context.getResources().getDrawable(R.drawable.imagenotqueued);
+    }
+
+    @Override
+    public Cursor swapCursor(Cursor newCursor) {
+        return super.swapCursor(newCursor);
     }
 
     // The newView method is used to inflate a new view and return it,
@@ -54,6 +63,9 @@ public class HybridCursorAdapter extends CursorAdapter implements PhotoView.OnCl
     // such as setting the text on a TextView.
     @Override
     public void bindView(View view, Context context, Cursor cursor) {
+        if (VERBOSE) Log.v(TAG,"entering bindView...");
+
+
         // Find fields to populate in inflated template
         TextView text = (TextView) view.findViewById(R.id.reply_detail_row_text);
         TextView date = (TextView) view.findViewById(R.id.reply_detail_row_time);
@@ -86,16 +98,17 @@ public class HybridCursorAdapter extends CursorAdapter implements PhotoView.OnCl
         if(!path.equals("")) {
             if (VERBOSE) Log.v(TAG,"a filepath was provided... " + path +
                     " this must be an image reply");
-
+            localImageDownloaderView.setVisibility(View.VISIBLE);
             localImageDownloaderView.setImageKey(
                     Constants.KEY_S3_LIVE_DIRECTORY,
                     path, false, mEmptyDrawable
             );
-            localImageDownloaderView.setTag(path);
-            localImageDownloaderView.setVisibility(View.VISIBLE);
         } else {
+            localImageDownloaderView.setVisibility(View.GONE);
             localImageDownloaderView.clearImage();
         }
+
+        if (VERBOSE) Log.v(TAG,"exiting bindView...");
     }
 
     @Override

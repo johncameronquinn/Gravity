@@ -154,7 +154,7 @@ public class PhotoFragment extends Fragment implements View.OnClickListener {
             default:
                 // Sends a broadcast intent to zoom the image
                 if (Constants.LOGV) Log.v(TAG,"sending broadcast to zoom the image");
-                Intent localIntent = new Intent(Constants.ACTION_ZOOM_IMAGE);
+                Intent localIntent = new Intent(Constants.ACTION_REMOVE_IMAGE);
                 LocalBroadcastManager.getInstance(getActivity()).sendBroadcast(localIntent);
 
 

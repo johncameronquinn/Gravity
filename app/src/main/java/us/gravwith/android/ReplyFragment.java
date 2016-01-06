@@ -1,6 +1,7 @@
 package us.gravwith.android;
 
 
+import android.animation.Animator;
 import android.app.Activity;
 import android.app.LoaderManager;
 import android.content.Context;
@@ -11,9 +12,12 @@ import android.graphics.RadialGradient;
 import android.graphics.drawable.TransitionDrawable;
 import android.os.Bundle;
 import android.app.Fragment;
+import android.os.Handler;
+import android.os.Looper;
 import android.os.Message;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
@@ -45,6 +49,7 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
 
     private LiveFragment.onLiveFragmentInteractionListener mListener;
     private ListView mListView;
+    private RelativeLayout textingLayoutView;
     private FloatingActionMenu radicalMenuView;
 
     private static ReplyButtonListener replyButtonListener;
@@ -97,9 +102,17 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
 
         }
 
-
         replyButtonListener = new ReplyButtonListener();
 
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+
+        if (mAdapter == null) {
+            mAdapter = new HybridCursorAdapter(getActivity(),null,0);
+        }
     }
 
     @Override
@@ -163,6 +176,25 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
         radicalMenuView = (FloatingActionMenu)v.findViewById(R.id.reply_radical_menu);
         radicalMenuView.setOnMenuToggleListener(this);
 
+        textingLayoutView = (RelativeLayout)v.findViewById(R.id.reply_texting_layout);
+
+        v.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+
+                switch (event.getAction()) {
+                    case MotionEvent.ACTION_DOWN:
+
+                        break;
+
+                    case MotionEvent.ACTION_UP:
+                        break;
+                }
+
+                return false;
+            }
+        });
+
 /*        String[] fromColumns = {
                 SQLiteDbContract.LiveReplies.COLUMN_NAME_NAME,
                 SQLiteDbContract.LiveReplies.COLUMN_NAME_DESCRIPTION,
@@ -185,7 +217,6 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
     }
 
 
-
     @Override
     public void onDestroyView() {
        //todo maintain active references to avoid the necessity to search
@@ -198,6 +229,7 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
         }
         mListView = null;
         radicalMenuView = null;
+        textingLayoutView = null;
 
         super.onDestroyView();
     }
@@ -294,9 +326,6 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
             Log.v(TAG,"exiting handleReplyResponseState...");
         }
     }
-
-
-
 
     /**
      * class 'replyButtonListener

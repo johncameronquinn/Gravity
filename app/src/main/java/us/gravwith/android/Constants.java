@@ -28,12 +28,12 @@ public final class Constants {
     public static final String SHARED_PREFERENCES_NAME = "settings";
 
 
-    public static final String ACTION_IMAGE_LOADED = "com.gravwith.android.IMAGELOADED";
-    public static final String ACTION_IMAGE_LIVE_LOADED = "com.gravwith.android.live.LOADED";
-    public static final String ACTION_IMAGE_REPLY_LOADED = "com.gravwith.android.reply.LOADED";
-    public static final String ACTION_IMAGE_REPLY_THUMBNAIL_LOADED = "com.gravwith.android.reply.thumbnail.LOADED";
-    public static final String ACTION_IMAGE_LOCAL_LOADED = "com.gravwith.android.local.LOADED";
-    public static final String ACTION_IMAGE_MESSAGE_LOADED = "com.gravwith.android.message.LOADED";
+    public static final String ACTION_IMAGE_LOADED = "us.gravwith.android.IMAGELOADED";
+    public static final String ACTION_IMAGE_LIVE_LOADED = "us.gravwith.android.live.LOADED";
+    public static final String ACTION_IMAGE_REPLY_LOADED = "us.gravwith.android.reply.LOADED";
+    public static final String ACTION_IMAGE_REPLY_THUMBNAIL_LOADED = "us.gravwith.android.reply.thumbnail.LOADED";
+    public static final String ACTION_IMAGE_LOCAL_LOADED = "us.gravwith.android.local.LOADED";
+    public static final String ACTION_IMAGE_MESSAGE_LOADED = "us.gravwith.android.message.LOADED";
     public static final String LOCAL_KEY_PATH = "pkl";
     public static final String KEY_USER_ID = "userID";
 
@@ -52,11 +52,11 @@ public final class Constants {
 
     // Custom actions
 
-    public static final String ACTION_VIEW_IMAGE =
-            "com.gravwith.android.ACTION_VIEW_IMAGE";
+    public static final String ACTION_VIEW_IMAGE = "us.gravwith.android.ACTION_VIEW_IMAGE";
 
-    public static final String ACTION_ZOOM_IMAGE =
-            "com.gravwith.android.ACTION_ZOOM_IMAGE";
+    public static final String ACTION_REMOVE_IMAGE = "us.gravwith.android.ACTION_REMOVE_IMAGE";
+
+    public static final String ACTION_ZOOM_IMAGE = "us.gravwith.android.ACTION_ZOOM_IMAGE";
 
     // Defines a custom Intent action
     public static final String BROADCAST_ACTION =

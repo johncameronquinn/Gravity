@@ -408,6 +408,16 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
                         displayerIntentFilter
                 );
 
+        // Creates a third filter for ACTION_REMOVE_IMAGE
+        displayerIntentFilter = new IntentFilter(Constants.ACTION_REMOVE_IMAGE);
+
+        // Registers the receiver
+        LocalBroadcastManager.getInstance(this)
+                .registerReceiver(
+                        mFragmentDisplayer,
+                        displayerIntentFilter
+                );
+
 
         if (isBound) {
             Log.d(TAG, "sending message to connect GoogleApiClient...");
@@ -1494,6 +1504,10 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
                     // Removes controls from the screen
                //     setFullScreen(true);
                 }
+            } else if (intent.getAction().equals(Constants.ACTION_REMOVE_IMAGE)) {
+                if (VERBOSE) Log.v(TAG,"Remove intent received...");
+                if (VERBOSE) Log.v(TAG,"removing fullscreen fragment...");
+                getFragmentManager().popBackStackImmediate();
             }
         }
     }

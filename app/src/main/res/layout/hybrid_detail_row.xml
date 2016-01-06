@@ -9,11 +9,13 @@
     android:visibility="visible">
 
     <us.gravwith.android.PhotoView
-        android:id="@+id/thumbImage" android:layout_width="match_parent"
+        android:id="@+id/thumbImage"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content" android:scaleType="fitXY"
         android:visibility="gone"
         android:layout_alignParentStart="true"
-        android:adjustViewBounds="true" />
+        android:adjustViewBounds="true"
+        android:minHeight="800dp" />
 
     <TextView
         android:id="@+id/reply_detail_row_text"

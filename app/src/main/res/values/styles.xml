@@ -33,6 +33,8 @@
         <item name="menu_colorPressed">@color/cyber_light_blue</item>
         <item name="menu_colorRipple">@color/cyber_grey</item>
         <item name="menu_labels_position">right</item>
+        <item name="menu_labels_colorPressed">@color/clear_background</item>
+        <item name="menu_labels_colorRipple">@color/clear_background</item>
         <item name="menu_labels_colorNormal">@color/clear_background</item>
         <item name="menu_labels_showShadow">false</item>
         <item name="menu_animationDelayPerItem">30</item>
