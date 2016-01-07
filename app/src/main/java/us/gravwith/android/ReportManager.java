@@ -35,6 +35,8 @@ public class ReportManager implements AdapterView.OnItemClickListener {
     static final int REPORT_STATUS_STARTED = 0;
     static final int REPORT_STATUS_FAILED = -1;
 
+    private int viewContainerIndex = 0;
+
     private ReportStatusListener mListener;
 
     private int selectedContentID;
@@ -62,6 +64,8 @@ public class ReportManager implements AdapterView.OnItemClickListener {
             Log.v(LOG_TAG,"view clicked which is in provided container...");
             selectedContentID = (int)v.getTag(R.integer.content_id_key);
 
+            endReportSelectionMode();
+
             new AlertDialog.Builder(mainActivity)
                     .setIcon(android.R.drawable.ic_dialog_alert)
                     .setTitle(R.string.report_dialog_title)
@@ -73,10 +77,6 @@ public class ReportManager implements AdapterView.OnItemClickListener {
                                     sendReport();
                                     dialog.dismiss();
                                     mListener.onDialogClosed(true);
-                                    viewContainer.setDescendantFocusability(
-                                            ViewGroup.FOCUS_AFTER_DESCENDANTS
-                                    );
-                                    viewContainer.setOnItemClickListener(null);
                                 }
                             })
                     .setNegativeButton(R.string.report_dialog_negative_label,
@@ -85,9 +85,6 @@ public class ReportManager implements AdapterView.OnItemClickListener {
                                 public void onClick(DialogInterface dialog, int which) {
                                     dialog.dismiss();
                                     mListener.onDialogClosed(false);
-                                    viewContainer.setDescendantFocusability(
-                                            ViewGroup.FOCUS_AFTER_DESCENDANTS
-                                    );
                                 }
                             }).show();
 
@@ -97,12 +94,34 @@ public class ReportManager implements AdapterView.OnItemClickListener {
     }
 
     public void startReportSelectionMode() {
-        if (VERBOSE) Log.v(LOG_TAG,"entering startReportSelection...");
+        if (VERBOSE) Log.v(LOG_TAG,"entering startReportSelectionMode...");
 
+        //Block posts from being clickable
         viewContainer.setDescendantFocusability(ViewGroup.FOCUS_BLOCK_DESCENDANTS);
         viewContainer.setOnItemClickListener(this);
 
-        if (VERBOSE) Log.v(LOG_TAG,"exiting startReportSelection...");
+        //Save container position and pull to front
+        ViewGroup group = (ViewGroup)viewContainer.getParent();
+        viewContainerIndex = group.indexOfChild(viewContainer);
+        viewContainer.bringToFront();
+
+        if (VERBOSE) Log.v(LOG_TAG,"exiting startReportSelectionMode...");
+    }
+
+    public void endReportSelectionMode() {
+        if (VERBOSE) Log.v(LOG_TAG,"entering endReportSelectionMode...");
+
+        viewContainer.setOnItemClickListener(null);
+
+        viewContainer.setDescendantFocusability(
+                ViewGroup.FOCUS_AFTER_DESCENDANTS
+        );
+
+        ViewGroup group = (ViewGroup)viewContainer.getParent();
+        group.removeView(viewContainer);
+        group.addView(viewContainer,viewContainerIndex);
+
+        if (VERBOSE) Log.v(LOG_TAG,"exiting endReportSelectionMode...");
     }
 
     private void sendReport() {
