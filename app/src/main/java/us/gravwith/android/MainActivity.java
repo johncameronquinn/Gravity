@@ -1619,7 +1619,9 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
         if (isBound) {
             Log.d(TAG, "sending message to report to the server");
             Message msg = Message.obtain(null, DataHandlingService.MSG_REPORT_CONTENT);
-            msg.arg1 = contentID;
+            Bundle data = new Bundle();
+            data.putInt(Constants.KEY_CONTENT_ID,contentID);
+            msg.setData(data);
             msg.replyTo = replyMessenger;
             try {
                 mService.send(msg);

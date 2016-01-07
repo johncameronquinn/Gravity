@@ -86,6 +86,13 @@ public class HybridCursorAdapter extends CursorAdapter implements PhotoView.OnCl
                                 LiveEntry.COLUMN_NAME_FILEPATH)
                 )
         );
+        int rowID = (
+                cursor.getInt(
+                        cursor.getColumnIndexOrThrow(
+                                LiveEntry.COLUMN_ID)
+                )
+        );
+        view.setTag(R.integer.content_id_key,rowID);
 
         // Gets a handle to the View
         PhotoView localImageDownloaderView = ((PhotoView)view.findViewById(R.id.thumbImage));

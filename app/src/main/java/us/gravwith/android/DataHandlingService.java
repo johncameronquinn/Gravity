@@ -592,7 +592,7 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
 
                 case MSG_REPORT_CONTENT:
                     if (Constants.LOGD) Log.d(TAG, "Received a message to report content.");
-
+                    task = new ReportContentTask(msg.replyTo);
                     break;
 
                 default:
@@ -937,7 +937,7 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
         mLocation = location;
         if (VERBOSE) {
             Log.v(TAG, "new location coordinates: " + location.getLatitude() + " " + location.getLongitude());
-            Toast.makeText(getApplicationContext(), "onLocationChanged called", Toast.LENGTH_SHORT).show();
+            //Toast.makeText(getApplicationContext(), "onLocationChanged called", Toast.LENGTH_SHORT).show();
         }
     }
 

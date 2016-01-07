@@ -5,6 +5,7 @@
     android:layout_height="wrap_content"
     android:layout_alignParentTop="true"
     android:gravity="top"
+    android:descendantFocusability="blocksDescendants"
     android:background="@drawable/rectangle"
     android:visibility="visible">
 
@@ -21,16 +22,16 @@
         android:id="@+id/reply_detail_row_text"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textSize="20dp"
         android:gravity="center_vertical|left"
         android:padding="2dp"
         android:text="comment text goes here"
         android:layout_alignParentTop="false"
         android:layout_alignParentStart="true"
         android:focusable="true"
-        android:textColor="@color/jpallete_main_grey"
         android:layout_toRightOf="@+id/thumbImage"
-        android:layout_below="@+id/reply_detail_row_time">
+        android:layout_below="@+id/reply_detail_row_time"
+        android:textColor="@color/cyber_light_orange"
+        android:textAppearance="?android:attr/textAppearanceMedium">
     </TextView>
 
     <TextView
@@ -41,7 +42,8 @@
         android:layout_gravity="right"
         android:layout_below="@+id/thumbImage"
         android:layout_marginRight="5dp"
-        android:textColor="#ffffff"
-        android:layout_alignParentEnd="true" />
+        android:layout_alignParentEnd="true"
+        android:textAppearance="?android:attr/textAppearanceSmall"
+        android:singleLine="false" />
 
 </RelativeLayout>

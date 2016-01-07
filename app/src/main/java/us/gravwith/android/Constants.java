@@ -36,6 +36,7 @@ public final class Constants {
     public static final String ACTION_IMAGE_MESSAGE_LOADED = "us.gravwith.android.message.LOADED";
     public static final String LOCAL_KEY_PATH = "pkl";
     public static final String KEY_USER_ID = "userID";
+    public static final String KEY_CONTENT_ID = "id";
 
     public static final String STASH_GALLERY_DIRECTORY = "Stash_Gallery";
 
@@ -135,8 +136,6 @@ public final class Constants {
     public static final String RESPONSE_BUNDLE = "responseBundle";
 
     public static final String ACTION_SERVER_ERROR = "us.gravwith.android.ACTION_SERVER_ERROR";
-
-
 
     /**
      * ANALYTICS

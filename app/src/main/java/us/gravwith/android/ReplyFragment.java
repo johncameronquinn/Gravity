@@ -417,6 +417,8 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
 
                 case R.id.button_reply_report:
 
+                    if (VERBOSE) Log.v(TAG,"entering report mode...");
+
                     ReportManager manager = new ReportManager((MainActivity)getActivity(),
                             mListView, new ReportManager.ReportStatusListener() {
                         @Override
@@ -440,7 +442,7 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
                         }
                     });
 
-                    manager.startReportSelection();
+                    manager.startReportSelectionMode();
                     break;
 
 

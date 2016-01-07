@@ -9,8 +9,8 @@
         <item name="android:colorForeground">@color/cyber_black</item>
         <item name="android:textColorPrimary">@color/cyber_dark_orange</item>
         <item name="android:windowBackground">@color/cyber_background</item>
-        <item name="android:textColorSecondary">@color/cyber_light_orange</item>
-        <item name="android:textColorPrimaryInverse">@color/cyber_dark_blue</item>
+        <item name="android:textColorSecondary">@color/cyber_dark_orange</item>
+        <item name="android:textColorPrimaryInverse">@color/cyber_light_blue</item>
         <item name="android:textColorSecondaryInverse">@color/cyber_light_blue</item>
     </style>
 
@@ -38,6 +38,11 @@
         <item name="menu_labels_colorNormal">@color/clear_background</item>
         <item name="menu_labels_showShadow">false</item>
         <item name="menu_animationDelayPerItem">30</item>
+    </style>
+
+    <style name="GravityListView">
+        <item name="android:divider">@color/cyber_light_blue</item>
+        <item name="android:background">@color/cyber_background</item>
     </style>
 
     <style name="FullscreenTheme" parent="AppTheme">

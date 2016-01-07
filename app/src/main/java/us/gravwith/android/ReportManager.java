@@ -25,6 +25,9 @@ public class ReportManager implements AdapterView.OnItemClickListener {
         void onDialogClosed(boolean didTheyHitYes);
     }
 
+    private boolean VERBOSE = true;
+    private final String LOG_TAG = ReportManager.class.getSimpleName();
+
     private MainActivity mainActivity;
     private AdapterView viewContainer;
     private final Messenger reportStatusMessenger;
@@ -36,30 +39,28 @@ public class ReportManager implements AdapterView.OnItemClickListener {
 
     private int selectedContentID;
 
-    private final String LOG_TAG = ReportManager.class.getSimpleName();
-
-    private final int CONTENT_ID_KEY;
-
     /**
      * @param activity the mainactivity which contains this object
      *
      * @param container this is the container which holds the reportable views
      */
     public ReportManager(MainActivity activity, AdapterView container, ReportStatusListener listener) {
+        if (VERBOSE) Log.v(LOG_TAG,"creating ReportManager...");
         mainActivity = activity;
         viewContainer = container;
         reportStatusMessenger = new Messenger(new ReportStatusHandler());
         mListener = listener;
-        CONTENT_ID_KEY = activity.getResources().getInteger(R.integer.content_id_key);
     }
 
     @Override
     public void onItemClick(AdapterView<?> parent, View v, int position, long id) {
+        if (VERBOSE) Log.v(LOG_TAG,"entering onItemClick...");
+
         if (viewContainer.indexOfChild(v) == -1) {
             Log.v(LOG_TAG,"view is not found...");
         } else {
             Log.v(LOG_TAG,"view clicked which is in provided container...");
-            selectedContentID = (int)v.getTag(CONTENT_ID_KEY);
+            selectedContentID = (int)v.getTag(R.integer.content_id_key);
 
             new AlertDialog.Builder(mainActivity)
                     .setIcon(android.R.drawable.ic_dialog_alert)
@@ -75,7 +76,7 @@ public class ReportManager implements AdapterView.OnItemClickListener {
                                     viewContainer.setDescendantFocusability(
                                             ViewGroup.FOCUS_AFTER_DESCENDANTS
                                     );
-                                    viewContainer.setOnClickListener(null);
+                                    viewContainer.setOnItemClickListener(null);
                                 }
                             })
                     .setNegativeButton(R.string.report_dialog_negative_label,
@@ -92,18 +93,27 @@ public class ReportManager implements AdapterView.OnItemClickListener {
 
         }
 
+        if (VERBOSE) Log.v(LOG_TAG,"exiting onItemClick...");
     }
 
-    public void startReportSelection() {
+    public void startReportSelectionMode() {
+        if (VERBOSE) Log.v(LOG_TAG,"entering startReportSelection...");
+
         viewContainer.setDescendantFocusability(ViewGroup.FOCUS_BLOCK_DESCENDANTS);
         viewContainer.setOnItemClickListener(this);
+
+        if (VERBOSE) Log.v(LOG_TAG,"exiting startReportSelection...");
     }
 
     private void sendReport() {
+        if (VERBOSE) Log.v(LOG_TAG,"entering sendReport...");
+
         if (selectedContentID == 0) {
             throw new RuntimeException("no contentID was selected.");
         }
         mainActivity.sendMsgSendReportToServer(selectedContentID,reportStatusMessenger);
+
+        if (VERBOSE) Log.v(LOG_TAG,"exiting sendReport...");
     }
 
     private class ReportStatusHandler extends Handler {
@@ -113,10 +123,12 @@ public class ReportManager implements AdapterView.OnItemClickListener {
             switch (msg.what) {
                 case REPORT_STATUS_FAILED:
                     mListener.onRequestError(msg.arg1);
+                    if (VERBOSE) Log.v(LOG_TAG,"Request failed with error code : " + msg.arg1);
                     break;
 
                 case REPORT_STATUS_SUCCESS:
                     mListener.onRequestSuccess();
+                    if (VERBOSE) Log.v(LOG_TAG,"");
                     break;
 
                 case REPORT_STATUS_STARTED:
