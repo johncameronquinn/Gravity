@@ -18,7 +18,7 @@ public final class Constants {
     public static final String MESSAGE_TARGET = "msg";
     public static final String IMAGE_FILEPATH = "filepath";
 
-    public static final String SERVER_URL = "jokrbackend.ddns.net";
+    public static final String SERVER_URL = "gravitybackend.ddns.net";
 
 
     public static final int MAX_STORED = 5; //max images stored in databse

@@ -130,10 +130,6 @@ public class SendLivePostRunnable implements Runnable{
                 mTask.handleLivePostState(REQUEST_FAILED);
                 //todo retry request
             }
-
-            if (conn != null) {
-                conn.disconnect();
-            }
         }
 
         mTask.setTaskThread(null);

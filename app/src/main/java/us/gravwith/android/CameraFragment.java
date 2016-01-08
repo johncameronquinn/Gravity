@@ -43,7 +43,7 @@ import java.lang.ref.WeakReference;
  *
  */
 public class CameraFragment extends Fragment implements Camera.AutoFocusCallback,
-        ValueAnimator.AnimatorUpdateListener{
+        ValueAnimator.AnimatorUpdateListener, MessageHandler.CameraListener {
     private static final boolean VERBOSE = true;
     private static final String TAG = "CameraFragment";
     private GestureDetector gestureDetector;
@@ -701,6 +701,7 @@ n  */
                    // startNewReplyInputMode((MainActivity)getActivity());
 
                     cancelMessageButton.setVisibility(View.VISIBLE);
+                    cancelMessageButton.setOnClickListener(this);
                     sendMessageButton.setVisibility(View.VISIBLE);
                     sendMessageButton.setOnClickListener(this);
                     break;
@@ -1209,8 +1210,8 @@ n  */
         void sendMsgReportAnalyticsEvent(Bundle b);
     }
 
-    static final String ACTION_PICTURE_TAKEN = "com.gravwith.android.picturetaken";
-    static final String ACTION_PICTURE_SAVED = "com.gravwith.android.picturesaved";
+    static final String ACTION_PICTURE_TAKEN = "us.gravwith.android.picturetaken";
+    static final String ACTION_PICTURE_SAVED = "us.gravwith.android.picturesaved";
     public class CameraReceiver extends BroadcastReceiver implements Runnable {
         private int success;
         @Override

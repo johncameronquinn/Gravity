@@ -48,7 +48,6 @@ import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.ListView;
-import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -136,8 +135,8 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
 
     private Messenger mService;
 
-    private final UIHandler uiHandler = new UIHandler();
-    final Messenger messageHandler = new Messenger(uiHandler);
+    private final MessageHandler messageHandler = new MessageHandler();
+    final Messenger messenger = new Messenger(messageHandler);
 
     /** AWS CONNECTION
      */
@@ -203,7 +202,7 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
                     }
                 };
 
-                uiHandler.postDelayed(removeTextView,5000);
+                messageHandler.postDelayed(removeTextView,5000);
             }
         }
     };
@@ -240,9 +239,10 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
 
         super.onCreate(savedInstanceState);
 
-        uiHandler.setParent(this);
+        messageHandler.setParent(this);
 
-        HandlerThread handlerThread = new HandlerThread("CameraHandlerThread", Process.THREAD_PRIORITY_FOREGROUND);
+        HandlerThread handlerThread = new HandlerThread("CameraHandlerThread",
+                Process.THREAD_PRIORITY_FOREGROUND);
         handlerThread.start();
         sHandler = new CameraHandler(handlerThread.getLooper());
         sHandler.setParent(this);
@@ -476,17 +476,6 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
 
         Log.d(TAG, "exit onResume...");
     }
-
-
-    @Override
-    protected void onPostResume() {
-        super.onPostResume();
-        if (VERBOSE) Log.v(TAG,"entering onPostResume...");
-
-
-        if (VERBOSE) Log.v(TAG,"exiting onPostResume...");
-    }
-
 
     @Override
     protected void onPause() {
@@ -1141,7 +1130,7 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
             }
             msg.setData(b);
             try {
-                msg.replyTo = messageHandler;
+                msg.replyTo = messenger;
                 mService.send(msg);
             } catch (RemoteException e) {
                 e.printStackTrace();
@@ -1210,6 +1199,7 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
                 case CAMERA_LIST_POSITION:
                     if (CameraFragReference.get() == null){
                         CameraFragReference = new WeakReference<>(CameraFragment.newInstance(0));
+                        MessageHandler.setCameraListener(CameraFragReference.get());
                     }
 
                     out = CameraFragReference.get();
@@ -1585,7 +1575,7 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
             msg.setData(data);
 
             try {
-                msg.replyTo = messageHandler;
+                msg.replyTo = messenger;
                 mService.send(msg);
             } catch (RemoteException e) {
                 Log.e(TAG, "error sending message to request images", e);
@@ -2994,267 +2984,6 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
 
 
     /**
-     * tags for replyHandler's various tasks
-     */
-
-    static final int MSG_UPLOAD_PROGRESS = 1;
-
-    static final int MSG_DATABASE_CLEARED= 2;
-
-    static final int MSG_PICTURE_TAKEN = 3;
-
-    static final int MSG_TOO_MANY_REQUESTS = 51;
-
-    static final int MSG_LIVE_REFRESH_DONE = 52;
-
-    static final int MSG_UNAUTHORIZED = 53;
-
-    static final int MSG_NOT_FOUND = 54;
-
-    static final int MSG_NOTHING_RETURNED = 55;
-
-    /**
-     * class 'replyHandler'
-     *
-     * handles responses from the service
-     *
-     * msg.arg1 -> where to forward the error code to
-     */
-    class UIHandler extends Handler {
-
-        WeakReference<MainActivity> activity;
-
-        public Handler setParent(MainActivity parent) {
-            activity = new WeakReference<>(parent);
-            return this;
-        }
-
-        public void handleMessage(Message msg) {
-            Log.d(TAG,"enter handleMessage");
-            int respCode = msg.what;
-
-            switch (respCode) {
-                case MSG_UPLOAD_PROGRESS:
-                    ProgressBar uploadBar = (ProgressBar)activity.get().findViewById(R.id.uploadProgress);
-                    TextView progressText = (TextView)activity.get().findViewById(R.id.uploadProgressText);
-                    Log.i(TAG,"received upload progress from the background service...");
-                    switch (msg.arg1) {
-
-                        case DataHandlingService.CONNECTION_STARTED:
-                            uploadBar.setVisibility(View.VISIBLE);
-                            progressText.setVisibility(View.VISIBLE);
-                            progressText.setText("Opening Connection...");
-                            break;
-                        case DataHandlingService.CONNECTION_FAILED:
-                            uploadBar.setVisibility(View.INVISIBLE);
-                            progressText.setText("Connection Failed!");
-                            progressText.setVisibility(View.INVISIBLE);
-                            uploadBar.setVisibility(View.INVISIBLE);
-                            break;
-                        case DataHandlingService.CONNECTION_COMPLETED:
-                            uploadBar.setVisibility(View.VISIBLE);
-                            uploadBar.setProgress(20);
-                            progressText.setText("Connected");
-                            break;
-                        case DataHandlingService.REQUEST_STARTED:
-                            progressText.setText("Starting Request");
-                            break;
-                        case DataHandlingService.REQUEST_FAILED:
-                            progressText.setText("Request Failed!");
-                            progressText.setVisibility(View.INVISIBLE);
-                            uploadBar.setVisibility(View.INVISIBLE);
-                            break;
-                        case DataHandlingService.TASK_COMPLETED:
-                            progressText.setText("Completed Successfully");
-                            progressText.setVisibility(View.INVISIBLE);
-                            uploadBar.setVisibility(View.INVISIBLE);
-                            break;
-                    }
-                    break;
-
-                case DataHandlingService.MSG_REQUEST_LIVE_THREADS:
-                    if (LiveFragReference.get() != null) {
-                        LiveFragReference.get().handleLiveResponseState(msg);
-                    }
-                    break;
-
-                case DataHandlingService.MSG_REQUEST_REPLIES:
-                    if (ReplyFragReference.get() != null) {
-                        ReplyFragReference.get().handleReplyResponseState(msg);
-                    }
-                    break;
-
-                case DataHandlingService.MSG_REQUEST_LOCAL_POSTS:
-                    if (LocalFragReference.get() != null) {
-                        LocalFragReference.get().handleLocalResponseState(msg);
-                    }
-                    break;
-
-                case DataHandlingService.MSG_REQUEST_MESSAGES:
-                    if (MessageFragReference.get() != null) {
-                     //   MessageFragReference.get().handleMessageResponseState(msg);
-                    }
-                    break;
-
-                case DataHandlingService.MSG_CREATE_THREAD:
-                    Log.v(TAG, "entering msg_create_thread");
-                 /*   Toast.makeText(activity.get(),
-                            "created live thread info received...",
-                            Toast.LENGTH_LONG)
-                            .show();*/
-                    break;
-
-
-
-                case MSG_DATABASE_CLEARED:
-                    Toast.makeText(activity.get(),
-                            "entire database cleared",
-                            Toast.LENGTH_LONG).show();
-                    break;
-                case MSG_PICTURE_TAKEN: //-1 reply in main UI
-                    CameraFragReference.get().onPictureTaken(1);
-                    break;
-
-                case MSG_TOO_MANY_REQUESTS:
-                    new AlertDialog.Builder(activity.get())
-                            .setTitle("Alert")
-                            .setMessage("You have posted too many times, " +
-                                    "in a small period, and now we're worried you're not human.")
-                            .setIcon(android.R.drawable.ic_dialog_alert)
-                            .show();
-                    break;
-
-                case MSG_LIVE_REFRESH_DONE:
-                  //  Toast.makeText(activity.get(),"Live Refresh Finished...",Toast.LENGTH_SHORT).show();
-                   /* LiveFragment f = LiveFragReference.get();
-                    if (f != null) {
-                        if (VERBOSE) Log.v(TAG,"recreating live loader at id" + LiveFragment.LIVE_LOADER_ID);
-                        getLoaderManager().initLoader(LiveFragment.LIVE_LOADER_ID, null,f);
-                        f = null;
-                    } else {
-                        Log.d(TAG,"Live is currently not instantiated... doing nothing...");
-                    }*/
-                    break;
-
-                case MSG_UNAUTHORIZED:
-                    new AlertDialog.Builder(activity.get())
-                            .setTitle("Unauthorized")
-                            .setMessage("A bad userID was supplied to our server... hold on a " +
-                                    "moment while we make you another one.")
-                            .setIcon(android.R.drawable.ic_dialog_alert)
-                            .setPositiveButton("Got it, coach", new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialog, int which) {
-                                    dialog.dismiss();
-                                }
-                            })
-                            .show();
-                    break;
-
-                case MSG_NOT_FOUND:
-                    Log.i(TAG,"404 received...");
-                    new AlertDialog.Builder(activity.get())
-                        .setTitle("404 - not found")
-                        .setMessage("You have attempted to get the replies for a thread that no" +
-                                " longer exists. You should refresh.")
-                        .setIcon(android.R.drawable.ic_dialog_alert)
-                            .setPositiveButton("Refresh", new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialog, int which) {
-                                    activity.get().sendMsgRequestLiveThreads();
-
-                                    getContentResolver()
-                                            .delete(FireFlyContentProvider
-                                                            .CONTENT_URI_LIVE,
-                                                    null,
-                                                    null
-                                            );
-
-                                    getContentResolver()
-                                            .delete(FireFlyContentProvider
-                                                            .CONTENT_URI_REPLY_LIST,
-                                                    null,
-                                                    null
-                                            );
-                                }
-                            })
-                            .setNegativeButton("Don't tell me what to do.",
-                                    new DialogInterface.OnClickListener() {
-                                        @Override
-                                        public void onClick(DialogInterface dialog, int which) {
-                                    dialog.dismiss();
-                                }
-                            })
-                        .show();
-                    break;
-
-                case MSG_NOTHING_RETURNED:
-
-                    switch (msg.arg1) {
-                        case DataHandlingService.MSG_REQUEST_MESSAGES:
-                            Toast.makeText(activity.get(),
-                                    "No messages received...",
-                                    Toast.LENGTH_SHORT).show();
-                            break;
-
-                        case DataHandlingService.MSG_REQUEST_LIVE_THREADS:
-                            Toast.makeText(activity.get(),
-                                    "No live threads returned...",
-                                    Toast.LENGTH_SHORT).show();
-                            break;
-
-                        case DataHandlingService.MSG_REQUEST_LOCAL_POSTS:
-                            Toast.makeText(activity.get(),
-                                    "No local posts returned...",
-                                    Toast.LENGTH_SHORT).show();
-                            break;
-
-                        case DataHandlingService.MSG_REQUEST_REPLIES:
-                            //Toast.makeText(activity.get(), "No replies received...",
-                            // Toast.LENGTH_SHORT).show();
-                            if (MainActivity.ReplyFragReference.get()!=null) {
-                                //MainActivity.ReplyFragReference.get()
-                                // .handleResponseCode(MSG_NOTHING_RETURNED);
-                            }
-                            break;
-                    }
-
-                    break;
-            }
-
-            Log.d(TAG, "exit handleMessage");
-        }
-    }
-
-    class UploadHandler extends Handler {
-        public UploadHandler(Looper looper) {
-            super(looper);
-        }
-
-        @Override
-        public void handleMessage(Message msg) {
-            super.handleMessage(msg);
-
-            Log.i(TAG, "received upload progress from the background service...");
-            switch (msg.what) {
-                case DataHandlingService.CONNECTION_FAILED:
-                    break;
-                case DataHandlingService.CONNECTION_STARTED:
-                    break;
-                case DataHandlingService.CONNECTION_COMPLETED:
-                    break;
-                case DataHandlingService.REQUEST_FAILED:
-                    break;
-                case DataHandlingService.REQUEST_STARTED:
-                    break;
-                case DataHandlingService.TASK_COMPLETED:
-                    break;
-            }
-
-        }
-    }
-
-    /**
      *
      */
     private ServiceConnection mConnection = new ServiceConnection() {
@@ -3269,11 +2998,11 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
             isBound = true;
 
             Message msg = Message.obtain(null, DataHandlingService.MSG_SET_CALLBACK_MESSENGER);
-            msg.replyTo = messageHandler;
+            msg.replyTo = messenger;
             try {
                 mService.send(msg);
             } catch (RemoteException e) {
-                Log.e(TAG,"error sending message to set messageHandler. This is a fatal error.",e);
+                Log.e(TAG,"error sending message to set messenger. This is a fatal error.",e);
                 System.exit(1);
             }
         }

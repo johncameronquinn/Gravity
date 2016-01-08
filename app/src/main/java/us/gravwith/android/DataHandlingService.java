@@ -88,7 +88,7 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
 
     private MobileAnalyticsManager mTracker;
 
-    private static String serverAddress = "jokrbackend.ddns.net"; //changes when resolved
+    private static String serverAddress = "gravitybackend.ddns.net"; //changes when resolved
     private static UUID userID;
 
     private ContentManager contentManager;
@@ -778,7 +778,7 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
 
         }
 
-        Message msg = Message.obtain(null,MainActivity.MSG_UPLOAD_PROGRESS,state,0);
+        Message msg = Message.obtain(null,MessageHandler.MSG_UPLOAD_PROGRESS,state,0);
         try {
             replyMessenger.send(msg);
         } catch (RemoteException e) {
