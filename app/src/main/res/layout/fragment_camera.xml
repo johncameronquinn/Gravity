@@ -12,6 +12,14 @@
         android:saveEnabled="false"
         android:visibility="visible" />
 
+    <ImageView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:id="@+id/camera_image_view"
+        android:layout_gravity="center"
+        android:visibility="gone"
+        android:scaleType="fitXY" />
+
     <FrameLayout
         android:id="@+id/capture_layout"
         android:layout_width="120dp"

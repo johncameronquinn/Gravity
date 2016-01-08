@@ -41,7 +41,7 @@ package us.gravwith.android;
 public class PhotoFragment extends Fragment implements View.OnClickListener {
     // Constants
     private static final String LOG_TAG = "ImageDownloaderThread";
-    private static final String PHOTO_URL_KEY = "com.gravwith.android.PHOTO_URL_KEY";
+    private static final String PHOTO_URL_KEY = "us.gravwith.android.PHOTO_URL_KEY";
     private static final String TAG = "PhotoFragment";
 
     PhotoView mPhotoView;
@@ -51,8 +51,6 @@ public class PhotoFragment extends Fragment implements View.OnClickListener {
     boolean mIsPreview;
 
     private onPreviewInteractionListener mListener;
-
-    ShareCompat.IntentBuilder mShareCompatIntentBuilder;
 
     /**
      * Converts the stored URL string to a URL, and then tries to download the picture from that

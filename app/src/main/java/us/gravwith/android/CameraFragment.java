@@ -26,6 +26,7 @@ import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 
 import java.lang.ref.WeakReference;
 
@@ -772,6 +773,11 @@ n  */
             captureButton.setPressed(false);
             captureButton.setClickable(true);
             currentCameraMode = CAMERA_DEFAULT_MODE;
+
+            //set disable image preview
+            ImageView view = (ImageView)container.findViewById(R.id.camera_image_view);
+            view.setImageBitmap(null);
+            view.setVisibility(View.GONE);
         }
     }
 
