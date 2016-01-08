@@ -26,7 +26,7 @@ import java.nio.channels.NotYetConnectedException;
  */
 public class FireFlyContentProvider extends ContentProvider {
 
-    private final static String AUTHORITY = "com.gravwith.android.provider";
+    public final static String AUTHORITY = "us.gravwith.android.provider";
     private static String TAG = "FireFlyContentProvider";
 
 

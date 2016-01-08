@@ -636,8 +636,9 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
     static final int CONNECTION_COMPLETED = 2;
     static final int REQUEST_FAILED = 3;
     static final int REQUEST_STARTED = 4;
-    static final int TASK_COMPLETED = 5;
-    static final int INITIALIZE_TASK_COMPLETED = 6;
+    static final int REQUEST_COMPLETED = 5;
+    static final int TASK_COMPLETED = 6;
+    static final int INITIALIZE_TASK_COMPLETED = 7;
 
     /**
      * method 'handleDownloadState'
@@ -691,6 +692,13 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
                 if (Constants.LOGD) Log.d(TAG,"Request started...");
                 responseMessage = Message.obtain(null, task.getResponseWhat(), state, 0);
                 break;
+
+            case REQUEST_COMPLETED:
+                if (Constants.LOGD) Log.d(TAG,"Upload completed...");
+                responseMessage = Message.obtain(null, task.getResponseWhat(), state, 0);
+                mRequestThreadPool.execute(task.getResponseRunnable());
+                break;
+
 
             case INITIALIZE_TASK_COMPLETED:
                 userID = (task).getUserID();

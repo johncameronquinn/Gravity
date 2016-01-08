@@ -2,9 +2,9 @@
     <string name="app_name">Gravity</string>
 
     <string name="download_queue_provider_authority">com.amazonaws.mobile.downloader-com.jokrapp.android</string>
-    <string name="google_cloud_messaging_package">com.jokrapp.android</string>
+    <string name="google_cloud_messaging_package">us.gravwith.android</string>
 
-    <string name="content_file_provider_authority">com.jokrapp.android.fileprovider</string>
+    <string name="content_file_provider_authority">us.gravwith.android.fileprovider</string>
 
     <string name="content_helper_error_title">No Content Viewer</string>
     <string name="content_helper_error_no_app">No Viewing App exists for content type \'%s\'.</string>

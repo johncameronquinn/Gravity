@@ -7,9 +7,11 @@ import android.util.Log;
  *
  * Attempts to send a particular thread to the server, and request
  */
-class SendLivePostTask extends ServerTask implements SendLivePostRunnable.LivePostMethods {
+class SendLivePostTask extends ServerTask implements SendLivePostRunnable.LivePostMethods,
+    RequestLiveThreadsRunnable.ThreadRequestMethods {
 
     private Runnable mRequestRunnable;
+    private Runnable mResponseRunnable;
 
     private boolean VERBOSE = true;
     private final String TAG = "SendLivePostTask";
@@ -18,6 +20,7 @@ class SendLivePostTask extends ServerTask implements SendLivePostRunnable.LivePo
     public SendLivePostTask() {
         mServerConnectRunnable = new ServerConnectRunnable(this);
         mRequestRunnable = new SendLivePostRunnable(this);
+        mResponseRunnable = new RequestLiveThreadsRunnable(this);
     }
 
     public Runnable getServerConnectRunnable() {
@@ -26,6 +29,10 @@ class SendLivePostTask extends ServerTask implements SendLivePostRunnable.LivePo
 
     public Runnable getRequestRunnable() {
         return mRequestRunnable;
+    }
+
+    public Runnable getResponseRunnable() {
+        return mResponseRunnable;
     }
 
     public String getURLPath() {
@@ -56,25 +63,46 @@ class SendLivePostTask extends ServerTask implements SendLivePostRunnable.LivePo
     }
 
     public void handleLivePostState(int state) {
-        int outState = -1;
 
         switch (state) {
             case SendLivePostRunnable.REQUEST_FAILED:
                 Log.d(TAG, "send live post failed...");
-                outState = DataHandlingService.REQUEST_FAILED;
+                handleDownloadState(DataHandlingService.REQUEST_FAILED, this);
                 break;
 
             case SendLivePostRunnable.REQUEST_STARTED:
-                Log.d(TAG,"send live post started...");
-                outState = DataHandlingService.REQUEST_STARTED;
+                Log.d(TAG, "send live post started...");
+                handleDownloadState(DataHandlingService.REQUEST_STARTED, this);
                 break;
 
             case SendLivePostRunnable.REQUEST_SUCCESS:
                 Log.d(TAG, "send live post success...");
-                outState = DataHandlingService.TASK_COMPLETED;
+                handleDownloadState(DataHandlingService.REQUEST_COMPLETED, this);
                 break;
         }
 
+
+    }
+
+    public void handleThreadsRequestState(int state) {
+        int outState = -1;
+
+        switch (state) {
+            case RequestLocalRunnable.REQUEST_FAILED:
+                Log.d(TAG, "request threads failed...");
+                outState = DataHandlingService.REQUEST_FAILED;
+                break;
+
+            case RequestLocalRunnable.REQUEST_STARTED:
+                Log.d(TAG,"request threads started...");
+                outState = DataHandlingService.REQUEST_STARTED;
+                break;
+
+            case RequestLocalRunnable.REQUEST_SUCCESS:
+                Log.d(TAG, "request threads success...");
+                outState = DataHandlingService.TASK_COMPLETED;
+                break;
+        }
         handleDownloadState(outState,this);
     }
 
