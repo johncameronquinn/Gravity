@@ -12,6 +12,14 @@
         android:saveEnabled="false"
         android:visibility="visible" />
 
+    <ImageView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:id="@+id/camera_image_view"
+        android:layout_gravity="center"
+        android:visibility="gone"
+        android:scaleType="fitXY" />
+
     <FrameLayout
         android:id="@+id/capture_layout"
         android:layout_width="120dp"
@@ -23,8 +31,8 @@
             android:id="@+id/button_capture"
             android:contentDescription="@string/capture_button_desc"
             android:src="@drawable/ic_capture"
-            android:layout_width="70dp"
-            android:layout_height="70dp"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
             android:layout_gravity="center"
             android:visibility="visible"
             android:background="@android:color/transparent"
@@ -97,10 +105,10 @@
 
     <CheckBox
         android:id="@+id/switch_camera"
-        android:layout_width="45dp"
-        android:layout_height="68dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         android:button="@null"
-        android:background="@drawable/switch_camera_default"
+        android:background="@drawable/ic_switch_camera_default"
         android:layout_gravity="left|bottom"
         android:layout_margin="@dimen/side_screen_margin"
         android:visibility="visible" />
@@ -116,8 +124,8 @@
 
     <CheckBox
         android:id="@+id/button_flash"
-        android:layout_width="40dp"
-        android:layout_height="70dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         android:onClick="setFlash"
         android:layout_gravity="bottom|right"
         android:visibility="visible"

@@ -47,6 +47,7 @@ import android.widget.AdapterView;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.FrameLayout;
+import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -2078,7 +2079,7 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
      *
      * Draws to a TextureView, which is stored in {@link CameraFragment}
      *
-     * It is possible that a SurfaceView would be a more effective implementation //todo look into this
+     * It is possible that a SurfaceView would be a more effective implementation
      */
     class CameraHandler extends Handler implements TextureView.SurfaceTextureListener,
             Camera.PictureCallback, Camera.ShutterCallback {
@@ -2463,7 +2464,7 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
                     @Override
                     public void run() {
                         ((CheckBox)findViewById(R.id.switch_camera))
-                                .setBackgroundResource(R.drawable.switch_camera_selfie);
+                                .setBackgroundResource(R.drawable.ic_switch_camera_selfie);
 
                     }
                 });
@@ -2475,7 +2476,7 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
                     @Override
                     public void run() { //todo random crashes occur - sometimes the view isn't ready
                         CheckBox v = ((CheckBox)findViewById(R.id.switch_camera));
-                        if (v != null) v.setBackgroundResource(R.drawable.switch_camera_default);
+                        if (v != null) v.setBackgroundResource(R.drawable.ic_switch_camera_default);
                     }
                 });
             }
@@ -2538,10 +2539,44 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
         public void onPictureTaken(final byte[] data, android.hardware.Camera camera) {
             if (VERBOSE) Log.v(TAG, "enter onPictureTaken... ");
 
-            camera.stopPreview();
             theData = data;
 
+            /* decodes the bytearray into a bitmap */
+            final Bitmap previewBitmap = createAndOrientBitmap(data);
+
+            /* defines a runnable which will preview the image on the UI thread */
+            Runnable previewImageRunnable = new Runnable() {
+                @Override
+                public void run() {
+                    ImageView imageView = (ImageView)findViewById(R.id.camera_image_view);
+                    imageView.setImageBitmap(previewBitmap);
+                    imageView.setVisibility(View.VISIBLE);
+                }
+            };
+
+            /* passes the bitmap to the main thread, and sets it to the imageView there */
+            messageHandler.post(previewImageRunnable); //todo, combine previewing system with PhotoFragment
+
+            camera.stopPreview();
+
             if (VERBOSE) Log.v(TAG, "exit onPictureTaken... ");
+        }
+
+        public Bitmap createAndOrientBitmap(byte[] data) {
+            //create bitmap from data
+            Bitmap image;
+            BitmapFactory.Options options = new BitmapFactory.Options();
+
+            options.inMutable = true;
+            image = BitmapFactory.decodeByteArray(data, 0, data.length, options);
+
+            //rotate bitmap based on camera's current orientation
+            Matrix matrix = new Matrix();
+            matrix.postRotate(cameraInfo.orientation);
+            image = Bitmap.createBitmap(image, 0, 0, image.getWidth(),
+                    image.getHeight(), matrix, true);
+
+            return image;
         }
 
         /**
@@ -2552,7 +2587,6 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
          * @param height positioning of the comment to be recreated
          */
         public void saveImage(byte[] data, String commentText, int height, int callBack) {
-            int TEXT_BOX_HEIGHT = 55;
             int COMPRESSION_QUALITY = 80;
 
             Log.d(TAG, "saving image...");
@@ -2569,16 +2603,7 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
             Log.d(TAG, "The size of the image before compression: " + data.length);
 
             //create bitmap from data
-            Bitmap image;
-            BitmapFactory.Options options = new BitmapFactory.Options();
-
-            options.inMutable = true;
-            image = BitmapFactory.decodeByteArray(data, 0, data.length, options);
-
-            Matrix matrix = new Matrix();
-            matrix.postRotate(cameraInfo.orientation);
-            image = Bitmap.createBitmap(image, 0, 0, image.getWidth(),
-                    image.getHeight(), matrix, true);
+            Bitmap image = createAndOrientBitmap(data);
 
             Log.d(TAG, "comment was null...");
 

@@ -26,20 +26,17 @@
         android:background="@drawable/radical_transition"
         android:layout_alignParentBottom="true"
         android:layout_alignParentStart="true"
-        android:src="@drawable/ic_menu">
+        fab:menu_icon="@drawable/ic_menu">
 
         <com.github.clans.fab.FloatingActionButton
             style="@style/FabNormal"
             android:id="@+id/button_reply_report"
-            android:src="@drawable/ic_report"
-            fab:fab_label="Report" />
+            android:src="@drawable/ic_report" />
 
         <com.github.clans.fab.FloatingActionButton
             style="@style/FabNormal"
             android:id="@+id/button_reply_refresh"
-            android:src="@drawable/ic_refresh"
-            fab:fab_label="Refresh"/>
-
+            android:src="@drawable/ic_refresh"/>
        <!-- <com.github.clans.fab.FloatingActionButton
             style="@style/FabNormal"
             android:id="@+id/button_reply_capture"
@@ -98,17 +95,8 @@
             fab:fab_colorNormal="@color/cyber_dark_blue"
             fab:fab_colorPressed="@color/cyber_light_blue"
             fab:fab_colorRipple="@color/cyber_light_blue"
-            android:src="@android:drawable/ic_menu_send" />
+            android:src="@drawable/ic_quick_send" />
     </RelativeLayout>
-
-    <ImageView
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:scaleType="fitXY"
-        android:id="@+id/imageView_reply_fullscreen"
-        android:visibility="visible"
-        android:layout_alignParentTop="true"
-        android:layout_alignStart="@+id/reply_texting_layout" />
 
     <TextView
         android:layout_width="wrap_content"

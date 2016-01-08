@@ -192,10 +192,10 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
     public void onCreate() {
         if (VERBOSE) Log.v(TAG, "entering onCreate...");
 
-        buildGoogleApiClient();
+        /*buildGoogleApiClient();
         if (mGoogleApiClient != null) {
             mGoogleApiClient.connect();
-        }
+        }*/
         AWSMobileClient.initializeMobileClientIfNecessary(this);
 
         AWSMobileClient
@@ -426,23 +426,30 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
 
             switch (msg.what) {
                 case MSG_BUILD_CLIENT:
-                    irs.get().buildGoogleApiClient();
+                    Log.d(TAG, "Received a message to request to build the client.");
+                    Log.w(TAG, "Not implemented...");
+                    //irs.get().buildGoogleApiClient();
                     break;
 
                 case MSG_CONNECT_CLIENT:
-                    Log.d(TAG, "connecting client");
-                    if (mGoogleApiClient == null) {
+                    Log.d(TAG, "Received a message to request to connect the client.");
+                    Log.w(TAG, "Not implemented...");
+                    /*if (mGoogleApiClient == null) {
                         irs.get().buildGoogleApiClient();
                     }
-                    mGoogleApiClient.connect();
+                    mGoogleApiClient.connect();*/
                     break;
 
                 case MSG_DISCONNECT_CLIENT:
-                    mGoogleApiClient.disconnect();
+                    Log.d(TAG, "Received a message to request to disconnect the client.");
+                    Log.w(TAG,"Not implemented...");
+                    //mGoogleApiClient.disconnect();
                     break;
 
                 case MSG_REQUEST_CONSTANT_UPDATES:
-                    irs.get().createLocationRequest(msg.arg1, msg.arg2);
+                    Log.d(TAG, "Received a message to request constant location updates.");
+                    Log.w(TAG,"Not implemented...");
+                    //irs.get().createLocationRequest(msg.arg1, msg.arg2);
                     break;
 
                 case MSG_SEND_IMAGE:
