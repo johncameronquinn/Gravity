@@ -83,7 +83,7 @@ import java.util.UUID;
 public class MainActivity extends Activity implements CameraFragment.OnCameraFragmentInteractionListener,
 LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInteractionListener,
         ViewPager.OnPageChangeListener, PhotoFragment.onPreviewInteractionListener,
-        ListView.OnItemClickListener{
+        ListView.OnItemClickListener, ErrorReceiver.SecurityErrorListener {
     private static String TAG = "MainActivity";
     private static final boolean VERBOSE = true;
 
@@ -248,6 +248,8 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
         sHandler = new CameraHandler(handlerThread.getLooper());
         sHandler.setParent(this);
         cameraMessenger = new Messenger(sHandler);
+
+        ErrorReceiver.addSecurityErrorListener(this);
 
         /*if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
 
@@ -529,6 +531,9 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
             unbindService(mConnection);
             isBound = false;
         }
+
+        /*stops any running decode/diskload/download operations for static content*/
+        PhotoManager.cancelAll();
 
         Log.d(TAG, "exit onStop...");
     }
@@ -1603,6 +1608,23 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
     }
 
     /**
+     * method 'sendMsgAuthorizeUser'
+     *
+     * sends a message to the imageRequestService authorize the user
+     */
+    public void sendMsgAuthorizeUser() {
+        if (isBound) {
+            Log.d(TAG, "sending message to request to authorize the user");
+            Message msg = Message.obtain(null, DataHandlingService.MSG_AUTHORIZE_USER);
+            try {
+                mService.send(msg);
+            } catch (RemoteException e) {
+                Log.e(TAG, "error sending message to request images", e);
+            }
+        }
+    }
+
+    /**
      * method 'sendMsgSendReportToServer'
      *
      * sends a message to the service to report the item
@@ -2110,7 +2132,7 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
         private WeakReference<MainActivity> mWeakActivity;
 
         public void setParent(MainActivity parent) {
-            
+
             mWeakActivity = new WeakReference<>(parent);
 
             SharedPreferences p = PreferenceManager.getDefaultSharedPreferences(parent);
@@ -3148,5 +3170,11 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
     public void onDeveloperInteraction(int request, Uri resource) {
         Log.i(TAG, "entering onDeveloperInteraction with request- " + request + " and resource - "
                 + resource.toString());
+    }
+
+    @Override
+    public void onUnauthorizedError(String message) {
+        Toast.makeText(this,message,Toast.LENGTH_LONG).show();
+        sendMsgAuthorizeUser();
     }
 }

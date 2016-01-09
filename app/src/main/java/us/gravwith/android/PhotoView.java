@@ -1,7 +1,7 @@
 package us.gravwith.android;
 
 /**
- * Created by ev0x on 8/19/15.
+ * Created by John C. Quinn on 8/19/15.
  */
 import android.content.Context;
 import android.content.res.TypedArray;
@@ -247,7 +247,7 @@ public class PhotoView extends ImageView {
      * mThisView
      * @param view the View to use as the new WeakReference
      */
-    public void setHideView(View view) {
+    public void setHideView(View view)  {
         this.mThisView = new WeakReference<View>(view);
     }
 

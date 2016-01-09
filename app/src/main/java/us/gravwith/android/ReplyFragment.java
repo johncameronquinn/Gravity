@@ -41,7 +41,7 @@ import us.gravwith.android.util.Utility;
  * create an instance of this fragment.
  */
 public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor>,
-        FloatingActionMenu.OnMenuToggleListener, ErrorReceiver.SecurityErrorListener {
+        FloatingActionMenu.OnMenuToggleListener {
     private static int currentThread = LiveFragment.NO_LIVE_THREADS_ID;
     public static final int REPLY_LOADER_ID = 3;
 
@@ -105,9 +105,6 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
         }
 
         replyButtonListener = new ReplyButtonListener();
-
-        ErrorReceiver.addSecurityErrorListener(this);
-
     }
 
     @Override
@@ -538,11 +535,6 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
         if (VERBOSE) Log.v(TAG, "entering onLoaderReset...");
         mAdapter.swapCursor(null);
         if (VERBOSE) Log.v(TAG,"exiting onLoaderReset...");
-    }
-
-    @Override
-    public void onUnauthorizedError(String message) {
-        Toast.makeText(getActivity(),message,Toast.LENGTH_LONG).show();
     }
 }
 

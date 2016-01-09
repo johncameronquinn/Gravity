@@ -388,6 +388,8 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
 
     static final int MSG_REPORT_CONTENT = 21;
 
+    static final int MSG_AUTHORIZE_USER = 22;
+
     /**
      * class 'IncomingHandler'
      * <p/>
@@ -600,6 +602,11 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
                 case MSG_REPORT_CONTENT:
                     if (Constants.LOGD) Log.d(TAG, "Received a message to report content.");
                     task = new ReportContentTask(msg.replyTo);
+                    break;
+
+                case MSG_AUTHORIZE_USER:
+                    if (Constants.LOGD) Log.d(TAG, "Received a message to initialize a user.");
+                    task = new InitializeUserTask();
                     break;
 
                 default:

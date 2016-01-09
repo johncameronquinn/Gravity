@@ -579,9 +579,9 @@ n  */
 
                 case R.id.button_cancel:
 
-                    b.putString(Constants.KEY_ANALYTICS_ACTION,"cancel");
-                    b.putString(Constants.KEY_ANALYTICS_LABEL,"current camera");
-                    b.putString(Constants.KEY_ANALYTICS_VALUE,String.valueOf(currentCameraMode));
+                    b.putString(Constants.KEY_ANALYTICS_ACTION, "cancel");
+                    b.putString(Constants.KEY_ANALYTICS_LABEL, "current camera");
+                    b.putString(Constants.KEY_ANALYTICS_VALUE, String.valueOf(currentCameraMode));
 
                     resetCameraUI();
                 break;
@@ -614,7 +614,7 @@ n  */
                     break;
                 case R.id.button_cancel_message:
 
-                    b.putString(Constants.KEY_ANALYTICS_ACTION,"camera cancel send");
+                    b.putString(Constants.KEY_ANALYTICS_ACTION, "camera cancel send");
 
                     if(sendMessageButton != null) { //this means a picture has been taken, resetUI
                         resetCameraUI();
@@ -685,7 +685,9 @@ n  */
 
                     //captureButton.setVisibility(View.INVISIBLE);
                     captureLayout.setVisibility(View.INVISIBLE);
-                    switchButton.setVisibility(View.INVISIBLE);
+                    if (number_of_cameras > 1) {
+                        switchButton.setVisibility(View.INVISIBLE);
+                    }
                     flashButton.setVisibility(View.INVISIBLE);
 
                     sendMessageButton.setVisibility(View.VISIBLE);
@@ -710,7 +712,9 @@ n  */
 
                     //captureButton.setVisibility(View.INVISIBLE);
                     captureLayout.setVisibility(View.INVISIBLE);
-                    switchButton.setVisibility(View.INVISIBLE);
+                    if (number_of_cameras > 1) {
+                        switchButton.setVisibility(View.INVISIBLE);
+                    }
                     flashButton.setVisibility(View.INVISIBLE);
                     commentText.setVisibility(View.VISIBLE);
                    // startNewReplyInputMode((MainActivity)getActivity());
