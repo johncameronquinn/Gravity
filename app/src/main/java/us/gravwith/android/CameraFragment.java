@@ -56,6 +56,8 @@ public class CameraFragment extends Fragment implements Camera.AutoFocusCallback
     private int currentCameraMode;
     private CameraReceiver cameraReceiver;
 
+    private final int number_of_cameras = Camera.getNumberOfCameras();
+
     public static final int CAMERA_MESSAGE_MODE = 1;
     public static final int CAMERA_LIVE_MODE = 2;
     public static final int CAMERA_REPLY_MODE = 3;
@@ -369,14 +371,19 @@ n  */
         }
         Log.d(TAG, "setting surface texture listener to cameraHandler");
 
+        if (number_of_cameras == 1) {
+            (container.findViewById(R.id.switch_camera)).setVisibility(View.GONE);
+        } else {
+            CheckBox switchButton = (CheckBox) view.findViewById(R.id.switch_camera);
+            switchButton.setOnClickListener(cameraButtonInstance);
+        }
+
         MainActivity activity = (MainActivity) getActivity();
         //Log.d(TAG, "CameraHandler reference refers to: " + activity.getCameraHandlerSingleton(activity).toString());
         mPreview.setSurfaceTextureListener(MainActivity.sHandler);
 
         Log.d(TAG, "created view is: " + view.toString());
 
-        CheckBox switchButton = (CheckBox) view.findViewById(R.id.switch_camera);
-        switchButton.setOnClickListener(cameraButtonInstance);
 
         ImageButton captureButton = (ImageButton) view.findViewById(R.id.button_capture);
         captureButton.setOnClickListener(cameraButtonInstance);
@@ -492,7 +499,9 @@ n  */
                             captureButton = (ImageButton) v;
                             cancelMessageButton = (Button) mActivity.
                                     findViewById(R.id.button_cancel_message);
-                            switchButton = (Button) mActivity.findViewById(R.id.switch_camera);
+                            if (number_of_cameras > 1) {
+                                switchButton = (Button) mActivity.findViewById(R.id.switch_camera);
+                            }
                             flashButton = (Button) mActivity.findViewById(R.id.button_flash);
                             sendMessageButton = (Button)mActivity.
                                     findViewById(R.id.button_send_message);
@@ -507,7 +516,9 @@ n  */
                         case CAMERA_LIVE_MODE:
                             if (Constants.LOGD) Log.d(TAG,"Taking a picture in live mode...");
                            captureButton = (ImageButton) v;
-                            switchButton = (Button) mActivity.findViewById(R.id.switch_camera);
+                            if (number_of_cameras > 1) {
+                                switchButton = (Button) mActivity.findViewById(R.id.switch_camera);
+                            }
                             flashButton = (Button) mActivity.findViewById(R.id.button_flash);
                             mListener.sendMsgTakePicture();
 
@@ -521,7 +532,9 @@ n  */
                         case CAMERA_REPLY_MODE:
                             if (Constants.LOGD) Log.d(TAG,"Taking a picture in reply mode...");
                             captureButton = (ImageButton) v;
-                            switchButton = (Button) mActivity.findViewById(R.id.switch_camera);
+                            if (number_of_cameras > 1) {
+                                switchButton = (Button) mActivity.findViewById(R.id.switch_camera);
+                            }
                             flashButton = (Button) mActivity.findViewById(R.id.button_flash);
                             mListener.sendMsgTakePicture();
                             sendMessageButton = (Button)mActivity.
@@ -539,8 +552,9 @@ n  */
                     break;
 
                 case R.id.switch_camera:
-                    mListener.sendMsgSwitchCamera();
-
+                    if (number_of_cameras > 1) {
+                        mListener.sendMsgSwitchCamera();
+                    }
                     b.putString(Constants.KEY_ANALYTICS_ACTION, "switch camera");
                     break;
 
@@ -732,9 +746,11 @@ n  */
 
                     //captureButton.setVisibility(View.VISIBLE);
                     captureLayout.setVisibility(View.VISIBLE);
-                    switchButton.setVisibility(View.VISIBLE);
                     flashButton.setVisibility(View.VISIBLE);
 
+                    if (number_of_cameras > 1) {
+                        switchButton.setVisibility(View.VISIBLE);
+                    }
                     break;
 
                 /*case CAMERA_DEFAULT_MODE:
@@ -747,7 +763,9 @@ n  */
                     commentText.setVisibility(View.INVISIBLE);
                     //captureButton.setVisibility(View.VISIBLE);
                     captureLayout.setVisibility(View.VISIBLE);
-                    switchButton.setVisibility(View.VISIBLE);
+                    if (number_of_cameras > 1) {
+                        switchButton.setVisibility(View.VISIBLE);
+                    }
                     flashButton.setVisibility(View.VISIBLE);
 
                     cancelButton.setVisibility(View.INVISIBLE);
@@ -764,7 +782,9 @@ n  */
 
                     //captureButton.setVisibility(View.VISIBLE);
                     captureLayout.setVisibility(View.VISIBLE);
-                    switchButton.setVisibility(View.VISIBLE);
+                    if (number_of_cameras > 1) {
+                        switchButton.setVisibility(View.VISIBLE);
+                    }
                     flashButton.setVisibility(View.VISIBLE);
                     break;
 

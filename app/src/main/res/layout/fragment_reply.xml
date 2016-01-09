@@ -3,7 +3,7 @@
     xmlns:fab="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/jpallete_main_grey"
+    android:background="@color/cyber_background"
     android:id="@+id/layout_reply_root"
     tools:context="us.gravwith.android.ReplyFragment">
 
@@ -13,9 +13,12 @@
         android:layout_height="match_parent"
         android:id="@+id/reply_list_view"
         android:dividerHeight="2dp"
-        android:paddingBottom="91dp"
         android:clipToPadding="false"
-        android:layout_alignParentTop="true"/>
+        android:paddingBottom="93dp"
+        android:layout_alignParentTop="true"
+        android:stackFromBottom="true"
+        android:transcriptMode="normal"/>
+
 
     <com.github.clans.fab.FloatingActionMenu
         style="@style/LiveFabMenu"
@@ -24,9 +27,9 @@
         android:layout_height="match_parent"
         android:padding="10dp"
         android:background="@drawable/radical_transition"
-        android:layout_alignParentBottom="true"
-        android:layout_alignParentStart="true"
-        fab:menu_icon="@drawable/ic_menu">
+        fab:menu_icon="@drawable/ic_menu"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentStart="true">
 
         <com.github.clans.fab.FloatingActionButton
             style="@style/FabNormal"

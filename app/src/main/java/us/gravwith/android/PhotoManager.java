@@ -9,6 +9,7 @@ import android.os.Message;
 import android.util.LruCache;
 import android.util.Log;
 import android.view.View;
+import android.view.ViewGroup;
 
 import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.services.s3.AmazonS3Client;
@@ -335,6 +336,10 @@ public class PhotoManager {
                                  */
 
                                 //start with setting the visibility to visible, and alpha to 0
+
+                                final View loadingView = ((ViewGroup)localView.getParent())
+                                        .findViewById(R.id.progressBar);
+
                                 localView.setAlpha(0f);
                                 localView.setVisibility(View.VISIBLE);
 
@@ -346,6 +351,19 @@ public class PhotoManager {
                                         .alpha(1f)
                                         .setDuration(CROSSFADE_DURATION)
                                         .setListener(null);
+
+
+                                if (loadingView!= null) {
+                                    loadingView.animate()
+                                            .alpha(0f)
+                                            .setDuration(CROSSFADE_DURATION)
+                                            .setListener(new AnimatorListenerAdapter() {
+                                                @Override
+                                                public void onAnimationEnd(Animator animation) {
+                                                    loadingView.setVisibility(View.GONE);
+                                                }
+                                            });
+                                }
 
                                 mWaitingPhotoTasks.remove(photoTask.getImageKey());
                                 break;

@@ -256,6 +256,7 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
         view.findViewById(R.id.button_reply_report).setOnClickListener(replyButtonListener);
         //view.findViewById(R.id.button_reply_capture).setOnClickListener(replyButtonListener);
         setCurrentThread(String.valueOf(currentThread));
+
         //anything that requires the UI to already exist goes here
         if (VERBOSE) Log.v(TAG,"exiting onViewCreated...");
     }

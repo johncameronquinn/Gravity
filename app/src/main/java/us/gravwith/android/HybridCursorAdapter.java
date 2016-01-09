@@ -92,11 +92,12 @@ public class HybridCursorAdapter extends CursorAdapter implements PhotoView.OnCl
                                 LiveEntry.COLUMN_ID)
                 )
         );
-        view.setTag(R.integer.content_id_key,rowID);
+        view.setTag(R.integer.content_id_key, rowID);
 
         // Gets a handle to the View
         PhotoView localImageDownloaderView = ((PhotoView)view.findViewById(R.id.thumbImage));
         localImageDownloaderView.setOnClickListener(this);
+        View progressBar = view.findViewById(R.id.progressBar);
 
         if(!path.equals("")) {
             if (VERBOSE) Log.v(TAG,"a filepath was provided... " + path +
@@ -106,9 +107,11 @@ public class HybridCursorAdapter extends CursorAdapter implements PhotoView.OnCl
                     Constants.KEY_S3_LIVE_DIRECTORY,
                     path, false, mEmptyDrawable
             );
+            progressBar.setVisibility(View.VISIBLE);
         } else {
             localImageDownloaderView.setVisibility(View.GONE);
             localImageDownloaderView.clearImage();
+            progressBar.setVisibility(View.GONE);
         }
 
         if (VERBOSE) Log.v(TAG,"exiting bindView...");

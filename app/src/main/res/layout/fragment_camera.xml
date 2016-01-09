@@ -43,7 +43,8 @@
             android:layout_height="wrap_content"
             android:id="@+id/do_dad_one"
             android:src="@drawable/doo_dad"
-            android:background="@android:color/transparent"/>
+            android:background="@android:color/transparent"
+            android:visibility="invisible" />
 
         <ImageView
             android:layout_width="wrap_content"
@@ -51,7 +52,8 @@
             android:id="@+id/do_dad_two"
             android:src="@drawable/doo_dad"
             android:background="@android:color/transparent"
-            android:layout_gravity="bottom|right" />
+            android:layout_gravity="bottom|right"
+            android:visibility="invisible" />
     </FrameLayout>
 
     <Button

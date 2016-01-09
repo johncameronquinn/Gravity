@@ -56,7 +56,7 @@ import com.amazonaws.AmazonClientException;
 import com.amazonaws.mobile.AWSMobileClient;
 import com.amazonaws.mobile.user.IdentityManager;
 
-import us.gravwith.android.dev.ContentDeliveryDemoFragment;
+//import us.gravwith.android.dev.ContentDeliveryDemoFragment;
 import us.gravwith.android.dev.DeveloperFragment;
 import us.gravwith.android.util.ImageUtils;
 import us.gravwith.android.util.LogUtils;
@@ -1238,7 +1238,8 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
                     break;
 
                 case 6:
-                    out = new ContentDeliveryDemoFragment();
+                    //out = new ContentDeliveryDemoFragment();
+                    out = new PhotoFragment();
                     break;
 
                 default:
@@ -2109,6 +2110,7 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
         private WeakReference<MainActivity> mWeakActivity;
 
         public void setParent(MainActivity parent) {
+            
             mWeakActivity = new WeakReference<>(parent);
 
             SharedPreferences p = PreferenceManager.getDefaultSharedPreferences(parent);
