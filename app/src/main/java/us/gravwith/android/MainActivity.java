@@ -264,8 +264,6 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
             window.setStatusBarColor(getResources().getColor(R.color.jpallete_neutral_blue));
         }*/
 
-        checkForLocationEnabled(this);
-
         initializeAWS();
 
         initializeUI();
@@ -629,70 +627,6 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
         mPager.setCurrentItem(CAMERA_LIST_POSITION);
         mPager.setPagingEnabled(false);
     }
-
-    private Runnable mLongPressed = new Runnable() {
-        public void run() {
-            final int LOCAL_SETTINGS = 0;
-            final int GALLERY = 1;
-            final int LIVE_SETTINGS = 2;
-
-            int startPage = GALLERY;
-            switch (mPager.getCurrentItem()) {
-
-                /*case MESSAGE_LIST_POSITION:
-                case LOCAL_LIST_POSITION:
-                    Toast.makeText(getApplicationContext(),"Opening Local Settings...",Toast.LENGTH_SHORT).show();
-                    startPage = LOCAL_SETTINGS;
-                    break;*/
-
-                case CAMERA_LIST_POSITION:
-                    Toast.makeText(getApplicationContext(),"Opening Stash Gallery...",Toast.LENGTH_SHORT).show();
-                    startPage = GALLERY;
-                    break;
-
-                case LIVE_LIST_POSITION:
-                case REPLY_LIST_POSITION:
-                    Toast.makeText(getApplicationContext(),"Opening Live Settings...",Toast.LENGTH_SHORT).show();
-                    startPage = LIVE_SETTINGS;
-                    break;
-            }
-            Intent stashActivtyIntent = new Intent(getApplicationContext(),StashActivity.class);
-            stashActivtyIntent.putExtra(StashActivity.STARTING_PAGE_POSITION_KEY, startPage);
-            startActivity(stashActivtyIntent);
-        }
-    };
-
-
- //   private float xpos = 0;
- //   private float ypos = 0;
-
-    /**
-     * method 'dispatchTouchEvent'
-     *
-     * all incoming touchEvents from the window are first checked here before being dispatched
-     * to their respective view's.
-     *
-     * in this method, we test for a long click and handle it accordingly.
-     *
-     * @param
-     * @return
-     */
-   /* @Override
-    public boolean dispatchTouchEvent(MotionEvent event) {
-
-
-        if(event.getAction() == MotionEvent.ACTION_DOWN) {
-            uiHandler.postDelayed(mLongPressed, 2000);
-            xpos = event.getX();
-            ypos = event.getY();
-        }
-        if (event.getAction() == MotionEvent.ACTION_UP) {
-            uiHandler.removeCallbacks(mLongPressed);
-        }
-
-
-        return super.dispatchTouchEvent(event);
-    }*/
 
     public void onMessageRefresh(View v) {
         Bundle b = new Bundle();
@@ -1536,55 +1470,6 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
      * INITIALIZE
      *
      */
-    /**
-     * method checkForLocationEnabled
-     * <p>
-     * tests if the location services are enables
-     *
-     * @param context context of the location to be testing
-     */
-    public static void checkForLocationEnabled(final Context context) {
-
-        LocationManager lm = null;
-        boolean gps_enabled = false, network_enabled = false;
-        if (lm == null)
-            lm = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
-        try {
-            gps_enabled = lm.isProviderEnabled(LocationManager.GPS_PROVIDER);
-        } catch (Exception ex) {
-            ex.printStackTrace();
-        }
-        try {
-            network_enabled = lm.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
-        } catch (Exception ex) {
-            ex.printStackTrace();
-        }
-
-        if (!gps_enabled && !network_enabled) {
-            final AlertDialog.Builder dialog = new AlertDialog.Builder(context); //todo make this nicer
-            dialog.setTitle(R.string.gps_network_not_enabled_title);
-            dialog.setMessage(R.string.gps_network_not_enabled_message);
-            dialog.setPositiveButton(
-                    R.string.open_location_settings, new DialogInterface.OnClickListener() {
-
-                @Override
-                public void onClick(DialogInterface paramDialogInterface, int paramInt) {
-                    Intent myIntent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
-                    context.startActivity(myIntent);
-                }
-            });
-            dialog.setNegativeButton(R.string.Cancel, new DialogInterface.OnClickListener() {
-
-                @Override
-                public void onClick(DialogInterface paramDialogInterface, int paramInt) {
-                    paramDialogInterface.dismiss();
-                }
-            });
-            dialog.show();
-
-        }
-    }
-
     /**
      * method 'sendMsgRequestLocalPosts'
      *
