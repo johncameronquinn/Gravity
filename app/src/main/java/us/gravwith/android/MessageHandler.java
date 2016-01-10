@@ -48,11 +48,17 @@ public class MessageHandler extends Handler{
 
     static final int MSG_LIVE_REFRESH_DONE = 52;
 
-    static final int MSG_UNAUTHORIZED = 53;
+    static final int MSG_UNAUTHORIZED = 401;
 
-    static final int MSG_NOT_FOUND = 54;
+    static final int MSG_BAD_INPUT = 422;
+
+    static final int MSG_NOT_FOUND = 404;
 
     static final int MSG_NOTHING_RETURNED = 55;
+
+    public static final int ERROR_CAMERA = 501;
+         public static final int ERROR_CAMERA_OPENING_FAILED = 1;
+
 
     WeakReference<Activity> activity;
 
@@ -227,6 +233,30 @@ public class MessageHandler extends Handler{
                 }
 
                 break;
+
+
+            case ERROR_CAMERA:
+                Log.e(LOG_TAG,"received a camera error...");
+
+                switch (msg.arg1) {
+                    case ERROR_CAMERA_OPENING_FAILED:
+                        new AlertDialog.Builder(activity.get()).setTitle("Camera Failed to Open")
+                                .setMessage("We couldn't connect to your Camera. Make sure no other " +
+                                        "applications are currently using the Camera. You may need" +
+                                        "to restart your phone.").setNeutralButton("Ok",
+                                new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        dialog.dismiss();
+                                    }
+                                });
+
+                        break;
+                }
+
+                break;
+
+
         }
 
         Log.d(LOG_TAG, "exit handleMessage");

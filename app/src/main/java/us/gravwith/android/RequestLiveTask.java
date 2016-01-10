@@ -3,22 +3,30 @@ package us.gravwith.android;
 import android.util.Log;
 
 import us.gravwith.android.RequestLiveThreadsRunnable.ThreadRequestMethods;
+import us.gravwith.android.SendBlankObjectRunnable.BlankObjectMethods;
 /**
  * Created by John Quinn on 11/9/15.
  *
  * Attempts to send a particular thread to the server, and request
  */
-class RequestLiveTask extends ServerTask implements ThreadRequestMethods {
+class RequestLiveTask extends ServerTask implements ThreadRequestMethods, BlankObjectMethods {
 
     private boolean VERBOSE = true;
     private final String TAG = "RequestLiveTask";
 
     private Runnable mRequestRunnable;
+    private Runnable mResponseRunnable;
+
     private final String urlString = "/live/get/";
 
     public RequestLiveTask() {
         mServerConnectRunnable = new ServerConnectRunnable(this);
-        mRequestRunnable = new RequestLiveThreadsRunnable(this);
+        mRequestRunnable = new SendBlankObjectRunnable(this);
+        mResponseRunnable = new RequestLiveThreadsRunnable(this);
+    }
+
+    public Runnable getResponseRunnable() {
+        return mResponseRunnable;
     }
 
     public Runnable getServerConnectRunnable() {
@@ -56,21 +64,44 @@ class RequestLiveTask extends ServerTask implements ThreadRequestMethods {
         handleDownloadState(outState, this);
     }
 
+    @Override
+    public void handleSendBlankObjectState(int state) {
+        int outState = -1;
+
+        switch (state) {
+            case SendBlankObjectRunnable.SEND_BLANK_FAILED:
+                Log.d(TAG, "send blank object failed...");
+                outState = DataHandlingService.REQUEST_FAILED;
+                break;
+
+            case SendBlankObjectRunnable.SEND_BLANK_STARTED:
+                Log.d(TAG,"send blank object started...");
+                outState = DataHandlingService.REQUEST_STARTED;
+                break;
+
+            case SendBlankObjectRunnable.SEND_BLANK_SUCCESS:
+                Log.d(TAG, "send blank object success...");
+                outState = DataHandlingService.REQUEST_COMPLETED;
+                break;
+        }
+        handleDownloadState(outState,this);
+    }
+
     public void handleThreadsRequestState(int state) {
         int outState = -1;
 
         switch (state) {
-            case RequestLocalRunnable.REQUEST_FAILED:
+            case RequestLiveThreadsRunnable.REQUEST_THREADS_FAILED:
                 Log.d(TAG, "request threads failed...");
                 outState = DataHandlingService.REQUEST_FAILED;
                 break;
 
-            case RequestLocalRunnable.REQUEST_STARTED:
+            case RequestLiveThreadsRunnable.REQUEST_THREADS_STARTED:
                 Log.d(TAG,"request threads started...");
                 outState = DataHandlingService.REQUEST_STARTED;
                 break;
 
-            case RequestLocalRunnable.REQUEST_SUCCESS:
+            case RequestLiveThreadsRunnable.REQUEST_THREADS_SUCCESS:
                 Log.d(TAG, "request threads success...");
                 outState = DataHandlingService.TASK_COMPLETED;
                 break;

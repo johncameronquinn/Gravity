@@ -8,8 +8,8 @@ android {
         applicationId "us.gravwith.android"
         minSdkVersion 17
         targetSdkVersion 23
-        versionCode 12
-        versionName "4.12.1"
+        versionCode 13
+        versionName "4.13.2"
     }
 
     buildTypes {
@@ -37,24 +37,24 @@ android {
             minSdkVersion 17
             applicationId 'us.gravwith.android'
             targetSdkVersion 23
-            versionCode 12
-            versionName '4.12.1-dev'
+            versionCode 13
+            versionName '4.13.2-dev'
         }
 
         sales {
             minSdkVersion 17
             applicationId 'us.gravwith.android'
             targetSdkVersion 23
-            versionCode 12
-            versionName '4.12.1-sales'
+            versionCode 13
+            versionName '4.13.2-sales'
         }
 
         user {
             minSdkVersion 17
             applicationId 'us.gravwith.android'
             targetSdkVersion 23
-            versionCode 12
-            versionName '4.12.1-user'
+            versionCode 13
+            versionName '4.13.2-user'
         }
     }
 

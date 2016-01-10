@@ -307,7 +307,7 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
 
     public void triggerReplyRefresh() {
         //mListView.setAdapter(null);
-        mListener.sendMsgRequestLiveThreads();
+        //mListener.sendMsgRequestLiveThreads();
     }
 
 

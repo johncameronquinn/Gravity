@@ -2459,16 +2459,10 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
             } catch (Exception e) {
                 // Camera is not available (in use or does not exist)
                 Log.e(TAG, "Error opening camera - dialog should show", e);
-                new AlertDialog.Builder(mWeakActivity.get()).setTitle("Camera Failed to Open")
-                        .setMessage("We couldn't connect to your Camera. Make sure no other " +
-                                "applications are currently using the Camera. You may need" +
-                                        "to restart your phone.").setPositiveButton("Ok",
-                        new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                dialog.dismiss();
-                            }
-                });
+                Message.obtain(messageHandler,
+                        MessageHandler.ERROR_CAMERA,
+                        MessageHandler.ERROR_CAMERA_OPENING_FAILED,
+                        0).sendToTarget();
 
                 Bundle b = new Bundle();
                 b.putString(Constants.ANALYTICS_ERROR_MESSAGE,e.getMessage());

@@ -63,25 +63,26 @@ class SendLivePostTask extends ServerTask implements SendLivePostRunnable.LivePo
     }
 
     public void handleLivePostState(int state) {
+        int outState = -1;
 
         switch (state) {
             case SendLivePostRunnable.REQUEST_FAILED:
                 Log.d(TAG, "send live post failed...");
-                handleDownloadState(DataHandlingService.REQUEST_FAILED, this);
+                outState = DataHandlingService.REQUEST_FAILED;
                 break;
 
             case SendLivePostRunnable.REQUEST_STARTED:
                 Log.d(TAG, "send live post started...");
-                handleDownloadState(DataHandlingService.REQUEST_STARTED, this);
+                outState = DataHandlingService.REQUEST_STARTED;
                 break;
 
             case SendLivePostRunnable.REQUEST_SUCCESS:
                 Log.d(TAG, "send live post success...");
-                handleDownloadState(DataHandlingService.REQUEST_COMPLETED, this);
+                outState = DataHandlingService.REQUEST_COMPLETED;
                 break;
         }
 
-
+        handleDownloadState(outState, this);
     }
 
     public void handleThreadsRequestState(int state) {

@@ -11,6 +11,8 @@ import java.util.List;
 
 public class ErrorReceiver extends BroadcastReceiver {
 
+    private final String TAG = ErrorReceiver.class.getSimpleName();
+
     private final int UNAUTHORIZED = 401;
     private final int SUCCESS = 200;
     private final int NOT_FOUND = 404;
@@ -53,7 +55,6 @@ public class ErrorReceiver extends BroadcastReceiver {
             case SUCCESS:
 
                 break;
-
 
             case -1:
                 break;

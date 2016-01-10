@@ -21,7 +21,7 @@ import us.gravwith.android.util.ThreadUtils;
 
 
 /**
- * Created by ev0x on 11/12/15.
+ * Created by John C. Quinn on 11/12/15.
  */
 public class RequestLiveThreadsRunnable implements Runnable {
 
@@ -70,19 +70,6 @@ public class RequestLiveThreadsRunnable implements Runnable {
             }
 
             conn = mService.getURLConnection();
-
-            if (VERBOSE) Log.v(TAG, "opening outputStream to send JSON...");
-            JsonFactory jsonFactory = new JsonFactory();
-            JsonGenerator jGen = jsonFactory.createGenerator(conn.getOutputStream());
-            jGen.writeStartObject();
-            jGen.writeEndObject();
-            jGen.flush();
-            jGen.close();
-
-            if (Thread.currentThread().isInterrupted()) {
-                if (VERBOSE)Log.v(TAG,"current thread is interrupted, not downloading.");
-                return;
-            }
 
             JsonParser jParser = new JsonFactory().createParser(conn.getInputStream());
             ObjectMapper objectMapper = new ObjectMapper();
