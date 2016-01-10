@@ -166,34 +166,34 @@ public class FireFlyContentProvider extends ContentProvider {
         String directory;
         switch (uritype) {
             case LOCAL_ID:
-                Log.d(TAG,"LOCAL_ID called");
+                if (Constants.LOGD)Log.d(TAG,"LOCAL_ID called");
                 directory = LOCAL_BASE_PATH;
                 break;
 
             case LIVE_ID:
-                Log.d(TAG,"LIVE_ID called");
+                if (Constants.LOGD)Log.d(TAG,"LIVE_ID called");
                 directory = LIVE_BASE_PATH;
                 break;
 
             case MESSAGE_ID:
-                Log.d(TAG,"MESSAGE_ID called");
+                if (Constants.LOGD)Log.d(TAG,"MESSAGE_ID called");
                 directory = MESSAGE_BASE_PATH;
                 break;
 
             case REPLIES_ID:
-                Log.d(TAG,"REPLY_ID called");
+                if (Constants.LOGD)Log.d(TAG,"REPLY_ID called");
                 directory = REPLY_INFO_BASE_PATH;
                 break;
 
             case REPLIES_IMAGE_ID:
-                Log.d(TAG,"reply image id called");
+                if (Constants.LOGD)Log.d(TAG,"reply image id called");
                 directory = REPLY_THUMBNAILS_BASE_PATH;
                 break;
 
 
 
             default:
-                Log.d(TAG,"uriType is " + uritype);
+                if (Constants.LOGD)Log.d(TAG,"uriType is " + uritype);
                 throw new IllegalArgumentException("Unknown URI: " + uri);
         }
 
@@ -208,14 +208,14 @@ public class FireFlyContentProvider extends ContentProvider {
             imode |= ParcelFileDescriptor.MODE_WRITE_ONLY;
             if (!file.exists()) {
                 try {
-                    Log.d(TAG,"creating new file at " + file.toString());
+                    if (Constants.LOGD)Log.d(TAG,"creating new file at " + file.toString());
                     file.createNewFile();
                 } catch (IOException e) {
                     Log.e(TAG,"error creating new file at " + file.toString(),e);
                 }
             } else {
                 try {
-                    Log.d(TAG,"deleting and recreating file at " + file.toString()); //todo is this necessary
+                    if (Constants.LOGD)Log.d(TAG,"deleting and recreating file at " + file.toString()); //todo is this necessary
                     file.delete();
                     file.createNewFile();
                 } catch (IOException e) {
@@ -228,7 +228,7 @@ public class FireFlyContentProvider extends ContentProvider {
         if (mode.contains("+"))
             imode |= ParcelFileDescriptor.MODE_APPEND;
 
-        Log.d(TAG,"opening file to " + file.toString() + " with mode " + mode);
+        if (Constants.LOGD)Log.d(TAG,"opening file to " + file.toString() + " with mode " + mode);
         return ParcelFileDescriptor.open(file, imode);
     }
 
@@ -249,44 +249,43 @@ public class FireFlyContentProvider extends ContentProvider {
 
         switch (uriType) {
             case LOCAL:
-                Log.d(TAG,"LOCAL called");
+                if (Constants.LOGD)Log.d(TAG,"LOCAL called");
                 queryBuilder.setTables(SQLiteDbContract.LocalEntry.TABLE_NAME);
                 break;
             case LOCAL_ID:
-                Log.d(TAG,"LOCAL_ID called");
+                if (Constants.LOGD)Log.d(TAG,"LOCAL_ID called");
                 // adding the ID to the original query
                 queryBuilder.appendWhere(SQLiteDbContract.LocalEntry.COLUMN_ID + "="
                         + uri.getLastPathSegment());
                 break;
 
             case MESSAGE:
-                Log.d(TAG,"MESSAGE called");
+                if (Constants.LOGD)Log.d(TAG,"MESSAGE called");
                 queryBuilder.setTables(SQLiteDbContract.MessageEntry.TABLE_NAME);
                 break;
             case MESSAGE_ID:
-                Log.d(TAG, "MESSAGE_ID called");
+                if (Constants.LOGD)Log.d(TAG, "MESSAGE_ID called");
 
                 queryBuilder.appendWhere(SQLiteDbContract.MessageEntry.COLUMN_ID + "="
                         + uri.getLastPathSegment());
                 break;
 
             case LIVE:
-                Log.d(TAG,"LIVE called");
+                if (Constants.LOGD)Log.d(TAG,"LIVE called");
                 queryBuilder.setTables(SQLiteDbContract.LiveEntry.TABLE_NAME);
                 break;
             case LIVE_ID:
-                Log.d(TAG, "LIVE_ID called");
+                if (Constants.LOGD)Log.d(TAG, "LIVE_ID called");
                 queryBuilder.appendWhere(SQLiteDbContract.LiveEntry.COLUMN_ID + "="
                         + uri.getLastPathSegment());
                 break;
 
-
             case REPLIES:
-                Log.d(TAG,"REPLIES called");
+                if (Constants.LOGD)Log.d(TAG,"REPLIES called");
                 queryBuilder.setTables(SQLiteDbContract.LiveReplies.TABLE_NAME);
                 break;
             case REPLIES_ID:
-                queryBuilder.appendWhere(SQLiteDbContract.LiveReplies.COLUMN_ID + "="
+                if (Constants.LOGD)queryBuilder.appendWhere(SQLiteDbContract.LiveReplies.COLUMN_ID + "="
                         + uri.getLastPathSegment());
                 break;
 
@@ -324,7 +323,7 @@ public class FireFlyContentProvider extends ContentProvider {
                 throw new IllegalArgumentException("Unknown URI: " + uri);
         }
 
-        Log.d(TAG,"executing query...");
+        if (Constants.LOGD)Log.d(TAG,"executing query...");
         SQLiteDatabase dba = database.getWritableDatabase();
         Cursor cursor = queryBuilder.query(dba, projection, selection,
                 selectionArgs, null, null, sortOrder);
@@ -338,7 +337,7 @@ public class FireFlyContentProvider extends ContentProvider {
 
     @Override
     public synchronized int delete(Uri uri, String selection, String[] selectionArgs) {
-        Log.d(TAG,"handling delete from " + uri.toString());
+        if (Constants.LOGD)Log.d(TAG,"handling delete from " + uri.toString());
 
         // Implement this to handle requests to delete one or more rows.
         int uriType = sURIMatcher.match(uri);

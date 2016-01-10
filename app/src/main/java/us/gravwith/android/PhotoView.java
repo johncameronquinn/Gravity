@@ -113,12 +113,12 @@ public class PhotoView extends ImageView {
      * @param visState The visibility state (see View.setVisibility)
      */
     private void showView(int visState) {
-        if (VERBOSE) Log.v(TAG,"entering showView...");
+        if (VERBOSE) Log.v(TAG,"entering showView... : " + mImageKey);
 
         // If the View contains something
         if (mThisView != null) {
             if (VERBOSE) Log.v(TAG,"there was a view to show... so... setting...");
-            if (VERBOSE) Log.v(TAG,"storing view with key :" + mThisView.get().toString());
+            if (VERBOSE) Log.v(TAG, "storing view with key :" + mThisView.get().toString());
 
             // Gets a local hard reference to the View
             View localView = mThisView.get();
@@ -128,15 +128,17 @@ public class PhotoView extends ImageView {
                 localView.setVisibility(visState);
         }
 
-        if (VERBOSE) Log.v(TAG,"exiting showView...");
+        if (VERBOSE) Log.v(TAG,"exiting showView...: " + mImageKey);
     }
 
     /**
      * Sets the image in this ImageView to null, and makes the View visible
      */
     public void clearImage() {
+        if (VERBOSE) Log.v(TAG,"entering clearImage..." + mImageKey);
         setImageDrawable(null);
         showView(View.VISIBLE);
+        if (VERBOSE) Log.v(TAG,"exiting clearImage..." + mImageKey);
     }
 
     /**
@@ -170,7 +172,7 @@ public class PhotoView extends ImageView {
 
             // If the sibling View contains something, make it the weak reference for this View
             if (localView != null) {
-                this.mThisView = new WeakReference<View>(localView);
+                this.mThisView = new WeakReference<>(localView);
             }
         }
 
@@ -192,7 +194,7 @@ public class PhotoView extends ImageView {
         // Gets the current Drawable, or null if no Drawable is attached
         Drawable localDrawable = getDrawable();
 
-        // if the Drawable is null, unbind it from this View
+        // if the Drawable is nulImageKeyl, unbind it from this View
         if (localDrawable != null)
             localDrawable.setCallback(null);
 
@@ -248,7 +250,7 @@ public class PhotoView extends ImageView {
      * @param view the View to use as the new WeakReference
      */
     public void setHideView(View view)  {
-        this.mThisView = new WeakReference<View>(view);
+        this.mThisView = new WeakReference<>(view);
     }
 
     @Override
@@ -311,9 +313,6 @@ public class PhotoView extends ImageView {
      */
     public void setImageKey(String directory, String imageKey, boolean cacheFlag, Drawable imageDrawable) {
         if (VERBOSE) Log.v(TAG,"entering setImageKey with key: " + imageKey + " and directory : " + directory);
-        if (imageKey == "null") {
-            Log.v(TAG,"imageKey = null");
-        }
 
         // If the picture URL for this ImageView is already set\
         if (mImageKey != null) {
@@ -325,9 +324,9 @@ public class PhotoView extends ImageView {
                 // Stops any ongoing downloads for this ImageView
                 PhotoManager.removeDownload(mDownloadThread, mImageKey);
             } else {
-                if (VERBOSE) Log.v(TAG,"image key is the same as prior. Do nothing.");
+                if (VERBOSE) Log.v(TAG,"image key is the same as prior. Do nothing. : " + imageKey);
                 // The stored URL matches the incoming URL. Returns without doing any work.
-                return;
+//                return;
             }
         }
 

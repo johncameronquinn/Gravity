@@ -24,7 +24,7 @@ public class HybridCursorAdapter extends CursorAdapter implements PhotoView.OnCl
 
     private final String TAG = getClass().getSimpleName();
 
-    private static final boolean VERBOSE = true;
+    private static final boolean VERBOSE = false;
 
     // A Drawable for a grid cell that's empty
     private Drawable mEmptyDrawable;
@@ -95,9 +95,9 @@ public class HybridCursorAdapter extends CursorAdapter implements PhotoView.OnCl
         view.setTag(R.integer.content_id_key, rowID);
 
         // Gets a handle to the View
-        PhotoView localImageDownloaderView = ((PhotoView)view.findViewById(R.id.thumbImage));
+        PhotoView localImageDownloaderView = ((PhotoView)view.findViewById(R.id.photoView));
         localImageDownloaderView.setOnClickListener(this);
-        View progressBar = view.findViewById(R.id.progressBar);
+        View progressBar = view.findViewById(R.id.photoProgress);
 
         if(!path.equals("")) {
             if (VERBOSE) Log.v(TAG,"a filepath was provided... " + path +
@@ -105,7 +105,7 @@ public class HybridCursorAdapter extends CursorAdapter implements PhotoView.OnCl
             localImageDownloaderView.setVisibility(View.VISIBLE);
             localImageDownloaderView.setImageKey(
                     Constants.KEY_S3_LIVE_DIRECTORY,
-                    path, false, mEmptyDrawable
+                    path, true, mEmptyDrawable
             );
             progressBar.setVisibility(View.VISIBLE);
         } else {

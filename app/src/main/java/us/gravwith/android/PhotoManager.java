@@ -338,7 +338,7 @@ public class PhotoManager {
                                 //start with setting the visibility to visible, and alpha to 0
 
                                 final View loadingView = ((ViewGroup)localView.getParent())
-                                        .findViewById(R.id.progressBar);
+                                        .findViewById(R.id.photoProgress);
 
                                 localView.setAlpha(0f);
                                 localView.setVisibility(View.VISIBLE);
