@@ -934,6 +934,25 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
 
     }
 
+    /**
+     * method 'sendToLive'
+     *
+     * on successful live post, the user should be sent to live where that post is displayed
+     */
+    public void sendToLive() {
+        mPager.setCurrentItem(LIVE_LIST_POSITION);
+    }
+
+
+    /**
+     * method 'sendToLive'
+     *
+     * on successful live post, the user should be sent to live where that post is displayed
+     */
+    public void sendToReply() {
+        mPager.setCurrentItem(REPLY_LIST_POSITION);
+    }
+
     public void onMessageReplyPressed(View view) {
         if (VERBOSE) {
             Toast.makeText(this,"Message pressed: " + view.getTag(),Toast.LENGTH_LONG).show();

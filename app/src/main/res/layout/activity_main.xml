@@ -26,29 +26,6 @@
     </us.gravwith.android.CustomViewPager>
 
 
-    <RelativeLayout
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center_horizontal"
-        android:layout_marginTop="40dp">
-        <ProgressBar
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:id="@+id/uploadProgress"
-            android:layout_centerInParent="true"
-            android:max="100"
-            android:visibility="invisible" />
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:id="@+id/uploadProgressText"
-            android:text="Starting..."
-            android:layout_below="@+id/uploadProgress"
-            android:layout_marginTop="10dp"
-            android:visibility="invisible" />
-
-    </RelativeLayout>
-
     <LinearLayout
         android:orientation="horizontal"
         android:id="@+id/fragmentHost"

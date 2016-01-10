@@ -73,43 +73,6 @@ public class MessageHandler extends Handler{
         int respCode = msg.what;
 
         switch (respCode) {
-            case MSG_UPLOAD_PROGRESS:
-                ProgressBar uploadBar = (ProgressBar)activity.get().findViewById(R.id.uploadProgress);
-                TextView progressText = (TextView)activity.get().findViewById(R.id.uploadProgressText);
-                Log.i(LOG_TAG,"received upload progress from the background service...");
-                switch (msg.arg1) {
-
-                    case DataHandlingService.CONNECTION_STARTED:
-                        uploadBar.setVisibility(View.VISIBLE);
-                        progressText.setVisibility(View.VISIBLE);
-                        progressText.setText("Opening Connection...");
-                        break;
-                    case DataHandlingService.CONNECTION_FAILED:
-                        uploadBar.setVisibility(View.INVISIBLE);
-                        progressText.setText("Connection Failed!");
-                        progressText.setVisibility(View.INVISIBLE);
-                        uploadBar.setVisibility(View.INVISIBLE);
-                        break;
-                    case DataHandlingService.CONNECTION_COMPLETED:
-                        uploadBar.setVisibility(View.VISIBLE);
-                        uploadBar.setProgress(20);
-                        progressText.setText("Connected");
-                        break;
-                    case DataHandlingService.REQUEST_STARTED:
-                        progressText.setText("Starting Request");
-                        break;
-                    case DataHandlingService.REQUEST_FAILED:
-                        progressText.setText("Request Failed!");
-                        progressText.setVisibility(View.INVISIBLE);
-                        uploadBar.setVisibility(View.INVISIBLE);
-                        break;
-                    case DataHandlingService.TASK_COMPLETED:
-                        progressText.setText("Completed Successfully");
-                        progressText.setVisibility(View.INVISIBLE);
-                        uploadBar.setVisibility(View.INVISIBLE);
-                        break;
-                }
-                break;
 
             case DataHandlingService.MSG_REQUEST_LIVE_THREADS:
                 break;
@@ -124,11 +87,17 @@ public class MessageHandler extends Handler{
                 break;
 
             case DataHandlingService.MSG_CREATE_THREAD:
-                Log.v(LOG_TAG, "entering msg_create_thread");
+                if (Constants.LOGV)Log.v(LOG_TAG, "entering msg_create_thread");
                  /*   Toast.makeText(activity.get(),
                             "created live thread info received...",
                             Toast.LENGTH_LONG)
                             .show();*/
+                switch (msg.arg1) {
+                    case DataHandlingService.TASK_COMPLETED:
+                        ((MainActivity)activity.get()).sendToReply();
+                        break;
+                }
+
                 break;
 
 
@@ -255,7 +224,6 @@ public class MessageHandler extends Handler{
                 }
 
                 break;
-
 
         }
 

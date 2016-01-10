@@ -728,16 +728,9 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
 
             case TASK_COMPLETED:
 
-                if (task.getURLConnection() != null) {
-                    try {
-                        responseCode = task.getURLConnection().getResponseCode();
-                        if (VERBOSE) Log.v(TAG,"grabbed responseCode is: " + responseCode);
-                    } catch (IOException e) {
-                        Log.e(TAG, "unable to get error code... ", e);
-                        Toast.makeText(this, "unable to get error code from failed connection...",
-                                Toast.LENGTH_LONG).show();
-                    }
-                }
+                responseCode = task.getResponseCode();
+                if (VERBOSE) Log.v(TAG,"Task complete, grabbed responseCode is: " + responseCode);
+
                 responseMessage = Message.obtain(null, task.getResponseWhat(), state, responseCode);
                 recycleTask(task);
                 if (Constants.LOGD) Log.d(TAG, "Task completed... by name: " + task.toString());
@@ -746,7 +739,6 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
             default:
                 throw new RuntimeException("Invalid State received in DataHandlingService");
         }
-
 
             try {
                 replyMessenger.send(responseMessage);
@@ -758,49 +750,6 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
             }
 
     }
-
-    public void handleUploadState(int state, ServerTask task) {
-
-        switch (state) {
-            case CONNECTION_FAILED:
-                if (Constants.LOGD) Log.d(TAG, "Connection failed...");
-                recycleTask(task);
-                break;
-
-            case CONNECTION_STARTED:
-                if (Constants.LOGD) Log.d(TAG, "Connection started...");
-                break;
-
-            case CONNECTION_COMPLETED:
-                if (Constants.LOGD) Log.d(TAG, "Connection completed...");
-                mRequestThreadPool.execute(task.getRequestRunnable());
-                break;
-
-            case REQUEST_FAILED:
-                if (Constants.LOGD) Log.d(TAG,"Request failed...");
-                recycleTask(task);
-                break;
-
-            case REQUEST_STARTED:
-                if (Constants.LOGD) Log.d(TAG,"Request started...");
-                break;
-
-            case TASK_COMPLETED:
-                recycleTask(task);
-                if (Constants.LOGD) Log.d(TAG, "Task completed... by name: " + task.toString());
-                break;
-
-        }
-
-        Message msg = Message.obtain(null,MessageHandler.MSG_UPLOAD_PROGRESS,state,0);
-        try {
-            replyMessenger.send(msg);
-        } catch (RemoteException e) {
-            Log.e(TAG, "remoteException", e);
-        }
-
-    }
-
 
     /**
      * Recycles tasks by calling their internal recycle() method and then putting them back into
