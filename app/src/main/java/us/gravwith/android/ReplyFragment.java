@@ -306,8 +306,8 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
     }
 
     public void triggerReplyRefresh() {
-        //mListView.setAdapter(null);
-        //mListener.sendMsgRequestLiveThreads();
+        mListView.setAdapter(null);
+        mListener.sendMsgRequestLiveThreads();
     }
 
 
@@ -356,9 +356,7 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
             switch (v.getId()) {
 
                 case R.id.button_reply_refresh:
-                    if (isAdded()) {
-                        triggerReplyRefresh();
-                    }
+                    triggerReplyRefresh();
                     b.putString(Constants.KEY_ANALYTICS_ACTION,"refresh");
                     b.putString(Constants.KEY_ANALYTICS_LABEL,"current thread");
                     b.putString(Constants.KEY_ANALYTICS_VALUE,String.valueOf(currentThread));
@@ -376,7 +374,7 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
                         activity.setLiveFilePath("");
                         activity.setLiveCreateThreadInfo("", commentText.getText().toString());
                         //activity.setLiveCreateReplyInfo(commentText.getText().toString(), getCurrentThread());
-                        triggerReplyRefresh();
+                        //triggerReplyRefresh();
 
                         InputMethodManager imm = (InputMethodManager) activity
                                 .getSystemService(Context.INPUT_METHOD_SERVICE);
