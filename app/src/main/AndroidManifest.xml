@@ -13,8 +13,13 @@
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
     <uses-permission android:name="android.permission.CAMERA" />
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="com.google.android.providers.gsf.permission.READ_GSERVICES" />
+
+    <!-- The following permissions are only requested if the device is on M or above.
+     On older platforms these permissions are not requested and will not be available. -->
+    <!--<uses-permission-sdk-23 android:name="android.permission.READ_CONTACTS" />-->
+
+
 
     <!-- aws permissions -->
     <uses-permission android:name="com.google.android.c2dm.permission.RECEIVE" />

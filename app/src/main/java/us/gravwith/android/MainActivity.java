@@ -13,6 +13,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -32,6 +33,8 @@ import android.provider.MediaStore;
 import android.provider.Settings;
 import android.app.Fragment;
 import android.support.v13.app.FragmentStatePagerAdapter;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.view.ViewPager;
 import android.util.AttributeSet;
@@ -83,7 +86,7 @@ import java.util.UUID;
 public class MainActivity extends Activity implements CameraFragment.OnCameraFragmentInteractionListener,
 LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInteractionListener,
         ViewPager.OnPageChangeListener, PhotoFragment.onPreviewInteractionListener,
-        ListView.OnItemClickListener, ErrorReceiver.SecurityErrorListener {
+        ErrorReceiver.SecurityErrorListener {
     private static String TAG = "MainActivity";
     private static final boolean VERBOSE = true;
 
@@ -209,6 +212,10 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
     };
 
 
+    public Messenger getMessenger() {
+        return mService;
+    }
+
     /**
      * ********************************************************************************************
      * <p>
@@ -252,23 +259,11 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
 
         ErrorReceiver.addSecurityErrorListener(this);
 
-        /*if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-
-            Window window = getWindow();
-
-            // clear FLAG_TRANSLUCENT_STATUS flag:
-            window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
-
-            // add FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS flag to the window
-            window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
-            window.setStatusBarColor(getResources().getColor(R.color.jpallete_neutral_blue));
-        }*/
-
         initializeAWS();
 
         initializeUI();
 
-        //initializeAnalytics();
+        performStartupChecks();
 
         Log.d(TAG, "exit onCreate...");
     }
@@ -306,45 +301,6 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
         mPager.setOffscreenPageLimit(2);
     }
 
-    @Override
-    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-        int STASH_POSTION = 0;
-        if (position == STASH_POSTION) {
-
-            final int LOCAL_SETTINGS = 0;
-            final int GALLERY = 1;
-            final int LIVE_SETTINGS = 2;
-
-            int startPage = GALLERY;
-            switch (mPager.getCurrentItem()) {
-
-                case MESSAGE_LIST_POSITION:
-                case LOCAL_LIST_POSITION:
-                    Toast.makeText(getApplicationContext(),"Opening Local Settings...",
-                            Toast.LENGTH_SHORT).show();
-                    startPage = LOCAL_SETTINGS;
-                    break;
-
-                case CAMERA_LIST_POSITION:
-                    Toast.makeText(getApplicationContext(),"Opening Stash Gallery...",
-                            Toast.LENGTH_SHORT).show();
-                    startPage = GALLERY;
-                    break;
-
-                case LIVE_LIST_POSITION:
-                case REPLY_LIST_POSITION:
-                    Toast.makeText(getApplicationContext(),"Opening Live Settings...",
-                            Toast.LENGTH_SHORT).show();
-                    startPage = LIVE_SETTINGS;
-                    break;
-            }
-            Intent stashActivtyIntent = new Intent(getApplicationContext(),StashActivity.class);
-            stashActivtyIntent.putExtra(StashActivity.STARTING_PAGE_POSITION_KEY, startPage);
-            startActivity(stashActivtyIntent);
-
-        }
-    }
-
     /**
      * method 'initializeAWS'
      *
@@ -366,8 +322,80 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
         identityManager = awsMobileClient.getIdentityManager();
     }
 
-    public Messenger getMessenger() {
-        return mService;
+    /**
+     * Id to identify a camera permission request.
+     */
+    private static final int REQUEST_CAMERA = 0;
+
+    /**
+     * Id to identify an internet permission request.
+     */
+    private static final int REQUEST_INTERNET = 1;
+
+
+
+    /**
+     * method 'performStartupChecks'
+     *
+     * ensures the app has all necessary permissions. Asks user to grant any that are missing
+     */
+    public void performStartupChecks() {
+
+        boolean Camera = ContextCompat.checkSelfPermission(this, Manifest.permission.C2D_MESSAGE)
+                != PackageManager.PERMISSION_GRANTED;
+
+        // Here, thisActivity is the current activity
+        /*if () {
+
+
+            // Should we show an explanation?
+            if (ActivityCompat.shouldShowRequestPermissionRationale(this,
+                    Manifest.permission.CAMERA)) {
+
+                // Show an expanation to the user *asynchronously* -- don't block
+                // this thread waiting for the user's response! After the user
+                // sees the explanation, try again to request the permission.
+
+            } else {
+
+                // No explanation needed, we can request the permission.
+
+
+                requestPermissions(this,
+                        new String[]{Manifest.permission.READ_CONTACTS},
+                        MY_PERMISSIONS_REQUEST_READ_CONTACTS);
+
+                // MY_PERMISSIONS_REQUEST_READ_CONTACTS is an
+                // app-defined int constant. The callback method gets the
+                // result of the request.
+            }
+        }*/
+
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode,
+                                           String permissions[], int[] grantResults) {
+        switch (requestCode) {
+            case REQUEST_CAMERA: {
+                // If request is cancelled, the result arrays are empty.
+                if (grantResults.length > 0
+                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+
+                    // permission was granted, yay! Do the
+                    // contacts-related task you need to do.
+
+                } else {
+
+                    // permission denied, boo! Disable the
+                    // functionality that depends on this permission.
+                }
+                return;
+            }
+
+            // other 'case' lines to check for other
+            // permissions this app might request
+        }
     }
 
     /***************************************************************************************************
