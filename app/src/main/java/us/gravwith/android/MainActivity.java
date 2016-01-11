@@ -71,6 +71,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.lang.ref.WeakReference;
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -343,28 +344,50 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
      */
     public void performStartupChecks() {
 
+        ArrayList<String> list = new ArrayList<>();
+
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.INTERNET)
                 != PackageManager.PERMISSION_GRANTED) {
 
             // Should we show an explanation?
             if (ActivityCompat.shouldShowRequestPermissionRationale(this,
                     Manifest.permission.INTERNET)) {
-
                 // Show an expanation to the user *asynchronously* -- don't block
                 // this thread waiting for the user's response! After the user
                 // sees the explanation, try again to request the permission.
 
+                new AlertDialog.Builder(this)
+                        .setTitle("Permissions")
+                        .setMessage("So, we're an internet app. Internet is required for use.")
+                        .setIcon(android.R.drawable.ic_dialog_alert)
+                        .setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                ActivityCompat.requestPermissions(MainActivity.this,
+                                        new String[]{Manifest.permission.INTERNET},
+                                        REQUEST_INTERNET);
+                            }
+                        }).setNegativeButton("No", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                             Toast.makeText(MainActivity.this,
+                                    "Well, enjoy the blank screens :)",
+                                    Toast.LENGTH_LONG)
+                                   .show();
+                    }
+                }).show();
+
             } else {
-
-                // No explanation needed, we can request the permission.
-                requestPermissions(new String[]{Manifest.permission.INTERNET},
-                        REQUEST_INTERNET);
-
+                list.add(Manifest.permission.INTERNET);
                 // MY_PERMISSIONS_REQUEST_READ_CONTACTS is an
                 // app-defined int constant. The callback method gets the
                 // result of the request.
             }
 
+
+            // No explanation needed, we can request the permission.
+            ActivityCompat.requestPermissions(this, (String[])list.toArray(),
+                    REQUEST_INTERNET);
         }
     }
 
