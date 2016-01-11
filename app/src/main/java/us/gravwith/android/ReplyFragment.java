@@ -46,7 +46,7 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
     public static final int REPLY_LOADER_ID = 3;
 
     private final boolean VERBOSE = true;
-    private final String TAG = "ReplyFragment";
+    private final String TAG = ReplyFragment.class.getSimpleName();
 
     private LiveFragment.onLiveFragmentInteractionListener mListener;
     private ListView mListView;
@@ -105,6 +105,8 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
         }
 
         replyButtonListener = new ReplyButtonListener();
+
+        triggerReplyRefresh();
     }
 
     @Override
