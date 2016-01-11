@@ -114,6 +114,7 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
 
     @Override
     public void onStart() {
+        if (VERBOSE) Log.v(TAG, "entering onStart...");
         super.onStart();
 
         if (mAdapter == null) {
@@ -124,33 +125,49 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
         /* go ahead and get the latest list */
             triggerReplyRefresh();
         }
+
+        if (VERBOSE) Log.v(TAG,"exiting onStart...");
     }
 
     @Override
     public void onResume() {
+        if (VERBOSE) Log.v(TAG, "entering onResume...");
         super.onResume();
+        triggerReplyRefresh();
 
-        if (!hasRefreshed) {
-        /* go ahead and get the latest list */
-            triggerReplyRefresh();
+        if (mListView != null) {
+            mListView.setAdapter(mAdapter);
         }
+        /*if (!hasRefreshed) {
+        /* go ahead and get the latest list */
+            //triggerReplyRefresh();
+        //}
+
+        if (VERBOSE) Log.v(TAG, "exiting onResume...");
     }
 
     @Override
     public void onPause() {
+        if (VERBOSE) Log.v(TAG, "entering onPause...");
         super.onPause();
         hasRefreshed = false;
+
+        if (VERBOSE) Log.v(TAG, "exiting onPause...");
     }
 
     @Override
     public void onStop() {
+        if (VERBOSE) Log.v(TAG, "entering onStop...");
         super.onStop();
 
         hasRefreshed = false;
+
+        if (VERBOSE) Log.v(TAG, "exiting onStop...");
     }
 
     @Override
     public void onDestroy() {
+        if (VERBOSE) Log.v(TAG, "entering onDestroy...");
         getLoaderManager().destroyLoader(REPLY_LOADER_ID);
 
         replyButtonListener = null;
@@ -159,6 +176,8 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
 
         hasRefreshed = false;
         super.onDestroy();
+
+        if (VERBOSE) Log.v(TAG, "exiting onDestroy...");
     }
 
     /**

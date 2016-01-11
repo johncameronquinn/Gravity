@@ -238,7 +238,7 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
 
         // Obtain a reference to the mobile client. It is created in the Splash Activity.
         AWSMobileClient.initializeMobileClientIfNecessary(this);
-     //   AWSMobileClient awsMobileClient = AWSMobileClient.defaultMobileClient();
+        AWSMobileClient awsMobileClient = AWSMobileClient.defaultMobileClient();
 
         /*if (awsMobileClient == null) {
             // In the case that the activity is restarted by the OS after the application
