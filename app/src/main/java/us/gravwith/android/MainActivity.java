@@ -336,6 +336,12 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
     private static final int REQUEST_INTERNET = 1;
 
 
+    /**
+     * Id to identify an internet permission request.
+     */
+    private static final int REQUEST_BULK = 2;
+
+
 
     /**
      * method 'performStartupChecks'
@@ -368,12 +374,12 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
                                         REQUEST_INTERNET);
                             }
                         }).setNegativeButton("No", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                             Toast.makeText(MainActivity.this,
-                                    "Well, enjoy the blank screens :)",
-                                    Toast.LENGTH_LONG)
-                                   .show();
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        Toast.makeText(MainActivity.this,
+                                "Well, enjoy the blank screens :)",
+                                Toast.LENGTH_LONG)
+                                .show();
                     }
                 }).show();
 
@@ -384,6 +390,16 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
                 // result of the request.
             }
 
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_NETWORK_STATE)
+                    != PackageManager.PERMISSION_GRANTED) {
+
+                list.add(Manifest.permission.ACCESS_NETWORK_STATE);
+            }
+
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
+                    != PackageManager.PERMISSION_GRANTED) {
+                list.add(Manifest.permission.CAMERA);
+            }
 
             // No explanation needed, we can request the permission.
             ActivityCompat.requestPermissions(this, (String[])list.toArray(),
@@ -407,6 +423,23 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
 
                     // permission denied, boo! Disable the
                     // functionality that depends on this permission.
+                }
+                return;
+            }
+
+            case REQUEST_BULK: {
+                // If request is cancelled, the result arrays are empty.
+                if (grantResults.length > 0
+                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+
+                    // permission was granted, yay! Do the
+                    // contacts-related task you need to do.
+
+                } else {
+
+                    // permission denied, boo! Disable the
+                    // functionality that depends on this permission.
+                    performStartupChecks();
                 }
                 return;
             }
