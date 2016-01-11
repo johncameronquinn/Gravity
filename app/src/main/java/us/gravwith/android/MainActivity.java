@@ -2279,12 +2279,6 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
                     Log.d(TAG,"connecting to camera, setting all attributes...");
                     mCamera = getCameraInstance(inputMessage.arg1);
 
-                    if (cameraInfo.facing == Camera.CameraInfo.CAMERA_FACING_FRONT) {
-                        mCamera.setDisplayOrientation(cameraInfo.orientation-180);
-                    } else {
-                        mCamera.setDisplayOrientation(cameraInfo.orientation);
-                    }
-
                     /*    SharedPreferences.Editor editor = PreferenceManager.
                                 getDefaultSharedPreferences(mWeakActivity.get()).edit();
                         if (currentCamera == CAMERA_POSITION_FRONT) {

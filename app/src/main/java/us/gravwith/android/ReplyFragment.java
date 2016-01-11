@@ -105,8 +105,6 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
         }
 
         replyButtonListener = new ReplyButtonListener();
-
-        triggerReplyRefresh();
     }
 
     @Override
@@ -116,6 +114,16 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
         if (mAdapter == null) {
             mAdapter = new HybridCursorAdapter(getActivity(),null,0);
         }
+
+
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+
+        /* go ahead and get the latest list */
+        triggerReplyRefresh();
     }
 
     @Override
