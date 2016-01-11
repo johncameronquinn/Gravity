@@ -1,5 +1,7 @@
 package us.gravwith.android;
 
+import android.*;
+import android.Manifest;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.FragmentManager;
@@ -341,16 +343,12 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
      */
     public void performStartupChecks() {
 
-        boolean Camera = ContextCompat.checkSelfPermission(this, Manifest.permission.C2D_MESSAGE)
-                != PackageManager.PERMISSION_GRANTED;
-
-        // Here, thisActivity is the current activity
-        /*if () {
-
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.INTERNET)
+                != PackageManager.PERMISSION_GRANTED) {
 
             // Should we show an explanation?
             if (ActivityCompat.shouldShowRequestPermissionRationale(this,
-                    Manifest.permission.CAMERA)) {
+                    Manifest.permission.INTERNET)) {
 
                 // Show an expanation to the user *asynchronously* -- don't block
                 // this thread waiting for the user's response! After the user
@@ -359,25 +357,22 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
             } else {
 
                 // No explanation needed, we can request the permission.
-
-
-                requestPermissions(this,
-                        new String[]{Manifest.permission.READ_CONTACTS},
-                        MY_PERMISSIONS_REQUEST_READ_CONTACTS);
+                requestPermissions(new String[]{Manifest.permission.INTERNET},
+                        REQUEST_INTERNET);
 
                 // MY_PERMISSIONS_REQUEST_READ_CONTACTS is an
                 // app-defined int constant. The callback method gets the
                 // result of the request.
             }
-        }*/
 
+        }
     }
 
     @Override
     public void onRequestPermissionsResult(int requestCode,
                                            String permissions[], int[] grantResults) {
         switch (requestCode) {
-            case REQUEST_CAMERA: {
+            case REQUEST_INTERNET: {
                 // If request is cancelled, the result arrays are empty.
                 if (grantResults.length > 0
                         && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
