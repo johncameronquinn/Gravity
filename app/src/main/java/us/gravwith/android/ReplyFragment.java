@@ -53,6 +53,7 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
     private TextView replyErrorText;
     private RelativeLayout textingLayoutView;
     private FloatingActionMenu radicalMenuView;
+    private boolean hasRefreshed = false;
 
     private static ReplyButtonListener replyButtonListener;
 
@@ -103,8 +104,10 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
             }
 
         }
+        if (!hasRefreshed) {
         /* go ahead and get the latest list */
-        triggerReplyRefresh();
+            triggerReplyRefresh();
+        }
 
         replyButtonListener = new ReplyButtonListener();
     }
@@ -117,14 +120,33 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
             mAdapter = new HybridCursorAdapter(getActivity(),null,0);
         }
 
+        if (!hasRefreshed) {
+        /* go ahead and get the latest list */
+            triggerReplyRefresh();
+        }
     }
 
     @Override
     public void onResume() {
         super.onResume();
 
+        if (!hasRefreshed) {
         /* go ahead and get the latest list */
-        triggerReplyRefresh();
+            triggerReplyRefresh();
+        }
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        hasRefreshed = false;
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+
+        hasRefreshed = false;
     }
 
     @Override
@@ -134,6 +156,8 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
         replyButtonListener = null;
         mAdapter = null;
         PhotoManager.cancelDirectory(Constants.KEY_S3_REPLIES_DIRECTORY);
+
+        hasRefreshed = false;
         super.onDestroy();
     }
 
@@ -317,8 +341,11 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
     }
 
     public void triggerReplyRefresh() {
-        mListView.setAdapter(null);
+        if (mListView != null) {
+            mListView.setAdapter(null);
+        }
         mListener.sendMsgRequestLiveThreads();
+        hasRefreshed = true;
     }
 
 
