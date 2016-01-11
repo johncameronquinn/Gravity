@@ -51,7 +51,7 @@
         <activity
             android:name=".StashActivity"
             android:hardwareAccelerated="true"
-            android:label="@string/title_activity_stash"
+            android:label="@string/app_name"
             android:parentActivityName=".MainActivity"
             android:screenOrientation="portrait"
             android:theme="@style/StashTheme">
@@ -62,14 +62,15 @@
 
         <!-- BEGIN - PUSH NOTIFICATIONS WITH GOOGLE CLOUD MESSAGING (GCM) -->
 
-        <receiver
+       <receiver
             android:name="com.google.android.gms.gcm.GcmReceiver"
             android:exported="true"
+           android:label="@string/app_name"
             android:permission="com.google.android.c2dm.permission.SEND">
             <intent-filter>
                 <action android:name="com.google.android.c2dm.intent.RECEIVE" />
 
-                <category android:name="@string/google_cloud_messaging_package" />
+                <category android:name="us.gravwith.android"/>
             </intent-filter>
         </receiver>
 
