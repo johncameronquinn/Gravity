@@ -103,6 +103,8 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
             }
 
         }
+        /* go ahead and get the latest list */
+        triggerReplyRefresh();
 
         replyButtonListener = new ReplyButtonListener();
     }
@@ -114,7 +116,6 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
         if (mAdapter == null) {
             mAdapter = new HybridCursorAdapter(getActivity(),null,0);
         }
-
 
     }
 
