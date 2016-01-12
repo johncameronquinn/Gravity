@@ -17,7 +17,7 @@
     <!-- aws permissions -->
     <uses-permission android:name="com.google.android.c2dm.permission.RECEIVE" />
 
-    <uses-permission android:name="com.amazon.mysampleapp.permission.C2D_MESSAGE" />
+    <uses-permission android:name="us.gravwith.android.permission.C2D_MESSAGE" />
 
     <application
         android:name=".AnalyticsApplication"
