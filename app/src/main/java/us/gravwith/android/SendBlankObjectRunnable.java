@@ -89,10 +89,6 @@ public class SendBlankObjectRunnable implements Runnable {
                 mService.setResponseCode(responseCode);
                 mService.handleSendBlankObjectState(SEND_BLANK_FAILED);
             }
-
-            if (conn != null) {
-                conn.disconnect();
-            }
         }
 
         mService.setTaskThread(null);
