@@ -20,6 +20,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 import java.util.TimeZone;
 
 import us.gravwith.android.R;
@@ -63,7 +64,7 @@ public class Utility {
 
     public static String getDateStringFromLong(Long inSeconds) {
         Date date = new Date(inSeconds*1000L); // *1000 is to convert seconds to milliseconds
-        SimpleDateFormat sdf = new SimpleDateFormat("h:mm a"); // the format of your date
+        SimpleDateFormat sdf = new SimpleDateFormat("MMM d   h:mm a", Locale.getDefault()); // the format of your date
         sdf.setTimeZone(TimeZone.getDefault());
         return sdf.format(date);
     }

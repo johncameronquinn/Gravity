@@ -1364,6 +1364,9 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
                 //settingsDrawer.setVisibility(View.GONE);
                 break;
         }
+
+        /* always hide the soft keyboard, on swipe, if applicable*/
+        hide_keyboard(this);
     }
 
 
