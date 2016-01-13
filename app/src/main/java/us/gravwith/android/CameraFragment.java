@@ -879,16 +879,21 @@ n  */
                         // this does nothing special currently, just logs.
                         Log.i(TAG, "success!");
                     } else {
-                        //since the operation failed, make the dodad's shake now.
-                        Animation shake = AnimationUtils.loadAnimation(getActivity(),
-                                R.anim.shake);
+                        //since the operation failed, make the dodad's shake_neg now.
+                        Animation shakeneg = AnimationUtils.loadAnimation(getActivity(),
+                                R.anim.shake_neg);
+
+                        Animation shakepos = AnimationUtils.loadAnimation(getActivity(),
+                                R.anim.shake_pos);
+
+
                         View x = captureLayout.findViewById(R.id.do_dad_one);
                         View vx = captureLayout.findViewById(R.id.do_dad_two);
-                        x.startAnimation(shake);
-                        vx.startAnimation(shake);
+                        x.startAnimation(shakepos);
+                        vx.startAnimation(shakeneg);
 
-                        //set the layout to return to its start AFTER the shake finishes
-                        animator.setStartDelay(shake.getDuration());
+                        //set the layout to return to its start AFTER the shake_neg finishes
+                        animator.setStartDelay(shakepos.getDuration());
 
                         //logs the failure
                         Log.i(TAG, "fail!");

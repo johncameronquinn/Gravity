@@ -30,30 +30,30 @@
         <ImageButton
             android:id="@+id/button_capture"
             android:contentDescription="@string/capture_button_desc"
-            android:src="@drawable/ic_capture"
-            android:layout_width="80dp"
-            android:layout_height="80dp"
+            android:src="@drawable/capture"
+            android:layout_width="70dp"
+            android:layout_height="70dp"
             android:layout_gravity="center"
             android:visibility="visible"
             android:background="@android:color/transparent"
             android:scaleType="fitXY" />
 
         <ImageView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
             android:id="@+id/do_dad_one"
-            android:src="@drawable/doo_dad"
+            android:src="@drawable/capture"
             android:background="@android:color/transparent"
-            android:visibility="invisible" />
+            android:visibility="visible" />
 
         <ImageView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
             android:id="@+id/do_dad_two"
-            android:src="@drawable/doo_dad"
+            android:src="@drawable/capture"
             android:background="@android:color/transparent"
             android:layout_gravity="bottom|right"
-            android:visibility="invisible" />
+            android:visibility="visible" />
     </FrameLayout>
 
     <Button
@@ -140,7 +140,7 @@
         android:layout_width="50dp"
         android:layout_height="50dp"
         android:id="@+id/camera_focus"
-        android:src="@drawable/ic_capture"
+        android:src="@drawable/capture"
         android:scaleX="0"
         android:scaleY="0"
         android:tint="@color/cyber_light_blue"/>
