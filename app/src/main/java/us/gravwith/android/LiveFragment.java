@@ -208,6 +208,8 @@ public class LiveFragment extends Fragment implements
         View rootView = inflater.inflate(R.layout.fragment_live,container,false);
         rootView.findViewById(R.id.button_live_refresh).setOnClickListener(getButtonListener(this));
         rootView.findViewById(R.id.button_new_thread).setOnClickListener(getButtonListener(this));
+        rootView.findViewById(R.id.button_live_report).setOnClickListener(getButtonListener(this));
+        rootView.findViewById(R.id.button_live_hide).setOnClickListener(getButtonListener(this));
         //((SeekBar)rootView.findViewById(R.id.seekBar)).setOnSeekBarChangeListener(getButtonListener(this));
 
         if (VERBOSE) Log.v(TAG,"exiting onCreateView...");
@@ -299,9 +301,7 @@ public class LiveFragment extends Fragment implements
      *
      * listens to all the general live thread interactions
      */
-    public class LiveButtonListener implements SeekBar.OnSeekBarChangeListener,
-            View.OnClickListener,
-            ValueAnimator.AnimatorUpdateListener {
+    public class LiveButtonListener implements View.OnClickListener {
 
         @Override
         public void onClick(View v) {
@@ -321,6 +321,40 @@ public class LiveFragment extends Fragment implements
                     mListener.takeLivePicture();
                     break;
 
+                case R.id.button_live_report:
+                    if (VERBOSE) Log.v(TAG,"entering report mode...");
+
+                    ReportManager manager = new ReportManager((MainActivity)getActivity(),threadPager,
+                            new ReportManager.ReportStatusListener() {
+                        @Override
+                        public void onRequestSuccess() {
+
+                        }
+
+                        @Override
+                        public void onRequestError(int code) {
+
+                        }
+
+                        @Override
+                        public void onRequestStarted() {
+
+                        }
+
+                        @Override
+                        public void onDialogClosed(boolean didTheyHitYes) {
+
+                        }
+                    });
+
+                    manager.setItemIDAndShow(Integer
+                            .parseInt(mAdapter
+                            .getCurrentFragment()
+                            .getThreadID()
+                    ));
+
+                    break;
+
                 /*case R.id.button_live_save:
                     //gets the photoView of the thread currently selected by the pager, and saves.
 
@@ -336,103 +370,28 @@ public class LiveFragment extends Fragment implements
                         Log.e(TAG,"fragment.getView() returned null");
                     }
                     break;*/
-            }
-        }
 
-        final int OPEN_CAMERA_VALUE = 0;
-        final int STARTING_VALUE = 50;
-        final int OPEN_STASH_VALUE = 100;
-        int value = 0;
+                case R.id.button_live_hide:
 
-        @Override
-        public void onProgressChanged(SeekBar seekBar, int progressValue, boolean fromUser) {
-            value = progressValue;
-            switch (progressValue) {
-                case OPEN_CAMERA_VALUE:
-                    Toast.makeText(getActivity(),"Opening camera...",Toast.LENGTH_SHORT).show();
-                    ((MainActivity)getActivity()).takeLivePicture();
+                    Toast.makeText(getActivity(),"not yet working...",Toast.LENGTH_SHORT).show();
+                    //// STOPSHIP: 1/17/16 Hide must be working and it is not as of now.
+
+                    /*
+                    LiveThreadFragment fragment = mAdapter.getCurrentFragment();
+
+                    String selectionClause = SQLiteDbContract.LiveEntry
+                            .COLUMN_NAME_THREAD_ID + " = ?";
+
+                    String[] selectionArgs = {fragment.getThreadID()};
+
+                    getActivity().getContentResolver().delete(
+                            FireFlyContentProvider.CONTENT_URI_LIVE,
+                            selectionClause,
+                            selectionArgs
+                    );*/
+
                     break;
 
-                case OPEN_STASH_VALUE:
-                    Log.i(TAG, "opening gallery");
-                    Intent intent = new Intent();
-                    intent.setAction(Intent.ACTION_GET_CONTENT);
-                    intent.setType("image/*");
-                    startActivityForResult(Intent.createChooser(intent,"Select Picture"),
-                            SELECT_PICTURE);
-                    break;
-                case STARTING_VALUE:
-                    //do nothing. possibly hide the seekbar?
-                    break;
-            }
-        }
-
-        @Override
-        public void onStartTrackingTouch(SeekBar seekBar) {
-        }
-
-        private SeekBar seekBar;
-        private int destValue;
-
-        @Override
-        public void onStopTrackingTouch(SeekBar seekBar) {
-            //todo animator should interpolate the seekbar to the closest node (0,50,100)
-            final int ANIMATION_SPEED_FACTOR = 1000;
-            final int ANIMATION_ACCEL_FACTOR = 3;
-
-            this.seekBar = seekBar;
-
-            if (value < 20) {
-                destValue = OPEN_CAMERA_VALUE;
-            } else if (value > 80) {
-                destValue = OPEN_STASH_VALUE;
-            } else {
-                destValue = STARTING_VALUE;
-            }
-            double distance = Math.abs(destValue - value);
-
-            double speedRatio = (distance / seekBar.getMax());
-            Log.d(TAG,"The distance is " + distance + " and the speedRatio is " + speedRatio);
-            Log.d(TAG, "The adjusted duration is " + Math.round(speedRatio * ANIMATION_SPEED_FACTOR));
-
-            ValueAnimator anim = ValueAnimator.ofInt(value, destValue);
-            anim.setInterpolator(new AccelerateInterpolator(ANIMATION_ACCEL_FACTOR));
-            anim.setDuration(Math.round(speedRatio * ANIMATION_SPEED_FACTOR));
-            anim.addUpdateListener(this);
-            anim.start();
-        }
-
-        @Override
-        public void onAnimationUpdate(ValueAnimator animation) {
-            int animProgress = (Integer) animation.getAnimatedValue();
-            seekBar.setProgress(animProgress);
-
-            if (animProgress == destValue) {
-                setSeekMode(null);
-            }
-        }
-
-        private void setSeekMode(View v) {
-            if (v != null) { //button_new_thread was pressed, set seek mode
-                View vg = getView();
-                if (vg != null) {
-                    vg.findViewById(R.id.button_new_thread).setVisibility(View.INVISIBLE);
-                    vg.findViewById(R.id.live_thread_number).setVisibility(View.INVISIBLE);
-                    //SeekBar bar = ((SeekBar) vg.findViewById(R.id.seekBar));
-                    //bar.setVisibility(View.VISIBLE);
-                    //bar.setOnSeekBarChangeListener(this);
-                }
-            } else {
-                if (getView() != null) {
-                    View group = getView();
-                    group.findViewById(R.id.button_new_thread).setVisibility(View.VISIBLE);
-                    group.findViewById(R.id.live_thread_number).setVisibility(View.VISIBLE);
-                   // SeekBar bar = ((SeekBar)group.findViewById(R.id.seekBar));
-                 //   bar.setProgress(STARTING_VALUE);
-                    value = STARTING_VALUE;
-                   // bar.setVisibility(View.INVISIBLE);
-                    //bar.setOnSeekBarChangeListener(null);
-                }
             }
         }
 

@@ -70,7 +70,6 @@ public class CursorPagerAdapter<F extends Fragment> extends FragmentStatePagerAd
         return cursor;
     }
 
-
     @Override
     public void setPrimaryItem(ViewGroup container, int position, Object object) {
         mThreadFragment = (LiveThreadFragment)object;

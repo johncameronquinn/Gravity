@@ -305,7 +305,7 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
         view.findViewById(R.id.button_reply_refresh).setOnClickListener(replyButtonListener);
         view.findViewById(R.id.button_send_reply).setOnClickListener(replyButtonListener);
         view.findViewById(R.id.button_reply_report).setOnClickListener(replyButtonListener);
-        //view.findViewById(R.id.button_reply_capture).setOnClickListener(replyButtonListener);
+        view.findViewById(R.id.button_reply_capture).setOnClickListener(replyButtonListener);
         setCurrentThread(String.valueOf(currentThread));
 
         //anything that requires the UI to already exist goes here
@@ -363,7 +363,7 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
         if (mListView != null) {
             mListView.setAdapter(null);
         }
-        mListener.sendMsgRequestLiveThreads();
+        mListener.sendMsgRequestReplies(currentThread);
         hasRefreshed = true;
     }
 
@@ -427,10 +427,10 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
                         commentText   = ((EditText) activity.findViewById(R.id.editText_reply_comment));
                         RelativeLayout layout = (RelativeLayout) commentText.getParent();
 
-                        //activity.setReplyFilePath("");
-                        activity.setLiveFilePath("");
-                        activity.setLiveCreateThreadInfo("", commentText.getText().toString());
-                        //activity.setLiveCreateReplyInfo(commentText.getText().toString(), getCurrentThread());
+                        activity.setReplyFilePath("");
+                        //activity.setLiveFilePath("");
+                        //activity.setLiveCreateThreadInfo("", commentText.getText().toString());
+                        activity.setLiveCreateReplyInfo(commentText.getText().toString(), getCurrentThread());
                         //triggerReplyRefresh();
 
                         InputMethodManager imm = (InputMethodManager) activity
@@ -446,17 +446,16 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
 
                     break;
 
-                /*case R.id.button_reply_capture:
+                case R.id.button_reply_capture:
 
                     if (isAdded()) {
 
                         commentText   = ((EditText) activity.findViewById(R.id.editText_reply_comment));
                         RelativeLayout layout = (RelativeLayout) commentText.getParent();
-                        //activity.takeReplyPicture();
-                        activity.takeLivePicture();
-                        //activity.setLiveCreateReplyInfo(commentText.getText().toString(),
-                          //      getCurrentThread());
-                        activity.setLiveCreateThreadInfo("","",commentText.getText().toString());
+                        activity.takeReplyPicture();
+                        activity.setLiveCreateReplyInfo(commentText.getText().toString(),
+                                getCurrentThread());
+                        //activity.setLiveCreateThreadInfo("","",commentText.getText().toString());
 
                         InputMethodManager imm = (InputMethodManager) activity
                                 .getSystemService(Context.INPUT_METHOD_SERVICE);
@@ -466,7 +465,7 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
 
                         b.putString(Constants.KEY_ANALYTICS_ACTION,"take picture");
                     }
-                    break;*/
+                    break;
 
                 case R.id.button_reply_report:
 
@@ -507,7 +506,7 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
     }
 
 
-    /*@Override
+    @Override
     public CursorLoader onCreateLoader(int id, Bundle args) {
         if (VERBOSE) Log.v(TAG,"entering onCreateLoader...");
 
@@ -526,30 +525,6 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
 
         if (VERBOSE) Log.v(TAG,"exiting onCreateLoader...");
             return loader;
-    }*/
-
-    @Override
-    public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-        if (VERBOSE) Log.v(TAG,"enter onCreateLoader...");
-
-        String[] projection = {
-                SQLiteDbContract.LiveEntry.COLUMN_ID,
-                SQLiteDbContract.LiveEntry.COLUMN_NAME_TIME,
-                SQLiteDbContract.LiveEntry.COLUMN_NAME_DESCRIPTION,
-                SQLiteDbContract.LiveEntry.COLUMN_NAME_FILEPATH,
-        };
-
-        if (VERBOSE) Log.v(TAG,"loader created.");
-        if (VERBOSE) Log.v(TAG,"exit onCreateLoader...");
-
-        return new CursorLoader(
-                getActivity(),
-                FireFlyContentProvider.CONTENT_URI_LIVE,
-                projection,
-                null,
-                null,
-                SQLiteDbContract.LiveEntry.COLUMN_ID);
-        //sort by column ID
     }
 
     @Override

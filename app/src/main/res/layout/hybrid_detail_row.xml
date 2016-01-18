@@ -6,7 +6,8 @@
     android:layout_alignParentTop="true"
     android:gravity="top"
     android:descendantFocusability="blocksDescendants"
-    android:background="@drawable/rectangle"
+    android:background="@drawable/listview_item_backgroundstate"
+    android:padding="@dimen/listView_spacing_all"
     android:visibility="visible">
 
     <us.gravwith.android.PhotoView
@@ -55,6 +56,11 @@
         android:textAppearance="?android:attr/textAppearanceSmall"
         android:singleLine="false"
         android:textColor="@color/cyber_light_blue" />
+
+    <Space
+        android:layout_width="match_parent"
+        android:layout_height="14sp"
+        android:layout_below="@+id/reply_detail_row_text"/>
 
 
 </RelativeLayout>
