@@ -12,7 +12,7 @@ import android.view.ViewGroup;
 import android.widget.CursorAdapter;
 import android.widget.TextView;
 
-import us.gravwith.android.SQLiteDbContract.LiveEntry;
+import us.gravwith.android.SQLiteDbContract.LiveReplies;
 import us.gravwith.android.util.Utility;
 
 /**
@@ -71,25 +71,25 @@ public class HybridCursorAdapter extends CursorAdapter implements PhotoView.OnCl
         text.setText(
                 cursor.getString(
                         cursor.getColumnIndexOrThrow(
-                                LiveEntry.COLUMN_NAME_DESCRIPTION)
+                                LiveReplies.COLUMN_NAME_DESCRIPTION)
                 )
         );
         date.setText(Utility.getDateStringFromLong(Long.parseLong(
                 cursor.getString(
                 cursor.getColumnIndexOrThrow(
-                        LiveEntry.COLUMN_NAME_TIME)
+                        LiveReplies.COLUMN_NAME_TIME)
                 )))
         );
         String path = (
                 cursor.getString(
                         cursor.getColumnIndexOrThrow(
-                                LiveEntry.COLUMN_NAME_FILEPATH)
+                                LiveReplies.COLUMN_NAME_FILEPATH)
                 )
         );
         int rowID = (
                 cursor.getInt(
                         cursor.getColumnIndexOrThrow(
-                                LiveEntry.COLUMN_ID)
+                                LiveReplies.COLUMN_ID)
                 )
         );
         view.setTag(R.integer.content_id_key, rowID);
@@ -133,7 +133,7 @@ public class HybridCursorAdapter extends CursorAdapter implements PhotoView.OnCl
          */
         Intent localIntent =
                 new Intent(Constants.ACTION_VIEW_IMAGE).putExtra(Constants.KEY_S3_KEY,s3Key)
-                        .putExtra(Constants.KEY_S3_DIRECTORY,Constants.KEY_S3_LIVE_DIRECTORY)
+                        .putExtra(Constants.KEY_S3_DIRECTORY,Constants.KEY_S3_REPLIES_DIRECTORY)
                         .putExtra(Constants.KEY_PREVIEW_IMAGE,false);
 
         // Broadcasts the Intent to receivers in this app. See DisplayActivity.FragmentDisplayer.

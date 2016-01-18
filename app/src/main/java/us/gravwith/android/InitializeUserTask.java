@@ -87,6 +87,7 @@ class InitializeUserTask extends ServerTask implements InitializeUserMethods, Se
                 break;
 
         }
+        if (mService != null)
         mService.handleDownloadState(outState, this);
     }
 

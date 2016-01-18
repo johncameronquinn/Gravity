@@ -61,7 +61,7 @@ public class CameraFragment extends Fragment implements Camera.AutoFocusCallback
     public static final int CAMERA_MESSAGE_MODE = 1;
     public static final int CAMERA_LIVE_MODE = 2;
     public static final int CAMERA_REPLY_MODE = 3;
-    public static final int CAMERA_DEFAULT_MODE = CAMERA_REPLY_MODE;
+    public static final int CAMERA_DEFAULT_MODE = 0;
 
     private final int FOCUS_AREA_ANIMATION_DURATION = 300;
     private final int CAPTURE_LAYOUT_ANIMATION_DURATION = 300;
@@ -284,8 +284,8 @@ n  */
         @Override
         public boolean onDown(MotionEvent e) {
             switch (currentCameraMode) {
-                /*case CAMERA_DEFAULT_MODE:
-                    return true;*/
+                case CAMERA_DEFAULT_MODE:
+                    return true;
                 case CAMERA_MESSAGE_MODE:
                     return true;
                 case CAMERA_REPLY_MODE:
@@ -477,7 +477,7 @@ n  */
                     Activity mActivity = getActivity();
                     //initialize the buttons while the picture is being taken
                     switch (currentCameraMode) {
-                        /*case CAMERA_DEFAULT_MODE:
+                        case CAMERA_DEFAULT_MODE:
                             if (Constants.LOGD) Log.d(TAG,"Taking a picture in default mode...");
                             captureButton = (ImageButton) v;
                             switchButton = (Button) mActivity.findViewById(R.id.switch_camera);
@@ -492,7 +492,7 @@ n  */
                             b.putString(Constants.KEY_ANALYTICS_LABEL,"default mode");
 
 
-                            break;*/
+                            break;
 
                         case CAMERA_MESSAGE_MODE:
                             if (Constants.LOGD) Log.d(TAG,"Taking a picture in message mode...");
@@ -655,7 +655,7 @@ n  */
 
             switch (mode) {
 
-                /*case CAMERA_DEFAULT_MODE:
+                case CAMERA_DEFAULT_MODE:
                     if (VERBOSE) Log.v(TAG,"Image captured in default mode");
                     isPreview = false;
 
@@ -678,7 +678,7 @@ n  */
                     //localButton.setOnClickListener(this);
                     liveButton.setOnClickListener(this);
                     cancelButton.setOnClickListener(this);
-                    break;*/
+                    break;
                 case CAMERA_MESSAGE_MODE:    // message mode
                     if (VERBOSE) Log.v(TAG,"Image captured in message mode");
                     isPreview = false;
@@ -757,7 +757,7 @@ n  */
                     }
                     break;
 
-                /*case CAMERA_DEFAULT_MODE:
+                case CAMERA_DEFAULT_MODE:
                     isPreview = true;
 
                     mListener.sendMsgStartPreview();
@@ -776,7 +776,7 @@ n  */
                     //localButton.setVisibility(View.INVISIBLE);
                     liveButton.setVisibility(View.INVISIBLE);
 
-                    break;*/
+                    break;
 
                 case CAMERA_LIVE_MODE:
                     isPreview = true;

@@ -41,8 +41,10 @@
     </style>
 
     <style name="GravityListView">
-        <item name="android:divider">@color/cyber_light_blue</item>
-        <item name="android:background">@color/cyber_background</item>
+        <item name="android:divider">@color/listview_background_color</item>
+        <item name="android:background">@color/listview_background_color</item>
+        <item name="android:dividerHeight">@dimen/listView_spacing_all</item>
+        <item name="android:padding">@dimen/listView_spacing_all</item>
     </style>
 
     <style name="FullscreenTheme" parent="AppTheme">

@@ -12,12 +12,14 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:id="@+id/reply_list_view"
-        android:dividerHeight="2dp"
         android:clipToPadding="false"
         android:paddingBottom="93dp"
         android:layout_alignParentTop="true"
         android:stackFromBottom="true"
-        android:transcriptMode="normal"/>
+        android:transcriptMode="normal"
+        android:paddingLeft="@dimen/listView_spacing_all"
+        android:paddingTop="@dimen/listView_spacing_all"
+        android:paddingRight="@dimen/listView_spacing_all" />
 
 
     <com.github.clans.fab.FloatingActionMenu
@@ -40,10 +42,9 @@
             style="@style/FabNormal"
             android:id="@+id/button_reply_refresh"
             android:src="@drawable/ic_refresh"/>
-       <!-- <com.github.clans.fab.FloatingActionButton
+        <com.github.clans.fab.FloatingActionButton
             style="@style/FabNormal"
-            android:id="@+id/button_reply_capture"
-            fab:fab_label="Add Image"/>-->
+            android:id="@+id/button_reply_capture"/>
 
     </com.github.clans.fab.FloatingActionMenu>
 

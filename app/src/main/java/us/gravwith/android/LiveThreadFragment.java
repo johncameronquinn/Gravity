@@ -2,8 +2,10 @@ package us.gravwith.android;
 
 import android.app.Activity;
 import android.app.Fragment;
+import android.content.Intent;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
+import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -120,7 +122,7 @@ public class LiveThreadFragment extends Fragment implements View.OnClickListener
             threadName = args.getString(SQLiteDbContract.LiveEntry.COLUMN_NAME_NAME);
             threadTitle = args.getString(SQLiteDbContract.LiveEntry.COLUMN_NAME_TITLE);
             threadText = args.getString(SQLiteDbContract.LiveEntry.COLUMN_NAME_DESCRIPTION);
-            threadID = args.getString(SQLiteDbContract.LiveEntry.COLUMN_NAME_THREAD_ID);
+            threadID = args.getString(SQLiteDbContract.LiveEntry.COLUMN_NAME_THREAD_ID,"0");
             unique = args.getString(SQLiteDbContract.LiveEntry.COLUMN_NAME_UNIQUE);
             replies = args.getString(SQLiteDbContract.LiveEntry.COLUMN_NAME_REPLIES);
 
@@ -137,7 +139,7 @@ public class LiveThreadFragment extends Fragment implements View.OnClickListener
             threadName = args.getString(SQLiteDbContract.LiveEntry.COLUMN_NAME_NAME);
             threadTitle = args.getString(SQLiteDbContract.LiveEntry.COLUMN_NAME_TITLE);
             threadText = args.getString(SQLiteDbContract.LiveEntry.COLUMN_NAME_DESCRIPTION);
-            threadID = args.getString(SQLiteDbContract.LiveEntry.COLUMN_NAME_THREAD_ID);
+            threadID = args.getString(SQLiteDbContract.LiveEntry.COLUMN_NAME_THREAD_ID,"0");
             unique = args.getString(SQLiteDbContract.LiveEntry.COLUMN_NAME_UNIQUE);
             replies = args.getString(SQLiteDbContract.LiveEntry.COLUMN_NAME_REPLIES);
 
@@ -159,7 +161,7 @@ public class LiveThreadFragment extends Fragment implements View.OnClickListener
         }
 
         View localView = inflater.inflate(R.layout.fragment_live_thread,container,false);
-        mPhotoView = ((PhotoView) localView.findViewById(R.id.thumbImage));
+        mPhotoView = ((PhotoView) localView.findViewById(R.id.photoView));
         progressBar = ((ProgressBar) localView.findViewById(R.id.photoProgress));
 
         textView = localView.findViewById(R.id.live_thread_infoLayout);
@@ -290,6 +292,30 @@ public class LiveThreadFragment extends Fragment implements View.OnClickListener
                     v.findViewById(R.id.live_thread_unique).setVisibility(View.VISIBLE);
                     v.findViewById(R.id.live_thread_replies).setVisibility(View.VISIBLE);
                 }
+                break;
+
+            case R.id.photoView:
+
+
+                Log.d(TAG,"View string is : " + v.toString());
+
+                // Retrieves the urlString from the cursor
+                String s3Key = ((PhotoView)v).getImageKey();
+                //s3Key = s3Key.substring(0,s3Key.length()-1);
+
+                Log.d(TAG, "grabbed key is: " + s3Key);
+                /*
+         * Creates a new Intent to get the full picture for the thumbnail that the user clicked.
+         * The full photo is loaded into a separate Fragment
+                */
+                Intent localIntent =
+                        new Intent(Constants.ACTION_VIEW_IMAGE).putExtra(Constants.KEY_S3_KEY,s3Key)
+                                .putExtra(Constants.KEY_S3_DIRECTORY,Constants.KEY_S3_LIVE_DIRECTORY)
+                                .putExtra(Constants.KEY_PREVIEW_IMAGE,false);
+
+                // Broadcasts the Intent to receivers in this app. See DisplayActivity.FragmentDisplayer.
+                LocalBroadcastManager.getInstance(v.getContext()).sendBroadcast(localIntent);
+
                 break;
         }
     }

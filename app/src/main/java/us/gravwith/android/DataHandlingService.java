@@ -684,20 +684,16 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
                 break;
 
             case REQUEST_FAILED:
-                if (Constants.LOGD) Log.d(TAG,"Request failed...");
+                if (Constants.LOGD) Log.d(TAG, "Request failed...");
 
-                if (task.getURLConnection() != null) {
-                    try {
-                        responseCode = task.getURLConnection().getResponseCode();
-                        if (VERBOSE) Log.v(TAG,"grabbed responseCode is: " + responseCode);
-                        sendErrorBroadcast(responseCode,
-                                getResources().getString(R.string.authorization_error)
-                        );
-                    } catch (IOException e) {
-                        Log.e(TAG, "unable to get error code... ", e);
-                    }
-                }
+                responseCode = task.getResponseCode();
+                if (VERBOSE) Log.v(TAG,"Task failed, grabbed responseCode is: " + responseCode);
+
                 responseMessage = Message.obtain(null, task.getResponseWhat(), state, responseCode);
+
+                sendErrorBroadcast(responseCode,
+                        getResources().getString(R.string.authorization_error)
+                );
 
                 recycleTask(task);
                 break;

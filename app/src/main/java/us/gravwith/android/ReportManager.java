@@ -54,6 +54,13 @@ public class ReportManager implements AdapterView.OnItemClickListener {
         mListener = listener;
     }
 
+    public ReportManager(MainActivity activity, View v, ReportStatusListener listener) {
+        if (VERBOSE) Log.v(LOG_TAG,"creating ReportManager...");
+        mainActivity = activity;
+        reportStatusMessenger = new Messenger(new ReportStatusHandler());
+        mListener = listener;
+    }
+
     @Override
     public void onItemClick(AdapterView<?> parent, View v, int position, long id) {
         if (VERBOSE) Log.v(LOG_TAG,"entering onItemClick...");
@@ -93,8 +100,41 @@ public class ReportManager implements AdapterView.OnItemClickListener {
         if (VERBOSE) Log.v(LOG_TAG,"exiting onItemClick...");
     }
 
+    public void setItemIDAndShow(int id) {
+        if (VERBOSE) Log.v(LOG_TAG,"entering setItemIDAndShow...");
+        selectedContentID = id;
+
+
+        new AlertDialog.Builder(mainActivity)
+                .setIcon(android.R.drawable.ic_dialog_alert)
+                .setTitle(R.string.report_dialog_title)
+                .setMessage(R.string.report_dialog_message)
+                .setPositiveButton(R.string.report_dialog_positive_label,
+                        new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                sendReport();
+                                dialog.dismiss();
+                                mListener.onDialogClosed(true);
+                            }
+                        })
+                .setNegativeButton(R.string.report_dialog_negative_label,
+                        new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                dialog.dismiss();
+                                mListener.onDialogClosed(false);
+                            }
+                        }).show();
+
+
+        if (VERBOSE) Log.v(LOG_TAG,"exiting setItemIDAndShow...");
+    }
+
     public void startReportSelectionMode() {
         if (VERBOSE) Log.v(LOG_TAG,"entering startReportSelectionMode...");
+
+        assert viewContainer != null;
 
         //Block posts from being clickable
         viewContainer.setDescendantFocusability(ViewGroup.FOCUS_BLOCK_DESCENDANTS);
