@@ -527,8 +527,8 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
                     if (data.getString(Constants.KEY_S3_KEY,"").equals("")){
                         if (Constants.LOGD) Log.d(TAG,"no image filepath was provided," +
                                 " this must be a text reply, so uploading straight to the server.");
-                        
-                        //publishing message via GCM
+
+                        //publishing reply to http
                         task = new SendReplyTask();
 
                         if (Constants.LOGD) Log.d(TAG,"Also publishing to GCM");
@@ -1248,6 +1248,8 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
 
                     case MSG_REPLY_TO_THREAD:
                         task = new SendReplyTask();
+
+                        AWSMobileClient.defaultMobileClient().getPushManager().publishMessage(data);
                         break;
 
                     case MSG_REQUEST_LIVE_THREADS:
