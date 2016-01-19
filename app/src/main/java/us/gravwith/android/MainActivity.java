@@ -1256,13 +1256,7 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
                 case REPLY_LIST_POSITION:
                     if (ReplyFragReference.get() == null) {
 
-                        ReplyFragment f;
-                        if (LiveFragReference.get() == null) {
-                            f = ReplyFragment.newInstance(0);
-                        } else {
-                            f = ReplyFragment.newInstance(LiveFragReference.get()
-                                    .getCurrentThread());
-                        }
+                        ReplyFragment f = ReplyFragment.newInstance(0);
                         ReplyFragReference = new WeakReference<>(f);
                         out = f;
 
@@ -1711,6 +1705,8 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
                     replyData.getString("description", ""));
             values.put(SQLiteDbContract.LiveReplies.COLUMN_NAME_THREAD_ID,
                     replyData.getInt("threadID"));
+            values.put(SQLiteDbContract.LiveReplies.COLUMN_NAME_THREAD_ID,
+                    replyData.getInt("topicARN"));
 
                     getContentResolver()
                             .insert(FireFlyContentProvider
@@ -1773,43 +1769,57 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
         setLiveCreateThreadInfo(name, title, description);
     }
 
-    public void setLiveCreateReplyInfo(String comment, int threadID) {
-        if (VERBOSE) Log.v(TAG,"enter setLiveCreateReplyInfo with "  + comment + ", " + threadID);
 
-        String name = getSharedPreferences(Constants.SHARED_PREFERENCES_NAME,MODE_PRIVATE).
-                getString(StashLiveSettingsFragment.LIVE_NAME_KEY,"jester");
-        setLiveCreateReplyInfo(name, comment, threadID);
-
-
-        if (VERBOSE) Log.v(TAG,"exiting setLiveCreateReplyInfo");
-    }
-
-
-    public void setLiveCreateReplyInfo(String comment) {
+    public void addCommentToNewReply(String comment) {
         if (VERBOSE) Log.v(TAG,"enter setLiveCreateReplyInfo with "  + comment);
 
-        String name = getSharedPreferences(Constants.SHARED_PREFERENCES_NAME,MODE_PRIVATE).
-                getString(StashLiveSettingsFragment.LIVE_NAME_KEY,"jester");
+        String name = getSharedPreferences(Constants.SHARED_PREFERENCES_NAME, MODE_PRIVATE).
+                getString(StashLiveSettingsFragment.LIVE_NAME_KEY, "jester");
         setLiveCreateReplyInfo(name, comment, replyData.
-                getInt(SQLiteDbContract.LiveReplies.COLUMN_NAME_THREAD_ID));
+                        getInt(SQLiteDbContract.LiveReplies.COLUMN_NAME_THREAD_ID),
+                replyData.getString(SQLiteDbContract.LiveEntry.COLUMN_NAME_TOPIC_ARN, ""));
 
 
         if (VERBOSE) Log.v(TAG,"exiting setLiveCreateReplyInfo");
     }
 
+    public void setLiveCreateReplyInfo(String comment, int threadID, String topicARN) {
+        if (VERBOSE) Log.v(TAG,"enter setLiveCreateReplyInfo with " + comment + ", " + threadID
+                + ", " + topicARN);
 
-    public void setLiveCreateReplyInfo(String name, String comment, int threadID) {
+        if (replyData == null) {
+            replyData = new Bundle(3);
+        }
+
+        String name = getSharedPreferences(Constants.SHARED_PREFERENCES_NAME,MODE_PRIVATE).
+                getString(StashLiveSettingsFragment.LIVE_NAME_KEY,"jester");
+        replyData.putString(SQLiteDbContract.LiveReplies.COLUMN_NAME_NAME, name);
+        replyData.putString(SQLiteDbContract.LiveReplies.COLUMN_NAME_DESCRIPTION, comment);
+        replyData.putInt(SQLiteDbContract.LiveReplies.COLUMN_NAME_THREAD_ID, threadID);
+        replyData.putString(SQLiteDbContract.LiveEntry.COLUMN_NAME_TOPIC_ARN, topicARN);
+
+        if (replyData.size() >= 5) {
+            sendMsgCreateReply(replyData);
+            replyData = null;
+        }
+
+        if (VERBOSE) Log.v(TAG,"exiting setLiveCreateReplyInfo");
+    }
+
+
+    public void setLiveCreateReplyInfo(String name, String comment, int threadID, String topicARN) {
         if (VERBOSE) Log.v(TAG,"enter setLiveCreateReplyInfo with " + name + ", " + comment + ", " + threadID);
 
         if (replyData == null) {
             replyData = new Bundle(3);
         }
 
-        replyData.putString(SQLiteDbContract.LiveReplies.COLUMN_NAME_NAME,name);
+        replyData.putString(SQLiteDbContract.LiveReplies.COLUMN_NAME_NAME, name);
         replyData.putString(SQLiteDbContract.LiveReplies.COLUMN_NAME_DESCRIPTION, comment);
         replyData.putInt(SQLiteDbContract.LiveReplies.COLUMN_NAME_THREAD_ID, threadID);
+        replyData.putString(SQLiteDbContract.LiveEntry.COLUMN_NAME_TOPIC_ARN, topicARN);
 
-        if (replyData.size() >= 4) {
+        if (replyData.size() >= 5) {
             sendMsgCreateReply(replyData);
             replyData = null;
         }
@@ -1992,17 +2002,27 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
         }
         replyData.putString(Constants.KEY_S3_KEY,filePath);
         replyData.putString(SQLiteDbContract.LiveReplies.COLUMN_NAME_FILEPATH,filePath);
-        if (replyData.size() >= 4) {
+        if (replyData.size() >= 5) {
             sendMsgCreateReply(replyData);
             replyData.clear();
         }
         if (VERBOSE) Log.v(TAG, "exiting setReplyFilepath" + filePath);
     }
 
-    public void setCurrentThread(String thread) {
-        if (ReplyFragReference.get()!=null) {
-            ReplyFragReference.get().setCurrentThread(thread);
-        }
+    private String currentThread = "0";
+    private String currentTopicARN = "";
+
+    public void setCurrentThread(String threadID,String topicARN) {
+        currentThread = threadID;
+        currentTopicARN = topicARN;
+    }
+
+    public String getCurrentThread() {
+        return currentThread;
+    }
+
+    public String getCurrentTopicARN() {
+        return currentTopicARN;
     }
 
     public void setReplyComment(String comment) {

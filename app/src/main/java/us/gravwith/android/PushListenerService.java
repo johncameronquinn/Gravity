@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.Map;
 
 import us.gravwith.android.SQLiteDbContract.MessageEntry;
+import us.gravwith.android.SQLiteDbContract.LiveReplies;
 
 /**
  * A service that listens to GCM notifications.
@@ -161,43 +162,85 @@ public class PushListenerService extends GcmListenerService {
                 LogUtils.printStringMapToVerbose(jsonMap, LOG_TAG);
             }
 
-            if (jsonMap.containsKey(MessageEntry.COLUMN_NAME_FILEPATH)) {
-                Log.i(LOG_TAG,"received incoming message, storing...");
+            switch (jsonMap.get(Constants.KEY_S3_DIRECTORY)) {
 
-                ContentValues values = new ContentValues(data.size());
-                //values.put(SQLiteDbContract.LiveReplies.COLUMN_ID, data.getString("id"));
-                values.put(MessageEntry.COLUMN_NAME_TIME, jsonMap.get("time"));
-                values.put(MessageEntry.COLUMN_FROM_USER, jsonMap.get("fromUser"));
-                values.put(MessageEntry.COLUMN_NAME_TEXT, jsonMap.get("text"));
-                values.put(MessageEntry.COLUMN_NAME_FILEPATH, jsonMap.get("url"));
-                values.put(MessageEntry.COLUMN_RESPONSE_ARN, jsonMap.get("arn"));
-                //values.put("url", jsonMap.get("default"));
+                case Constants.KEY_S3_MESSAGE_DIRECTORY:
 
-                getContentResolver().insert(FireFlyContentProvider.CONTENT_URI_MESSAGE, values);
+                    if (jsonMap.containsKey(MessageEntry.COLUMN_NAME_FILEPATH)) {
+                        Log.i(LOG_TAG,"received incoming message, storing...");
 
-                if (isForeground(this)) {
-                    // broadcast notification, then store
-                    broadcast(from, data);
-                } else {
-                    //just store and display
-                    displayNotification("You've got mail!");
-                }
-            } else {
-                Log.i(LOG_TAG, "received read receipt, removing column for pending images");
-                String[] selectionArgs = { jsonMap.get(MessageEntry.COLUMN_RESPONSE_ARN) };
+                        ContentValues values = new ContentValues(data.size());
+                        //values.put(SQLiteDbContract.LiveReplies.COLUMN_ID, data.getString("id"));
+                        values.put(MessageEntry.COLUMN_NAME_TIME, jsonMap.get("time"));
+                        values.put(MessageEntry.COLUMN_FROM_USER, jsonMap.get("fromUser"));
+                        values.put(MessageEntry.COLUMN_NAME_TEXT, jsonMap.get("text"));
+                        values.put(MessageEntry.COLUMN_NAME_FILEPATH, jsonMap.get("url"));
+                        values.put(MessageEntry.COLUMN_RESPONSE_ARN, jsonMap.get("arn"));
+                        //values.put("url", jsonMap.get("default"));
 
-                int rows = getContentResolver().
-                        delete(FireFlyContentProvider.CONTENT_URI_MESSAGE,
-                                MessageEntry.COLUMN_RESPONSE_ARN + " LIKE ?",
-                                selectionArgs);
+                        getContentResolver().insert(FireFlyContentProvider.CONTENT_URI_MESSAGE, values);
 
-                if (Constants.LOGD) Log.v(LOG_TAG,"Rows deleted : " + rows);
+                        if (isForeground(this)) {
+                            // broadcast notification, then store
+                            broadcast(from, data);
+                        } else {
+                            //just store and display
+                            displayNotification("You've got mail!");
+                        }
+                    } else {
+                        Log.i(LOG_TAG, "received read receipt, removing column for pending images");
+                        String[] selectionArgs = { jsonMap.get(MessageEntry.COLUMN_RESPONSE_ARN) };
 
-                if (isForeground(this)) {
-                    // broadcast notification, then store
-                    //broadcast(from, data);
-                }
+                        int rows = getContentResolver().
+                                delete(FireFlyContentProvider.CONTENT_URI_MESSAGE,
+                                        MessageEntry.COLUMN_RESPONSE_ARN + " LIKE ?",
+                                        selectionArgs);
+
+                        if (Constants.LOGD) Log.v(LOG_TAG,"Rows deleted : " + rows);
+
+                        if (isForeground(this)) {
+                            // broadcast notification, then store
+                            //broadcast(from, data);
+                        }
+                    }
+
+                    break;
+
+                case Constants.KEY_S3_REPLIES_DIRECTORY :
+
+                    Log.i(LOG_TAG,"received incoming reply, storing...");
+
+                    ContentValues values = new ContentValues(data.size());
+                    //values.put(SQLiteDbContract.LiveReplies.COLUMN_ID, data.getString("id"));
+                    values.put(LiveReplies.COLUMN_ID, jsonMap.get(LiveReplies.COLUMN_ID));
+                    values.put(LiveReplies.COLUMN_NAME_DESCRIPTION,
+                            jsonMap.get(LiveReplies.COLUMN_NAME_DESCRIPTION));
+                    values.put(LiveReplies.COLUMN_NAME_THREAD_ID,
+                            jsonMap.get(LiveReplies.COLUMN_NAME_THREAD_ID));
+                    values.put(LiveReplies.COLUMN_NAME_TIME,
+                            jsonMap.get(LiveReplies.COLUMN_NAME_TIME));
+                    values.put(LiveReplies.COLUMN_NAME_NAME,
+                            jsonMap.get(LiveReplies.COLUMN_NAME_NAME));
+
+                    getContentResolver().insert(FireFlyContentProvider.CONTENT_URI_REPLY_LIST,
+                            values);
+                    if (isForeground(this)) {
+                        // broadcast notification, then store
+                        broadcast(from, data);
+                    } else {
+                        //just store and display
+                        displayNotification("Someone has replied to your thread!");
+                    }
+
+                    break;
+
+                default:
+
+                    Log.e(LOG_TAG,"no s3 directory object provided!");
+
             }
+
+
         }
         // Display a notification in the notification center if the app is in the background.
         // Otherwise, send a local broadcast to the app and let the app handle it.

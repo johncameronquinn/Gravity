@@ -56,6 +56,8 @@ public class LiveFragment extends Fragment implements
     private final int LIVE_OFFSCREEN_LIMIT = 3;
     private int currentThread;
 
+    private boolean hasRefreshed = false;
+
     public static final int NO_LIVE_THREADS_ID = -1;
 
     private VerticalViewPager threadPager;
@@ -135,11 +137,47 @@ public class LiveFragment extends Fragment implements
     }
 
     @Override
+    public void onStart() {
+        super.onStart();
+
+        if (!hasRefreshed) {
+        /* go ahead and get the latest list */
+            triggerLiveRefresh();
+        }
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+
+        if (!hasRefreshed) {
+        /* go ahead and get the latest list */
+            triggerLiveRefresh();
+        }
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+
+        hasRefreshed = false;
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+
+        hasRefreshed = false;
+    }
+
+    @Override
     public void onDestroy() {
         if (VERBOSE) Log.v(TAG,"entering onDestroy...");
 
         if (VERBOSE) Log.v(TAG,"destroying loader at id " + LIVE_LOADER_ID);
         getLoaderManager().destroyLoader(LIVE_LOADER_ID);
+
+        hasRefreshed = false;
 
         PhotoManager.cancelDirectory(Constants.KEY_S3_LIVE_DIRECTORY);
         if (VERBOSE) Log.v(TAG,"exiting onDestroy...");
@@ -249,10 +287,6 @@ public class LiveFragment extends Fragment implements
 
         super.onDestroyView();
     }
-
-    public int getCurrentThread() {
-        return currentThread;
-    }
 /***************************************************************************************************
  * USER INTERACTION
  */
@@ -292,6 +326,7 @@ public class LiveFragment extends Fragment implements
 
         mListener.sendMsgRequestLiveThreads();
         threadPager.setAdapter(null);
+        hasRefreshed =true;
 
         if (VERBOSE) Log.v(TAG,"exiting triggerLiveRefresh...");
     }
@@ -374,7 +409,7 @@ public class LiveFragment extends Fragment implements
                 case R.id.button_live_hide:
 
                     Toast.makeText(getActivity(),"not yet working...",Toast.LENGTH_SHORT).show();
-                    //// STOPSHIP: 1/17/16 Hide must be working and it is not as of now.
+                    // STOPSHIP: 1/18/16 Hide must be working
 
                     /*
                     LiveThreadFragment fragment = mAdapter.getCurrentFragment();
@@ -466,7 +501,7 @@ public class LiveFragment extends Fragment implements
 
         Bundle args = new Bundle();
         args.putString(CURRENT_THREAD_KEY, String.valueOf(currentThread));
-        mListener.setCurrentThread(String.valueOf(currentThread));
+        mListener.setCurrentThread(String.valueOf(currentThread),getCurrentTopicARN());
 
         //report thread view to analytics service
         if (mListener != null) {
@@ -533,6 +568,17 @@ public class LiveFragment extends Fragment implements
         return out;
     }
 
+    private String getCurrentTopicARN() {
+        String out = "";
+
+        LiveThreadFragment f = (LiveThreadFragment)mAdapter.getItem(threadPager.getCurrentItem());
+        if (f != null) {
+            String s = f.getTopicARN();
+        }
+
+        return out;
+    }
+
 
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
@@ -567,9 +613,7 @@ public class LiveFragment extends Fragment implements
         if (mAdapter!= null) {
             Log.i(TAG, "Live cursor finished loading data");
             mAdapter.swapCursor(data);
-
-            currentThread = getCurrentThreadID();
-            mListener.setCurrentThread(String.valueOf(currentThread));
+            mListener.setCurrentThread(String.valueOf(getCurrentThreadID()),getCurrentTopicARN());
 
             Log.d(TAG, "Returned cursor contains: " + data.getCount() + " rows.");
 
@@ -600,9 +644,11 @@ public class LiveFragment extends Fragment implements
         //void setAnalyticsScreenName(String name);
         void sendMsgRequestLiveThreads();
         void sendMsgRequestReplies(int threadID);
-        void setCurrentThread(String threadID);
+        void setCurrentThread(String threadID,String topicARN);
         void takeLivePicture();
         void saveToStash(PhotoView imageToSave);
+        String getCurrentThread();
+        String getCurrentTopicARN();
     }
 
 

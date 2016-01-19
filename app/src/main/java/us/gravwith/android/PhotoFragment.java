@@ -145,7 +145,7 @@ public class PhotoFragment extends Fragment implements View.OnClickListener {
                         .toString();
 
                 mListener.hideSoftKeyboard();
-                mListener.setLiveCreateReplyInfo(caption);
+                mListener.addCommentToNewReply(caption);
                 mListener.dismissPreview(this);
                 break;
 
@@ -320,7 +320,7 @@ public class PhotoFragment extends Fragment implements View.OnClickListener {
         void dismissPreview(PhotoFragment me);
         void removePendingLiveImage();
         void setLiveCreateThreadInfo(String title, String description);
-        void setLiveCreateReplyInfo(String description);
+        void addCommentToNewReply(String description);
         void hideSoftKeyboard();
         void clearReplyInfo();
     }

@@ -522,11 +522,18 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
                     Log.d(TAG, "received a message to reply to a thread");
 
                     data.putInt(REQUEST_TYPE, MSG_REPLY_TO_THREAD);
+                    data.putString(Constants.KEY_S3_DIRECTORY, Constants.KEY_S3_REPLIES_DIRECTORY);
 
                     if (data.getString(Constants.KEY_S3_KEY,"").equals("")){
                         if (Constants.LOGD) Log.d(TAG,"no image filepath was provided," +
                                 " this must be a text reply, so uploading straight to the server.");
+                        
+                        //publishing message via GCM
                         task = new SendReplyTask();
+
+                        if (Constants.LOGD) Log.d(TAG,"Also publishing to GCM");
+                        //publishing message via GCM
+                        AWSMobileClient.defaultMobileClient().getPushManager().publishMessage(data);
                     } else {
                         if (Constants.LOGD) Log.d(TAG,"contained an image filepath, uploading " +
                                 "the image there to s3 first...");
@@ -607,14 +614,17 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
                 case MSG_AUTHORIZE_USER:
                     if (Constants.LOGD) Log.d(TAG, "Received a message to initialize a user.");
                     task = new InitializeUserTask();
-                    break;
+                    task.initializeTask(irs.get(), null, userID);
+                    mConnectionThreadPool.execute(task.getServerConnectRunnable());
+                    Log.d(TAG, "exit handleMessage...");
+                    return;
 
                 default:
                     super.handleMessage(msg);
             }
 
             if (task != null) {
-                task.initializeTask(irs.get(),data,userID,msg.what);
+                task.initializeTask(irs.get(), data, userID, msg.what);
                 mConnectionThreadPool.execute(task.getServerConnectRunnable());
             }
 

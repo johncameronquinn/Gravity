@@ -42,7 +42,7 @@ import us.gravwith.android.util.Utility;
  */
 public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor>,
         FloatingActionMenu.OnMenuToggleListener {
-    private static int currentThread = LiveFragment.NO_LIVE_THREADS_ID;
+
     public static final int REPLY_LOADER_ID = 3;
 
     private final boolean VERBOSE = true;
@@ -53,7 +53,6 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
     private TextView replyErrorText;
     private RelativeLayout textingLayoutView;
     private FloatingActionMenu radicalMenuView;
-    private boolean hasRefreshed = false;
 
     private static ReplyButtonListener replyButtonListener;
 
@@ -91,22 +90,11 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
 
             if (VERBOSE) Log.v(TAG,"initializing loader at id " + ReplyFragment.REPLY_LOADER_ID);
 
-            if (currentThread == LiveFragment.NO_LIVE_THREADS_ID) {
-                currentThread = b.getInt(SQLiteDbContract.LiveReplies.COLUMN_NAME_THREAD_ID);
-                Bundle args = new Bundle();
-                args.putInt(SQLiteDbContract.LiveReplies.COLUMN_NAME_THREAD_ID, currentThread);
+            Bundle args = new Bundle();
+            mAdapter = new HybridCursorAdapter(getActivity(),null,0);
+            getLoaderManager().restartLoader(ReplyFragment.REPLY_LOADER_ID, args, this);
 
-                mAdapter = new HybridCursorAdapter(getActivity(),null,0);
 
-                getLoaderManager().restartLoader(ReplyFragment.REPLY_LOADER_ID, args, this);
-            } else {
-                currentThread = b.getInt(SQLiteDbContract.LiveReplies.COLUMN_NAME_THREAD_ID);
-            }
-
-        }
-        if (!hasRefreshed) {
-        /* go ahead and get the latest list */
-            triggerReplyRefresh();
         }
 
         replyButtonListener = new ReplyButtonListener();
@@ -119,11 +107,6 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
 
         if (mAdapter == null) {
             mAdapter = new HybridCursorAdapter(getActivity(),null,0);
-        }
-
-        if (!hasRefreshed) {
-        /* go ahead and get the latest list */
-            triggerReplyRefresh();
         }
 
         if (VERBOSE) Log.v(TAG,"exiting onStart...");
@@ -150,7 +133,6 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
     public void onPause() {
         if (VERBOSE) Log.v(TAG, "entering onPause...");
         super.onPause();
-        hasRefreshed = false;
 
         if (VERBOSE) Log.v(TAG, "exiting onPause...");
     }
@@ -159,8 +141,6 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
     public void onStop() {
         if (VERBOSE) Log.v(TAG, "entering onStop...");
         super.onStop();
-
-        hasRefreshed = false;
 
         if (VERBOSE) Log.v(TAG, "exiting onStop...");
     }
@@ -174,7 +154,6 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
         mAdapter = null;
         PhotoManager.cancelDirectory(Constants.KEY_S3_REPLIES_DIRECTORY);
 
-        hasRefreshed = false;
         super.onDestroy();
 
         if (VERBOSE) Log.v(TAG, "exiting onDestroy...");
@@ -259,15 +238,7 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
 
         int[] toViews = {R.id.reply_detail_row_name, R.id.reply_detail_row_text, R.id.reply_detail_row_time};*/
 
-        if (currentThread!=LiveFragment.NO_LIVE_THREADS_ID) {
-            //mAdapter = new SimpleCursorAdapter(getActivity(),
-//                    R.layout.fragment_reply_detail_row, null, fromColumns, toViews, 0);
-
-            //mAdapter = new HybridCursorAdapter(getActivity(),null,0);
-
-        }
-
-        //contentButtonViews.add(v.findViewById(R.id.button_reply_load))
+              //contentButtonViews.add(v.findViewById(R.id.button_reply_load))
 
         if (VERBOSE) {Log.v(TAG, "exiting onCreateView...");}
         return v;
@@ -306,7 +277,7 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
         view.findViewById(R.id.button_send_reply).setOnClickListener(replyButtonListener);
         view.findViewById(R.id.button_reply_report).setOnClickListener(replyButtonListener);
         view.findViewById(R.id.button_reply_capture).setOnClickListener(replyButtonListener);
-        setCurrentThread(String.valueOf(currentThread));
+        resetDisplay();
 
         //anything that requires the UI to already exist goes here
         if (VERBOSE) Log.v(TAG,"exiting onViewCreated...");
@@ -322,7 +293,7 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
             view.findViewById(R.id.button_reply_refresh).setOnClickListener(replyButtonListener);
             view.findViewById(R.id.button_send_reply).setOnClickListener(replyButtonListener);
             //view.findViewById(R.id.button_reply_capture).setOnClickListener(replyButtonListener);
-            setCurrentThread(String.valueOf(currentThread));
+            resetDisplay();
         }
     }
 
@@ -339,32 +310,21 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
         }
     }
 
-    public void setCurrentThread(String thread) {
-        Log.i(TAG, "setting current thread to : " + thread + ".");
-        //((ImageButton)getActivity().findViewById(R.id.button_reply_refresh)).setText(thread);
-        currentThread = Integer.valueOf(thread);
-        resetDisplay();
-    }
-
     public void resetDisplay() {
         if (isAdded()) {
             Log.d(TAG, "restarting loader...");
             Bundle b = new Bundle();
-            b.putString(SQLiteDbContract.LiveReplies.COLUMN_NAME_THREAD_ID, String.valueOf(currentThread));
+            b.putString(SQLiteDbContract.LiveReplies.COLUMN_NAME_THREAD_ID,
+                    mListener.getCurrentThread());
             getLoaderManager().restartLoader(REPLY_LOADER_ID, b, this);
         }
-    }
-
-    public int getCurrentThread() {
-        return currentThread;
     }
 
     public void triggerReplyRefresh() {
         if (mListView != null) {
             mListView.setAdapter(null);
         }
-        mListener.sendMsgRequestReplies(currentThread);
-        hasRefreshed = true;
+        mListener.sendMsgRequestReplies(Integer.parseInt(mListener.getCurrentThread()));
     }
 
 
@@ -416,7 +376,7 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
                     triggerReplyRefresh();
                     b.putString(Constants.KEY_ANALYTICS_ACTION,"refresh");
                     b.putString(Constants.KEY_ANALYTICS_LABEL,"current thread");
-                    b.putString(Constants.KEY_ANALYTICS_VALUE,String.valueOf(currentThread));
+                    b.putString(Constants.KEY_ANALYTICS_VALUE,mListener.getCurrentThread());
 
                     resetDisplay();
                     break;
@@ -430,7 +390,9 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
                         activity.setReplyFilePath("");
                         //activity.setLiveFilePath("");
                         //activity.setLiveCreateThreadInfo("", commentText.getText().toString());
-                        activity.setLiveCreateReplyInfo(commentText.getText().toString(), getCurrentThread());
+                        activity.setLiveCreateReplyInfo(commentText.getText().toString(),
+                                Integer.parseInt(mListener.getCurrentThread()),
+                                mListener.getCurrentTopicARN());
                         //triggerReplyRefresh();
 
                         InputMethodManager imm = (InputMethodManager) activity
@@ -441,7 +403,7 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
 
                         b.putString(Constants.KEY_ANALYTICS_ACTION, "send reply");
                         b.putString(Constants.KEY_ANALYTICS_LABEL, "current thread");
-                        b.putString(Constants.KEY_ANALYTICS_VALUE, String.valueOf(currentThread));
+                        b.putString(Constants.KEY_ANALYTICS_VALUE, mListener.getCurrentThread());
                     }
 
                     break;
@@ -454,7 +416,8 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
                         RelativeLayout layout = (RelativeLayout) commentText.getParent();
                         activity.takeReplyPicture();
                         activity.setLiveCreateReplyInfo(commentText.getText().toString(),
-                                getCurrentThread());
+                                Integer.parseInt(mListener.getCurrentThread()),
+                                mListener.getCurrentTopicARN());
                         //activity.setLiveCreateThreadInfo("","",commentText.getText().toString());
 
                         InputMethodManager imm = (InputMethodManager) activity
@@ -566,5 +529,6 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
         mAdapter.swapCursor(null);
         if (VERBOSE) Log.v(TAG,"exiting onLoaderReset...");
     }
+
 }
 

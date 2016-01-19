@@ -1179,8 +1179,10 @@ n  */
                     FrameLayout layout = (FrameLayout) v.getParent().getParent();
                     String description = ((EditText)layout
                             .findViewById(R.id.editText_reply_mode_comment)).getText().toString();
-                    activity.setLiveCreateReplyInfo("unset", description,0);
-                    //todo load name from sharedpreferences
+                    activity.setLiveCreateReplyInfo(description,
+                            Integer.parseInt(mListener.getCurrentThread()),
+                            mListener.getCurrentTopicARN());
+
                     layout.removeView((View) v.getParent());
                     imm.hideSoftInputFromWindow(createReplyView.getWindowToken(), 0);
 
@@ -1243,6 +1245,8 @@ n  */
         void sendMsgSwitchCamera();
         int sendMsgAutoFocus(MotionEvent event);
         void sendMsgReportAnalyticsEvent(Bundle b);
+        String getCurrentThread();
+        String getCurrentTopicARN();
     }
 
     static final String ACTION_PICTURE_TAKEN = "us.gravwith.android.picturetaken";

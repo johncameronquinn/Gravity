@@ -32,6 +32,7 @@ public class LiveThreadFragment extends Fragment implements View.OnClickListener
     private String threadID;
     private String unique;
     private String replies;
+    private String topicARN;
 
     private Drawable mEmptyDrawable;
 
@@ -50,7 +51,8 @@ public class LiveThreadFragment extends Fragment implements View.OnClickListener
                                           String filePath,
                                           String threadID,
                                           String unique,
-                                          String replies)
+                                          String replies,
+                                          String topicARN)
     {
         LiveThreadFragment f = new LiveThreadFragment();
 
@@ -63,6 +65,7 @@ public class LiveThreadFragment extends Fragment implements View.OnClickListener
         args.putString(SQLiteDbContract.LiveEntry.COLUMN_NAME_THREAD_ID,threadID);
         args.putString(SQLiteDbContract.LiveEntry.COLUMN_NAME_UNIQUE,unique);
         args.putString(SQLiteDbContract.LiveEntry.COLUMN_NAME_REPLIES,replies);
+        args.putString(SQLiteDbContract.LiveEntry.COLUMN_NAME_TOPIC_ARN,topicARN);
         f.setArguments(args);
 
         return f;
@@ -79,6 +82,10 @@ public class LiveThreadFragment extends Fragment implements View.OnClickListener
 
     public String getThreadID(){
         return threadID;
+    }
+
+    public String getTopicARN(){
+        return topicARN;
     }
 
     @Override
@@ -125,6 +132,7 @@ public class LiveThreadFragment extends Fragment implements View.OnClickListener
             threadID = args.getString(SQLiteDbContract.LiveEntry.COLUMN_NAME_THREAD_ID,"0");
             unique = args.getString(SQLiteDbContract.LiveEntry.COLUMN_NAME_UNIQUE);
             replies = args.getString(SQLiteDbContract.LiveEntry.COLUMN_NAME_REPLIES);
+            topicARN = args.getString(SQLiteDbContract.LiveEntry.COLUMN_NAME_TOPIC_ARN);
 
             mImageKey = args.getString(SQLiteDbContract.LiveEntry.COLUMN_NAME_FILEPATH);
 
@@ -142,6 +150,7 @@ public class LiveThreadFragment extends Fragment implements View.OnClickListener
             threadID = args.getString(SQLiteDbContract.LiveEntry.COLUMN_NAME_THREAD_ID,"0");
             unique = args.getString(SQLiteDbContract.LiveEntry.COLUMN_NAME_UNIQUE);
             replies = args.getString(SQLiteDbContract.LiveEntry.COLUMN_NAME_REPLIES);
+            topicARN = args.getString(SQLiteDbContract.LiveEntry.COLUMN_NAME_TOPIC_ARN);
 
             mImageKey = args.getString(SQLiteDbContract.LiveEntry.COLUMN_NAME_FILEPATH);
 

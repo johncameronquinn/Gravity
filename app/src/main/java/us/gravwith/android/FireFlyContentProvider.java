@@ -70,9 +70,6 @@ public class FireFlyContentProvider extends ContentProvider {
     public static final Uri CONTENT_URI_REPLY_LIST = Uri.parse("content://" + AUTHORITY
             + "/" + REPLY_BASE_PATH);
 
-    public static final Uri CONTENT_URI_REPLY_THREAD_INFO = Uri.parse("content://" + AUTHORITY
-            + "/" + REPLY_INFO_BASE_PATH);
-
 
     /**
      * Picture table content URI

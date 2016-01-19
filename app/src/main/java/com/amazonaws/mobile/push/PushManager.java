@@ -26,6 +26,8 @@ import com.amazonaws.services.sns.model.SetEndpointAttributesRequest;
 import com.amazonaws.services.sns.model.SubscribeRequest;
 import com.amazonaws.services.sns.model.SubscribeResult;
 import com.amazonaws.services.sns.model.UnsubscribeRequest;
+
+import us.gravwith.android.Constants;
 import us.gravwith.android.SQLiteDbContract.MessageEntry;
 
 import org.json.JSONObject;
@@ -354,6 +356,9 @@ public class PushManager implements GCMTokenHelper.GCMTokenUpdateObserver {
             publishRequest.addMessageAttributesEntry(MessageEntry.COLUMN_NAME_TEXT,textValue);
         }*/
 
+        String directory = data.getString(Constants.KEY_S3_DIRECTORY);
+
+
         String url = data.getString(MessageEntry.COLUMN_NAME_FILEPATH);
         String arn = data.getString(MessageEntry.COLUMN_RESPONSE_ARN);
         String text = data.getString(MessageEntry.COLUMN_NAME_TEXT);
@@ -361,26 +366,16 @@ public class PushManager implements GCMTokenHelper.GCMTokenUpdateObserver {
         publishRequest.setTargetArn(arn);
         //publishRequest.setMessage(url);
 
-        JSONObject jsonObject;
 
         Map<String,String> dataMap = new HashMap<>();
+        dataMap.put(Constants.KEY_S3_DIRECTORY,directory);
         dataMap.put(MessageEntry.COLUMN_NAME_FILEPATH,url);
         dataMap.put(MessageEntry.COLUMN_RESPONSE_ARN,endpointArn);
         dataMap.put(MessageEntry.COLUMN_NAME_TIME,String.valueOf(System.currentTimeMillis()));
         dataMap.put(MessageEntry.COLUMN_NAME_TEXT, text);
+
         JSONObject dataObject = new JSONObject(dataMap);
         publishRequest.setMessage(dataObject.toString());
-
-        //Map<String,String> gcmMap = new HashMap<>();
-        //gcmMap.put("data",dataObject.toString());
-        //JSONObject gcmObject = new JSONObject(gcmMap);
-
-        //Map<String,String> jsonMap = new HashMap<>();
-        //jsonMap.put("GCM","\"data\":{\"message\":\"Check out these awesome deals!\",\"url\":\"www.amazon.com\"}");
-        //jsonMap.put("default",url);
-        //jsonMap.put("collapse_key","key");
-        //jsonObject = new JSONObject(jsonMap);
-        //publishRequest.setMessage(jsonObject.toString());
 
         Log.v(LOG_TAG, "publishRequest print: " + publishRequest.toString());
 

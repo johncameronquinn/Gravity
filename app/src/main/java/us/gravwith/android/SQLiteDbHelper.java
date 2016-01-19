@@ -37,7 +37,7 @@ public class SQLiteDbHelper extends SQLiteOpenHelper {
 
 
     // If you change the database schema, you must increment the database version.
-    public static final int DATABASE_VERSION = 3;
+    public static final int DATABASE_VERSION = 4;
     public static final String DATABASE_NAME = "ImagesStore.db";
     private static final String TEXT_TYPE = " TEXT";
     private static final String INT_TYPE = " INTEGER";
@@ -76,6 +76,7 @@ public class SQLiteDbHelper extends SQLiteOpenHelper {
             "CREATE TABLE " + LiveEntry.TABLE_NAME + " (" +
                     LiveEntry._ID + PRIMARY_KEY + COMMA_SEP +
                     LiveEntry.COLUMN_NAME_THREAD_ID  + INT_TYPE + UNIQUE_KEY + COMMA_SEP +
+                    LiveEntry.COLUMN_NAME_TOPIC_ARN  + TEXT_TYPE + UNIQUE_KEY + COMMA_SEP +
                     LiveEntry.COLUMN_NAME_TIME + INT_TYPE + COMMA_SEP +
                     LiveEntry.COLUMN_NAME_TITLE + TEXT_TYPE + COMMA_SEP +
                     LiveEntry.COLUMN_NAME_NAME + TEXT_TYPE + COMMA_SEP +

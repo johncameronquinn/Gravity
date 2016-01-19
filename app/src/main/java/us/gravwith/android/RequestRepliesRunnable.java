@@ -154,10 +154,6 @@ class RequestRepliesRunnable implements Runnable {
             } else {
                 mService.handleRepliesRequestState(REQUEST_REPLIES_FAILED);
             }
-
-            if (conn != null) {
-                conn.disconnect();
-            }
         }
 
         mService.setTaskThread(null);

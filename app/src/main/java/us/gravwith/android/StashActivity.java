@@ -213,7 +213,7 @@ public class StashActivity extends Activity implements StashGalleryFragment.OnFr
     }
 
     @Override
-    public void setLiveCreateReplyInfo(String description) {
+    public void addCommentToNewReply(String description) {
 
     }
 
