@@ -699,7 +699,10 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
     static final int REQUEST_STARTED = 4;
     static final int REQUEST_COMPLETED = 5;
     static final int TASK_COMPLETED = 6;
-    static final int INITIALIZE_TASK_COMPLETED = 7;
+    static final int TOPIC_CREATION_STARTED = 7;
+    static final int TOPIC_CREATION_FAILED = 8;
+    static final int TOPIC_CREATED = 9;
+    static final int INITIALIZE_TASK_COMPLETED = 10;
 
     /**
      * method 'handleDownloadState'
@@ -754,6 +757,29 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
                 if (Constants.LOGD) Log.d(TAG,"Upload completed...");
                 responseMessage = Message.obtain(null, task.getResponseWhat(), state, 0);
                 mRequestThreadPool.execute(task.getResponseRunnable());
+                break;
+
+            case TOPIC_CREATION_STARTED:
+                if (Constants.LOGD) Log.d(TAG,"Topic creation stared...");
+                responseMessage = Message.obtain(null, task.getResponseWhat(), state, 0);
+                break;
+
+            case TOPIC_CREATION_FAILED:
+                if (Constants.LOGD) Log.d(TAG,"Topic failed to create...");
+
+                responseMessage = Message.obtain(null, task.getResponseWhat(), state, 0);
+
+                sendErrorBroadcast(-1,"Topic failed to create");
+
+                recycleTask(task);
+                break;
+
+            case TOPIC_CREATED:
+                if (Constants.LOGD) Log.d(TAG,"Topic successfully created...");
+                responseMessage = Message.obtain(null, task.getResponseWhat(), state, 0);
+
+                //now run the http request, which is stored in otherRunnable in this case
+                mRequestThreadPool.execute(task.getOtherRunnable());
                 break;
 
 

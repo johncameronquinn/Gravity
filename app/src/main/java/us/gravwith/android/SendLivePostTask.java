@@ -8,10 +8,11 @@ import android.util.Log;
  * Attempts to send a particular thread to the server, and request
  */
 class SendLivePostTask extends ServerTask implements SendLivePostRunnable.LivePostMethods,
-    RequestLiveThreadsRunnable.ThreadRequestMethods {
+    RequestLiveThreadsRunnable.ThreadRequestMethods, CreateGCMTopicRunnable.CreateGCMTopicMethods {
 
     private Runnable mRequestRunnable;
     private Runnable mResponseRunnable;
+    private Runnable mOtherRunnable;
 
     private boolean VERBOSE = true;
     private final String TAG = "SendLivePostTask";
@@ -19,26 +20,37 @@ class SendLivePostTask extends ServerTask implements SendLivePostRunnable.LivePo
 
     public SendLivePostTask() {
         mServerConnectRunnable = new ServerConnectRunnable(this);
-        mRequestRunnable = new SendLivePostRunnable(this);
         mResponseRunnable = new RequestLiveThreadsRunnable(this);
+        mRequestRunnable = new CreateGCMTopicRunnable(this);
+        mOtherRunnable = new SendLivePostRunnable(this);
     }
 
+    @Override
     public Runnable getServerConnectRunnable() {
         return mServerConnectRunnable;
     }
 
+    @Override
     public Runnable getRequestRunnable() {
         return mRequestRunnable;
     }
 
+    @Override
     public Runnable getResponseRunnable() {
         return mResponseRunnable;
     }
 
+    @Override
+    public Runnable getOtherRunnable() {
+        return mOtherRunnable;
+    }
+
+    @Override
     public String getURLPath() {
         return urlString;
     }
 
+    @Override
     public void handleServerConnectState(int state) {
         int outState = -10;
         switch (state) {
@@ -57,6 +69,30 @@ class SendLivePostTask extends ServerTask implements SendLivePostRunnable.LivePo
                 Log.d(TAG, "successfully connected to server :3");
                 break;
 
+        }
+
+        handleDownloadState(outState, this);
+    }
+
+    @Override
+    public void handleCreateGCMTopicState(int state) {
+        int outState = -1;
+
+        switch (state) {
+            case CreateGCMTopicRunnable.CREATE_TOPIC_FAILED:
+                Log.d(TAG, "create live topic failed...");
+                outState = DataHandlingService.TOPIC_CREATION_FAILED;
+                break;
+
+            case CreateGCMTopicRunnable.CREATE_TOPIC_STARTED:
+                Log.d(TAG, "create live topic started...");
+                outState = DataHandlingService.TOPIC_CREATION_STARTED;
+                break;
+
+            case CreateGCMTopicRunnable.CREATE_TOPIC_SUCCESS:
+                Log.d(TAG, "create live topic success...");
+                outState = DataHandlingService.TOPIC_CREATED;
+                break;
         }
 
         handleDownloadState(outState, this);

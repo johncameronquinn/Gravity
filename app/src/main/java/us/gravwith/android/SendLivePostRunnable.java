@@ -104,14 +104,17 @@ public class SendLivePostRunnable implements Runnable{
             jGen.writeStringField(SQLiteDbContract.LiveEntry.COLUMN_NAME_TITLE,
                     b.getString(SQLiteDbContract.LiveEntry.COLUMN_NAME_TITLE,"")
             );
-            jGen.writeStringField(SQLiteDbContract.LiveEntry.COLUMN_NAME_NAME,
+       /*     jGen.writeStringField(SQLiteDbContract.LiveEntry.COLUMN_NAME_NAME,
                     b.getString(SQLiteDbContract.LiveEntry.COLUMN_NAME_NAME,"")
-            );
+            );*/
             jGen.writeStringField(SQLiteDbContract.LiveEntry.COLUMN_NAME_DESCRIPTION,
                     b.getString(SQLiteDbContract.LiveEntry.COLUMN_NAME_DESCRIPTION,"")
             );
             jGen.writeStringField(SQLiteDbContract.LiveEntry.COLUMN_NAME_FILEPATH,
                     imageKey
+            );
+            jGen.writeStringField(SQLiteDbContract.LiveEntry.COLUMN_NAME_TOPIC_ARN,
+                    b.getString(SQLiteDbContract.LiveEntry.COLUMN_NAME_TOPIC_ARN)
             );
             jGen.writeEndObject();
             jGen.flush();

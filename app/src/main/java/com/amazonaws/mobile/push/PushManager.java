@@ -17,14 +17,20 @@ import com.amazonaws.AmazonClientException;
 import com.amazonaws.ClientConfiguration;
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.mobile.util.ThreadUtils;
+import com.amazonaws.regions.Regions;
 import com.amazonaws.services.sns.AmazonSNS;
 import com.amazonaws.services.sns.AmazonSNSClient;
+import com.amazonaws.services.sns.model.AuthorizationErrorException;
 import com.amazonaws.services.sns.model.CreatePlatformEndpointRequest;
 import com.amazonaws.services.sns.model.CreatePlatformEndpointResult;
+import com.amazonaws.services.sns.model.CreateTopicRequest;
+import com.amazonaws.services.sns.model.CreateTopicResult;
+import com.amazonaws.services.sns.model.InternalErrorException;
 import com.amazonaws.services.sns.model.PublishRequest;
 import com.amazonaws.services.sns.model.SetEndpointAttributesRequest;
 import com.amazonaws.services.sns.model.SubscribeRequest;
 import com.amazonaws.services.sns.model.SubscribeResult;
+import com.amazonaws.services.sns.model.TopicLimitExceededException;
 import com.amazonaws.services.sns.model.UnsubscribeRequest;
 
 import us.gravwith.android.Constants;
@@ -32,6 +38,7 @@ import us.gravwith.android.SQLiteDbContract.MessageEntry;
 
 import org.json.JSONObject;
 
+import java.security.InvalidParameterException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -404,6 +411,22 @@ public class PushManager implements GCMTokenHelper.GCMTokenUpdateObserver {
 
         sns.publish(publishRequest);
 
+    }
+
+    public void createTopic(String id) throws InvalidParameterException, TopicLimitExceededException, InternalErrorException, AuthorizationErrorException {
+        if (Constants.LOGV) Log.v(LOG_TAG,"entering createTopic...");
+
+        //create a new SNS client and set endpoint
+
+        //create a new SNS topic
+        CreateTopicRequest createTopicRequest = new CreateTopicRequest(id);
+        CreateTopicResult createTopicResult = sns.createTopic(createTopicRequest);
+
+        if (Constants.LOGV) Log.v(LOG_TAG,"printing topic result...");
+        //print TopicArn
+        Log.v(LOG_TAG,createTopicResult.toString());
+
+        if (Constants.LOGV) Log.v(LOG_TAG,"exiting createTopic...");
     }
 
     /**

@@ -114,8 +114,8 @@
     <orderEntry type="jdk" jdkName="Android API 23 Platform" jdkType="Android SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" exported="" name="aws-android-sdk-mobileanalytics-2.2.5" level="project" />
-    <orderEntry type="library" exported="" name="aws-android-sdk-sqs-2.2.8" level="project" />
     <orderEntry type="library" exported="" name="support-annotations-23.1.1" level="project" />
+    <orderEntry type="library" exported="" name="aws-android-sdk-sqs-2.2.8" level="project" />
     <orderEntry type="library" exported="" name="play-services-location-8.3.0" level="project" />
     <orderEntry type="library" exported="" name="gson-2.2.4" level="project" />
     <orderEntry type="library" exported="" name="aws-android-sdk-s3-2.2.6" level="project" />
