@@ -14,6 +14,7 @@ import com.amazonaws.mobile.AWSMobileClient;
 import com.amazonaws.mobile.content.ContentItem;
 import com.amazonaws.mobile.content.ContentManager;
 import com.amazonaws.mobile.content.ContentProgressListener;
+import com.amazonaws.mobile.push.SnsTopic;
 import com.amazonaws.mobile.user.IdentityManager;
 import com.amazonaws.mobile.user.signin.SignInManager;
 import com.amazonaws.mobileconnectors.amazonmobileanalytics.AnalyticsEvent;
@@ -390,6 +391,10 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
 
     static final int MSG_AUTHORIZE_USER = 22;
 
+    static final int MSG_SUBSCRIBE_TO_TOPIC = 23;
+
+    static final int MSG_UNSUBSCRIBE_FROM_TOPIC = 24;
+
     /**
      * class 'IncomingHandler'
      * <p/>
@@ -618,6 +623,38 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
                     mConnectionThreadPool.execute(task.getServerConnectRunnable());
                     Log.d(TAG, "exit handleMessage...");
                     return;
+
+                case MSG_SUBSCRIBE_TO_TOPIC:
+                    if (Constants.LOGD) Log.d(TAG, "Received a message to subscribe to a topic.");
+
+
+                    AWSMobileClient.defaultMobileClient()
+                            .getPushManager()
+                            .subscribeToTopic(AWSMobileClient.defaultMobileClient()
+                                    .getPushManager()
+                                    .getTopics()
+                                    .get(data.getString(SQLiteDbContract.LiveEntry
+                                                    .COLUMN_NAME_TOPIC_ARN
+                                            )
+                                    ));
+
+                    return;
+
+                case MSG_UNSUBSCRIBE_FROM_TOPIC:
+                    if (Constants.LOGD) Log.d(TAG, "Received a message to unsubscribe from a topic.");
+
+
+                    AWSMobileClient.defaultMobileClient()
+                            .getPushManager()
+                            .unsubscribeFromTopic(AWSMobileClient.defaultMobileClient()
+                                    .getPushManager()
+                                    .getTopics()
+                                    .get(data.getString(SQLiteDbContract.LiveEntry
+                                                            .COLUMN_NAME_TOPIC_ARN
+                                            )
+                            ));
+
+                    break;
 
                 default:
                     super.handleMessage(msg);

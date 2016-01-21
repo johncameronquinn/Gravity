@@ -2017,6 +2017,43 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
         currentTopicARN = topicARN;
     }
 
+    public void sendMsgSubscribeToTopic(String topicARN) {
+        if (isBound) {
+            Log.d(TAG, "sending message to subscribe to a topic : " + topicARN);
+            Message msg = Message.obtain(null, DataHandlingService.MSG_SUBSCRIBE_TO_TOPIC);
+            Bundle data = new Bundle();
+            data.putString(SQLiteDbContract.LiveEntry.COLUMN_NAME_TOPIC_ARN,topicARN);
+            msg.setData(data);
+            msg.replyTo = messenger;
+            try {
+                mService.send(msg);
+            } catch (RemoteException e) {
+                Log.e(TAG, "error sending message to subscribe to a topic", e);
+            }
+        }
+    }
+
+    public void sendMsgUnsubscribeFromTopic(String topicARN) {
+        if (isBound) {
+            Log.d(TAG, "sending message to unsubscribe from a topic : " + topicARN);
+            Message msg = Message.obtain(null, DataHandlingService.MSG_UNSUBSCRIBE_FROM_TOPIC);
+            Bundle data = new Bundle();
+            data.putString(SQLiteDbContract.LiveEntry.COLUMN_NAME_TOPIC_ARN,topicARN);
+            msg.setData(data);
+            msg.replyTo = messenger;
+            try {
+                mService.send(msg);
+            } catch (RemoteException e) {
+                Log.e(TAG, "error sending message to subscribe to a topic", e);
+            }
+        }
+    }
+
+    public void swapTopics(String newTopic) {
+        sendMsgUnsubscribeFromTopic(newTopic);
+        sendMsgSubscribeToTopic(newTopic);
+    }
+
     public String getCurrentThread() {
         return currentThread;
     }

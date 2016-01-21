@@ -649,6 +649,7 @@ public class LiveFragment extends Fragment implements
         void saveToStash(PhotoView imageToSave);
         String getCurrentThread();
         String getCurrentTopicARN();
+        void swapTopics(String newTopic);
     }
 
 
