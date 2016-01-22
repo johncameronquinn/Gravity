@@ -12,6 +12,8 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import java.lang.ref.WeakReference;
+import java.util.LinkedList;
+import java.util.List;
 
 /**
  * Created by caliamara on 1/8/16.
@@ -23,6 +25,15 @@ public class MessageHandler extends Handler{
 /***************************************************************************************************
  * INTERFACES AND LISTENERS
 **/
+    private static LivePostListener mLiveListener;
+
+    public static void setLivePostListener(LivePostListener livePostListener) {
+        mLiveListener = livePostListener;
+    }
+
+    public static void clearLivePostListener() {
+        mLiveListener = null;
+    }
 
     private static CameraListener cameraListener;
 
@@ -31,8 +42,10 @@ public class MessageHandler extends Handler{
     }
 
     interface LivePostListener {
-
+        void onRefreshCompleted(int responseCode);
+        void onCreateThreadCompleted(int responseCode);
     }
+
 
     public static void setCameraListener(CameraListener listener) {
         cameraListener = listener;
@@ -74,9 +87,6 @@ public class MessageHandler extends Handler{
 
         switch (respCode) {
 
-            case DataHandlingService.MSG_REQUEST_LIVE_THREADS:
-                break;
-
             case DataHandlingService.MSG_REQUEST_REPLIES:
                 break;
 
@@ -94,12 +104,22 @@ public class MessageHandler extends Handler{
                             .show();*/
                 switch (msg.arg1) {
                     case DataHandlingService.TASK_COMPLETED:
-                        ((MainActivity)activity.get()).sendToLive();
+                        if (mLiveListener != null) {
+                            mLiveListener.onCreateThreadCompleted(msg.arg2);
+                        }
+
                         break;
                 }
 
                 break;
 
+            case DataHandlingService.MSG_REQUEST_LIVE_THREADS:
+                if (Constants.LOGV)Log.v(LOG_TAG, "entering msg_create_thread");
+
+                if (mLiveListener != null) {
+                    mLiveListener.onRefreshCompleted(msg.arg2);
+                }
+                break;
 
             case MSG_DATABASE_CLEARED:
                 Toast.makeText(activity.get(),

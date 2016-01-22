@@ -42,7 +42,7 @@ import fr.castorflex.android.verticalviewpager.VerticalViewPager;
  */
 public class LiveFragment extends Fragment implements
         LoaderManager.LoaderCallbacks<Cursor>, ViewPager.OnPageChangeListener {
-    public static final boolean VERBOSE = false;
+    public static final boolean VERBOSE = true;
     private static final String TAG = "LiveFragment";
 
     // TODO: Rename parameter arguments, choose names that match
@@ -325,10 +325,16 @@ public class LiveFragment extends Fragment implements
         if (VERBOSE) Log.v(TAG,"entering triggerLiveRefresh...");
 
         mListener.sendMsgRequestLiveThreads();
-     //   threadPager.setAdapter(null);
+        threadPager.setAdapter(null);
         hasRefreshed = true;
 
         if (VERBOSE) Log.v(TAG,"exiting triggerLiveRefresh...");
+    }
+
+    public void resetLiveAdapter() {
+        if (VERBOSE) Log.v(TAG,"entering resetLiveAdapter...");
+        threadPager.setAdapter(mAdapter);
+        if (VERBOSE) Log.v(TAG,"exiting resetLiveAdapter...");
     }
 
     /**
@@ -430,37 +436,6 @@ public class LiveFragment extends Fragment implements
             }
         }
 
-    }
-
-    public void handleLiveResponseState(Message msg) {
-        if (VERBOSE) {
-            Log.v(TAG,"entering handleLiveResponseState...");
-        }
-
-        switch (msg.what) {
-            case DataHandlingService.MSG_REQUEST_LIVE_THREADS:
-                switch (msg.arg2) {
-                    case HttpURLConnection.HTTP_OK:
-                        if (VERBOSE) Log.v(TAG, "Response code : " + msg.arg1);
-
-                        if (threadPager != null) {
-                            threadPager.setAdapter(mAdapter);
-                        }
-                        break;
-
-                    default:
-                    //Toast.makeText(getActivity(), "Request threads response code : " + msg.arg2,
-                      //      Toast.LENGTH_SHORT).show();
-                }
-
-                default:
-
-
-        }
-
-        if (VERBOSE) {
-            Log.v(TAG,"exiting handleLiveResponseState...");
-        }
     }
 
     /**

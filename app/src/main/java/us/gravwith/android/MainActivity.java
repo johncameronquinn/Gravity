@@ -89,7 +89,7 @@ import java.util.UUID;
 public class MainActivity extends Activity implements CameraFragment.OnCameraFragmentInteractionListener,
 LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInteractionListener,
         ViewPager.OnPageChangeListener, PhotoFragment.onPreviewInteractionListener,
-        ErrorReceiver.SecurityErrorListener {
+        ErrorReceiver.SecurityErrorListener, MessageHandler.LivePostListener {
     private static String TAG = "MainActivity";
     private static final boolean VERBOSE = true;
 
@@ -253,6 +253,8 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
         super.onCreate(savedInstanceState);
 
         messageHandler.setParent(this);
+
+        MessageHandler.setLivePostListener(this);
 
         HandlerThread handlerThread = new HandlerThread("CameraHandlerThread",
                 Process.THREAD_PRIORITY_FOREGROUND);
@@ -956,6 +958,9 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
      */
     public void sendToLive() {
         mPager.setCurrentItem(LIVE_LIST_POSITION);
+        if (LiveFragReference.get()!=null) {
+            LiveFragReference.get().resetLiveAdapter();
+        }
     }
 
 
@@ -3213,9 +3218,24 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
                 + resource.toString());
     }
 
+/***************************************************************************************************
+ *  CUSTOM INTERFACE FEEDBACK
+ **/
     @Override
     public void onUnauthorizedError(String message) {
         Toast.makeText(this,message,Toast.LENGTH_LONG).show();
         sendMsgAuthorizeUser();
+    }
+
+    @Override
+    public void onCreateThreadCompleted(int responseCode) {
+        sendToLive();
+    }
+
+    @Override
+    public void onRefreshCompleted(int responseCode) {
+        if (LiveFragReference.get()!=null) {
+            LiveFragReference.get().resetLiveAdapter();
+        }
     }
 }

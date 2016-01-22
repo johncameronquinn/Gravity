@@ -484,7 +484,9 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
     public CursorLoader onCreateLoader(int id, Bundle args) {
         if (VERBOSE) Log.v(TAG,"entering onCreateLoader...");
 
-        String[] selectionArgs = {String.valueOf(args.get(SQLiteDbContract.LiveReplies.COLUMN_NAME_THREAD_ID))};
+        String[] selectionArgs = {
+                String.valueOf(args.get(SQLiteDbContract.LiveReplies.COLUMN_NAME_THREAD_ID))
+        };
 
         Log.d(TAG,"current selection args = " + args.get(SQLiteDbContract.LiveReplies.COLUMN_NAME_THREAD_ID));
 
