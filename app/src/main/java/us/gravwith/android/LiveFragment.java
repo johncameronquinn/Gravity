@@ -325,8 +325,8 @@ public class LiveFragment extends Fragment implements
         if (VERBOSE) Log.v(TAG,"entering triggerLiveRefresh...");
 
         mListener.sendMsgRequestLiveThreads();
-        threadPager.setAdapter(null);
-        hasRefreshed =true;
+     //   threadPager.setAdapter(null);
+        hasRefreshed = true;
 
         if (VERBOSE) Log.v(TAG,"exiting triggerLiveRefresh...");
     }
@@ -531,6 +531,7 @@ public class LiveFragment extends Fragment implements
                 SQLiteDbContract.LiveEntry.COLUMN_NAME_FILEPATH,
                 SQLiteDbContract.LiveEntry.COLUMN_NAME_THREAD_ID,
                 SQLiteDbContract.LiveEntry.COLUMN_NAME_REPLIES,
+                SQLiteDbContract.LiveEntry.COLUMN_NAME_TOPIC_ARN,
                 SQLiteDbContract.LiveEntry.COLUMN_NAME_UNIQUE
         };
 
@@ -573,7 +574,7 @@ public class LiveFragment extends Fragment implements
 
         LiveThreadFragment f = (LiveThreadFragment)mAdapter.getItem(threadPager.getCurrentItem());
         if (f != null) {
-            String s = f.getTopicARN();
+            out = f.getTopicARN();
         }
 
         return out;

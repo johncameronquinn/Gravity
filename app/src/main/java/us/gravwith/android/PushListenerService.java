@@ -216,11 +216,14 @@ public class PushListenerService extends GcmListenerService {
                     values.put(LiveReplies.COLUMN_NAME_DESCRIPTION,
                             jsonMap.get(LiveReplies.COLUMN_NAME_DESCRIPTION));
                     values.put(LiveReplies.COLUMN_NAME_THREAD_ID,
-                            jsonMap.get(LiveReplies.COLUMN_NAME_THREAD_ID));
+                            Integer.parseInt(jsonMap.get(LiveReplies.COLUMN_NAME_THREAD_ID)));
                     values.put(LiveReplies.COLUMN_NAME_TIME,
                             jsonMap.get(LiveReplies.COLUMN_NAME_TIME));
                     values.put(LiveReplies.COLUMN_NAME_NAME,
                             jsonMap.get(LiveReplies.COLUMN_NAME_NAME));
+                    values.put(LiveReplies.COLUMN_NAME_FILEPATH,
+                            jsonMap.get(LiveReplies.COLUMN_NAME_FILEPATH));
+
 
                     getContentResolver().insert(FireFlyContentProvider.CONTENT_URI_REPLY_LIST,
                             values);

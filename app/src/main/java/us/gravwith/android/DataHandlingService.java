@@ -533,12 +533,26 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
                         if (Constants.LOGD) Log.d(TAG,"no image filepath was provided," +
                                 " this must be a text reply, so uploading straight to the server.");
 
-                        //publishing reply to http
-                        task = new SendReplyTask();
+                        if (Constants.LOGD) Log.d(TAG,"publishing first to GCM");
+                        boolean success = true;
+                        try {
+                            //publish first to GCM
+                            AWSMobileClient.defaultMobileClient().getPushManager().publishToTopic(data);
+                        } catch (Exception e) {
+                            Log.e(TAG,"Error in publishing reply to topic...",e);
+                            success = false;
+                        }
 
-                        if (Constants.LOGD) Log.d(TAG,"Also publishing to GCM");
-                        //publishing message via GCM
-                        AWSMobileClient.defaultMobileClient().getPushManager().publishMessage(data);
+                        if (success) {
+                            if (Constants.LOGD) Log.d(TAG,"now creating HTTP task");
+                            //publishing reply to http
+                            task = new SendReplyTask();
+                        } else {
+                            //todo give user feedback on failed post
+                            if (Constants.LOGD) Log.d(TAG,"sending text reply to server anyway");
+                            task = new SendReplyTask();
+                        }
+
                     } else {
                         if (Constants.LOGD) Log.d(TAG,"contained an image filepath, uploading " +
                                 "the image there to s3 first...");
@@ -552,8 +566,10 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
                     if (Constants.LOGD) Log.d(TAG, "received a message to request local posts");
                     task = new RequestLocalTask();
                     if (mLocation!=null) {
-                        data.putDouble(SQLiteDbContract.LocalEntry.COLUMN_NAME_LONGITUDE, mLocation.getLongitude());
-                        data.putDouble(SQLiteDbContract.LocalEntry.COLUMN_NAME_LATITUDE, mLocation.getLatitude());
+                        data.putDouble(SQLiteDbContract.LocalEntry.COLUMN_NAME_LONGITUDE,
+                                mLocation.getLongitude());
+                        data.putDouble(SQLiteDbContract.LocalEntry.COLUMN_NAME_LATITUDE,
+                                mLocation.getLatitude());
                     }
                     break;
 
@@ -630,29 +646,25 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
 
                     AWSMobileClient.defaultMobileClient()
                             .getPushManager()
-                            .subscribeToTopic(AWSMobileClient.defaultMobileClient()
-                                    .getPushManager()
-                                    .getTopics()
-                                    .get(data.getString(SQLiteDbContract.LiveEntry
-                                                    .COLUMN_NAME_TOPIC_ARN
-                                            )
-                                    ));
+                            .subscribeToTopicByArn(
+                                    data.getString(
+                                            SQLiteDbContract.LiveEntry.COLUMN_NAME_TOPIC_ARN
+                                    )
+                            );
 
                     return;
 
                 case MSG_UNSUBSCRIBE_FROM_TOPIC:
                     if (Constants.LOGD) Log.d(TAG, "Received a message to unsubscribe from a topic.");
 
-
                     AWSMobileClient.defaultMobileClient()
                             .getPushManager()
-                            .unsubscribeFromTopic(AWSMobileClient.defaultMobileClient()
-                                    .getPushManager()
-                                    .getTopics()
-                                    .get(data.getString(SQLiteDbContract.LiveEntry
+                            .unsubscribeFromTopicByTopicARN(
+                                    data.getString(
+                                            SQLiteDbContract.LiveEntry
                                                             .COLUMN_NAME_TOPIC_ARN
-                                            )
-                            ));
+                                    )
+                            );
 
                     break;
 
@@ -955,9 +967,11 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
         if (result == ConnectionResult.SERVICE_MISSING ||
                 result == ConnectionResult.SERVICE_VERSION_UPDATE_REQUIRED ||
                 result == ConnectionResult.SERVICE_UPDATING) {
-            Toast.makeText(this, "Google play services is missing or out of date", Toast.LENGTH_LONG).show();
+            Toast.makeText(this, "Google play services is missing or out of date",
+                    Toast.LENGTH_LONG).show();
         } else {
-            Toast.makeText(this, "connection to location services failed... " + result, Toast.LENGTH_LONG).show();
+            Toast.makeText(this, "connection to location services failed... " + result,
+                    Toast.LENGTH_LONG).show();
         }
 
     }
@@ -1179,7 +1193,7 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
 
 
 
-        String directory = b.getString(Constants.KEY_S3_DIRECTORY,"");
+        String directory = b.getString(Constants.KEY_S3_DIRECTORY, "");
         String key = b.getString(Constants.KEY_S3_KEY,"");
 
         if (key.equals("") || directory.equals("")){
@@ -1235,7 +1249,7 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
     @Override
     public void onStateChanged(int id, TransferState state) {
         if (VERBOSE) {
-            Log.v(TAG,"AWS TransferState: " + state.name() + " for id " + id);
+            Log.v(TAG, "AWS TransferState: " + state.name() + " for id " + id);
         }
         Bundle data;
 
@@ -1310,9 +1324,23 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
                         break;
 
                     case MSG_REPLY_TO_THREAD:
-                        task = new SendReplyTask();
 
-                        AWSMobileClient.defaultMobileClient().getPushManager().publishMessage(data);
+                        if (Constants.LOGD) Log.d(TAG,"publishing first to GCM");
+                        boolean success = true;
+                        try {
+                            //publish first to GCM
+                            AWSMobileClient.defaultMobileClient().getPushManager().publishToTopic(data);
+                        } catch (Exception e) {
+                            Log.e(TAG,"Error in publishing reply to topic...",e);
+                            success = false;
+                        }
+                        if (success) {
+                            if (Constants.LOGD) Log.d(TAG,"Now creating HTTP task...");
+                            task = new SendReplyTask();
+                        } else {
+                            //todo notify server to delete image
+                            if (Constants.LOGD) Log.d(TAG,"sending text reply to server anyway");
+                        }
                         break;
 
                     case MSG_REQUEST_LIVE_THREADS:
@@ -1408,7 +1436,7 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
                 Log.e(TAG, "error responding that an image that failed to download...");
             }
         } else {
-            Log.e(TAG,"imageResponseMessenger was null, cannot send.");
+            Log.e(TAG, "imageResponseMessenger was null, cannot send.");
         }
 
 

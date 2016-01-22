@@ -93,8 +93,6 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
             Bundle args = new Bundle();
             mAdapter = new HybridCursorAdapter(getActivity(),null,0);
             getLoaderManager().restartLoader(ReplyFragment.REPLY_LOADER_ID, args, this);
-
-
         }
 
         replyButtonListener = new ReplyButtonListener();

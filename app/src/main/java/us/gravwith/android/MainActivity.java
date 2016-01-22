@@ -1351,11 +1351,13 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
             case LIVE_LIST_POSITION:
                 //tabStrip.setVisibility(View.VISIBLE);
                 //settingsDrawer.setVisibility(View.VISIBLE);
+                sendMsgUnsubscribeFromTopic(currentTopicARN);
                 break;
 
             case REPLY_LIST_POSITION:
                 //tabStrip.setVisibility(View.GONE);
                 //settingsDrawer.setVisibility(View.GONE);
+                sendMsgSubscribeToTopic(currentTopicARN);
                 break;
         }
 
@@ -2013,6 +2015,8 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
     private String currentTopicARN = "";
 
     public void setCurrentThread(String threadID,String topicARN) {
+        if (VERBOSE) Log.v(TAG, "setting current thread to id :" + threadID + ", and arn : " + topicARN);
+
         currentThread = threadID;
         currentTopicARN = topicARN;
     }

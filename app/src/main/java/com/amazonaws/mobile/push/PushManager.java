@@ -16,6 +16,7 @@ import android.util.Log;
 import com.amazonaws.AmazonClientException;
 import com.amazonaws.ClientConfiguration;
 import com.amazonaws.auth.AWSCredentialsProvider;
+import com.amazonaws.mobile.AWSMobileClient;
 import com.amazonaws.mobile.util.ThreadUtils;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.sns.AmazonSNS;
@@ -25,7 +26,13 @@ import com.amazonaws.services.sns.model.CreatePlatformEndpointRequest;
 import com.amazonaws.services.sns.model.CreatePlatformEndpointResult;
 import com.amazonaws.services.sns.model.CreateTopicRequest;
 import com.amazonaws.services.sns.model.CreateTopicResult;
+import com.amazonaws.services.sns.model.EndpointDisabledException;
 import com.amazonaws.services.sns.model.InternalErrorException;
+import com.amazonaws.services.sns.model.ListSubscriptionsRequest;
+import com.amazonaws.services.sns.model.ListSubscriptionsResult;
+import com.amazonaws.services.sns.model.ListTopicsRequest;
+import com.amazonaws.services.sns.model.ListTopicsResult;
+import com.amazonaws.services.sns.model.NotFoundException;
 import com.amazonaws.services.sns.model.PublishRequest;
 import com.amazonaws.services.sns.model.SetEndpointAttributesRequest;
 import com.amazonaws.services.sns.model.SubscribeRequest;
@@ -34,7 +41,9 @@ import com.amazonaws.services.sns.model.TopicLimitExceededException;
 import com.amazonaws.services.sns.model.UnsubscribeRequest;
 
 import us.gravwith.android.Constants;
+import us.gravwith.android.SQLiteDbContract;
 import us.gravwith.android.SQLiteDbContract.MessageEntry;
+import us.gravwith.android.SQLiteDbContract.LiveReplies;
 
 import org.json.JSONObject;
 
@@ -264,6 +273,11 @@ public class PushManager implements GCMTokenHelper.GCMTokenUpdateObserver {
         sharedPreferences.edit().putString(topic.getTopicArn(), subscriptionArn).apply();
     }
 
+    public void subscribeToTopicByArn(final String topicArn) {
+        SnsTopic topic = new SnsTopic(topicArn,null);
+        subscribeToTopic(topic);
+    }
+
     /**
      * Unsubscribes from a given Amazon SNS topic.
      *
@@ -283,6 +297,19 @@ public class PushManager implements GCMTokenHelper.GCMTokenUpdateObserver {
         // update topic and save subscription in shared preferences
         topic.setSubscriptionArn("");
         sharedPreferences.edit().putString(topic.getTopicArn(), "").apply();
+    }
+
+    public void unsubscribeFromTopicByTopicARN(String topicArn) {
+        String subscriptionARN = sharedPreferences.getString(topicArn,null);
+
+        if (subscriptionARN == null) {
+            Log.e(LOG_TAG,"subscriptionARN was not found in sharedpreferences...");
+
+        } else {
+            Log.d(LOG_TAG,"SubscriptionArn was found : " + subscriptionARN + ". unsubscribing...");
+            SnsTopic topic = new SnsTopic(topicArn,subscriptionARN);
+            unsubscribeFromTopic(topic);
+        }
     }
 
     private void setSNSEndpointEnabled(final boolean enabled) {
@@ -350,19 +377,6 @@ public class PushManager implements GCMTokenHelper.GCMTokenUpdateObserver {
     public void publishMessage(Bundle data) throws AmazonClientException {
         PublishRequest publishRequest = new PublishRequest();
 
-        //publishRequest.setTargetArn(data.getString(MessageEntry.COLUMN_RESPONSE_ARN));
-
-        //publishRequest.setMessageStructure("json");
-
-        //String caption = data.getString(MessageEntry.COLUMN_NAME_TEXT,"");
-
-        /*if (!"".equals(caption)) {
-            MessageAttributeValue textValue = new MessageAttributeValue()
-                    .withDataType("String").withStringValue(caption);
-
-            publishRequest.addMessageAttributesEntry(MessageEntry.COLUMN_NAME_TEXT,textValue);
-        }*/
-
         String directory = data.getString(Constants.KEY_S3_DIRECTORY);
 
 
@@ -387,6 +401,37 @@ public class PushManager implements GCMTokenHelper.GCMTokenUpdateObserver {
         Log.v(LOG_TAG, "publishRequest print: " + publishRequest.toString());
 
         sns.publish(publishRequest);
+    }
+
+    public void publishToTopic(Bundle data) throws InvalidParameterException, EndpointDisabledException,
+            NotFoundException, InternalErrorException, AuthorizationErrorException {
+
+        PublishRequest publishRequest = new PublishRequest();
+
+        String arn = data.getString(SQLiteDbContract.LiveEntry.COLUMN_NAME_TOPIC_ARN);
+        String directory = data.getString(Constants.KEY_S3_DIRECTORY);
+        String url = data.getString(LiveReplies.COLUMN_NAME_FILEPATH);
+        String text = data.getString(LiveReplies.COLUMN_NAME_DESCRIPTION);
+        int threadID = data.getInt(LiveReplies.COLUMN_NAME_THREAD_ID);
+
+        Log.d(LOG_TAG,"Topic arn: " + arn);
+
+        publishRequest.setTopicArn(arn);
+
+        Map<String,String> dataMap = new HashMap<>();
+        dataMap.put(Constants.KEY_S3_DIRECTORY,directory);
+        dataMap.put(LiveReplies.COLUMN_NAME_FILEPATH,url);
+        dataMap.put(LiveReplies.COLUMN_NAME_TIME,String.valueOf(System.currentTimeMillis()));
+        dataMap.put(LiveReplies.COLUMN_NAME_DESCRIPTION, text);
+        dataMap.put(LiveReplies.COLUMN_NAME_THREAD_ID,String.valueOf(threadID));
+
+        JSONObject dataObject = new JSONObject(dataMap);
+        publishRequest.setMessage(dataObject.toString());
+
+        Log.v(LOG_TAG, "publishRequest print: " + publishRequest.toString());
+
+        sns.publish(publishRequest);
+
     }
 
     public void sendReadReceipt(String arn) {
