@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:fab="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+
+
+    <com.github.clans.fab.FloatingActionMenu
+        style="@style/LiveFabMenu"
+        android:id="@+id/reply_radical_menu"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@drawable/radical_transition"
+        fab:menu_icon="@drawable/ic_menu"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentStart="true"
+        android:layout_alignBottom="@+id/editText_reply_comment"
+        android:layout_margin="10dp"
+        android:visibility="gone">
+
+        <com.github.clans.fab.FloatingActionButton
+            style="@style/FabNormal"
+            android:id="@+id/button_reply_report"
+            android:src="@drawable/ic_report" />
+
+        <com.github.clans.fab.FloatingActionButton
+            style="@style/FabNormal"
+            android:id="@+id/button_reply_refresh"
+            android:src="@drawable/ic_refresh"/>
+        <com.github.clans.fab.FloatingActionButton
+            style="@style/FabNormal"
+            android:id="@+id/button_reply_capture"/>
+
+    </com.github.clans.fab.FloatingActionMenu>
+
+
+    <EditText
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/editText_reply_comment"
+        android:layout_marginLeft="5dp"
+        android:hint="comment"
+        android:textColorHint="@android:color/darker_gray"
+        android:textColor="@android:color/white"
+        android:gravity="center_horizontal"
+        android:layout_marginBottom="5dp"
+        android:layout_marginRight="5dp"
+        android:layout_toRightOf="@+id/reply_radical_menu"
+        android:layout_toLeftOf="@+id/button_send_reply"
+        android:layout_alignBottom="@+id/button_send_reply" />
+
+
+    <com.github.clans.fab.FloatingActionButton
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/button_send_reply"
+        android:scaleType="fitXY"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentBottom="false"
+        android:layout_alignParentStart="false"
+        android:enabled="false"
+        fab:fab_size="mini"
+        fab:fab_showShadow="true"
+        fab:fab_colorDisabled="@color/cyber_grey"
+        fab:fab_colorNormal="@color/cyber_dark_blue"
+        fab:fab_colorPressed="@color/cyber_light_blue"
+        fab:fab_colorRipple="@color/cyber_light_blue"
+        android:src="@drawable/ic_quick_send" />
+
+
+</RelativeLayout>

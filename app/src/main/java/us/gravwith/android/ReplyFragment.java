@@ -19,6 +19,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
@@ -206,11 +207,16 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
 
         mListView.setAdapter(mAdapter);
 
-        radicalMenuView = (FloatingActionMenu)v.findViewById(R.id.reply_radical_menu);
+        //textingLayoutView = (RelativeLayout)v.findViewById(R.id.reply_texting_layout);
+
+        textingLayoutView = (RelativeLayout)
+                inflater.inflate(R.layout.listview_footer_texting, mListView, false);
+
+
+        radicalMenuView = (FloatingActionMenu)textingLayoutView.findViewById(R.id.reply_radical_menu);
         radicalMenuView.setOnMenuToggleListener(this);
         replyErrorText = (TextView)v.findViewById(R.id.textView_reply_error);
 
-        textingLayoutView = (RelativeLayout)v.findViewById(R.id.reply_texting_layout);
 
         v.setOnTouchListener(new View.OnTouchListener() {
             @Override
@@ -271,11 +277,18 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
     public void onViewCreated(View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         if (VERBOSE) Log.v(TAG,"entering onViewCreated...");
-        view.findViewById(R.id.button_reply_refresh).setOnClickListener(replyButtonListener);
-        view.findViewById(R.id.button_send_reply).setOnClickListener(replyButtonListener);
-        view.findViewById(R.id.button_reply_report).setOnClickListener(replyButtonListener);
-        view.findViewById(R.id.button_reply_capture).setOnClickListener(replyButtonListener);
         resetDisplay();
+
+        mListView.addFooterView(textingLayoutView);
+
+        textingLayoutView
+                .findViewById(R.id.button_send_reply)
+                .setOnClickListener(replyButtonListener);
+
+
+        textingLayoutView.findViewById(R.id.button_reply_refresh).setOnClickListener(replyButtonListener);
+        textingLayoutView.findViewById(R.id.button_reply_report).setOnClickListener(replyButtonListener);
+        textingLayoutView.findViewById(R.id.button_reply_capture).setOnClickListener(replyButtonListener);
 
         //anything that requires the UI to already exist goes here
         if (VERBOSE) Log.v(TAG,"exiting onViewCreated...");

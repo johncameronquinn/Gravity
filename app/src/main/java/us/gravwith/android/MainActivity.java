@@ -2019,6 +2019,10 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
 
         currentThread = threadID;
         currentTopicARN = topicARN;
+
+        if (ReplyFragReference.get() != null) {
+            ReplyFragReference.get().resetDisplay();
+        }
     }
 
     public void sendMsgSubscribeToTopic(String topicARN) {

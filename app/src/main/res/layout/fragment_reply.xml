@@ -15,41 +15,13 @@
         android:clipToPadding="false"
         android:paddingBottom="93dp"
         android:layout_alignParentTop="true"
-        android:stackFromBottom="true"
         android:transcriptMode="normal"
         android:paddingLeft="@dimen/listView_spacing_all"
         android:paddingTop="@dimen/listView_spacing_all"
         android:paddingRight="@dimen/listView_spacing_all" />
 
 
-    <com.github.clans.fab.FloatingActionMenu
-        style="@style/LiveFabMenu"
-        android:id="@+id/reply_radical_menu"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:padding="10dp"
-        android:background="@drawable/radical_transition"
-        fab:menu_icon="@drawable/ic_menu"
-        android:layout_alignParentTop="true"
-        android:layout_alignParentStart="true">
-
-        <com.github.clans.fab.FloatingActionButton
-            style="@style/FabNormal"
-            android:id="@+id/button_reply_report"
-            android:src="@drawable/ic_report" />
-
-        <com.github.clans.fab.FloatingActionButton
-            style="@style/FabNormal"
-            android:id="@+id/button_reply_refresh"
-            android:src="@drawable/ic_refresh"/>
-        <com.github.clans.fab.FloatingActionButton
-            style="@style/FabNormal"
-            android:id="@+id/button_reply_capture"/>
-
-    </com.github.clans.fab.FloatingActionMenu>
-
-
-    <RelativeLayout
+    <!--<RelativeLayout
         android:orientation="horizontal"
         android:id="@+id/reply_texting_layout"
         android:layout_width="match_parent"
@@ -72,7 +44,7 @@
             android:layout_marginBottom="5dp"
             android:layout_marginRight="5dp" />
 
-        <!--<Button
+        <Button
             android:id="@+id/button_send_reply"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -84,7 +56,7 @@
             android:gravity="center_horizontal|bottom"
             android:paddingBottom="10dp" /-->
 
-        <com.github.clans.fab.FloatingActionButton
+        <!--<com.github.clans.fab.FloatingActionButton
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:id="@+id/button_send_reply"
@@ -100,7 +72,7 @@
             fab:fab_colorPressed="@color/cyber_light_blue"
             fab:fab_colorRipple="@color/cyber_light_blue"
             android:src="@drawable/ic_quick_send" />
-    </RelativeLayout>
+    </RelativeLayout-->
 
     <TextView
         android:layout_width="wrap_content"
