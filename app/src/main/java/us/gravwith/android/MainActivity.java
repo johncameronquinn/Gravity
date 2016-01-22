@@ -456,6 +456,7 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
       * LIFECYCLE METHODS
      **/
 
+
     @Override
     protected void onStart() {
         Log.d(TAG, "enter onStart...");
@@ -521,6 +522,7 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
     protected void onRestart() {
         Log.d(TAG, "entering onRestart...");
         super.onRestart();
+        MessageHandler.setLivePostListener(this);
         Log.d(TAG, "exiting onRestart...");
     }
 

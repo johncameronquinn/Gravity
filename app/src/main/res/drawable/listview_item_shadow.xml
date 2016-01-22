@@ -7,10 +7,7 @@
     </item>
     <item android:bottom="4dp">
         <shape android:shape="rectangle">
-            <gradient android:type="linear"
-                android:startColor="@color/cyber_background"
-                android:endColor="@color/listview_background_color">
-            </gradient>
+            <solid android:color="@color/cyber_background" />
         </shape>
     </item>
 </layer-list>

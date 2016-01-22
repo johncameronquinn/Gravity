@@ -281,7 +281,7 @@ public class LiveFragment extends Fragment implements
     @Override
     public void onDestroyView() {
 
-        threadPager.setAdapter(null);
+        //threadPager.setAdapter(null);
         threadPager.setOnPageChangeListener(null);
         threadPager = null;
 
@@ -590,6 +590,7 @@ public class LiveFragment extends Fragment implements
             Log.i(TAG, "Live cursor finished loading data");
             mAdapter.swapCursor(data);
             mListener.setCurrentThread(String.valueOf(getCurrentThreadID()),getCurrentTopicARN());
+            threadPager.setAdapter(mAdapter);
 
             Log.d(TAG, "Returned cursor contains: " + data.getCount() + " rows.");
 

@@ -285,7 +285,6 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
                 .findViewById(R.id.button_send_reply)
                 .setOnClickListener(replyButtonListener);
 
-
         textingLayoutView.findViewById(R.id.button_reply_refresh).setOnClickListener(replyButtonListener);
         textingLayoutView.findViewById(R.id.button_reply_report).setOnClickListener(replyButtonListener);
         textingLayoutView.findViewById(R.id.button_reply_capture).setOnClickListener(replyButtonListener);
@@ -496,7 +495,7 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
                     null,
                     SQLiteDbContract.LiveReplies.COLUMN_NAME_THREAD_ID + " = ?" ,
                     selectionArgs,
-                    SQLiteDbContract.LiveReplies.COLUMN_ID
+                    SQLiteDbContract.LiveReplies.COLUMN_NAME_TIME
             );
 
         if (VERBOSE) Log.v(TAG,"exiting onCreateLoader...");
@@ -532,7 +531,7 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
 
         mAdapter.swapCursor(data);
         mListView.setAdapter(mAdapter);
-
+        mListView.setSelection(0);
         if (VERBOSE) Log.v(TAG,"exiting onLoadFinished...");
     }
 

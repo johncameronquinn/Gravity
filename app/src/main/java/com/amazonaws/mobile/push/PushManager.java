@@ -421,7 +421,7 @@ public class PushManager implements GCMTokenHelper.GCMTokenUpdateObserver {
         Map<String,String> dataMap = new HashMap<>();
         dataMap.put(Constants.KEY_S3_DIRECTORY,directory);
         dataMap.put(LiveReplies.COLUMN_NAME_FILEPATH,url);
-        dataMap.put(LiveReplies.COLUMN_NAME_TIME,String.valueOf(System.currentTimeMillis()));
+        dataMap.put(LiveReplies.COLUMN_NAME_TIME,String.valueOf(System.currentTimeMillis()/1000));
         dataMap.put(LiveReplies.COLUMN_NAME_DESCRIPTION, text);
         dataMap.put(LiveReplies.COLUMN_NAME_THREAD_ID,String.valueOf(threadID));
 

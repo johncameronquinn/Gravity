@@ -229,7 +229,7 @@ public class PushListenerService extends GcmListenerService {
                             values);
                     if (isForeground(this)) {
                         // broadcast notification, then store
-                        broadcast(from, data);
+                        //broadcast(from, data);
                     } else {
                         //just store and display
                         displayNotification("Someone has replied to your thread!");
