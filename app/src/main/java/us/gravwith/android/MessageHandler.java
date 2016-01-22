@@ -94,12 +94,11 @@ public class MessageHandler extends Handler{
                             .show();*/
                 switch (msg.arg1) {
                     case DataHandlingService.TASK_COMPLETED:
-                        ((MainActivity)activity.get()).sendToReply();
+                        ((MainActivity)activity.get()).sendToLive();
                         break;
                 }
 
                 break;
-
 
 
             case MSG_DATABASE_CLEARED:
