@@ -49,6 +49,8 @@ public class SendLivePostRunnable implements Runnable{
 
         Bundle getDataBundle();
 
+        String getTopicARN();
+
         HttpsURLConnection getURLConnection();
     }
 
@@ -114,7 +116,7 @@ public class SendLivePostRunnable implements Runnable{
                     imageKey
             );
             jGen.writeStringField(SQLiteDbContract.LiveEntry.COLUMN_NAME_TOPIC_ARN,
-                    b.getString(SQLiteDbContract.LiveEntry.COLUMN_NAME_TOPIC_ARN)
+                    mTask.getTopicARN()
             );
             jGen.writeEndObject();
             jGen.flush();

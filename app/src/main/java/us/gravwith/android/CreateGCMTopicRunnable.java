@@ -39,6 +39,7 @@ public class CreateGCMTopicRunnable implements Runnable {
         void setTaskThread(Thread thread);
         void handleCreateGCMTopicState(int state);
         Bundle getDataBundle();
+        void setTopicARN(String arn);
 
     }
 
@@ -57,19 +58,19 @@ public class CreateGCMTopicRunnable implements Runnable {
 
         boolean success = true;
 
+        String arn = null;
         try {
             if (Thread.interrupted()) {
                 if (VERBOSE)Log.v(TAG,"current thread is interrupted, not sending...");
                 return;
             }
 
-            AWSMobileClient
+            arn = AWSMobileClient
                     .defaultMobileClient()
                     .getPushManager()
                     .createTopic(
                             mService.getDataBundle()
-                                    .getString(
-                                            SQLiteDbContract.LiveEntry.COLUMN_ID)
+                                    .getString(SQLiteDbContract.LiveEntry.COLUMN_NAME_FILEPATH)
                     );
 
         } catch (InvalidParameterException e) {
@@ -86,8 +87,9 @@ public class CreateGCMTopicRunnable implements Runnable {
             success = false;
         } finally {
 
-            if (success) {
+            if (success && arn != null) {
                 Log.d(TAG, "No Exceptions, so... success :3");
+                mService.setTopicARN(arn);
                 mService.handleCreateGCMTopicState(CREATE_TOPIC_SUCCESS);
             } else {
                 Log.d(TAG, "Something went wrong...");

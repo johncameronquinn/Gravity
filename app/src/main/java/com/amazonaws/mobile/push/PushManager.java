@@ -413,20 +413,34 @@ public class PushManager implements GCMTokenHelper.GCMTokenUpdateObserver {
 
     }
 
-    public void createTopic(String id) throws InvalidParameterException, TopicLimitExceededException, InternalErrorException, AuthorizationErrorException {
+    /**
+     *
+     * @param id the name of the topic to be created
+     * @return the ARN of the newly created topic
+     * @throws InvalidParameterException
+     * @throws TopicLimitExceededException
+     * @throws InternalErrorException
+     * @throws AuthorizationErrorException
+     */
+    public String createTopic(String id) throws InvalidParameterException, TopicLimitExceededException, InternalErrorException, AuthorizationErrorException {
         if (Constants.LOGV) Log.v(LOG_TAG,"entering createTopic...");
 
         //create a new SNS client and set endpoint
 
         //create a new SNS topic
         CreateTopicRequest createTopicRequest = new CreateTopicRequest(id);
+        createTopicRequest.setName(id);
         CreateTopicResult createTopicResult = sns.createTopic(createTopicRequest);
 
         if (Constants.LOGV) Log.v(LOG_TAG,"printing topic result...");
         //print TopicArn
         Log.v(LOG_TAG,createTopicResult.toString());
 
-        if (Constants.LOGV) Log.v(LOG_TAG,"exiting createTopic...");
+
+        if (Constants.LOGV) Log.v(LOG_TAG,"exiting createTopic with arn: "
+                + createTopicResult.getTopicArn());
+
+        return createTopicResult.getTopicArn();
     }
 
     /**

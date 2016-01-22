@@ -13,6 +13,7 @@ class SendLivePostTask extends ServerTask implements SendLivePostRunnable.LivePo
     private Runnable mRequestRunnable;
     private Runnable mResponseRunnable;
     private Runnable mOtherRunnable;
+    private String topicARN;
 
     private boolean VERBOSE = true;
     private final String TAG = "SendLivePostTask";
@@ -23,6 +24,14 @@ class SendLivePostTask extends ServerTask implements SendLivePostRunnable.LivePo
         mResponseRunnable = new RequestLiveThreadsRunnable(this);
         mRequestRunnable = new CreateGCMTopicRunnable(this);
         mOtherRunnable = new SendLivePostRunnable(this);
+    }
+
+    public void setTopicARN(String arn) {
+        this.topicARN = arn;
+    }
+
+    public String getTopicARN() {
+        return topicARN;
     }
 
     @Override

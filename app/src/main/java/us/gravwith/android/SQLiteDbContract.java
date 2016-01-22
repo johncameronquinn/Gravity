@@ -42,7 +42,7 @@ public final class SQLiteDbContract {
         public static final String TABLE_NAME = "live_entries";
         public static final String COLUMN_ID = "_ID";
         public static final String COLUMN_NAME_THREAD_ID = "threadID";
-        public static final String COLUMN_NAME_TOPIC_ARN = "topicArn";
+        public static final String COLUMN_NAME_TOPIC_ARN = "arn";
         public static final String COLUMN_NAME_TIME = "time";
         public static final String COLUMN_NAME_TITLE = "title";
         public static final String COLUMN_NAME_NAME = "name";
