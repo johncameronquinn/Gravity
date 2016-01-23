@@ -58,7 +58,7 @@ public class PhotoManager {
 
     static final int AWS_DOWNLOAD_COMPLETE = 5;
 
-    static final boolean VERBOSE = true;
+    static final boolean VERBOSE = false;
 
 
     private static final String TAG = "PhotoManager";

@@ -1,15 +1,15 @@
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent"
-    android:layout_height="match_parent" android:background="#0099cc"
+    android:layout_height="match_parent" android:background="@color/cyber_background"
     tools:context="us.gravwith.android.SplashActivity">
 
     <!-- The primary full-screen view. This can be replaced with whatever view
          is needed to present your content, e.g. VideoView, SurfaceView,
          TextureView, etc. -->
-    <TextView android:id="@+id/fullscreen_content" android:layout_width="match_parent"
-        android:layout_height="match_parent" android:keepScreenOn="true" android:textColor="@color/jpallete_main_grey"
-        android:textStyle="bold" android:textSize="45sp" android:gravity="center"
-        android:text="A REALLY COOL SPLASH SCREEN" />
+    <ImageView android:id="@+id/fullscreen_content" android:layout_width="300dp"
+        android:layout_height="300dp" android:keepScreenOn="true"
+        android:layout_gravity="center"
+        android:src="@drawable/ic_launcher"/>
 
     <!-- This FrameLayout insets its children based on system windows using
          android:fitsSystemWindows. -->

@@ -91,7 +91,7 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
         ViewPager.OnPageChangeListener, PhotoFragment.onPreviewInteractionListener,
         ErrorReceiver.SecurityErrorListener, MessageHandler.LivePostListener {
     private static String TAG = "MainActivity";
-    private static final boolean VERBOSE = true;
+    private static final boolean VERBOSE = false;
 
     //UI
     private static CustomViewPager mPager;

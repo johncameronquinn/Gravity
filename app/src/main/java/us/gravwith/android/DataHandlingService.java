@@ -72,7 +72,7 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
         ContentProgressListener,
         IdentityManager.SignInStateChangeListener {
     private static final String TAG = "DataHandlingService";
-    private static final boolean VERBOSE = true;
+    private static final boolean VERBOSE = false;
     private static final boolean ALLOW_DUPLICATES = false;
     private boolean isLocalRequesting = false;
     private SignInManager signInManager;

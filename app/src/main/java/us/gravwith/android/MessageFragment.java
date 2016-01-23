@@ -36,7 +36,7 @@ import java.net.HttpURLConnection;
 public class MessageFragment extends Fragment implements
         LoaderManager.LoaderCallbacks<Cursor>, View.OnClickListener {
     private final String TAG = "MessageFragment";
-    private final boolean VERBOSE = true;
+    private final boolean VERBOSE = false;
 
     private ListView messageIndicatorListView;
     private IndicatorAdapter mIndicatorAdapter;

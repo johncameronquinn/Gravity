@@ -12,7 +12,7 @@ import android.view.SurfaceView;
  */
 public class CameraSurfaceView extends SurfaceView implements SurfaceHolder.Callback {
 
-    private static final boolean VERBOSE = true;
+    private static final boolean VERBOSE = false;
 
     private SurfaceHolder mHolder;
     private Camera camera;

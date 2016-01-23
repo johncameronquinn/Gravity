@@ -45,7 +45,7 @@ import java.lang.ref.WeakReference;
  */
 public class CameraFragment extends Fragment implements Camera.AutoFocusCallback,
         ValueAnimator.AnimatorUpdateListener, MessageHandler.CameraListener {
-    private static final boolean VERBOSE = true;
+    private static final boolean VERBOSE = false;
     private static final String TAG = "CameraFragment";
     private GestureDetector gestureDetector;
     private static boolean isPreview = true;

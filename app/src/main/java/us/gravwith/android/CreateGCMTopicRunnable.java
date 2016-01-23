@@ -24,7 +24,7 @@ import javax.net.ssl.HttpsURLConnection;
  */
 public class CreateGCMTopicRunnable implements Runnable {
 
-    private final boolean VERBOSE = true;
+    private final boolean VERBOSE = false;
     private final String TAG = CreateGCMTopicRunnable.class.getSimpleName();
     private final CreateGCMTopicMethods mService;
 

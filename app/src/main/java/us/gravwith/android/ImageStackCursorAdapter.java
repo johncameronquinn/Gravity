@@ -23,7 +23,7 @@ import us.gravwith.android.view.ImageCursorAdapterView;
  * and dynamically swaps the cursors with their actual data once the data is finished loading
  */
 public class ImageStackCursorAdapter extends CursorAdapter implements ImageCursorAdapterView.OnPopListener {
-    private final boolean VERBOSE = true;
+    private final boolean VERBOSE = false;
     private final String TAG = "ImageCursorStackAdapter";
 
         private MainActivity context;
