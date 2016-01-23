@@ -1329,7 +1329,18 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
                         boolean success = true;
                         try {
                             //publish first to GCM
-                            AWSMobileClient.defaultMobileClient().getPushManager().publishToTopic(data);
+
+                            final Bundle datacopy = data;
+
+                            new Thread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    AWSMobileClient.defaultMobileClient()
+                                            .getPushManager()
+                                            .publishToTopic(datacopy);
+                                }
+                            }).start();
+
                         } catch (Exception e) {
                             Log.e(TAG,"Error in publishing reply to topic...",e);
                             success = false;

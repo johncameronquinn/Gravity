@@ -593,8 +593,13 @@ n  */
                     switch(currentCameraMode) {
                         case CAMERA_REPLY_MODE:
 
-                            mListener.sendMsgSaveImage(commentText, CAMERA_LIVE_MODE);
-                            ((MainActivity) getActivity()).setLiveCreateThreadInfo("",commentText.getText().toString());
+                            mListener.sendMsgSaveImage(commentText, CAMERA_REPLY_MODE);
+                            //((MainActivity) getActivity()).setLiveCreateThreadInfo("", commentText.getText().toString());
+                            ((MainActivity) getActivity()).setLiveCreateReplyInfo(
+                                    commentText.getText().toString(),
+                                    Integer.parseInt(mListener.getCurrentThread()),
+                                    mListener.getCurrentTopicARN());
+
                             resetCameraUI();
                             stopReplyMode();
 
