@@ -46,7 +46,7 @@ public class HybridCursorAdapter extends CursorAdapter implements PhotoView.OnCl
         if (VERBOSE) Log.v(TAG,"entering newView...");
 
         View view = LayoutInflater.from(context).inflate(
-                R.layout.hybrid_detail_row,
+                R.layout.fragment_reply_detail_row,
                 parent,
                 false
         );

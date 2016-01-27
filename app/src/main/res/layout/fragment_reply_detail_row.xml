@@ -6,64 +6,57 @@
     android:layout_alignParentTop="true"
     android:gravity="top"
     android:background="@drawable/rectangle"
-    android:visibility="visible"
-    android:padding="5dp">
-
+    android:visibility="visible">
 
     <us.gravwith.android.PhotoView
-        android:id="@+id/thumbImage" android:layout_width="match_parent"
-        android:layout_height="wrap_content" android:scaleType="fitXY"
-        android:visibility="gone"
+        android:id="@+id/photoView"
+        android:layout_width="60dp"
+        android:layout_height="60dp"
         android:layout_alignParentStart="true"
-        android:adjustViewBounds="true" />
+        android:visibility="visible"
+        android:minWidth="46sp"
+        android:scaleType="centerCrop"
+        android:adjustViewBounds="true"/>
+
+    <ProgressBar
+        style="?android:attr/progressBarStyleSmall"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/photoProgress"
+        android:layout_alignBottom="@+id/photoView"
+        android:layout_alignStart="@+id/photoView"
+        android:layout_centerVertical="true"
+        android:visibility="gone" />
 
     <TextView
         android:id="@+id/reply_detail_row_text"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textSize="20dp"
+        android:textSize="18sp"
         android:gravity="center_vertical|left"
-        android:padding="2dp"
         android:text="comment text goes here"
-        android:layout_alignParentTop="false"
-        android:layout_alignParentStart="true"
         android:focusable="true"
         android:textColor="@color/jpallete_main_grey"
-        android:layout_toRightOf="@+id/thumbImage"
-        android:layout_toStartOf="@+id/linearLayout"
-        android:layout_below="@+id/thumbImage">
+        android:layout_below="@+id/reply_detail_row_time"
+        android:layout_toRightOf="@+id/photoView">
     </TextView>
 
-    <LinearLayout
-        android:orientation="vertical"
+    <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:text="unixtime"
+        android:id="@+id/reply_detail_row_time"
+        android:layout_gravity="end"
+        android:gravity="end"
+        android:textColor="#ffffff"
         android:layout_alignParentEnd="true"
-        android:id="@+id/linearLayout"
-        android:layout_below="@+id/thumbImage">
+        android:layout_toRightOf="@+id/photoView"
+        android:textSize="14sp" />
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:text="unixtime"
-            android:id="@+id/reply_detail_row_time"
-            android:layout_gravity="right"
-            android:layout_below="@+id/reply_detail_row_name"
-            android:layout_marginRight="5dp"
-            android:textColor="#ffffff" />
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:textAppearance="?android:attr/textAppearanceSmallInverse"
-            android:text="jester"
-            android:id="@+id/reply_detail_row_name"
-            android:layout_alignWithParentIfMissing="true"
-            android:layout_alignParentTop="true"
-            android:layout_alignParentEnd="true"
-            android:layout_marginLeft="5dp"
-            android:textColor="@color/cyber_grey" />
-
-    </LinearLayout>
+    <Space
+        android:layout_width="match_parent"
+        android:layout_height="14sp"
+        android:layout_below="@+id/reply_detail_row_text"
+        android:id="@+id/space" />
 
 </RelativeLayout>

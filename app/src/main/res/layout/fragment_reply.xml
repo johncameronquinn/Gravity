@@ -12,12 +12,12 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:id="@+id/reply_list_view"
-        android:layout_alignParentTop="true"
         android:stackFromBottom="true"
         android:paddingBottom="@dimen/listView_spacing_all"
         android:paddingLeft="@dimen/listView_spacing_all"
         android:paddingTop="@dimen/listView_spacing_all"
-        android:paddingRight="@dimen/listView_spacing_all" />
+        android:paddingRight="@dimen/listView_spacing_all"
+        android:layout_below="@+id/layout_reply_infobar" />
 
 
     <!--<RelativeLayout
@@ -83,6 +83,27 @@
         android:layout_marginTop="@dimen/side_screen_margin"
         android:gravity="center"
         android:layout_centerHorizontal="true" />
+
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="5dp"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentStart="true"
+        android:id="@+id/layout_reply_infobar">
+
+        <TextView
+            android:id="@+id/textView_reply_count"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceSmall"
+            android:text="000"
+            android:layout_weight="1"
+            android:gravity="center"/>
+
+
+    </LinearLayout>
 
 
 </RelativeLayout>
