@@ -13,6 +13,8 @@ import android.view.ViewGroup;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
+import us.gravwith.android.util.Utility;
+
 /**
  * fragment 'LiveThreadFragment'
  *
@@ -33,6 +35,7 @@ public class LiveThreadFragment extends Fragment implements View.OnClickListener
     private String unique;
     private String replies;
     private String topicARN;
+    private int time;
 
     private Drawable mEmptyDrawable;
 
@@ -40,8 +43,8 @@ public class LiveThreadFragment extends Fragment implements View.OnClickListener
 
     PhotoView mPhotoView;
 
-    View textView;
-    View detailView;
+    //View textView;
+    //View detailView;
 
     String mImageKey;
 
@@ -65,7 +68,7 @@ public class LiveThreadFragment extends Fragment implements View.OnClickListener
         args.putString(SQLiteDbContract.LiveEntry.COLUMN_NAME_THREAD_ID,threadID);
         args.putString(SQLiteDbContract.LiveEntry.COLUMN_NAME_UNIQUE,unique);
         args.putString(SQLiteDbContract.LiveEntry.COLUMN_NAME_REPLIES,replies);
-        args.putString(SQLiteDbContract.LiveEntry.COLUMN_NAME_TOPIC_ARN,topicARN);
+        args.putString(SQLiteDbContract.LiveEntry.COLUMN_NAME_TOPIC_ARN, topicARN);
         f.setArguments(args);
 
         return f;
@@ -86,6 +89,22 @@ public class LiveThreadFragment extends Fragment implements View.OnClickListener
 
     public String getTopicARN(){
         return topicARN;
+    }
+
+    public String getUniqueCount(){
+        return unique;
+    }
+
+    public String getTitle() {
+        return threadTitle;
+    }
+
+    public String getReplyCount(){
+        return replies;
+    }
+
+    public String getRelativeTime(){
+        return Utility.getDateStringFromLong((System.currentTimeMillis()/1000) - time);
     }
 
     @Override
@@ -112,6 +131,7 @@ public class LiveThreadFragment extends Fragment implements View.OnClickListener
         threadID = null;
         unique = null;
         replies = null;
+        time = 0;
 
         // Always call the super method last
         super.onDetach();
@@ -133,6 +153,7 @@ public class LiveThreadFragment extends Fragment implements View.OnClickListener
             unique = args.getString(SQLiteDbContract.LiveEntry.COLUMN_NAME_UNIQUE);
             replies = args.getString(SQLiteDbContract.LiveEntry.COLUMN_NAME_REPLIES);
             topicARN = args.getString(SQLiteDbContract.LiveEntry.COLUMN_NAME_TOPIC_ARN);
+            time = Integer.parseInt(args.getString(SQLiteDbContract.LiveEntry.COLUMN_NAME_TIME,"0"));
 
             mImageKey = args.getString(SQLiteDbContract.LiveEntry.COLUMN_NAME_FILEPATH);
 
@@ -151,6 +172,7 @@ public class LiveThreadFragment extends Fragment implements View.OnClickListener
             unique = args.getString(SQLiteDbContract.LiveEntry.COLUMN_NAME_UNIQUE);
             replies = args.getString(SQLiteDbContract.LiveEntry.COLUMN_NAME_REPLIES);
             topicARN = args.getString(SQLiteDbContract.LiveEntry.COLUMN_NAME_TOPIC_ARN);
+            time = Integer.parseInt(args.getString(SQLiteDbContract.LiveEntry.COLUMN_NAME_TIME,"0"));
 
             mImageKey = args.getString(SQLiteDbContract.LiveEntry.COLUMN_NAME_FILEPATH);
 
@@ -173,15 +195,15 @@ public class LiveThreadFragment extends Fragment implements View.OnClickListener
         mPhotoView = ((PhotoView) localView.findViewById(R.id.photoView));
         progressBar = ((ProgressBar) localView.findViewById(R.id.photoProgress));
 
-        textView = localView.findViewById(R.id.live_thread_infoLayout);
-        detailView = localView.findViewById(R.id.live_thread_text);
+        //textView = localView.findViewById(R.id.live_thread_infoLayout);
+        //detailView = localView.findViewById(R.id.live_thread_text);
 
         /*
          * The click listener becomes this class (PhotoFragment). The onClick() method in this
          * class is invoked when users click a photo.
          */
         mPhotoView.setOnClickListener(this);
-        textView.setOnClickListener(this);
+        //textView.setOnClickListener(this);
 
         mPhotoView.setImageKey(Constants.KEY_S3_LIVE_DIRECTORY,mImageKey,true,mEmptyDrawable);
 
@@ -201,10 +223,10 @@ public class LiveThreadFragment extends Fragment implements View.OnClickListener
         if (mPhotoView != null) {
 
             mPhotoView.setOnClickListener(null);
-            textView.setOnClickListener(null);
+            //textView.setOnClickListener(null);
             this.mPhotoView = null;
-            this.textView = null;
-            this.detailView = null;
+            //this.textView = null;
+            //this.detailView = null;
         }
 
         // Always call the super method last
@@ -233,50 +255,12 @@ public class LiveThreadFragment extends Fragment implements View.OnClickListener
 
 
         //   ((TextView)view.findViewById(R.id.live_thread_number)).setText(String.valueOf(threadNum));
-        ((TextView)view.findViewById(R.id.live_thread_name)).setText(threadName);
+        /*((TextView)view.findViewById(R.id.live_thread_name)).setText(threadName);
         ((TextView)view.findViewById(R.id.live_thread_title)).setText(threadTitle);
         ((TextView)view.findViewById(R.id.live_thread_text)).setText(threadText);
         ((TextView)view.findViewById(R.id.live_thread_unique)).setText(unique);
-        ((TextView)view.findViewById(R.id.live_thread_replies)).setText(replies);
+        ((TextView)view.findViewById(R.id.live_thread_replies)).setText(replies);*/
        view.setTag(mImageKey);
-
-
-
-
-        /*
-         * No saved image was loaded, load from file or request
-         */
-    /*    if (image == null) {
-
-            if (LiveFragment.VERBOSE) {
-                Log.v(TAG,"loading image was null, attempting to decode from exposed filepath");
-            }
-
-            File file = new File(getActivity().getCacheDir().toString() + "/" + threadFilePath);
-            if (file.exists() && imageLoaderThreadReference.get() == null) {
-
-                Log.i(TAG, "filepath exists and no other images are being decoded");
-                    imageLoaderThreadReference =
-                            new WeakReference<>(new Thread(new ImageLoaderRunnable(threadFilePath)));
-                    imageLoaderThreadReference.get().start();
-
-            } else {
-                if (LiveFragment.VERBOSE) {
-                    Log.v(TAG,"requested image has not yet been downloaded... requesting: "
-                            + threadFilePath);
-                }
-
-                ((MainActivity)getActivity())
-                        .sendMsgDownloadImage(Constants.KEY_S3_LIVE_DIRECTORY,threadFilePath);
-            }
-
-        } else {
-            if (LiveFragment.VERBOSE) {
-                Log.v(TAG,"Image was not null, setting...");
-            }
-            displayView.setImageBitmap(image);
-            progressBar.setVisibility(View.INVISIBLE);
-        }*/
 
         if (LiveFragment.VERBOSE) Log.v(TAG,"exiting onViewCreated...");
     }
@@ -284,7 +268,7 @@ public class LiveThreadFragment extends Fragment implements View.OnClickListener
     @Override
     public void onClick(View v) {
         switch (v.getId()) {
-            case R.id.live_thread_infoLayout:
+            /*case R.id.live_thread_infoLayout:
                 View threadTextView = v.findViewById(R.id.live_thread_text);
                 if (threadTextView.getVisibility() == View.GONE) {
                     threadTextView.setVisibility(View.VISIBLE);
@@ -301,7 +285,7 @@ public class LiveThreadFragment extends Fragment implements View.OnClickListener
                     v.findViewById(R.id.live_thread_unique).setVisibility(View.VISIBLE);
                     v.findViewById(R.id.live_thread_replies).setVisibility(View.VISIBLE);
                 }
-                break;
+                break;*/
 
             case R.id.photoView:
 

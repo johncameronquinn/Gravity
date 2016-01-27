@@ -64,6 +64,11 @@ public class LiveFragment extends Fragment implements
     private CursorPagerAdapter mAdapter;
     private onLiveFragmentInteractionListener mListener;
 
+    private TextView titleView;
+    private TextView uniqueView;
+    private TextView replyView;
+    private TextView timeView;
+
     /**
      * Use this factory method to create a new instance of
      * this fragment using the provided parameters.
@@ -248,6 +253,12 @@ public class LiveFragment extends Fragment implements
         rootView.findViewById(R.id.button_new_thread).setOnClickListener(getButtonListener(this));
         rootView.findViewById(R.id.button_live_report).setOnClickListener(getButtonListener(this));
         rootView.findViewById(R.id.button_live_hide).setOnClickListener(getButtonListener(this));
+
+        titleView = (TextView)rootView.findViewById(R.id.textView_title);
+        uniqueView = (TextView)rootView.findViewById(R.id.textView_unique_posters);
+        replyView = (TextView)rootView.findViewById(R.id.textView_reply_count);
+        timeView = (TextView)rootView.findViewById(R.id.textView_relative_time);
+        if (mAdapter!=null)mAdapter.setDisplayViews(titleView,uniqueView,replyView,timeView);
         //((SeekBar)rootView.findViewById(R.id.seekBar)).setOnSeekBarChangeListener(getButtonListener(this));
 
         if (VERBOSE) Log.v(TAG,"exiting onCreateView...");
@@ -284,6 +295,11 @@ public class LiveFragment extends Fragment implements
         //threadPager.setAdapter(null);
         threadPager.setOnPageChangeListener(null);
         threadPager = null;
+
+        titleView = null;
+        uniqueView = null;
+        replyView = null;
+        timeView = null;
 
         super.onDestroyView();
     }
@@ -466,9 +482,7 @@ public class LiveFragment extends Fragment implements
     @Override
     public void onPageSelected(int position) {
         if (VERBOSE) Log.v(TAG, "entering onPageSelected... page " + position + " selected.");
-        //Toast.makeText(getActivity(),"page " + position + " selected.",Toast.LENGTH_SHORT).show();
-        ((TextView) getActivity().findViewById(R.id.live_thread_number))
-                .setText(String.valueOf(position));
+
         currentThread = getCurrentThreadID();
         mListener.sendMsgRequestReplies(currentThread);
 
@@ -477,6 +491,8 @@ public class LiveFragment extends Fragment implements
         Bundle args = new Bundle();
         args.putString(CURRENT_THREAD_KEY, String.valueOf(currentThread));
         mListener.setCurrentThread(String.valueOf(currentThread),getCurrentTopicARN());
+
+        mAdapter.updateViews();
 
         //report thread view to analytics service
         if (mListener != null) {
@@ -501,6 +517,7 @@ public class LiveFragment extends Fragment implements
         String[] projection = {
                 SQLiteDbContract.LiveEntry.COLUMN_ID,
                 SQLiteDbContract.LiveEntry.COLUMN_NAME_NAME,
+                SQLiteDbContract.LiveEntry.COLUMN_NAME_TIME,
                 SQLiteDbContract.LiveEntry.COLUMN_NAME_TITLE,
                 SQLiteDbContract.LiveEntry.COLUMN_NAME_DESCRIPTION,
                 SQLiteDbContract.LiveEntry.COLUMN_NAME_FILEPATH,

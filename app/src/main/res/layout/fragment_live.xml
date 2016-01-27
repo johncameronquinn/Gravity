@@ -1,45 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout
+<RelativeLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:fab="http://schemas.android.com/apk/res-auto"
 
     android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/jpallete_main_grey"
+    android:background="@color/cyber_background"
     android:id="@+id/live_root_layout">
-
-    <TextView
-        android:layout_width="354dp"
-        android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceLarge"
-        android:text="If you dont see any threads, try swiping up and down"
-        android:id="@+id/textView2"
-        android:layout_gravity="center"
-        android:gravity="center_horizontal" />
-
-    <TextView
-        android:layout_width="50dp"
-        android:layout_height="50dp"
-        android:text="0"
-        android:id="@+id/live_thread_number"
-        android:textSize="25dp"
-        android:gravity="center"
-        android:background="@drawable/ic_comment"
-        android:layout_alignTop="@+id/live_thread_infoLayout"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true"
-        android:layout_marginLeft="10dp"
-        android:layout_gravity="left|bottom"
-        android:visibility="gone"
-        android:layout_marginBottom="10dp"
-        />
 
     <fr.castorflex.android.verticalviewpager.VerticalViewPager
          android:id="@+id/live_thread_pager"
          android:layout_width="match_parent"
          android:layout_height="match_parent"
-         android:layout_gravity="right|center_vertical">
+         android:layout_gravity="right|center_vertical"
+        android:layout_alignParentBottom="true">
      </fr.castorflex.android.verticalviewpager.VerticalViewPager>
 
     <com.github.clans.fab.FloatingActionMenu
@@ -47,10 +22,10 @@
         android:id="@+id/live_radical_menu"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_gravity="bottom|start"
         android:paddingStart="10dp"
         android:paddingEnd="10dp"
-        android:paddingBottom="@dimen/side_screen_margin">
+        android:paddingBottom="@dimen/side_screen_margin"
+        android:layout_above="@+id/linearLayout2">
 
         <com.github.clans.fab.FloatingActionButton
             style="@style/FabNormal"
@@ -74,5 +49,60 @@
 
     </com.github.clans.fab.FloatingActionMenu>
 
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:paddingTop="10dp"
+        android:id="@+id/linearLayout2">
 
-</FrameLayout>
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:text="Title Text"
+            android:id="@+id/textView_title"
+            android:layout_gravity="center" />
+
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:padding="5dp"
+            android:layout_marginTop="10dp">
+
+            <TextView
+                android:id="@+id/textView_unique_posters"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceSmall"
+                android:text="000"
+                android:layout_weight="1"
+                android:gravity="center"/>
+
+            <TextView
+                android:id="@+id/textView_relative_time"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceSmall"
+                android:text="00s"
+                android:layout_weight="1"
+                android:gravity="center" />
+
+            <TextView
+                android:id="@+id/textView_reply_count"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceSmall"
+                android:text="000"
+                android:layout_weight="1"
+                android:gravity="center"/>
+
+        </LinearLayout>
+
+
+    </LinearLayout>
+
+
+</RelativeLayout>
