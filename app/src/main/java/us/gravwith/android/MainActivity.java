@@ -2020,8 +2020,9 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
 
     private String currentThread = "0";
     private String currentTopicARN = "";
+    private String currentTopicReplies = "";
 
-    public void setCurrentThread(String threadID,String topicARN) {
+    public void setCurrentThread(String threadID,String topicARN,String currentReplies) {
         if (VERBOSE) Log.v(TAG, "setting current thread to id :" + threadID + ", and arn : " + topicARN);
 
         currentThread = threadID;
@@ -3239,5 +3240,10 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
         if (LiveFragReference.get()!=null) {
             LiveFragReference.get().resetLiveAdapter();
         }
+    }
+
+    @Override
+    public String getCurrentRepliesCount() {
+        return currentTopicReplies;
     }
 }

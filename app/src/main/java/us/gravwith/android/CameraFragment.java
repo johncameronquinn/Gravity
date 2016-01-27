@@ -458,13 +458,13 @@ n  */
 
         private Button switchButton;
         private Button flashButton;
-        private Button cancelButton;
+        private ImageButton cancelButton;
         //private Button localButton;
         private FloatingActionButton liveButton;
 
         private Button sendMessageButton;
         private Button liveCaptureButton;
-        private Button cancelMessageButton;
+        private ImageButton cancelMessageButton;
 
         private LinearLayout sendLayout;
 
@@ -490,7 +490,7 @@ n  */
                             liveButton = (FloatingActionButton) mActivity.findViewById(R.id.button_live);
                             sendLayout = (LinearLayout)mActivity.findViewById(R.id.layout_camera_send);
                             //localButton = (Button) mActivity.findViewById(R.id.button_local);
-                            cancelButton = (Button) mActivity.findViewById(R.id.button_cancel);
+                            cancelButton = (ImageButton) mActivity.findViewById(R.id.button_cancel);
                             mListener.sendMsgTakePicture();
                             v.setPressed(true);
                             v.setClickable(false);
@@ -503,7 +503,7 @@ n  */
                         case CAMERA_MESSAGE_MODE:
                             if (Constants.LOGD) Log.d(TAG,"Taking a picture in message mode...");
                             captureButton = (ImageButton) v;
-                            cancelMessageButton = (Button) mActivity.
+                            cancelMessageButton = (ImageButton) mActivity.
                                     findViewById(R.id.button_cancel_message);
                             if (number_of_cameras > 1) {
                                 switchButton = (Button) mActivity.findViewById(R.id.switch_camera);
@@ -545,7 +545,7 @@ n  */
                             mListener.sendMsgTakePicture();
                             sendMessageButton = (Button)mActivity.
                                     findViewById(R.id.button_send_message);
-                            cancelMessageButton = (Button) mActivity.
+                            cancelMessageButton = (ImageButton) mActivity.
                                     findViewById(R.id.button_cancel_message);
                             commentText.setText(((MainActivity) getActivity()).getReplyComment());
 
@@ -630,7 +630,7 @@ n  */
                     if(sendMessageButton != null) { //this means a picture has been taken, resetUI
                         resetCameraUI();
                     }
-                    cancelMessageButton = (Button)getActivity().
+                    cancelMessageButton = (ImageButton)getActivity().
                             findViewById(R.id.button_cancel_message);
                     cancelMessageButton.setVisibility(View.INVISIBLE);
                     stopMessageMode();
@@ -1226,8 +1226,8 @@ n  */
 
    public void startReplyMode() {
        Log.i(TAG,"Camera is entering reply mode...");
-       Button cancel;
-       cancel = (Button)getView().findViewById(R.id.button_cancel_message);
+       ImageButton cancel;
+       cancel = (ImageButton)getView().findViewById(R.id.button_cancel_message);
        cancel.setVisibility(View.VISIBLE);
        cancel.setOnClickListener(cameraButtonInstance);
        currentCameraMode = CAMERA_REPLY_MODE;

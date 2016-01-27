@@ -13,12 +13,10 @@
         android:id="@+id/reply_radical_menu"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:background="@drawable/radical_transition"
-        fab:menu_icon="@drawable/ic_menu"
+        fab:menu_fab_size="mini"
         android:layout_alignParentTop="true"
         android:layout_alignParentStart="true"
         android:layout_alignBottom="@+id/editText_reply_comment"
-        android:layout_margin="10dp"
         android:visibility="gone">
 
         <com.github.clans.fab.FloatingActionButton
@@ -66,7 +64,6 @@
         android:layout_marginBottom="5dp"
         android:layout_marginRight="5dp"
         android:layout_toLeftOf="@+id/button_send_reply"
-        android:layout_alignBottom="@+id/button_send_reply"
         android:layout_toEndOf="@+id/button_reply_capture" />
 
 

@@ -490,7 +490,7 @@ public class LiveFragment extends Fragment implements
 
         Bundle args = new Bundle();
         args.putString(CURRENT_THREAD_KEY, String.valueOf(currentThread));
-        mListener.setCurrentThread(String.valueOf(currentThread),getCurrentTopicARN());
+        mListener.setCurrentThread(String.valueOf(currentThread),getCurrentTopicARN(),getCurrentRepliesCount());
 
         mAdapter.updateViews();
 
@@ -572,6 +572,15 @@ public class LiveFragment extends Fragment implements
         return out;
     }
 
+    private String getCurrentRepliesCount() {
+        LiveThreadFragment f = mAdapter.getCurrentFragment();
+        if (f!=null) {
+            return f.getReplyCount();
+        } else {
+            return "";
+        }
+    }
+
 
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
@@ -606,7 +615,7 @@ public class LiveFragment extends Fragment implements
         if (mAdapter!= null) {
             Log.i(TAG, "Live cursor finished loading data");
             mAdapter.swapCursor(data);
-            mListener.setCurrentThread(String.valueOf(getCurrentThreadID()),getCurrentTopicARN());
+            mListener.setCurrentThread(String.valueOf(getCurrentThreadID()),getCurrentTopicARN(),getCurrentRepliesCount());
             threadPager.setAdapter(mAdapter);
 
             Log.d(TAG, "Returned cursor contains: " + data.getCount() + " rows.");
@@ -638,12 +647,13 @@ public class LiveFragment extends Fragment implements
         //void setAnalyticsScreenName(String name);
         void sendMsgRequestLiveThreads();
         void sendMsgRequestReplies(int threadID);
-        void setCurrentThread(String threadID,String topicARN);
+        void setCurrentThread(String threadID,String topicARN,String repliesCount);
         void takeLivePicture();
         void saveToStash(PhotoView imageToSave);
         String getCurrentThread();
         String getCurrentTopicARN();
         void swapTopics(String newTopic);
+        String getCurrentRepliesCount();
     }
 
 

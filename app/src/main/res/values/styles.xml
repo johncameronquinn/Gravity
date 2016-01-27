@@ -29,9 +29,9 @@
 
     <style name="LiveFabMenu">
         <item name="menu_shadowColor">#444</item>
-        <item name="menu_colorNormal">@color/cyber_dark_blue</item>
-        <item name="menu_colorPressed">@color/cyber_light_blue</item>
-        <item name="menu_colorRipple">@color/cyber_grey</item>
+        <item name="menu_colorNormal">@color/button_background</item>
+        <item name="menu_colorPressed">@color/panel_background</item>
+        <item name="menu_colorRipple">@color/panel_background</item>
         <item name="menu_labels_position">right</item>
         <item name="menu_labels_colorPressed">@color/clear_background</item>
         <item name="menu_labels_colorRipple">@color/clear_background</item>

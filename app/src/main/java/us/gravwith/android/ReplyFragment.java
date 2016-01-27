@@ -55,6 +55,8 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
     private RelativeLayout textingLayoutView;
     private FloatingActionMenu radicalMenuView;
 
+    private TextView replyCountView;
+
     private static ReplyButtonListener replyButtonListener;
 
     /*
@@ -216,7 +218,7 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
         radicalMenuView = (FloatingActionMenu)textingLayoutView.findViewById(R.id.reply_radical_menu);
         radicalMenuView.setOnMenuToggleListener(this);
         replyErrorText = (TextView)v.findViewById(R.id.textView_reply_error);
-
+        replyCountView = (TextView)v.findViewById(R.id.textView_reply_count);
 
         v.setOnTouchListener(new View.OnTouchListener() {
             @Override
@@ -263,6 +265,7 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
         radicalMenuView = null;
         textingLayoutView = null;
         replyErrorText = null;
+        replyCountView = null;
 
         super.onDestroyView();
     }
@@ -327,6 +330,7 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
             b.putString(SQLiteDbContract.LiveReplies.COLUMN_NAME_THREAD_ID,
                     mListener.getCurrentThread());
             getLoaderManager().restartLoader(REPLY_LOADER_ID, b, this);
+            replyCountView.setText(mListener.getCurrentRepliesCount());
         }
     }
 

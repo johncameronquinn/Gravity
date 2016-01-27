@@ -1,7 +1,5 @@
 <resources>
     <!-- Default screen margins, per the Android Design guidelines. -->
-    <dimen name="activity_horizontal_margin">16dp</dimen>
-    <dimen name="activity_vertical_margin">16dp</dimen>
     <dimen name="fragment_local_center_text">50dp</dimen>
     <dimen name="arrow_margin">20dp</dimen>
     <dimen name="thumbSize">160dp</dimen>
@@ -12,7 +10,7 @@
     <dimen name="radical_margin">8dp</dimen>
     <dimen name="button_width">65dp</dimen>
 
-    <dimen name="side_screen_margin">16dp</dimen>
+
     <dimen name="radical_bottom_screen_margin">20dp</dimen>
     <dimen name="local_card_margin">85dp</dimen>
     <dimen name="text_font_size">12sp</dimen>
@@ -20,4 +18,16 @@
     <dimen name="autofocus_size">40dp</dimen>
 
     <dimen name="listView_spacing_all">8dp</dimen>
+
+   <dimen name="activity_horizontal_margin">16dp</dimen>
+   <dimen name="activity_vertical_margin">16dp</dimen>
+
+   <!-- Gravity SET Design -->
+
+   <dimen name="thumb_size">112dp</dimen>
+   <dimen name="info_bar_height">25dp</dimen>
+   <dimen name="panel_height">57dp</dimen>
+   <dimen name="reply_text_margin_left">16dp</dimen>
+   <dimen name="divider_height">1dp</dimen>
+   <dimen name="side_screen_margin">16dp</dimen>
 </resources>
