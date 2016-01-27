@@ -7,11 +7,11 @@
 
         <item name="android:colorBackground">@color/cyber_background</item>
         <item name="android:colorForeground">@color/cyber_black</item>
-        <item name="android:textColorPrimary">@color/cyber_dark_orange</item>
-        <item name="android:windowBackground">@color/cyber_background</item>
-        <item name="android:textColorSecondary">@color/cyber_light_orange</item>
-        <item name="android:textColorPrimaryInverse">@color/cyber_light_blue</item>
-        <item name="android:textColorSecondaryInverse">@color/cyber_light_blue</item>
+        <item name="android:textColorPrimary">@android:color/white</item>
+        <item name="android:windowBackground">@color/panel_background</item>
+        <item name="android:textColorSecondary">@android:color/white</item>
+        <item name="android:textColorPrimaryInverse">@android:color/black</item>
+        <item name="android:textColorSecondaryInverse">@android:color/black</item>
     </style>
 
     <style name="StashTheme" parent="@android:style/Theme.Holo">
@@ -43,8 +43,12 @@
     <style name="GravityListView">
         <item name="android:divider">@color/listview_background_color</item>
         <item name="android:background">@color/listview_background_color</item>
-        <item name="android:dividerHeight">@dimen/listView_spacing_all</item>
-        <item name="android:padding">@dimen/listView_spacing_all</item>
+        <item name="android:dividerHeight">@dimen/divider_height</item>
+        <!--item name="android:padding">@dimen/listView_spacing_all</item>-->
+    </style>
+
+    <style name="LiveInfoBar">
+        <item name="android:background">@color/info_bar_color</item>
     </style>
 
     <style name="FullscreenTheme" parent="AppTheme">
@@ -61,7 +65,7 @@
 
     <style name="radicalContentButton">
         <item name="android:layout_width">match_parent</item>
-        <item name="android:layout_height">@dimen/button_height</item>
+        <!--item name="android:layout_height">@dimen/button_height</item>-->
         <item name="android:layout_marginBottom">8dp</item>
         <item name="android:scaleType">fitXY</item>
         <item name="android:onClick">onNotImplemented</item>

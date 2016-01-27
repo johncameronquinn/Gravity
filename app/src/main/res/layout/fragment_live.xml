@@ -55,7 +55,8 @@
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
         android:paddingTop="10dp"
-        android:id="@+id/linearLayout2">
+        android:id="@+id/linearLayout2"
+        android:background="#9e000000">
 
         <TextView
             android:layout_width="wrap_content"
@@ -70,13 +71,14 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:padding="5dp"
-            android:layout_marginTop="10dp">
+            android:layout_marginTop="10dp"
+            style="@style/LiveInfoBar">
 
             <TextView
                 android:id="@+id/textView_unique_posters"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textAppearance="?android:attr/textAppearanceSmall"
+                android:textAppearance="?android:attr/textAppearanceSmallInverse"
                 android:text="000"
                 android:layout_weight="1"
                 android:gravity="center"/>
@@ -85,7 +87,7 @@
                 android:id="@+id/textView_relative_time"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textAppearance="?android:attr/textAppearanceSmall"
+                android:textAppearance="?android:attr/textAppearanceSmallInverse"
                 android:text="00s"
                 android:layout_weight="1"
                 android:gravity="center" />
@@ -94,7 +96,7 @@
                 android:id="@+id/textView_reply_count"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textAppearance="?android:attr/textAppearanceSmall"
+                android:textAppearance="?android:attr/textAppearanceSmallInverse"
                 android:text="000"
                 android:layout_weight="1"
                 android:gravity="center"/>

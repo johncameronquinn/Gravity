@@ -156,7 +156,7 @@ public class PhotoThumbnailFragment extends Fragment implements
          * be adjusted for specific display sizes, etc. in the dimens.xml file for a particular
          * values-<qualifier> directory
          */
-        int pixelSize = getResources().getDimensionPixelSize(R.dimen.thumbSize);
+        int pixelSize = getResources().getDimensionPixelSize(R.dimen.thumb_size);
 
         /*
          * Calculates a width scale factor from the pixel width of the current display and the

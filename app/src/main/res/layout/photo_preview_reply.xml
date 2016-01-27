@@ -45,7 +45,7 @@
         android:id="@+id/button_send_reply"
         android:layout_gravity="center_horizontal|bottom"
         android:visibility="visible"
-        android:layout_marginBottom="@dimen/local_card_margin"
+        android:layout_marginBottom="@dimen/activity_horizontal_margin"
         android:background="@drawable/ic_camera_confirm"/>
 
 </FrameLayout>

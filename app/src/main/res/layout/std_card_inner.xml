@@ -31,7 +31,7 @@
         android:layout_alignParentBottom="true"
         android:layout_marginBottom="@dimen/side_screen_margin"
         android:background="@drawable/ic_comment"
-        android:layout_marginRight="@dimen/local_card_margin"
+        android:layout_marginRight="@dimen/side_screen_margin"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"
         android:layout_marginLeft="@dimen/side_screen_margin"

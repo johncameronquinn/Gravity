@@ -46,12 +46,12 @@
         android:layout_alignParentStart="true"
         android:enabled="false"
         fab:fab_size="mini"
-        fab:fab_showShadow="true"
+        fab:fab_showShadow="false"
         fab:fab_colorDisabled="@color/cyber_grey"
         fab:fab_colorNormal="@color/cyber_background"
         fab:fab_colorPressed="@color/cyber_grey"
         fab:fab_colorRipple="@color/cyber_black"
-        android:src="@android:drawable/ic_input_add"
+        android:src="@drawable/panel"
         android:id="@+id/button_reply_capture"/>
 
     <EditText
@@ -80,12 +80,12 @@
         android:layout_alignParentStart="false"
         android:enabled="false"
         fab:fab_size="mini"
-        fab:fab_showShadow="true"
+        fab:fab_showShadow="false"
         fab:fab_colorDisabled="@color/cyber_grey"
-        fab:fab_colorNormal="@color/cyber_dark_blue"
-        fab:fab_colorPressed="@color/cyber_light_blue"
-        fab:fab_colorRipple="@color/cyber_light_blue"
-        android:src="@drawable/ic_quick_send" />
+        fab:fab_colorNormal="@color/cyber_background"
+        fab:fab_colorPressed="@color/cyber_grey"
+        fab:fab_colorRipple="@color/cyber_black"
+        android:src="@drawable/ic_right_arrow" />
 
 
 </RelativeLayout>

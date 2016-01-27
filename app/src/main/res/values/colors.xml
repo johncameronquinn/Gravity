@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="button_background">#5b5f5d40</color>
     <color name="image_bg">#7bebc791</color>
     <color name="adapter_bg">#ffcc9b66</color>
     <color name="image_outer_bg">#ffffc69e</color>
@@ -17,36 +16,47 @@
     <color name="cyber_dark_orange">#ffab40</color>
     <color name="cyber_grey">#9e9e9e</color>
     <color name="cyber_grey_alpha">#757575</color>
-    <color name="listview_background_color">#505050</color>
+    <color name="listview_background_color">#000000</color>
     <color name="cyber_black">#180909</color>
 
     <color name="jpallete_main_grey">#e8f3ff</color>
 
-  <!--  <color name="pallete_main_orange">#ff7400</color>
-    <color name="pallete_main_blue">#0FAAE8</color>
-    <color name="pallete_accent_orange">#F7941E</color>
-    <color name="pallete_accent_blue">#6DCFF6</color>
-    <color name="pallete_accent_blue_alpha">#786dcff6</color>
-    <color name="pallete_accent_gray">#424242</color>
+    <color name="button_background">#333333</color>
+    <color name="panel_background">#1A1A1A</color>
+    <color name="text_color">#F2F2F2</color>
+    <color name="info_bar_color">#B3B3B3</color>
+    <color name="edit_text_color">#B3B3B3</color>
+    <color name="time_stamp_color">#B3B3B3</color>
+    <color name="live_overlay_color">#28B3B3B3</color>
+    <color name="reply_overlay_color">#28FF530D</color>
 
 
-    <color name="wpallete_main_purple">#7F11A3</color>
-    <color name="wpallete_accent_purple">#CD90E1</color>
-    <color name="wpallete_neutral_gray">#5B555D</color>
-    <color name="wpallete_accent_blue">#A8C5E0</color>
-    <color name="wpallete_main_blue">#348ADB</color>
-    <color name="wpallete_accent_blue_alpha">#786dcff6</color>
-    <color name="wpallete_complementary_green">#9AEF5B</color>
 
-    <color name="jpallete_main_blue">#5d8bea</color>
+   <!--  <color name="pallete_main_orange">#ff7400</color>
+     <color name="pallete_main_blue">#0FAAE8</color>
+     <color name="pallete_accent_orange">#F7941E</color>
+     <color name="pallete_accent_blue">#6DCFF6</color>
+     <color name="pallete_accent_blue_alpha">#786dcff6</color>
+     <color name="pallete_accent_gray">#424242</color>
 
-    <color name="jpallete_main_green">#00c44b</color>
-    <color name="jpallete_neutral_blue">#80f2e6</color>
-    <color name="jpallete_neutral_green">#24F24C</color>
-    <color name="jpallete_accent_purple">#636C7F</color>
-    <color name="jpallete_accent_grey">#648063</color>
-    <color name="jpallete_accent_orange">#F38C08</color>
-    <color name="jpallete_accent_peach">#FEF18D</color>-->
+
+     <color name="wpallete_main_purple">#7F11A3</color>
+     <color name="wpallete_accent_purple">#CD90E1</color>
+     <color name="wpallete_neutral_gray">#5B555D</color>
+     <color name="wpallete_accent_blue">#A8C5E0</color>
+     <color name="wpallete_main_blue">#348ADB</color>
+     <color name="wpallete_accent_blue_alpha">#786dcff6</color>
+     <color name="wpallete_complementary_green">#9AEF5B</color>
+
+     <color name="jpallete_main_blue">#5d8bea</color>
+
+     <color name="jpallete_main_green">#00c44b</color>
+     <color name="jpallete_neutral_blue">#80f2e6</color>
+     <color name="jpallete_neutral_green">#24F24C</color>
+     <color name="jpallete_accent_purple">#636C7F</color>
+     <color name="jpallete_accent_grey">#648063</color>
+     <color name="jpallete_accent_orange">#F38C08</color>
+     <color name="jpallete_accent_peach">#FEF18D</color>-->
 
     <color name="black_overlay">#66000000</color>
 </resources>

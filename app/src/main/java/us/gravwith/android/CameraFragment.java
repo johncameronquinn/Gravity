@@ -27,6 +27,9 @@ import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
+
+import com.github.clans.fab.FloatingActionButton;
 
 import java.lang.ref.WeakReference;
 
@@ -457,11 +460,13 @@ n  */
         private Button flashButton;
         private Button cancelButton;
         //private Button localButton;
-        private Button liveButton;
+        private FloatingActionButton liveButton;
 
         private Button sendMessageButton;
         private Button liveCaptureButton;
         private Button cancelMessageButton;
+
+        private LinearLayout sendLayout;
 
         @Override
         public void onClick(View v) {
@@ -482,7 +487,8 @@ n  */
                             captureButton = (ImageButton) v;
                             switchButton = (Button) mActivity.findViewById(R.id.switch_camera);
                             flashButton = (Button) mActivity.findViewById(R.id.button_flash);
-                            liveButton = (Button) mActivity.findViewById(R.id.button_live);
+                            liveButton = (FloatingActionButton) mActivity.findViewById(R.id.button_live);
+                            sendLayout = (LinearLayout)mActivity.findViewById(R.id.layout_camera_send);
                             //localButton = (Button) mActivity.findViewById(R.id.button_local);
                             cancelButton = (Button) mActivity.findViewById(R.id.button_cancel);
                             mListener.sendMsgTakePicture();
@@ -569,7 +575,7 @@ n  */
                     mListener.sendMsgSaveImage(commentText, CAMERA_LIVE_MODE); //save the image
                     setCameraUI(CAMERA_LIVE_MODE);
 
-                    liveButton.setVisibility(View.INVISIBLE);
+                    sendLayout.setVisibility(View.INVISIBLE);
                     cancelButton.setVisibility(View.INVISIBLE);
                     //localButton.setVisibility(View.INVISIBLE);
 
@@ -666,7 +672,7 @@ n  */
 
                     cancelButton.bringToFront();
                     //localButton.bringToFront();
-                    liveButton.bringToFront();
+                    sendLayout.bringToFront();
 
                     //captureButton.setVisibility(View.INVISIBLE);
                     captureLayout.setVisibility(View.INVISIBLE);
@@ -678,7 +684,7 @@ n  */
 
                     cancelButton.setVisibility(View.VISIBLE);
                     //localButton.setVisibility(View.VISIBLE);
-                    liveButton.setVisibility(View.VISIBLE);
+                    sendLayout.setVisibility(View.VISIBLE);
 
                     //localButton.setOnClickListener(this);
                     liveButton.setOnClickListener(this);
@@ -779,7 +785,7 @@ n  */
 
                     cancelButton.setVisibility(View.INVISIBLE);
                     //localButton.setVisibility(View.INVISIBLE);
-                    liveButton.setVisibility(View.INVISIBLE);
+                    sendLayout.setVisibility(View.INVISIBLE);
 
                     break;
 
@@ -885,7 +891,7 @@ n  */
                         Log.i(TAG, "success!");
                     } else {
                         //since the operation failed, make the dodad's shake_neg now.
-                        Animation shakeneg = AnimationUtils.loadAnimation(getActivity(),
+                        /*Animation shakeneg = AnimationUtils.loadAnimation(getActivity(),
                                 R.anim.shake_neg);
 
                         Animation shakepos = AnimationUtils.loadAnimation(getActivity(),
@@ -900,7 +906,7 @@ n  */
                         //set the layout to return to its start AFTER the shake_neg finishes
                         animator.setStartDelay(shakepos.getDuration());
 
-                        //logs the failure
+                        //logs the failure*/
                         Log.i(TAG, "fail!");
                     }
 
