@@ -293,6 +293,7 @@ public class LiveFragment extends Fragment implements
 
     @Override
     public void onDestroyView() {
+        if (VERBOSE) Log.v(TAG,"entering onDestroyView...");
 
         //threadPager.setAdapter(null);
         threadPager.setOnPageChangeListener(null);
@@ -303,6 +304,7 @@ public class LiveFragment extends Fragment implements
         replyView = null;
         timeView = null;
 
+        if (VERBOSE) Log.v(TAG,"exiting onDestroyView...");
         super.onDestroyView();
     }
 /***************************************************************************************************
@@ -343,7 +345,7 @@ public class LiveFragment extends Fragment implements
         if (VERBOSE) Log.v(TAG,"entering triggerLiveRefresh...");
 
         mListener.sendMsgRequestLiveThreads();
-        threadPager.setAdapter(null);
+        //threadPager.setAdapter(null);
         hasRefreshed = true;
 
         if (VERBOSE) Log.v(TAG,"exiting triggerLiveRefresh...");
@@ -633,7 +635,7 @@ public class LiveFragment extends Fragment implements
             //todo, show text that explains to the user what message is and how use
         }
 
-        if (mAdapter!= null) {
+        if (mAdapter != null) {
             Log.i(TAG, "Live cursor finished loading data");
             mAdapter.swapCursor(data);
             mListener.setCurrentThread(String.valueOf(getCurrentThreadID()), getCurrentTopicARN(), getCurrentRepliesCount());

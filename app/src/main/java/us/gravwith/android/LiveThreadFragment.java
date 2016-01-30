@@ -241,11 +241,20 @@ public class LiveThreadFragment extends Fragment implements View.OnClickListener
 
     @Override
     public void onSaveInstanceState(Bundle outState) {
-        super.onSaveInstanceState(outState);
         if (LiveFragment.VERBOSE) Log.v(TAG, "entering onSaveInstanceState...");
 
         outState.putString(Constants.KEY_S3_KEY, mImageKey);
         if (LiveFragment.VERBOSE) Log.v(TAG, "exiting onSaveInstanceState...");
+        super.onSaveInstanceState(outState);
+    }
+
+    @Override
+    public void onViewStateRestored(Bundle savedInstanceState) {
+        super.onViewStateRestored(savedInstanceState);
+        if (LiveFragment.VERBOSE) Log.v(TAG, "entering onViewStateRestored...");
+        if (savedInstanceState!=null) {
+        }
+        if (LiveFragment.VERBOSE) Log.v(TAG, "exiting onViewStateRestored...");
     }
 
     @Override

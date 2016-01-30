@@ -2113,6 +2113,8 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
             } catch (RemoteException e) {
                 Log.e(TAG,"error sending message to create request live threads",e);
             }
+        } else {
+            Log.i(TAG,"service was not bound!...");
         }
     }
 
