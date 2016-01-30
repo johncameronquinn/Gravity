@@ -144,10 +144,11 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:button="@null"
-        android:background="@drawable/ic_switch_camera_default"
+        android:background="@drawable/ic_switch_camera"
         android:layout_gravity="left|bottom"
-        android:layout_margin="@dimen/activity_horizontal_margin"
-        android:visibility="invisible" />
+        android:visibility="visible"
+        android:layout_marginBottom="35dp"
+        android:layout_marginLeft="@dimen/activity_horizontal_margin" />
 
     <Button
         android:layout_width="wrap_content"

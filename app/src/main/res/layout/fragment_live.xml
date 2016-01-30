@@ -66,11 +66,14 @@
             android:id="@+id/textView_title"
             android:layout_gravity="center" />
 
-        <LinearLayout
+        <RelativeLayout
             android:orientation="horizontal"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:padding="5dp"
+            android:paddingTop="5dp"
+            android:paddingBottom="5dp"
+            android:paddingStart="@dimen/activity_horizontal_margin"
+            android:paddingEnd="@dimen/activity_horizontal_margin"
             android:layout_marginTop="10dp"
             style="@style/LiveInfoBar">
 
@@ -80,8 +83,9 @@
                 android:layout_height="wrap_content"
                 android:textAppearance="?android:attr/textAppearanceSmallInverse"
                 android:text="000"
-                android:layout_weight="1"
-                android:gravity="center"/>
+                android:drawableStart="@drawable/ic_posters"
+                android:drawablePadding="@dimen/info_drawable_padding"
+                android:gravity="start" />
 
             <TextView
                 android:id="@+id/textView_relative_time"
@@ -89,8 +93,9 @@
                 android:layout_height="wrap_content"
                 android:textAppearance="?android:attr/textAppearanceSmallInverse"
                 android:text="00s"
-                android:layout_weight="1"
-                android:gravity="center" />
+                android:drawableStart="@drawable/ic_clock"
+                android:drawablePadding="@dimen/info_drawable_padding"
+                android:layout_centerInParent="true" />
 
             <TextView
                 android:id="@+id/textView_reply_count"
@@ -98,10 +103,12 @@
                 android:layout_height="wrap_content"
                 android:textAppearance="?android:attr/textAppearanceSmallInverse"
                 android:text="000"
-                android:layout_weight="1"
-                android:gravity="center"/>
+                android:drawableStart="@drawable/ic_replies"
+                android:drawablePadding="@dimen/info_drawable_padding"
+                android:layout_alignParentRight="true"
+                android:layout_centerHorizontal="true" />
 
-        </LinearLayout>
+        </RelativeLayout>
 
 
     </LinearLayout>

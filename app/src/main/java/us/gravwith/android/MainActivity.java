@@ -2537,7 +2537,7 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
                     @Override
                     public void run() {
                         ((CheckBox)findViewById(R.id.switch_camera))
-                                .setBackgroundResource(R.drawable.ic_switch_camera_selfie);
+                                .setBackgroundResource(R.drawable.ic_switch_camera);
 
                     }
                 });
@@ -2549,7 +2549,7 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
                     @Override
                     public void run() { //todo random crashes occur - sometimes the view isn't ready
                         CheckBox v = ((CheckBox)findViewById(R.id.switch_camera));
-                        if (v != null) v.setBackgroundResource(R.drawable.ic_switch_camera_default);
+                        if (v != null) v.setBackgroundResource(R.drawable.ic_switch_camera);
                     }
                 });
             }
