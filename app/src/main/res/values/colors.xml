@@ -16,21 +16,25 @@
     <color name="cyber_dark_orange">#ffab40</color>
     <color name="cyber_grey">#9e9e9e</color>
     <color name="cyber_grey_alpha">#757575</color>
-    <color name="listview_background_color">#000000</color>
+
     <color name="cyber_black">#180909</color>
 
     <color name="jpallete_main_grey">#e8f3ff</color>
+
+    <color name="listview_background_color">#757575</color>
+
 
     <color name="button_background">#333333</color>
     <color name="panel_background">#1A1A1A</color>
     <color name="text_color">#F2F2F2</color>
     <color name="info_bar_color">#B3B3B3</color>
     <color name="edit_text_color">#B3B3B3</color>
-    <color name="time_stamp_color">#B3B3B3</color>
     <color name="live_overlay_color">#28B3B3B3</color>
     <color name="reply_overlay_color">#28FF530D</color>
 
-
+    <!-- reply row colors -->
+    <color name="reply_body_text_color">#FFFFFF</color>
+    <color name="time_stamp_color">#B3B3B3</color>
 
    <!--  <color name="pallete_main_orange">#ff7400</color>
      <color name="pallete_main_blue">#0FAAE8</color>

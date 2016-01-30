@@ -27,6 +27,16 @@
         <item name="fab_colorRipple">@color/panel_background</item>
     </style>
 
+    <style name="FabMini">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:onClick">onNotImplemented</item>
+        <item name="fab_size">mini</item>
+        <item name="fab_colorNormal">@color/info_bar_color</item>
+        <item name="fab_colorPressed">@color/button_background</item>
+        <item name="fab_colorRipple">@color/button_background</item>
+    </style>
+
     <style name="LiveFabMenu">
         <item name="menu_shadowColor">#444</item>
         <item name="menu_colorNormal">@color/button_background</item>
@@ -44,7 +54,6 @@
         <item name="android:divider">@color/listview_background_color</item>
         <item name="android:background">@color/listview_background_color</item>
         <item name="android:dividerHeight">@dimen/divider_height</item>
-        <item name="android:padding">6dp</item>
     </style>
 
     <style name="LiveInfoBar">

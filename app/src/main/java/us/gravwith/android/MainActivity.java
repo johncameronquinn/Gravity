@@ -64,6 +64,8 @@ import com.amazonaws.mobile.AWSMobileClient;
 import com.amazonaws.mobile.user.IdentityManager;
 
 //import us.gravwith.android.dev.ContentDeliveryDemoFragment;
+import org.xml.sax.ErrorHandler;
+
 import us.gravwith.android.dev.DeveloperFragment;
 import us.gravwith.android.util.ImageUtils;
 import us.gravwith.android.util.LogUtils;
@@ -2447,11 +2449,11 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
                         }
                         mCamera.startPreview();
                     } else {
-                        Log.e(TAG,"mCamera is not connected...");
+                        Log.e(TAG, "mCamera is not connected...");
                     }
 
                     if (cameraInfo.facing == Camera.CameraInfo.CAMERA_FACING_FRONT) {
-                        mCamera.setDisplayOrientation(cameraInfo.orientation-180);
+                        mCamera.setDisplayOrientation(cameraInfo.orientation - 180);
                     } else {
                         mCamera.setDisplayOrientation(cameraInfo.orientation);
                     }
@@ -2536,32 +2538,14 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
 
             if (c != null) {
                 isConnected = true;
-                
-            if (cameraInfo.facing == Camera.CameraInfo.CAMERA_FACING_FRONT) {
-                c.setDisplayOrientation(cameraInfo.orientation - 180);
 
-                mWeakActivity.get().runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        ((CheckBox)findViewById(R.id.switch_camera))
-                                .setBackgroundResource(R.drawable.ic_switch_camera);
+                if (cameraInfo.facing == Camera.CameraInfo.CAMERA_FACING_FRONT) {
+                    c.setDisplayOrientation(cameraInfo.orientation - 180);
+                } else {
+                    c.setDisplayOrientation(cameraInfo.orientation);
+                }
 
-                    }
-                });
-
-            } else {
-                c.setDisplayOrientation(cameraInfo.orientation);
-
-                mWeakActivity.get().runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() { //todo random crashes occur - sometimes the view isn't ready
-                        CheckBox v = ((CheckBox)findViewById(R.id.switch_camera));
-                        if (v != null) v.setBackgroundResource(R.drawable.ic_switch_camera);
-                    }
-                });
-            }
-
-            int width = mWeakActivity.get().getResources().getDisplayMetrics().widthPixels;
+                int width = mWeakActivity.get().getResources().getDisplayMetrics().widthPixels;
             int height = mWeakActivity.get().getResources().getDisplayMetrics().heightPixels;
 
             parameters = c.getParameters();
@@ -2651,8 +2635,13 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
             image = BitmapFactory.decodeByteArray(data, 0, data.length, options);
 
             //rotate bitmap based on camera's current orientation
+
             Matrix matrix = new Matrix();
             matrix.postRotate(cameraInfo.orientation);
+            if (cameraInfo.facing == Camera.CameraInfo.CAMERA_FACING_FRONT) {
+                matrix.preScale(-1,1);
+            }
+
             image = Bitmap.createBitmap(image, 0, 0, image.getWidth(),
                     image.getHeight(), matrix, true);
 

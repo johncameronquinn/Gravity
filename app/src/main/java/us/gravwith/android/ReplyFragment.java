@@ -214,9 +214,8 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
         textingLayoutView = (RelativeLayout)
                 inflater.inflate(R.layout.listview_footer_texting, mListView, false);
 
-
-        radicalMenuView = (FloatingActionMenu)textingLayoutView.findViewById(R.id.reply_radical_menu);
-        radicalMenuView.setOnMenuToggleListener(this);
+        radicalMenuView = (FloatingActionMenu)v.findViewById(R.id.reply_radical_menu);
+        //radicalMenuView.setOnMenuToggleListener(this);
         replyErrorText = (TextView)v.findViewById(R.id.textView_reply_error);
         replyCountView = (TextView)v.findViewById(R.id.textView_reply_count);
 
@@ -288,9 +287,9 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
                 .findViewById(R.id.button_send_reply)
                 .setOnClickListener(replyButtonListener);
 
-        textingLayoutView.findViewById(R.id.button_reply_refresh).setOnClickListener(replyButtonListener);
-        textingLayoutView.findViewById(R.id.button_reply_report).setOnClickListener(replyButtonListener);
-        textingLayoutView.findViewById(R.id.button_reply_capture).setOnClickListener(replyButtonListener);
+        view.findViewById(R.id.button_reply_refresh).setOnClickListener(replyButtonListener);
+        view.findViewById(R.id.button_reply_report).setOnClickListener(replyButtonListener);
+    //    view.findViewById(R.id.button_reply_capture).setOnClickListener(replyButtonListener);
 
         //anything that requires the UI to already exist goes here
         if (VERBOSE) Log.v(TAG,"exiting onViewCreated...");

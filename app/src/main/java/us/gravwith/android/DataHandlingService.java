@@ -25,6 +25,10 @@ import com.amazonaws.mobileconnectors.s3.transferutility.TransferObserver;
 import com.amazonaws.mobileconnectors.s3.transferutility.TransferState;
 import com.amazonaws.mobileconnectors.s3.transferutility.TransferUtility;
 import com.amazonaws.services.s3.AmazonS3Client;
+import com.amazonaws.services.sns.model.AuthorizationErrorException;
+import com.amazonaws.services.sns.model.EndpointDisabledException;
+import com.amazonaws.services.sns.model.InternalErrorException;
+import com.amazonaws.services.sns.model.NotFoundException;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationListener;
@@ -36,6 +40,7 @@ import java.lang.ref.WeakReference;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.nio.channels.NotYetConnectedException;
+import java.security.InvalidParameterException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -643,28 +648,50 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
                 case MSG_SUBSCRIBE_TO_TOPIC:
                     if (Constants.LOGD) Log.d(TAG, "Received a message to subscribe to a topic.");
 
-
-                    AWSMobileClient.defaultMobileClient()
-                            .getPushManager()
-                            .subscribeToTopicByArn(
-                                    data.getString(
-                                            SQLiteDbContract.LiveEntry.COLUMN_NAME_TOPIC_ARN
-                                    )
-                            );
-
+                    try {
+                        AWSMobileClient.defaultMobileClient()
+                                .getPushManager()
+                                .subscribeToTopicByArn(
+                                        data.getString(
+                                                SQLiteDbContract.LiveEntry.COLUMN_NAME_TOPIC_ARN
+                                        )
+                                );
+                    } catch (InvalidParameterException e) {
+                        Log.e(TAG,"error subscribing to topic...",e);
+                    } catch (EndpointDisabledException e) {
+                        Log.e(TAG,"error subscribing to topic...",e);
+                    } catch (NotFoundException e) {
+                        Log.e(TAG,"error subscribing to topic...",e);
+                    } catch (InternalErrorException e) {
+                        Log.e(TAG,"error subscribing to topic...",e);
+                    } catch (AuthorizationErrorException e) {
+                        Log.e(TAG,"error subscribing to topic...",e);
+                    }
                     return;
 
                 case MSG_UNSUBSCRIBE_FROM_TOPIC:
                     if (Constants.LOGD) Log.d(TAG, "Received a message to unsubscribe from a topic.");
 
-                    AWSMobileClient.defaultMobileClient()
-                            .getPushManager()
-                            .unsubscribeFromTopicByTopicARN(
-                                    data.getString(
-                                            SQLiteDbContract.LiveEntry
-                                                            .COLUMN_NAME_TOPIC_ARN
-                                    )
-                            );
+                    try {
+                        AWSMobileClient.defaultMobileClient()
+                                .getPushManager()
+                                .unsubscribeFromTopicByTopicARN(
+                                        data.getString(
+                                                SQLiteDbContract.LiveEntry
+                                                        .COLUMN_NAME_TOPIC_ARN
+                                        )
+                                );
+                    } catch (InvalidParameterException e) {
+                        Log.e(TAG,"error subscribing to topic...",e);
+                    } catch (EndpointDisabledException e) {
+                        Log.e(TAG,"error subscribing to topic...",e);
+                    } catch (NotFoundException e) {
+                        Log.e(TAG,"error subscribing to topic...",e);
+                    } catch (InternalErrorException e) {
+                        Log.e(TAG,"error subscribing to topic...",e);
+                    } catch (AuthorizationErrorException e) {
+                        Log.e(TAG,"error subscribing to topic...",e);
+                    }
 
                     break;
 

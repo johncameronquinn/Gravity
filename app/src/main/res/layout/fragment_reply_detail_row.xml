@@ -6,15 +6,15 @@
     android:layout_alignParentTop="true"
     android:gravity="top"
     android:background="@drawable/rectangle"
+    android:padding="@dimen/reply_padding"
     android:visibility="visible">
 
     <us.gravwith.android.PhotoView
         android:id="@+id/photoView"
-        android:layout_width="112dp"
-        android:layout_height="112dp"
+        android:layout_width="@dimen/thumb_size"
+        android:layout_height="@dimen/thumb_size"
         android:layout_alignParentStart="true"
         android:visibility="visible"
-        android:minWidth="46sp"
         android:scaleType="centerCrop"
         android:adjustViewBounds="true"/>
 
@@ -32,30 +32,30 @@
         android:id="@+id/reply_detail_row_text"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textSize="18sp"
-        android:gravity="center_vertical|left"
-        android:text="comment text goes here"
+        android:textSize="@dimen/medium_text_size"
+        android:gravity="center_vertical|start"
+        android:text=""
         android:focusable="true"
-        android:textColor="@color/jpallete_main_grey"
+        android:textColor="@color/reply_body_text_color"
         android:layout_below="@+id/reply_detail_row_time"
-        android:layout_toRightOf="@+id/photoView">
+        android:layout_toEndOf="@+id/photoView">
     </TextView>
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="unixtime"
+        android:text=""
         android:id="@+id/reply_detail_row_time"
         android:layout_gravity="end"
         android:gravity="end"
         android:textColor="@color/time_stamp_color"
         android:layout_alignParentEnd="true"
-        android:layout_toRightOf="@+id/photoView"
-        android:textSize="14sp" />
+        android:layout_toEndOf="@+id/photoView"
+        android:textSize="@dimen/small_text_size" />
 
     <Space
         android:layout_width="match_parent"
-        android:layout_height="14sp"
+        android:layout_height="@dimen/small_text_size"
         android:layout_below="@+id/reply_detail_row_text"
         android:id="@+id/space" />
 
