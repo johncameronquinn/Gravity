@@ -38,9 +38,11 @@ import android.support.v13.app.FragmentStatePagerAdapter;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.content.LocalBroadcastManager;
+import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.util.AttributeSet;
 import android.util.Log;
+import android.util.SparseArray;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.MotionEvent;
@@ -65,6 +67,7 @@ import com.amazonaws.mobile.user.IdentityManager;
 import us.gravwith.android.dev.DeveloperFragment;
 import us.gravwith.android.util.ImageUtils;
 import us.gravwith.android.util.LogUtils;
+import us.gravwith.android.view.BaseFragment;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -113,8 +116,6 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
     private static final String LIVE_PAGER_TITLE = "Live";
     private static final String CAMERA_PAGER_TITLE = "Camera";
     private static final String REPLY_PAGER_TITLE = "Reply";
-
-    private static final int NUMBER_OF_FRAGMENTS = 2;
 
     private static WeakReference<MessageFragment> MessageFragReference = new WeakReference<>(null);
     private static WeakReference<CameraFragment> CameraFragReference = new WeakReference<>(null);
@@ -520,16 +521,16 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
 
     @Override
     protected void onRestart() {
-        Log.d(TAG, "entering onRestart...");
+        if (VERBOSE) Log.d(TAG, "entering onRestart...");
         super.onRestart();
         MessageHandler.setLivePostListener(this);
-        Log.d(TAG, "exiting onRestart...");
+        if (VERBOSE) Log.d(TAG, "exiting onRestart...");
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        Log.d(TAG, "enter onResume...");
+        if (VERBOSE) Log.d(TAG, "enter onResume...");
         //mTracker.getSessionClient().resumeSession();
 
         // Obtain a reference to the mobile client. It is created in the Splash Activity.
@@ -560,13 +561,13 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
                 new IntentFilter(PushListenerService.ACTION_SNS_NOTIFICATION));
 
 
-        Log.d(TAG, "exit onResume...");
+        if (VERBOSE) Log.d(TAG, "exit onResume...");
     }
 
     @Override
     protected void onPause() {
         super.onPause();
-        Log.d(TAG, "enter onPause...");
+        if (VERBOSE) Log.d(TAG, "enter onPause...");
 //        mTracker.getSessionClient().pauseSession();
 //        mTracker.getEventClient().submitEvents();
 
@@ -581,7 +582,7 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
         // unregister notification receiver
         LocalBroadcastManager.getInstance(this).unregisterReceiver(notificationReceiver);
 
-        Log.d(TAG, "exit onPause...");
+        if (VERBOSE) Log.d(TAG, "exit onPause...");
     }
 
     @Override

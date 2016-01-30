@@ -42,7 +42,7 @@ import fr.castorflex.android.verticalviewpager.VerticalViewPager;
  */
 public class LiveFragment extends Fragment implements
         LoaderManager.LoaderCallbacks<Cursor>, ViewPager.OnPageChangeListener {
-    public static final boolean VERBOSE = false;
+    public static final boolean VERBOSE = true;
     private static final String TAG = "LiveFragment";
 
     // TODO: Rename parameter arguments, choose names that match
@@ -193,7 +193,11 @@ public class LiveFragment extends Fragment implements
     public void onAttach(Context context) {
         super.onAttach(context);
         mListener = (onLiveFragmentInteractionListener)context;
-        triggerLiveRefresh();
+
+        if (!hasRefreshed) {
+        /* go ahead and get the latest list */
+            triggerLiveRefresh();
+        }
 
         String[] projection = {
                 SQLiteDbContract.LiveEntry.COLUMN_ID,
@@ -211,11 +215,10 @@ public class LiveFragment extends Fragment implements
     //todo, this is a workaround for a bug and can be removed in the future
     public void onAttach(Activity context) {
         super.onAttach(context);
+
         mListener = (onLiveFragmentInteractionListener)context;
         mListener.sendMsgRequestLiveThreads();
     }
-
-
 
     @Override
     public void onSaveInstanceState(Bundle outState) {
@@ -633,8 +636,9 @@ public class LiveFragment extends Fragment implements
         if (mAdapter!= null) {
             Log.i(TAG, "Live cursor finished loading data");
             mAdapter.swapCursor(data);
-            mListener.setCurrentThread(String.valueOf(getCurrentThreadID()),getCurrentTopicARN(),getCurrentRepliesCount());
+            mListener.setCurrentThread(String.valueOf(getCurrentThreadID()), getCurrentTopicARN(), getCurrentRepliesCount());
             threadPager.setAdapter(mAdapter);
+            updateViews((LiveThreadFragment)mAdapter.getItem(threadPager.getCurrentItem()));
 
             Log.d(TAG, "Returned cursor contains: " + data.getCount() + " rows.");
 

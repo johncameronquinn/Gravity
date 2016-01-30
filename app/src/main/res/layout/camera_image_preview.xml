@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:fab="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <ImageView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:id="@+id/camera_image_view"
+        android:layout_gravity="center"
+        android:scaleType="fitXY" />
+
+    <LinearLayout
+        android:id="@+id/layout_camera_send"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:background="@color/live_overlay_color"
+        android:orientation="horizontal">
+
+        <com.github.clans.fab.FloatingActionButton
+            android:id="@+id/button_local"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            fab:fab_colorDisabled="@color/cyber_grey"
+            fab:fab_colorNormal="@color/panel_background"
+            fab:fab_colorPressed="@color/cyber_light_blue"
+            fab:fab_colorRipple="@color/cyber_light_blue"
+            android:src="@drawable/ic_left_arrow"
+            android:layout_weight="0"
+            fab:fab_size="mini"
+            android:visibility="invisible" />
+
+        <EditText
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/commentText"
+            android:gravity="center_horizontal"
+            android:visibility="visible"
+            android:textSize="18sp"
+            android:layout_weight="1"
+            android:hint="Caption" />
+
+        <com.github.clans.fab.FloatingActionButton
+            android:id="@+id/button_live"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            fab:fab_colorDisabled="@color/clear_background"
+            fab:fab_colorNormal="@color/clear_background"
+            fab:fab_colorPressed="@color/panel_background"
+            fab:fab_colorRipple="@color/panel_background"
+            fab:fab_showShadow="false"
+            android:src="@drawable/ic_right_arrow"
+            android:layout_weight="0"
+            fab:fab_size="mini"
+            android:layout_marginRight="@dimen/activity_horizontal_margin" />
+
+    </LinearLayout>
+
+
+    <ImageButton
+        android:id="@+id/button_cancel_message"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:visibility="visible"
+        android:src="@drawable/ic_cancel"
+        android:background="@android:color/transparent"
+        android:padding="10dp"
+        android:layout_margin="@dimen/activity_horizontal_margin" />
+
+    <ImageButton
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/ic_cancel"
+        android:id="@+id/button_cancel"
+        android:visibility="visible"
+        android:background="@android:color/transparent"
+        android:padding="10dp"
+        android:layout_marginTop="@dimen/activity_horizontal_margin"
+        android:layout_margin="@dimen/activity_horizontal_margin" />
+
+</FrameLayout>
