@@ -19,42 +19,12 @@ public class CursorPagerAdapter<F extends Fragment> extends FragmentStatePagerAd
     private Cursor cursor;
     private LiveThreadFragment mThreadFragment;
 
-    private TextView uniqueView;
-    private TextView replyView;
-    private TextView timeView;
-    private TextView titleView;
-
     public CursorPagerAdapter(FragmentManager fm, Class<F> fragmentClass, String[] projection, Cursor cursor) {
         super(fm);
         this.fragmentClass = fragmentClass;
         this.projection = projection;
         this.cursor = cursor;
     }
-
-    public void setDisplayViews(TextView titleView, TextView uniqView, TextView replyView, TextView timeView) {
-        this.titleView = titleView;
-        uniqueView = uniqView;
-        this.replyView = replyView;
-        this.timeView = timeView;
-    }
-
-    public void updateViews() {
-        if (uniqueView != null) {
-
-            if (mThreadFragment == null) {
-                titleView.setText("");
-                uniqueView.setText("");
-                timeView.setText("");
-                replyView.setText("");
-            } else {
-                titleView.setText(mThreadFragment.getTitle());
-                uniqueView.setText(mThreadFragment.getUniqueCount());
-                timeView.setText(mThreadFragment.getRelativeTime());
-                replyView.setText(mThreadFragment.getReplyCount());
-            }
-        }
-    }
-
 
     @Override
     public F getItem(int position) {

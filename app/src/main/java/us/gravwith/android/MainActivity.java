@@ -707,7 +707,7 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
         sendMsgReportAnalyticsEvent(b);
 
         CameraFragment.setMessageTarget(arn);
-        CameraFragReference.get().startMessageMode((String)arn);
+        CameraFragReference.get().startMessageMode((String) arn);
         mPager.setCurrentItem(CAMERA_LIST_POSITION);
         mPager.setPagingEnabled(false);
     }
@@ -1030,12 +1030,16 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
 
     public void takeLivePicture() {
         mPager.setCurrentItem(CAMERA_LIST_POSITION);
-        CameraFragReference.get().startLiveMode();
+        if (CameraFragReference.get()!=null) {
+            CameraFragReference.get().startLiveMode();
+        }
     }
 
     public void takeReplyPicture() {
         mPager.setCurrentItem(CAMERA_LIST_POSITION);
-        CameraFragReference.get().startReplyMode();
+        if (CameraFragReference.get()!=null) {
+            CameraFragReference.get().startReplyMode();
+        }
     }
 
     public void sendMsgRequestReplies(int threadNumber) {

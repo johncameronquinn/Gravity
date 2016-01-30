@@ -104,7 +104,7 @@ public class LiveThreadFragment extends Fragment implements View.OnClickListener
     }
 
     public String getRelativeTime(){
-        return Utility.getDateStringFromLong((System.currentTimeMillis()/1000) - time);
+        return Utility.getRelativeTimeStringFromLong(time);
     }
 
     @Override

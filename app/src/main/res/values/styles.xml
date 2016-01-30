@@ -22,9 +22,9 @@
         <item name="android:layout_height">wrap_content</item>
         <item name="android:onClick">onNotImplemented</item>
         <item name="fab_size">normal</item>
-        <item name="fab_colorNormal">@color/cyber_dark_blue</item>
-        <item name="fab_colorPressed">@color/cyber_light_blue</item>
-        <item name="fab_colorRipple">@color/cyber_light_blue</item>
+        <item name="fab_colorNormal">@color/button_background</item>
+        <item name="fab_colorPressed">@color/panel_background</item>
+        <item name="fab_colorRipple">@color/panel_background</item>
     </style>
 
     <style name="LiveFabMenu">
@@ -44,7 +44,7 @@
         <item name="android:divider">@color/listview_background_color</item>
         <item name="android:background">@color/listview_background_color</item>
         <item name="android:dividerHeight">@dimen/divider_height</item>
-        <!--item name="android:padding">@dimen/listView_spacing_all</item>-->
+        <item name="android:padding">6dp</item>
     </style>
 
     <style name="LiveInfoBar">

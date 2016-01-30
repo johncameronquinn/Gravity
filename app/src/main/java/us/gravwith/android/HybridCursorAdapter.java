@@ -74,7 +74,7 @@ public class HybridCursorAdapter extends CursorAdapter implements PhotoView.OnCl
                                 LiveReplies.COLUMN_NAME_DESCRIPTION)
                 )
         );
-        date.setText(Utility.getDateStringFromLong(Long.parseLong(
+        date.setText(Utility.getRelativeTimeStringFromLong(Integer.parseInt(
                 cursor.getString(
                 cursor.getColumnIndexOrThrow(
                         LiveReplies.COLUMN_NAME_TIME)

@@ -258,7 +258,6 @@ public class LiveFragment extends Fragment implements
         uniqueView = (TextView)rootView.findViewById(R.id.textView_unique_posters);
         replyView = (TextView)rootView.findViewById(R.id.textView_reply_count);
         timeView = (TextView)rootView.findViewById(R.id.textView_relative_time);
-        if (mAdapter!=null)mAdapter.setDisplayViews(titleView,uniqueView,replyView,timeView);
         //((SeekBar)rootView.findViewById(R.id.seekBar)).setOnSeekBarChangeListener(getButtonListener(this));
 
         if (VERBOSE) Log.v(TAG,"exiting onCreateView...");
@@ -490,9 +489,10 @@ public class LiveFragment extends Fragment implements
 
         Bundle args = new Bundle();
         args.putString(CURRENT_THREAD_KEY, String.valueOf(currentThread));
-        mListener.setCurrentThread(String.valueOf(currentThread),getCurrentTopicARN(),getCurrentRepliesCount());
+        mListener.setCurrentThread(String.valueOf(currentThread), getCurrentTopicARN(), getCurrentRepliesCount());
 
-        mAdapter.updateViews();
+        LiveThreadFragment f = (LiveThreadFragment)mAdapter.getItem(position);
+        updateViews(f);
 
         //report thread view to analytics service
         if (mListener != null) {
@@ -504,6 +504,24 @@ public class LiveFragment extends Fragment implements
     @Override
     public void onPageScrollStateChanged(int state) {
     }
+
+    public void updateViews(LiveThreadFragment mThreadFragment) {
+        if (uniqueView != null) {
+
+            if (mThreadFragment == null) {
+                titleView.setText("");
+                uniqueView.setText("");
+                timeView.setText("");
+                replyView.setText("");
+            } else {
+                titleView.setText(mThreadFragment.getTitle());
+                uniqueView.setText(mThreadFragment.getUniqueCount());
+                timeView.setText(mThreadFragment.getRelativeTime());
+                replyView.setText(mThreadFragment.getReplyCount());
+            }
+        }
+    }
+
 
 
     /**************************************************************************************************

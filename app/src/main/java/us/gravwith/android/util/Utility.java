@@ -8,6 +8,7 @@ import android.location.LocationManager;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.util.Log;
+import android.util.TimeUtils;
 import android.view.View;
 
 import com.fasterxml.jackson.core.JsonGenerator;
@@ -16,12 +17,14 @@ import org.json.JSONArray;
 import org.json.JSONException;
 
 import java.io.IOException;
+import java.sql.Time;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.TimeZone;
+import java.util.concurrent.TimeUnit;
 
 import us.gravwith.android.R;
 
@@ -67,6 +70,33 @@ public class Utility {
         SimpleDateFormat sdf = new SimpleDateFormat("MMM d   h:mm a", Locale.getDefault()); // the format of your date
         sdf.setTimeZone(TimeZone.getDefault());
         return sdf.format(date);
+    }
+
+    public static String getRelativeTimeStringFromLong(int inSeconds) {
+
+        String unitchar = "d";
+        Long out = 0L;
+
+        Long timePassed = System.currentTimeMillis() - inSeconds*1000L;
+
+        out = TimeUnit.MILLISECONDS.toSeconds(timePassed);
+        if (out > 59) {
+            out = TimeUnit.MILLISECONDS.toMinutes(timePassed);
+            if (out > 59) {
+                out = TimeUnit.MILLISECONDS.toHours(timePassed);
+                if (out > 23) {
+                    out = TimeUnit.MILLISECONDS.toDays(timePassed);
+                } else {
+                    unitchar = "m";
+                }
+            } else {
+                unitchar = "m";
+            }
+        } else  {
+            unitchar = "s";
+        }
+
+        return out + unitchar;
     }
 
     public static void writeBundleAsJsonStringObject(Bundle inbundle, JsonGenerator jGen)
