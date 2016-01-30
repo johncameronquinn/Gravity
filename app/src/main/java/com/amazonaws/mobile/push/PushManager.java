@@ -260,8 +260,7 @@ public class PushManager implements GCMTokenHelper.GCMTokenUpdateObserver {
      *
      * @param topic topic to subscribe to
      */
-    public void subscribeToTopic(final SnsTopic topic) throws InvalidParameterException, EndpointDisabledException,
-            NotFoundException, InternalErrorException, AuthorizationErrorException {
+    public void subscribeToTopic(final SnsTopic topic) throws InvalidParameterException, AmazonClientException {
         final SubscribeRequest request = new SubscribeRequest();
         request.setEndpoint(endpointArn);
         request.setTopicArn(topic.getTopicArn());
@@ -284,8 +283,7 @@ public class PushManager implements GCMTokenHelper.GCMTokenUpdateObserver {
      *
      * @param topic topic to unsubscribe from
      */
-    public void unsubscribeFromTopic(final SnsTopic topic) throws InvalidParameterException, EndpointDisabledException,
-            NotFoundException, InternalErrorException, AuthorizationErrorException {
+    public void unsubscribeFromTopic(final SnsTopic topic) throws InvalidParameterException, AmazonClientException {
         // Rely on the status stored locally even though it's likely that the device is
         // subscribed to a topic, but the subscription arn is lost, say due to clearing app data.
         if (!topic.isSubscribed()) {

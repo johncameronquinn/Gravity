@@ -9,6 +9,8 @@ import android.net.Uri;
 import android.os.*;
 import android.util.Log;
 import android.widget.Toast;
+
+import com.amazonaws.AmazonClientException;
 import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.mobile.AWSMobileClient;
 import com.amazonaws.mobile.content.ContentItem;
@@ -658,14 +660,8 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
                                 );
                     } catch (InvalidParameterException e) {
                         Log.e(TAG,"error subscribing to topic...",e);
-                    } catch (EndpointDisabledException e) {
-                        Log.e(TAG,"error subscribing to topic...",e);
-                    } catch (NotFoundException e) {
-                        Log.e(TAG,"error subscribing to topic...",e);
-                    } catch (InternalErrorException e) {
-                        Log.e(TAG,"error subscribing to topic...",e);
-                    } catch (AuthorizationErrorException e) {
-                        Log.e(TAG,"error subscribing to topic...",e);
+                    } catch (AmazonClientException e) {
+                        Log.e(TAG, "error subscribing to topic...", e);
                     }
                     return;
 
@@ -682,15 +678,9 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
                                         )
                                 );
                     } catch (InvalidParameterException e) {
-                        Log.e(TAG,"error subscribing to topic...",e);
-                    } catch (EndpointDisabledException e) {
-                        Log.e(TAG,"error subscribing to topic...",e);
-                    } catch (NotFoundException e) {
-                        Log.e(TAG,"error subscribing to topic...",e);
-                    } catch (InternalErrorException e) {
-                        Log.e(TAG,"error subscribing to topic...",e);
-                    } catch (AuthorizationErrorException e) {
-                        Log.e(TAG,"error subscribing to topic...",e);
+                        Log.e(TAG,"error unsubscribing from topic...",e);
+                    } catch (AmazonClientException e) {
+                        Log.e(TAG,"error unsubscribing from topic...",e);
                     }
 
                     break;
