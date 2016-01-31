@@ -6,7 +6,6 @@
     android:layout_alignParentTop="true"
     android:gravity="top"
     android:background="@drawable/rectangle"
-    android:padding="@dimen/reply_padding"
     android:visibility="visible">
 
     <us.gravwith.android.PhotoView
@@ -37,6 +36,7 @@
         android:text=""
         android:focusable="true"
         android:textColor="@color/reply_body_text_color"
+        android:layout_marginLeft="@dimen/reply_padding"
         android:layout_below="@+id/reply_detail_row_time"
         android:layout_toEndOf="@+id/photoView">
     </TextView>
@@ -47,6 +47,7 @@
         android:text=""
         android:id="@+id/reply_detail_row_time"
         android:layout_gravity="end"
+        android:layout_marginTop="@dimen/reply_padding"
         android:gravity="end"
         android:textColor="@color/time_stamp_color"
         android:layout_alignParentEnd="true"

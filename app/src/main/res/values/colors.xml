@@ -32,6 +32,8 @@
     <color name="live_overlay_color">#28B3B3B3</color>
     <color name="reply_overlay_color">#28FF530D</color>
 
+    <color name="op_text_color">#b71c1c</color>
+
     <!-- reply row colors -->
     <color name="reply_body_text_color">#FFFFFF</color>
     <color name="time_stamp_color">#B3B3B3</color>

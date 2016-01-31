@@ -42,7 +42,7 @@ import fr.castorflex.android.verticalviewpager.VerticalViewPager;
  */
 public class LiveFragment extends Fragment implements
         LoaderManager.LoaderCallbacks<Cursor>, ViewPager.OnPageChangeListener {
-    public static final boolean VERBOSE = true;
+    public static final boolean VERBOSE = false;
     private static final String TAG = "LiveFragment";
 
     // TODO: Rename parameter arguments, choose names that match
@@ -494,10 +494,19 @@ public class LiveFragment extends Fragment implements
 
         Bundle args = new Bundle();
         args.putString(CURRENT_THREAD_KEY, String.valueOf(currentThread));
-        mListener.setCurrentThread(String.valueOf(currentThread), getCurrentTopicARN(), getCurrentRepliesCount());
+
+        mListener.setCurrentThread(
+                String.valueOf(currentThread),
+                getCurrentTopicARN(),
+                getCurrentRepliesCount(),
+                getCurrentDescription(),
+                getCurrentImageKey()
+        );
 
         LiveThreadFragment f = (LiveThreadFragment)mAdapter.getItem(position);
         updateViews(f);
+
+        mListener.updateReplyViews();
 
         //report thread view to analytics service
         if (mListener != null) {
@@ -568,7 +577,6 @@ public class LiveFragment extends Fragment implements
 
     private int getCurrentThreadID() {
         int out;
-
         LiveThreadFragment f = (LiveThreadFragment)mAdapter.getItem(threadPager.getCurrentItem());
         if (f != null) {
             String s = f.getThreadID();
@@ -580,7 +588,6 @@ public class LiveFragment extends Fragment implements
         } else {
             out = 0;
         }
-
         return out;
     }
 
@@ -596,9 +603,27 @@ public class LiveFragment extends Fragment implements
     }
 
     private String getCurrentRepliesCount() {
-        LiveThreadFragment f = mAdapter.getCurrentFragment();
+        LiveThreadFragment f = (LiveThreadFragment)mAdapter.getItem(threadPager.getCurrentItem());
         if (f!=null) {
             return f.getReplyCount();
+        } else {
+            return "";
+        }
+    }
+
+    private String getCurrentDescription() {
+        LiveThreadFragment f = (LiveThreadFragment)mAdapter.getItem(threadPager.getCurrentItem());
+        if (f!=null) {
+            return f.getDescription();
+        } else {
+            return "";
+        }
+    }
+
+    private String getCurrentImageKey() {
+        LiveThreadFragment f = (LiveThreadFragment)mAdapter.getItem(threadPager.getCurrentItem());
+        if (f!=null) {
+            return f.mImageKey;
         } else {
             return "";
         }
@@ -638,9 +663,17 @@ public class LiveFragment extends Fragment implements
         if (mAdapter != null) {
             Log.i(TAG, "Live cursor finished loading data");
             mAdapter.swapCursor(data);
-            mListener.setCurrentThread(String.valueOf(getCurrentThreadID()), getCurrentTopicARN(), getCurrentRepliesCount());
+
+            mListener.setCurrentThread(
+                    String.valueOf(getCurrentThreadID()),
+                    getCurrentTopicARN(),
+                    getCurrentRepliesCount(),
+                    getCurrentDescription(),
+                    getCurrentImageKey()
+            );
             threadPager.setAdapter(mAdapter);
-            updateViews((LiveThreadFragment)mAdapter.getItem(threadPager.getCurrentItem()));
+            updateViews((LiveThreadFragment) mAdapter.getItem(threadPager.getCurrentItem()));
+            mListener.updateReplyViews();
 
             Log.d(TAG, "Returned cursor contains: " + data.getCount() + " rows.");
 
@@ -671,11 +704,15 @@ public class LiveFragment extends Fragment implements
         //void setAnalyticsScreenName(String name);
         void sendMsgRequestLiveThreads();
         void sendMsgRequestReplies(int threadID);
-        void setCurrentThread(String threadID,String topicARN,String repliesCount);
+        void setCurrentThread(String threadID,String topicARN, String desc, String imageKey,String repliesCount);
         void takeLivePicture();
         void saveToStash(PhotoView imageToSave);
         String getCurrentThread();
         String getCurrentTopicARN();
+        String getCurrentDescription();
+        String getCurrentImageKey();
+        void updateReplyViews();
+
         void swapTopics(String newTopic);
         String getCurrentRepliesCount();
     }

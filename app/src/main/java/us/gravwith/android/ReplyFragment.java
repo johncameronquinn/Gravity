@@ -1,17 +1,18 @@
 package us.gravwith.android;
 
 
-import android.animation.Animator;
 import android.app.Activity;
 import android.app.LoaderManager;
 import android.content.Context;
 import android.content.CursorLoader;
+import android.content.Intent;
 import android.content.Loader;
 import android.database.Cursor;
 import android.graphics.drawable.TransitionDrawable;
 import android.os.Bundle;
 import android.app.Fragment;
 import android.os.Message;
+import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
@@ -19,19 +20,13 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
-import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.github.clans.fab.FloatingActionMenu;
 
-import org.w3c.dom.Text;
-
 import java.net.HttpURLConnection;
-
-import us.gravwith.android.util.Utility;
 
 
 /**
@@ -46,13 +41,19 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
 
     public static final int REPLY_LOADER_ID = 3;
 
-    private final boolean VERBOSE = true;
+    private final boolean VERBOSE = false;
     private final String TAG = ReplyFragment.class.getSimpleName();
 
     private LiveFragment.onLiveFragmentInteractionListener mListener;
     private ListView mListView;
     private TextView replyErrorText;
-    private RelativeLayout textingLayoutView;
+    private RelativeLayout textingFooterView;
+    private RelativeLayout opHeaderView;
+
+    private TextView opDescription;
+    private PhotoView opPhoto;
+
+
     private FloatingActionMenu radicalMenuView;
 
     private TextView replyCountView;
@@ -209,10 +210,15 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
 
         mListView.setAdapter(mAdapter);
 
-        //textingLayoutView = (RelativeLayout)v.findViewById(R.id.reply_texting_layout);
+        //textingFooterView = (RelativeLayout)v.findViewById(R.id.reply_texting_layout);
 
-        textingLayoutView = (RelativeLayout)
+        textingFooterView = (RelativeLayout)
                 inflater.inflate(R.layout.listview_footer_texting, mListView, false);
+
+        opHeaderView = (RelativeLayout)
+                inflater.inflate(R.layout.fragment_reply_detail_row, mListView, false);
+        opDescription = (TextView)opHeaderView.findViewById(R.id.reply_detail_row_text);
+        opPhoto = (PhotoView)opHeaderView.findViewById(R.id.photoView);
 
         radicalMenuView = (FloatingActionMenu)v.findViewById(R.id.reply_radical_menu);
         //radicalMenuView.setOnMenuToggleListener(this);
@@ -262,9 +268,12 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
         }
         mListView = null;
         radicalMenuView = null;
-        textingLayoutView = null;
+        textingFooterView = null;
         replyErrorText = null;
         replyCountView = null;
+        opDescription = null;
+        opPhoto = null;
+        opHeaderView = null;
 
         super.onDestroyView();
     }
@@ -281,14 +290,20 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
         if (VERBOSE) Log.v(TAG,"entering onViewCreated...");
         resetDisplay();
 
-        mListView.addFooterView(textingLayoutView);
+        ((TextView)opHeaderView.findViewById(R.id.reply_detail_row_time)).setText("OP");
 
-        textingLayoutView
+        mListView.addFooterView(textingFooterView);
+        mListView.addHeaderView(opHeaderView);
+
+        textingFooterView
                 .findViewById(R.id.button_send_reply)
                 .setOnClickListener(replyButtonListener);
 
         view.findViewById(R.id.button_reply_refresh).setOnClickListener(replyButtonListener);
         view.findViewById(R.id.button_reply_report).setOnClickListener(replyButtonListener);
+
+        opPhoto.setOnClickListener(replyButtonListener);
+
     //    view.findViewById(R.id.button_reply_capture).setOnClickListener(replyButtonListener);
 
         //anything that requires the UI to already exist goes here
@@ -359,8 +374,30 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
         }
 
         if (VERBOSE) {
-            Log.v(TAG,"exiting handleReplyResponseState...");
+            Log.v(TAG, "exiting handleReplyResponseState...");
         }
+    }
+
+    public void setOpInfo(String threadID, String mImageKey, String descriptionText) {
+        if (VERBOSE) Log.v(TAG, "entering setOpInfo... with " + mImageKey + " and " + descriptionText);
+
+        /* updates displayed text*/
+        opDescription.setText(descriptionText);
+
+        /* updates view tag for use by ReportManager*/
+        opHeaderView.setTag(R.integer.content_id_key, threadID);
+
+        /* updates image thumbnail*/
+        opHeaderView.findViewById(R.id.photoProgress).setVisibility(View.VISIBLE);
+
+        opPhoto.setImageKey(
+                Constants.KEY_S3_LIVE_DIRECTORY,
+                mImageKey,
+                true,
+                null
+        );
+
+        if (VERBOSE) Log.v(TAG, "exiting setOpInfo...");
     }
 
     /**
@@ -473,6 +510,28 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
                     manager.startReportSelectionMode();
                     break;
 
+                case R.id.photoView:
+
+                    Log.d(TAG,"View string is : " + v.toString());
+
+                    // Retrieves the urlString from the cursor
+                    String s3Key = ((PhotoView)v).getImageKey();
+                    //s3Key = s3Key.substring(0,s3Key.length()-1);
+
+                    Log.d(TAG, "grabbed key is: " + s3Key);
+                    /*
+                     * Creates a new Intent to get the full picture for the thumbnail that the user clicked.
+                     * The full photo is loaded into a separate Fragment
+                     */
+                     Intent localIntent =
+                            new Intent(Constants.ACTION_VIEW_IMAGE).putExtra(Constants.KEY_S3_KEY,s3Key)
+                                    .putExtra(Constants.KEY_S3_DIRECTORY,Constants.KEY_S3_LIVE_DIRECTORY)
+                                    .putExtra(Constants.KEY_PREVIEW_IMAGE,false);
+
+                    // Broadcasts the Intent to receivers in this app. See DisplayActivity.FragmentDisplayer.
+                    LocalBroadcastManager.getInstance(v.getContext()).sendBroadcast(localIntent);
+
+                    break;
 
             }
 

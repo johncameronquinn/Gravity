@@ -2,9 +2,10 @@
     xmlns:tools="http://schemas.android.com/tools"
     xmlns:fab="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
+    android:layout_height="wrap_content"
     android:id="@+id/layout_reply_root"
-    tools:context="us.gravwith.android.ReplyFragment">
+    tools:context="us.gravwith.android.ReplyFragment"
+    android:background="@color/listview_background_color">
 
     <ListView
         style="@style/GravityListView"
@@ -12,8 +13,8 @@
         android:layout_height="match_parent"
         android:id="@+id/reply_list_view"
         android:stackFromBottom="true"
-        android:layout_alignParentTop="true"
-        android:layout_alignParentStart="true" />
+        android:layout_alignParentStart="true"
+        android:layout_below="@+id/layout_reply_infobar"/>
 
     <com.github.clans.fab.FloatingActionMenu
         style="@style/LiveFabMenu"

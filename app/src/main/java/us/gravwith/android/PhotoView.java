@@ -189,7 +189,7 @@ public class PhotoView extends ImageView {
 
         if (VERBOSE) Log.v(TAG,"clearing drawable, disabling cache, disconnecting view.");
         // Clears out the image drawable, turns off the cache, disconnects the view from a URL
-        setImageKey(null,null,false,null);
+  //      setImageKey(null,null,false,null);
 
         // Gets the current Drawable, or null if no Drawable is attached
         Drawable localDrawable = getDrawable();
@@ -237,6 +237,7 @@ public class PhotoView extends ImageView {
             if (mImageKey == null) {
                 if (VERBOSE) Log.v(TAG, "mImageKey was null " + mImageKey);
             }
+            mIsDrawn = true;
         }
         // Always call the super method last
         super.onDraw(canvas);
@@ -316,7 +317,7 @@ public class PhotoView extends ImageView {
 
         // If the picture URL for this ImageView is already set\
         if (mImageKey != null) {
-            if (VERBOSE) Log.v(TAG,"image key was not null...");
+            if (VERBOSE) Log.v(TAG,"stored image key was not null...");
 
             // If the stored URL doesn't match the incoming URL, then the picture has changed.
             if (!mImageKey.equals(imageKey)) {
@@ -340,7 +341,7 @@ public class PhotoView extends ImageView {
 
         // If the draw operation for this ImageVIew has completed, and the picture URL isn't empty
         if ((mIsDrawn) && (imageKey != null)) {
-            if (VERBOSE) Log.v(TAG,"the draw operation has completed, and imagekey isn't null.");
+            if (VERBOSE) Log.v(TAG,"the draw operation has completed, and the incoming key isn't null.");
 
             // Sets the cache flag
             mCacheFlag = cacheFlag;
@@ -351,7 +352,8 @@ public class PhotoView extends ImageView {
              */
             mDownloadThread = PhotoManager.startDownload(this, cacheFlag);
         } else {
-            if (VERBOSE) Log.v(TAG,"incoming image was null so do nothing");
+            if (VERBOSE) Log.v(TAG,"incoming image was null or has already drawn" +
+                    " so do nothing " + mImageKey);
         }
 
         if (VERBOSE) Log.v(TAG,"exiting setImageKey...");

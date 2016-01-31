@@ -99,6 +99,10 @@ public class LiveThreadFragment extends Fragment implements View.OnClickListener
         return threadTitle;
     }
 
+    public String getDescription() {
+        return threadText;
+    }
+
     public String getReplyCount(){
         return replies;
     }
@@ -175,10 +179,6 @@ public class LiveThreadFragment extends Fragment implements View.OnClickListener
             time = Integer.parseInt(args.getString(SQLiteDbContract.LiveEntry.COLUMN_NAME_TIME,"0"));
 
             mImageKey = args.getString(SQLiteDbContract.LiveEntry.COLUMN_NAME_FILEPATH);
-
-            Log.i(TAG,"incoming name: " + threadName);
-            Log.i(TAG,"incoming image key: " + mImageKey);
-
         }
 
         super.setArguments(args);
@@ -277,24 +277,6 @@ public class LiveThreadFragment extends Fragment implements View.OnClickListener
     @Override
     public void onClick(View v) {
         switch (v.getId()) {
-            /*case R.id.live_thread_infoLayout:
-                View threadTextView = v.findViewById(R.id.live_thread_text);
-                if (threadTextView.getVisibility() == View.GONE) {
-                    threadTextView.setVisibility(View.VISIBLE);
-
-                    v.findViewById(R.id.live_thread_name).setVisibility(View.GONE);
-                    v.findViewById(R.id.live_thread_title).setVisibility(View.GONE);
-                    v.findViewById(R.id.live_thread_unique).setVisibility(View.GONE);
-                    v.findViewById(R.id.live_thread_replies).setVisibility(View.GONE);
-                } else {
-                    threadTextView.setVisibility(View.GONE);
-
-                    v.findViewById(R.id.live_thread_name).setVisibility(View.VISIBLE);
-                    v.findViewById(R.id.live_thread_title).setVisibility(View.VISIBLE);
-                    v.findViewById(R.id.live_thread_unique).setVisibility(View.VISIBLE);
-                    v.findViewById(R.id.live_thread_replies).setVisibility(View.VISIBLE);
-                }
-                break;*/
 
             case R.id.photoView:
 

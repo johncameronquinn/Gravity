@@ -31,19 +31,22 @@
     <!-- this controls the spacing of reply content (eg text) from the edge of its container-->
     <dimen name="reply_padding">6dp</dimen>
 
-    <!-- depreciated, use activity_horizontal_margin-->
-    <dimen name="side_screen_margin">16dp</dimen>
+    <!-- space between the top edge of the footer view and the buttons-->
+    <dimen name="reply_footer_padding_top">2dp</dimen>
+    <dimen name="reply_footer_padding_bottom">2dp</dimen>
 
-    <!-- text sizes. sp scales with font size instead of screen density -->
+    <!-- text sizes. sp scales with font size instead of screen density (android default) -->
     <dimen name="small_text_size">14sp</dimen>
     <dimen name="medium_text_size">18sp</dimen>
     <dimen name="large_text_size">22sp</dimen>
+
+    <!-- depreciated, use activity_horizontal_margin-->
+    <dimen name="side_screen_margin">16dp</dimen>
 
     <!-- unused -->
     <dimen name="panel_height">57dp</dimen>
     <dimen name="reply_text_margin_left">16dp</dimen>
     <dimen name="info_bar_height">25dp</dimen>
     <dimen name="divider_height">2dp</dimen>
-
     <dimen name="info_drawable_padding">2dp</dimen>
 </resources>
