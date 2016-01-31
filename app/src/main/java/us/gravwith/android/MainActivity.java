@@ -2642,9 +2642,12 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
             //rotate bitmap based on camera's current orientation
 
             Matrix matrix = new Matrix();
-            matrix.postRotate(cameraInfo.orientation);
+
             if (cameraInfo.facing == Camera.CameraInfo.CAMERA_FACING_FRONT) {
                 matrix.preScale(-1,1);
+                matrix.postRotate(cameraInfo.orientation-180);
+            } else {
+                matrix.postRotate(cameraInfo.orientation);
             }
 
             image = Bitmap.createBitmap(image, 0, 0, image.getWidth(),
