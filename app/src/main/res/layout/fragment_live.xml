@@ -18,34 +18,37 @@
      </fr.castorflex.android.verticalviewpager.VerticalViewPager>
 
     <com.github.clans.fab.FloatingActionMenu
-        style="@style/LiveFabMenu"
+        style="@style/LiveFabMenuMini"
         android:id="@+id/live_radical_menu"
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:layout_height="match_parent"
-        android:paddingStart="10dp"
-        android:paddingEnd="10dp"
-        android:paddingBottom="@dimen/side_screen_margin"
-        android:layout_above="@+id/linearLayout2">
+        android:layout_above="@+id/linearLayout2"
+        android:layout_margin="@dimen/activity_horizontal_margin"
+        fab:menu_openDirection="down"
+        android:layout_alignParentEnd="true">
 
         <com.github.clans.fab.FloatingActionButton
-            style="@style/FabNormal"
-            android:id="@+id/button_live_report"
-            fab:fab_label="Report Topic" />
-
-        <com.github.clans.fab.FloatingActionButton
-            style="@style/FabNormal"
+            style="@style/FabMini"
             android:id="@+id/button_live_hide"
             fab:fab_label="Hide Topic"/>
+        
+        <com.github.clans.fab.FloatingActionButton
+            style="@style/FabMini"
+            android:id="@+id/button_live_report"
+            android:src="@drawable/ic_report"
+            fab:fab_label="Report Topic" />
+
 
         <com.github.clans.fab.FloatingActionButton
-            style="@style/FabNormal"
+            style="@style/FabMini"
             android:id="@+id/button_live_refresh"
+            android:src="@drawable/ic_refresh"
             fab:fab_label="Refresh" />
 
-        <com.github.clans.fab.FloatingActionButton
+        <!--com.github.clans.fab.FloatingActionButton
             style="@style/FabNormal"
             android:id="@+id/button_new_thread"
-            fab:fab_label="New Topic" />
+            fab:fab_label="New Topic" /-->
 
     </com.github.clans.fab.FloatingActionMenu>
 

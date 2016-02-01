@@ -424,6 +424,7 @@ public class PushManager implements GCMTokenHelper.GCMTokenUpdateObserver {
         dataMap.put(LiveReplies.COLUMN_NAME_TIME,String.valueOf(System.currentTimeMillis()/1000));
         dataMap.put(LiveReplies.COLUMN_NAME_DESCRIPTION, text);
         dataMap.put(LiveReplies.COLUMN_NAME_THREAD_ID,String.valueOf(threadID));
+        dataMap.put(LiveReplies.COLUMN_NAME_FROM_ARN,arn);
 
         JSONObject dataObject = new JSONObject(dataMap);
         publishRequest.setMessage(dataObject.toString());

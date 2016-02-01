@@ -16,37 +16,6 @@
         android:layout_alignParentStart="true"
         android:layout_below="@+id/layout_reply_infobar"/>
 
-    <com.github.clans.fab.FloatingActionMenu
-        style="@style/LiveFabMenu"
-        android:id="@+id/reply_radical_menu"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        fab:menu_fab_size="mini"
-        fab:menu_openDirection="down"
-        fab:menu_colorNormal="@color/info_bar_color"
-        fab:menu_colorPressed="@color/button_background"
-        fab:menu_colorRipple="@color/button_background"
-        android:layout_alignParentStart="false"
-        android:visibility="visible"
-        android:layout_alignParentEnd="true"
-        android:layout_below="@+id/layout_reply_infobar">
-
-        <com.github.clans.fab.FloatingActionButton
-            style="@style/FabMini"
-            android:id="@+id/button_reply_report"
-            android:src="@drawable/ic_report" />
-
-        <com.github.clans.fab.FloatingActionButton
-            style="@style/FabMini"
-            android:id="@+id/button_reply_refresh"
-            android:src="@drawable/ic_refresh"/>
-
-        <!--com.github.clans.fab.FloatingActionButton
-            style="@style/FabNormal"
-            android:id="@+id/button_reply_capture"/-->
-
-    </com.github.clans.fab.FloatingActionMenu>
-
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -82,5 +51,37 @@
             android:drawablePadding="@dimen/info_drawable_padding"
             android:layout_centerInParent="true"/>
     </RelativeLayout>
+
+    <com.github.clans.fab.FloatingActionMenu
+        style="@style/LiveFabMenu"
+        android:id="@+id/reply_radical_menu"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        fab:menu_fab_size="mini"
+        fab:menu_openDirection="down"
+        fab:menu_colorNormal="@android:color/transparent"
+        fab:menu_colorPressed="@color/button_background"
+        fab:menu_colorRipple="@color/button_background"
+        fab:menu_showShadow="false"
+        android:visibility="visible"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentEnd="true"
+        android:layout_marginTop="-9dp">
+
+        <com.github.clans.fab.FloatingActionButton
+            style="@style/FabMini"
+            android:id="@+id/button_reply_report"
+            android:src="@drawable/ic_report" />
+
+        <com.github.clans.fab.FloatingActionButton
+            style="@style/FabMini"
+            android:id="@+id/button_reply_refresh"
+            android:src="@drawable/ic_refresh"/>
+
+        <!--com.github.clans.fab.FloatingActionButton
+            style="@style/FabNormal"
+            android:id="@+id/button_reply_capture"/-->
+
+    </com.github.clans.fab.FloatingActionMenu>
 
 </RelativeLayout>

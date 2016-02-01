@@ -48,6 +48,7 @@
         android:id="@+id/reply_detail_row_time"
         android:layout_gravity="end"
         android:layout_marginTop="@dimen/reply_padding"
+        android:layout_marginRight="@dimen/reply_padding"
         android:gravity="end"
         android:textColor="@color/time_stamp_color"
         android:layout_alignParentEnd="true"
@@ -58,6 +59,7 @@
         android:layout_width="match_parent"
         android:layout_height="@dimen/small_text_size"
         android:layout_below="@+id/reply_detail_row_text"
-        android:id="@+id/space" />
+        android:id="@+id/space"
+        android:layout_margin="@dimen/reply_padding" />
 
 </RelativeLayout>

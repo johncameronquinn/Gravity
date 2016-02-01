@@ -224,6 +224,10 @@ public class PushListenerService extends GcmListenerService {
                     values.put(LiveReplies.COLUMN_NAME_FILEPATH,
                             jsonMap.get(LiveReplies.COLUMN_NAME_FILEPATH));
 
+                    if (jsonMap.containsKey(LiveReplies.COLUMN_NAME_FROM_ARN)) { //todo, remove this
+                        values.put(LiveReplies.COLUMN_NAME_FROM_ARN,
+                                jsonMap.get(LiveReplies.COLUMN_NAME_FROM_ARN));
+                    }
 
                     getContentResolver().insert(FireFlyContentProvider.CONTENT_URI_REPLY_LIST,
                             values);

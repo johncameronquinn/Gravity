@@ -50,6 +50,20 @@
         <item name="menu_animationDelayPerItem">30</item>
     </style>
 
+    <style name="LiveFabMenuMini">
+        <item name="menu_shadowColor">#444</item>
+        <item name="menu_colorNormal">@color/info_bar_color</item>
+        <item name="menu_colorPressed">@color/button_background</item>
+        <item name="menu_colorRipple">@color/button_background</item>
+        <item name="menu_labels_position">left</item>
+        <item name="menu_labels_colorPressed">@color/clear_background</item>
+        <item name="menu_labels_colorRipple">@color/clear_background</item>
+        <item name="menu_labels_colorNormal">@color/clear_background</item>
+        <item name="menu_labels_showShadow">false</item>
+        <item name="menu_fab_size">mini</item>
+        <item name="menu_animationDelayPerItem">30</item>
+    </style>
+
     <style name="GravityListView">
         <item name="android:divider">@color/listview_background_color</item>
         <item name="android:background">@color/listview_background_color</item>

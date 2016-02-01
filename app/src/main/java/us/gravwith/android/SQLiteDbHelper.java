@@ -37,7 +37,7 @@ public class SQLiteDbHelper extends SQLiteOpenHelper {
 
 
     // If you change the database schema, you must increment the database version.
-    public static final int DATABASE_VERSION = 5;
+    public static final int DATABASE_VERSION = 6;
     public static final String DATABASE_NAME = "ImagesStore.db";
     private static final String TEXT_TYPE = " TEXT";
     private static final String INT_TYPE = " INTEGER";
@@ -90,13 +90,19 @@ public class SQLiteDbHelper extends SQLiteOpenHelper {
     private static final String SQL_CREATE_REPLIES =
 
             "CREATE TABLE " + LiveReplies.TABLE_NAME + " (" +
-                    LiveReplies._ID+ PRIMARY_KEY + COMMA_SEP +
+                    LiveReplies._ID + COMMA_SEP +
                     LiveReplies.COLUMN_NAME_THREAD_ID +  TEXT_TYPE + COMMA_SEP +
                     LiveReplies.COLUMN_NAME_TIME + INT_TYPE + UNIQUE_KEY +  COMMA_SEP +
                     LiveReplies.COLUMN_NAME_NAME + TEXT_TYPE + COMMA_SEP +
                     LiveReplies.COLUMN_NAME_DESCRIPTION + TEXT_TYPE + COMMA_SEP +
-                    LiveReplies.COLUMN_NAME_FILEPATH + TEXT_TYPE +
-                    " )";
+                    LiveReplies.COLUMN_NAME_FILEPATH + TEXT_TYPE + COMMA_SEP +
+                    LiveReplies.COLUMN_NAME_FROM_ARN + TEXT_TYPE + COMMA_SEP +
+                    PRIMARY_KEY + " (" +
+                    LiveReplies._ID + COMMA_SEP + " " +
+                    LiveReplies.COLUMN_NAME_DESCRIPTION + COMMA_SEP + " " +
+                    LiveReplies.COLUMN_NAME_FILEPATH +
+                    " )" +
+                    ")";
 
     // Defines an SQLite statement that builds the Picasa picture URL table
     private static final String CREATE_PICTUREURL_TABLE_SQL = "CREATE TABLE" + " " +

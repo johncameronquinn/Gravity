@@ -61,6 +61,7 @@ public final class SQLiteDbContract {
         public static final String COLUMN_NAME_NAME = "name";
         public static final String COLUMN_NAME_DESCRIPTION = "text";
         public static final String COLUMN_NAME_FILEPATH = "url";
+        public static final String COLUMN_NAME_FROM_ARN = "arn";
     }
 
     public static abstract class StashEntry implements BaseColumns {

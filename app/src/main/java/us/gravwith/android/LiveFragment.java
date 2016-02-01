@@ -253,7 +253,7 @@ public class LiveFragment extends Fragment implements
 
         View rootView = inflater.inflate(R.layout.fragment_live,container,false);
         rootView.findViewById(R.id.button_live_refresh).setOnClickListener(getButtonListener(this));
-        rootView.findViewById(R.id.button_new_thread).setOnClickListener(getButtonListener(this));
+        //rootView.findViewById(R.id.button_new_thread).setOnClickListener(getButtonListener(this));
         rootView.findViewById(R.id.button_live_report).setOnClickListener(getButtonListener(this));
         rootView.findViewById(R.id.button_live_hide).setOnClickListener(getButtonListener(this));
 
@@ -377,10 +377,10 @@ public class LiveFragment extends Fragment implements
                     triggerLiveRefresh();
                     break;
 
-                case R.id.button_new_thread:
+                /*case R.id.button_new_thread:
                     //setSeekMode(v);
                     mListener.takeLivePicture();
-                    break;
+                    break;*/
 
                 case R.id.button_live_report:
                     if (VERBOSE) Log.v(TAG,"entering report mode...");

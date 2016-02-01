@@ -301,6 +301,7 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
 
         view.findViewById(R.id.button_reply_refresh).setOnClickListener(replyButtonListener);
         view.findViewById(R.id.button_reply_report).setOnClickListener(replyButtonListener);
+        textingFooterView.findViewById(R.id.button_reply_capture).setOnClickListener(replyButtonListener);
 
         opPhoto.setOnClickListener(replyButtonListener);
 
