@@ -9,6 +9,7 @@ import android.content.Intent;
 import android.content.Loader;
 import android.database.Cursor;
 import android.graphics.drawable.TransitionDrawable;
+import android.os.Build;
 import android.os.Bundle;
 import android.app.Fragment;
 import android.os.Message;
@@ -23,6 +24,7 @@ import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.github.clans.fab.FloatingActionMenu;
 
@@ -48,6 +50,8 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
     private ListView mListView;
     private TextView replyErrorText;
     private RelativeLayout textingFooterView;
+    private RelativeLayout textingParentView;
+
     private RelativeLayout opHeaderView;
 
     private TextView opDescription;
@@ -215,6 +219,8 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
         textingFooterView = (RelativeLayout)
                 inflater.inflate(R.layout.listview_footer_texting, mListView, false);
 
+        //textingParentView = (RelativeLayout)v.findViewById(R.id.layout_reply_texting);
+
         opHeaderView = (RelativeLayout)
                 inflater.inflate(R.layout.fragment_reply_detail_row, mListView, false);
         opDescription = (TextView)opHeaderView.findViewById(R.id.reply_detail_row_text);
@@ -275,6 +281,8 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
         opPhoto = null;
         opHeaderView = null;
 
+        textingParentView = null;
+
         super.onDestroyView();
     }
 
@@ -320,6 +328,7 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
         if(view != null) {
             view.findViewById(R.id.button_reply_refresh).setOnClickListener(replyButtonListener);
             view.findViewById(R.id.button_send_reply).setOnClickListener(replyButtonListener);
+            view.findViewById(R.id.button_reply_test).setOnClickListener(replyButtonListener);
             //view.findViewById(R.id.button_reply_capture).setOnClickListener(replyButtonListener);
             resetDisplay();
         }
@@ -534,6 +543,15 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
 
                     break;
 
+
+                case R.id.button_reply_test:
+
+                    if (VERBOSE) Log.v(TAG,"entering devbutton mode...");
+
+                    Toast.makeText(getActivity(), "Enabling super-user...",Toast.LENGTH_SHORT)
+                            .show();
+                    break;
+
             }
 
             mListener.sendMsgReportAnalyticsEvent(b);
@@ -595,7 +613,38 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
         mAdapter.swapCursor(data);
         mListView.setAdapter(mAdapter);
         mListView.setSelection(0);
+
         if (VERBOSE) Log.v(TAG,"exiting onLoadFinished...");
+    }
+
+
+    public void updateSmartFooter() {
+        mListView.post(new Runnable()
+        {
+            public void run()
+            {
+                int numItemsVisible = mListView.getLastVisiblePosition() -
+                        mListView.getFirstVisiblePosition();
+                if (mAdapter.getCount() > numItemsVisible)
+                {
+                    Toast.makeText(getActivity(),"adding to listView...",Toast.LENGTH_SHORT).show();
+                    //hide parent view
+                    textingParentView.setVisibility(View.GONE);
+
+                    //add view to listView
+                    mListView.addFooterView(textingFooterView);
+                } else
+                {
+                    Toast.makeText(getActivity(),"adding to parent...",Toast.LENGTH_SHORT).show();
+                    //remove view from listView
+                    mListView.removeFooterView(textingFooterView);
+
+                    //add view to parent
+                    textingParentView.setVisibility(View.VISIBLE);
+
+                }
+            }
+        });
     }
 
     @Override

@@ -25,13 +25,17 @@
         android:layout_above="@+id/linearLayout2"
         android:layout_margin="@dimen/activity_horizontal_margin"
         fab:menu_openDirection="down"
+        fab:menu_labels_showShadow="true"
+        fab:menu_labels_colorNormal="@color/panel_background"
+        fab:menu_labels_colorPressed="@color/panel_background"
+        fab:menu_labels_colorRipple="@color/panel_background"
         android:layout_alignParentEnd="true">
 
         <com.github.clans.fab.FloatingActionButton
             style="@style/FabMini"
             android:id="@+id/button_live_hide"
             fab:fab_label="Hide Topic"/>
-        
+
         <com.github.clans.fab.FloatingActionButton
             style="@style/FabMini"
             android:id="@+id/button_live_report"
