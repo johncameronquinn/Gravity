@@ -5,7 +5,7 @@
     android:layout_height="wrap_content"
     android:id="@+id/layout_reply_root"
     tools:context="us.gravwith.android.ReplyFragment"
-    android:background="@color/listview_background_color">
+    android:background="@color/panel_background">
 
     <ListView
         style="@style/GravityListView"
@@ -15,7 +15,8 @@
         android:id="@+id/reply_list_view"
         android:stackFromBottom="false"
         android:layout_alignParentStart="true"
-        android:layout_below="@+id/layout_reply_infobar"/>
+        android:layout_below="@+id/layout_reply_infobar"
+        android:footerDividersEnabled="true" />
 
     <TextView
         android:layout_width="wrap_content"

@@ -21,7 +21,7 @@
 
     <color name="jpallete_main_grey">#e8f3ff</color>
 
-    <color name="listview_background_color">#757575</color>
+    <color name="listview_divider_color">#757575</color>
 
 
     <color name="button_background">#333333</color>

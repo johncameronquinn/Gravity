@@ -55,6 +55,7 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
     private RelativeLayout opHeaderView;
 
     private TextView opDescription;
+    private TextView opTime;
     private PhotoView opPhoto;
 
 
@@ -224,6 +225,7 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
         opHeaderView = (RelativeLayout)
                 inflater.inflate(R.layout.fragment_reply_detail_row, mListView, false);
         opDescription = (TextView)opHeaderView.findViewById(R.id.reply_detail_row_text);
+        opTime = (TextView)opHeaderView.findViewById(R.id.reply_detail_row_time);
         opPhoto = (PhotoView)opHeaderView.findViewById(R.id.photoView);
 
         radicalMenuView = (FloatingActionMenu)v.findViewById(R.id.reply_radical_menu);
@@ -297,8 +299,6 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
         super.onViewCreated(view, savedInstanceState);
         if (VERBOSE) Log.v(TAG,"entering onViewCreated...");
         resetDisplay();
-
-        ((TextView)opHeaderView.findViewById(R.id.reply_detail_row_time)).setText("OP");
 
         mListView.addFooterView(textingFooterView);
         mListView.addHeaderView(opHeaderView);
@@ -389,11 +389,12 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
         }
     }
 
-    public void setOpInfo(String threadID, String mImageKey, String descriptionText) {
+    public void setOpInfo(String threadID, String mImageKey, String descriptionText, String currentTime) {
         if (VERBOSE) Log.v(TAG, "entering setOpInfo... with " + mImageKey + " and " + descriptionText);
 
         /* updates displayed text*/
         opDescription.setText(descriptionText);
+        opTime.setText(currentTime + " (OP)");
 
         /* updates view tag for use by ReportManager*/
         opHeaderView.setTag(R.integer.content_id_key, threadID);

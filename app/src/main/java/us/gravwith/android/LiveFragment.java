@@ -500,7 +500,8 @@ public class LiveFragment extends Fragment implements
                 getCurrentTopicARN(),
                 getCurrentRepliesCount(),
                 getCurrentDescription(),
-                getCurrentImageKey()
+                getCurrentImageKey(),
+                getCurrentTime()
         );
 
         LiveThreadFragment f = (LiveThreadFragment)mAdapter.getItem(position);
@@ -611,6 +612,15 @@ public class LiveFragment extends Fragment implements
         }
     }
 
+    private String getCurrentTime() {
+        LiveThreadFragment f = (LiveThreadFragment)mAdapter.getItem(threadPager.getCurrentItem());
+        if (f!=null) {
+            return f.getRelativeTime();
+        } else {
+            return "";
+        }
+    }
+
     private String getCurrentDescription() {
         LiveThreadFragment f = (LiveThreadFragment)mAdapter.getItem(threadPager.getCurrentItem());
         if (f!=null) {
@@ -669,7 +679,8 @@ public class LiveFragment extends Fragment implements
                     getCurrentTopicARN(),
                     getCurrentRepliesCount(),
                     getCurrentDescription(),
-                    getCurrentImageKey()
+                    getCurrentImageKey(),
+                    getCurrentTime()
             );
             threadPager.setAdapter(mAdapter);
             updateViews((LiveThreadFragment) mAdapter.getItem(threadPager.getCurrentItem()));
@@ -704,7 +715,7 @@ public class LiveFragment extends Fragment implements
         //void setAnalyticsScreenName(String name);
         void sendMsgRequestLiveThreads();
         void sendMsgRequestReplies(int threadID);
-        void setCurrentThread(String threadID,String topicARN, String desc, String imageKey,String repliesCount);
+        void setCurrentThread(String threadID,String topicARN, String desc, String imageKey,String repliesCount, String time);
         void takeLivePicture();
         void saveToStash(PhotoView imageToSave);
         String getCurrentThread();

@@ -2030,8 +2030,9 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
     private String currentTopicReplies = "";
     private String currentTopicDescription = "";
     private String currentTopicImageKey = "";
+    private String currentTopicTime = "";
 
-    public void setCurrentThread(String threadID,String topicARN,String currentReplies,String desc, String imagekey) {
+    public void setCurrentThread(String threadID,String topicARN,String currentReplies,String desc, String imagekey, String currentTime) {
         if (VERBOSE) Log.v(TAG, "setting current thread to id :" + threadID + ", and arn : " + topicARN);
 
         currentThread = threadID;
@@ -2039,6 +2040,7 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
         currentTopicReplies = currentReplies;
         currentTopicDescription = desc;
         currentTopicImageKey = imagekey;
+        currentTopicTime = currentTime;
 
         if (ReplyFragReference.get() != null) {
             ReplyFragReference.get().resetDisplay();
@@ -3264,7 +3266,7 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
     public void updateReplyViews() {
         if (ReplyFragReference.get() != null) {
             ReplyFragReference.get().setOpInfo(currentThread,
-                    currentTopicImageKey,currentTopicDescription);
+                    currentTopicImageKey,currentTopicDescription, currentTopicTime);
         }
     }
 }

@@ -5,7 +5,6 @@
     android:layout_height="wrap_content"
     android:layout_alignParentTop="true"
     android:gravity="top"
-    android:background="@drawable/rectangle"
     android:visibility="visible">
 
     <us.gravwith.android.PhotoView
@@ -33,33 +32,27 @@
         android:layout_height="wrap_content"
         android:textSize="@dimen/medium_text_size"
         android:gravity="center_vertical|start"
-        android:text=""
+        android:text="Caption text"
         android:focusable="true"
         android:textColor="@color/reply_body_text_color"
-        android:layout_marginLeft="@dimen/reply_padding"
+        android:layout_marginLeft="@dimen/listview_content_screen_margins"
         android:layout_below="@+id/reply_detail_row_time"
-        android:layout_toEndOf="@+id/photoView">
+        android:layout_toEndOf="@+id/photoView"
+        android:layout_marginBottom="@dimen/listview_content_screen_margins">
     </TextView>
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text=""
+        android:text="10d"
         android:id="@+id/reply_detail_row_time"
         android:layout_gravity="end"
         android:layout_marginTop="@dimen/reply_padding"
-        android:layout_marginRight="@dimen/reply_padding"
+        android:layout_marginRight="@dimen/listview_content_screen_margins"
         android:gravity="end"
         android:textColor="@color/time_stamp_color"
         android:layout_alignParentEnd="true"
         android:layout_toEndOf="@+id/photoView"
         android:textSize="@dimen/small_text_size" />
-
-    <Space
-        android:layout_width="match_parent"
-        android:layout_height="@dimen/small_text_size"
-        android:layout_below="@+id/reply_detail_row_text"
-        android:id="@+id/space"
-        android:layout_margin="@dimen/reply_padding" />
 
 </RelativeLayout>

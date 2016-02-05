@@ -65,8 +65,8 @@
     </style>
 
     <style name="GravityListView">
-        <item name="android:divider">@color/listview_background_color</item>
-        <item name="android:background">@color/listview_background_color</item>
+        <item name="android:divider">@color/listview_divider_color</item>
+        <item name="android:background">@color/panel_background</item>
         <item name="android:dividerHeight">@dimen/divider_height</item>
     </style>
 

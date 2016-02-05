@@ -82,7 +82,7 @@ public class MessageHandler extends Handler{
 
 
     public void handleMessage(Message msg) {
-        Log.d(LOG_TAG, "enter handleMessage");
+        if (Constants.LOGD) Log.d(LOG_TAG, "enter handleMessage");
         int respCode = msg.what;
 
         switch (respCode) {
@@ -246,6 +246,6 @@ public class MessageHandler extends Handler{
 
         }
 
-        Log.d(LOG_TAG, "exit handleMessage");
+        if (Constants.LOGD) Log.d(LOG_TAG, "exit handleMessage");
     }
 }

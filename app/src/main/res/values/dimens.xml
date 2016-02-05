@@ -35,6 +35,10 @@
     <dimen name="reply_footer_padding_top">2dp</dimen>
     <dimen name="reply_footer_padding_bottom">2dp</dimen>
 
+    <!-- size of listview dividers -->
+    <dimen name="divider_height">2dp</dimen>
+    <dimen name="listview_content_screen_margins">10dp</dimen>
+
     <!-- text sizes. sp scales with font size instead of screen density (android default) -->
     <dimen name="small_text_size">14sp</dimen>
     <dimen name="medium_text_size">18sp</dimen>
@@ -47,6 +51,5 @@
     <dimen name="panel_height">57dp</dimen>
     <dimen name="reply_text_margin_left">16dp</dimen>
     <dimen name="info_bar_height">25dp</dimen>
-    <dimen name="divider_height">2dp</dimen>
     <dimen name="info_drawable_padding">2dp</dimen>
 </resources>
