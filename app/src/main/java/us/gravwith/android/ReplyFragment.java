@@ -359,6 +359,7 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
     }
 
     public void triggerReplyRefresh() {
+
         if (mListView != null) {
             mListView.setAdapter(null);
         }
@@ -433,6 +434,10 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
             switch (v.getId()) {
 
                 case R.id.button_reply_refresh:
+                    getActivity()
+                            .getContentResolver()
+                            .delete(FireFlyContentProvider.CONTENT_URI_REPLY_LIST,null,null);
+
                     triggerReplyRefresh();
                     b.putString(Constants.KEY_ANALYTICS_ACTION,"refresh");
                     b.putString(Constants.KEY_ANALYTICS_LABEL,"current thread");
