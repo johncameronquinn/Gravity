@@ -34,23 +34,19 @@
         <com.github.clans.fab.FloatingActionButton
             style="@style/FabMini"
             android:id="@+id/button_live_hide"
-            fab:fab_label="Hide Topic"
-            fab:fab_size="normal"/>
+            fab:fab_label="Hide Topic"/>
 
         <com.github.clans.fab.FloatingActionButton
             style="@style/FabMini"
             android:id="@+id/button_live_report"
             android:src="@drawable/ic_report"
-            fab:fab_label="Report Topic"
-            fab:fab_size="normal"/>
-
+            fab:fab_label="Report Topic"/>
 
         <com.github.clans.fab.FloatingActionButton
             style="@style/FabMini"
             android:id="@+id/button_live_refresh"
             android:src="@drawable/ic_refresh"
-            fab:fab_label="Refresh"
-            fab:fab_size="normal"/>
+            fab:fab_label="Refresh"/>
 
         <!--com.github.clans.fab.FloatingActionButton
             style="@style/FabNormal"

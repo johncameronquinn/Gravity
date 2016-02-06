@@ -717,7 +717,7 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
 
     public void onMessageRefresh(View v) {
         Bundle b = new Bundle();
-        b.putString(Constants.KEY_ANALYTICS_CATEGORY,Constants.ANALYTICS_CATEGORY_MESSAGE);
+        b.putString(Constants.KEY_ANALYTICS_CATEGORY, Constants.ANALYTICS_CATEGORY_MESSAGE);
         b.putString(Constants.KEY_ANALYTICS_ACTION, "refresh");
         sendMsgReportAnalyticsEvent(b);
 
@@ -744,8 +744,24 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
         inputMethodManager.hideSoftInputFromWindow(view.getWindowToken(), 0);
     }
 
+    public static void show_keyboard(Activity activity) {
+        InputMethodManager inputMethodManager = (InputMethodManager) activity.getSystemService(Activity.INPUT_METHOD_SERVICE);
+        //Find the currently focused view, so we can grab the correct window token from it.
+        View view = activity.getCurrentFocus();
+        //If no view currently has focus, create a new one, just so we can grab a window token from it
+        if(view == null) {
+            view = new View(activity);
+        }
+        inputMethodManager.showSoftInput(view, 0);
+    }
+
+
     public void hideSoftKeyboard() {
         MainActivity.hide_keyboard(this);
+    }
+
+    public void showSoftKeyboard() {
+        MainActivity.show_keyboard(this);
     }
 
     /**

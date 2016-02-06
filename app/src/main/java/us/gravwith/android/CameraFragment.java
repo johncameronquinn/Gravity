@@ -18,6 +18,7 @@ import android.view.MotionEvent;
 import android.view.TextureView;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.view.inputmethod.InputMethodManager;
@@ -28,6 +29,7 @@ import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.Toast;
 
 import com.github.clans.fab.FloatingActionButton;
 
@@ -580,6 +582,12 @@ n  */
                     switch (currentCameraMode) {
 
                         case CAMERA_DEFAULT_MODE:
+                            if (commentText.getText().toString().equals("")) {
+                                if (VERBOSE) Log.v(TAG,"no text was provided...");
+                                mListener.showSoftKeyboard();
+                                break;
+                            }
+
                             mListener.sendMsgSaveImage(commentText, CAMERA_LIVE_MODE); //save the image
                             ((MainActivity) getActivity())
                                     .setLiveCreateThreadInfo("", commentText.getText().toString());
@@ -689,10 +697,10 @@ n  */
             }
 
             switch (mode) {
-
-                case CAMERA_DEFAULT_MODE:
                 case CAMERA_REPLY_MODE:
+                    commentText.setHint("reply");
                 case CAMERA_LIVE_MODE:
+                case CAMERA_DEFAULT_MODE:
                     if (VERBOSE) Log.v(TAG,"Image captured in default mode");
                     isPreview = false;
 
@@ -1285,6 +1293,7 @@ n  */
         void sendMsgSwitchCamera();
         int sendMsgAutoFocus(MotionEvent event);
         void sendMsgReportAnalyticsEvent(Bundle b);
+        void showSoftKeyboard();
         String getCurrentThread();
         String getCurrentTopicARN();
     }
