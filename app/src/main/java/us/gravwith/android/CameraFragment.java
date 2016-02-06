@@ -696,6 +696,7 @@ n  */
                 captureLayout = (FrameLayout)captureButton.getParent();
             }
 
+            commentText.setHint("caption");
             switch (mode) {
                 case CAMERA_REPLY_MODE:
                     commentText.setHint("reply");

@@ -621,6 +621,10 @@ public class LiveFragment extends Fragment implements
         }
     }
 
+    public void updateReplyCount(String replyCount) {
+        replyView.setText(replyCount);
+    }
+
 
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
@@ -705,6 +709,8 @@ public class LiveFragment extends Fragment implements
         String getCurrentDescription();
         String getCurrentImageKey();
         void updateReplyViews();
+        void updateCurrentReplies(int count);
+        void updateLiveReplyCount();
 
         void swapTopics(String newTopic);
         String getCurrentRepliesCount();

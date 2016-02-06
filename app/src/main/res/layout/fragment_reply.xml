@@ -81,10 +81,10 @@
             android:src="@drawable/ic_refresh"/>
 
 
-        <com.github.clans.fab.FloatingActionButton
+        <!--<com.github.clans.fab.FloatingActionButton
             style="@style/FabMini"
             android:id="@+id/button_reply_test"
-            android:src="@drawable/ic_send"/>
+            android:src="@drawable/ic_send"/>-->
 
         <!--com.github.clans.fab.FloatingActionButton
             style="@style/FabNormal"

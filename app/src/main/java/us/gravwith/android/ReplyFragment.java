@@ -328,7 +328,7 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
         if(view != null) {
             view.findViewById(R.id.button_reply_refresh).setOnClickListener(replyButtonListener);
             view.findViewById(R.id.button_send_reply).setOnClickListener(replyButtonListener);
-            view.findViewById(R.id.button_reply_test).setOnClickListener(replyButtonListener);
+            //view.findViewById(R.id.button_reply_test).setOnClickListener(replyButtonListener);
             //view.findViewById(R.id.button_reply_capture).setOnClickListener(replyButtonListener);
             resetDisplay();
         }
@@ -550,13 +550,13 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
                     break;
 
 
-                case R.id.button_reply_test:
+                /*case R.id.button_reply_test:
 
                     if (VERBOSE) Log.v(TAG,"entering devbutton mode...");
 
                     Toast.makeText(getActivity(), "Enabling super-user...",Toast.LENGTH_SHORT)
                             .show();
-                    break;
+                    break;*/
 
             }
 
@@ -619,6 +619,13 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
         mAdapter.swapCursor(data);
         mListView.setAdapter(mAdapter);
         mListView.setSelection(0);
+
+        if (replyCountView != null) {
+            replyCountView.setText(String.valueOf(data.getCount() + 1));
+
+            mListener.updateCurrentReplies(data.getCount() + 1);
+            mListener.updateLiveReplyCount();
+        }
 
         if (VERBOSE) Log.v(TAG,"exiting onLoadFinished...");
     }

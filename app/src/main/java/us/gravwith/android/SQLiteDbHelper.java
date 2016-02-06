@@ -90,15 +90,14 @@ public class SQLiteDbHelper extends SQLiteOpenHelper {
     private static final String SQL_CREATE_REPLIES =
 
             "CREATE TABLE " + LiveReplies.TABLE_NAME + " (" +
-                    LiveReplies._ID + COMMA_SEP +
+                    LiveReplies._ID + PRIMARY_KEY + COMMA_SEP +
                     LiveReplies.COLUMN_NAME_THREAD_ID +  TEXT_TYPE + COMMA_SEP +
                     LiveReplies.COLUMN_NAME_TIME + INT_TYPE + UNIQUE_KEY +  COMMA_SEP +
                     LiveReplies.COLUMN_NAME_NAME + TEXT_TYPE + COMMA_SEP +
                     LiveReplies.COLUMN_NAME_DESCRIPTION + TEXT_TYPE + COMMA_SEP +
                     LiveReplies.COLUMN_NAME_FILEPATH + TEXT_TYPE + COMMA_SEP +
                     LiveReplies.COLUMN_NAME_FROM_ARN + TEXT_TYPE + COMMA_SEP +
-                    PRIMARY_KEY + " (" +
-                    LiveReplies._ID + COMMA_SEP + " " +
+                    UNIQUE_KEY + " (" +
                     LiveReplies.COLUMN_NAME_DESCRIPTION + COMMA_SEP + " " +
                     LiveReplies.COLUMN_NAME_FILEPATH +
                     " )" +

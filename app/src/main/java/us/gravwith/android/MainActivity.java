@@ -3285,4 +3285,14 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
                     currentTopicImageKey,currentTopicDescription, currentTopicTime);
         }
     }
+
+    public void updateLiveReplyCount() {
+        if (LiveFragReference.get() != null) {
+            LiveFragReference.get().updateReplyCount(currentTopicReplies);
+        }
+    }
+
+    public void updateCurrentReplies(int count) {
+        currentTopicReplies = String.valueOf(count);
+    }
 }
