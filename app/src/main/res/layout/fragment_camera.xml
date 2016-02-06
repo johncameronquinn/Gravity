@@ -86,11 +86,14 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:id="@+id/commentText"
-            android:gravity="center_horizontal"
             android:visibility="visible"
             android:textSize="18sp"
             android:layout_weight="1"
-            android:hint="Caption" />
+            android:hint="Caption"
+            android:autoLink="all"
+            android:gravity="center_horizontal"
+            android:layout_marginTop="10dp"
+            android:layout_marginBottom="10dp" />
 
         <com.github.clans.fab.FloatingActionButton
             android:id="@+id/button_live"
@@ -104,7 +107,9 @@
             android:src="@drawable/ic_right_arrow"
             android:layout_weight="0"
             fab:fab_size="mini"
-            android:layout_marginRight="@dimen/activity_horizontal_margin" />
+            android:layout_marginRight="@dimen/activity_horizontal_margin"
+            android:layout_gravity="bottom"
+            android:layout_marginBottom="10dp" />
 
 
 

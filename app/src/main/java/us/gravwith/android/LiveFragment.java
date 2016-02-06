@@ -1,6 +1,5 @@
 package us.gravwith.android;
 
-import android.animation.ValueAnimator;
 import android.app.Activity;
 import android.app.LoaderManager;
 import android.app.Fragment;
@@ -13,20 +12,16 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Message;
 import android.support.v4.view.ViewPager;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.animation.AccelerateInterpolator;
-import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.FileNotFoundException;
 import java.lang.ref.WeakReference;
-import java.net.HttpURLConnection;
 
 import fr.castorflex.android.verticalviewpager.VerticalViewPager;
 
@@ -50,7 +45,6 @@ public class LiveFragment extends Fragment implements
     private static final String ARG_PARAM1 = "param1";
     private final String CURRENT_THREAD_KEY = "threadkey";
     // private final String THREAD_PAGER_KEY = "pagerkey";
-    private final String VIEW_HACK_KEY = "pagerkey";
 
     private final int LIVE_LOADER_ID = 1;
     private final int LIVE_OFFSCREEN_LIMIT = 3;
@@ -238,18 +232,6 @@ public class LiveFragment extends Fragment implements
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         if (VERBOSE) Log.v(TAG,"entering onCreateView...");
-        //ImageView imageView = (ImageView)getActivity().findViewById(R.id.imageView3);
-        //MainActivity activity;
-        //if (getActivity() instanceof MainActivity) {
-        //    activity.loadBitmap(activity.theImages.get(5),imageView);
-        //    activity = (MainActivity)getActivity();
-        //}
-
-        // Inflate the layout for this fragment
-        //inflater.inflate(R.layout.fragment_live_thread,threadPager,false);//
-        // FrameLayout rootLayout = (FrameLayout)rootView.findViewById(R.id.live_root_layout);
-        // View threadView = inflater.inflate(R.layout.fragment_live_thread,rootLayout,false);
-        // rootLayout.addView(threadView);
 
         View rootView = inflater.inflate(R.layout.fragment_live,container,false);
         rootView.findViewById(R.id.button_live_refresh).setOnClickListener(getButtonListener(this));

@@ -2,7 +2,6 @@
 <RelativeLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:fab="http://schemas.android.com/apk/res-auto"
-
     android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -25,6 +24,7 @@
         android:layout_above="@+id/linearLayout2"
         android:layout_margin="@dimen/activity_horizontal_margin"
         fab:menu_openDirection="down"
+        fab:menu_labels_position="left"
         fab:menu_labels_showShadow="true"
         fab:menu_labels_colorNormal="@color/panel_background"
         fab:menu_labels_colorPressed="@color/panel_background"
@@ -34,20 +34,23 @@
         <com.github.clans.fab.FloatingActionButton
             style="@style/FabMini"
             android:id="@+id/button_live_hide"
-            fab:fab_label="Hide Topic"/>
+            fab:fab_label="Hide Topic"
+            fab:fab_size="normal"/>
 
         <com.github.clans.fab.FloatingActionButton
             style="@style/FabMini"
             android:id="@+id/button_live_report"
             android:src="@drawable/ic_report"
-            fab:fab_label="Report Topic" />
+            fab:fab_label="Report Topic"
+            fab:fab_size="normal"/>
 
 
         <com.github.clans.fab.FloatingActionButton
             style="@style/FabMini"
             android:id="@+id/button_live_refresh"
             android:src="@drawable/ic_refresh"
-            fab:fab_label="Refresh" />
+            fab:fab_label="Refresh"
+            fab:fab_size="normal"/>
 
         <!--com.github.clans.fab.FloatingActionButton
             style="@style/FabNormal"
@@ -69,9 +72,13 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textAppearance="?android:attr/textAppearanceLarge"
-            android:text="Title Text"
+            android:text=""
+            android:layout_marginEnd="@dimen/activity_horizontal_margin"
+            android:layout_marginStart="@dimen/activity_horizontal_margin"
             android:id="@+id/textView_title"
-            android:layout_gravity="center" />
+            android:layout_gravity="center"
+            android:singleLine="true"
+            android:ellipsize="end" />
 
         <RelativeLayout
             android:orientation="horizontal"

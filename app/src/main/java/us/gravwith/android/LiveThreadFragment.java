@@ -170,7 +170,7 @@ public class LiveThreadFragment extends Fragment implements View.OnClickListener
 
         if (args != null) {
             threadName = args.getString(SQLiteDbContract.LiveEntry.COLUMN_NAME_NAME);
-            threadTitle = args.getString(SQLiteDbContract.LiveEntry.COLUMN_NAME_TITLE);
+            threadTitle = args.getString(SQLiteDbContract.LiveEntry.COLUMN_NAME_DESCRIPTION);
             threadText = args.getString(SQLiteDbContract.LiveEntry.COLUMN_NAME_DESCRIPTION);
             threadID = args.getString(SQLiteDbContract.LiveEntry.COLUMN_NAME_THREAD_ID,"0");
             unique = args.getString(SQLiteDbContract.LiveEntry.COLUMN_NAME_UNIQUE);
