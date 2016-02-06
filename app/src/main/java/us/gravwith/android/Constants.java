@@ -40,7 +40,7 @@ public final class Constants {
 
     public static final String STASH_GALLERY_DIRECTORY = "Stash_Gallery";
 
-    public static final String IS_FROM_NOTIFICATION = "isNotification";
+    public static final String IS_FROM_NOTIFICATION =  "isNotification";
 
 
     /** threadSample
@@ -51,7 +51,7 @@ public final class Constants {
     // Set to true to turn on debug logging
     public static final boolean LOGD = false;
 
-    public static final boolean ANALYTICSV = true;
+    public static final boolean ANALYTICSV = false;
 
     // Custom actions
 
@@ -166,6 +166,7 @@ public final class Constants {
     public static final String ANALYTICS_LABEL_MESSAGE ="message";
     public static final String ANALYTICS_CATEGORY_SCREEN ="screen";
     public static final String ANALYTICS_ATTRIBUTE_USER_ID="userID";
+    public static final String ANALYTICS_ATTRIBUTE_DEVICE_ID="androidID";
 
     public static final String SCREEN_TITLE = "Screen Title";
 

@@ -7,6 +7,7 @@ import android.content.SharedPreferences;
 import android.location.Location;
 import android.net.Uri;
 import android.os.*;
+import android.provider.Settings;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -92,6 +93,7 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
 
     private static String serverAddress = "gravitybackend.ddns.net"; //changes when resolved
     private static UUID userID;
+    private String androidId;
 
     private ContentManager contentManager;
 
@@ -113,6 +115,7 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
     private static final String IMAGESSEEN_KEY = "images";
     private final String ISFIRSTRUN_KEY = "firstrun";
     private final String UUID_KEY = "uuidkey";
+    private final String ANDROID_ID = "androidid";
     private static final int OLDEST_ALLOWED_IMAGE = 3600 * 1000; // two hours
 
     /**
@@ -220,11 +223,13 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
             InitializeUserTask task = new InitializeUserTask();
             task.initializeTask(this,null,userID);
             mConnectionThreadPool.execute(task.getServerConnectRunnable());
+            androidId = Settings.Secure.getString(getContentResolver(),Settings.Secure.ANDROID_ID);
 
         } else {
             Log.d(TAG, "loading userID from storage...");
             userID = UUID.fromString(settings.getString(UUID_KEY, null));
-            sendSignOnEvent(userID.toString());
+            androidId = settings.getString(ANDROID_ID, null);
+            sendSignOnEvent(userID.toString(),androidId);
         }
 
         if (!ALLOW_DUPLICATES) {
@@ -303,7 +308,7 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
         getContentResolver().delete(uri,null,null);
     }
 
-/***************************************************************************************************
+    /***************************************************************************************************
  * SECURITY
  **/
     @Override
@@ -816,7 +821,7 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
                 editor.putBoolean(ISFIRSTRUN_KEY, false);
                 editor.apply();
 
-                sendSignOnEvent(userID.toString());
+                sendSignOnEvent(userID.toString(),androidId);
 
             case TASK_COMPLETED:
 
@@ -1011,8 +1016,8 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
     /***************************************************************************************************
      * ANALYTICS
      */
-    private void sendSignOnEvent(String userID) {
-        Log.i(TAG, "sending login event for user: " + userID.toString());
+    private void sendSignOnEvent(String userID,String deviceID) {
+        Log.i(TAG, "sending login event for user: " + userID.toString() + " and device ID " + deviceID);
         mTracker.getEventClient()
                 .recordEvent(mTracker
                         .getEventClient()
@@ -1020,6 +1025,7 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
                         .withAttribute(Constants.ANALYTICS_CATEGORY_MESSAGE, userID
                         ));
         mTracker.getEventClient().addGlobalAttribute(Constants.ANALYTICS_ATTRIBUTE_USER_ID, userID);
+        mTracker.getEventClient().addGlobalAttribute(Constants.ANALYTICS_ATTRIBUTE_DEVICE_ID, deviceID);
 
 
     }
