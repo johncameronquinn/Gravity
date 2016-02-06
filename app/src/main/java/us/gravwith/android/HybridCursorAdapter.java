@@ -139,6 +139,7 @@ public class HybridCursorAdapter extends CursorAdapter implements PhotoView.OnCl
         // Broadcasts the Intent to receivers in this app. See DisplayActivity.FragmentDisplayer.
         LocalBroadcastManager.getInstance(view.getContext()).sendBroadcast(localIntent);
 
+
         if (VERBOSE) Log.v(TAG,"exiting onClick...");
     }
 }

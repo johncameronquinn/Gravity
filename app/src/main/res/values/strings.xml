@@ -28,11 +28,11 @@
 
     <string name="no_replies">No replies.</string>
 
-<!-- TODO: Remove or change this placeholder text -->
+    <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="title_activity_stash">Stash</string>
 
-    <string name="authorization_error">Authorization Error, hold on one moment...</string>
+    <string name="authorization_error">Establishing a secure connection...</string>
 
     <string name="authority">com.jokrapp.android</string>
     <string name="activity_title">Picasa Images</string>

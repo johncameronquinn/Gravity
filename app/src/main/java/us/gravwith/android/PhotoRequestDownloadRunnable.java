@@ -126,9 +126,7 @@ class PhotoRequestDownloadRunnable implements Runnable {
             Thread.interrupted();
             return;
         }
-
-
-        Log.w(LOG_TAG,"Downloading from PhotoRequestDownloadRunnable is not available... please try again...");
+     //   Log.w(LOG_TAG,"Downloading from PhotoRequestDownloadRunnable is not available... please try again...");
 
         /*
          * Stores the current Thread in the the PhotoTask instance, so that the instance

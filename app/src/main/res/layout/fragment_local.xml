@@ -4,7 +4,8 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="@color/jpallete_main_grey">
+    android:background="@color/jpallete_main_grey"
+    android:id="@+id/layout_local_root">
 
 
     <us.gravwith.android.view.ImageCursorAdapterView

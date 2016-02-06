@@ -51,6 +51,8 @@ public final class Constants {
     // Set to true to turn on debug logging
     public static final boolean LOGD = false;
 
+    public static final boolean ANALYTICSV = true;
+
     // Custom actions
 
     public static final String ACTION_VIEW_IMAGE = "us.gravwith.android.ACTION_VIEW_IMAGE";
@@ -149,7 +151,8 @@ public final class Constants {
 
     public static final String KEY_ANALYTICS_CATEGORY = "category";
     public static final String KEY_ANALYTICS_ACTION = "action";
-    public static final String KEY_ANALYTICS_LABEL = "label";
+    public static final String KEY_ANALYTICS_RESOURCE = "resource";
+
     public static final String KEY_ANALYTICS_VALUE = "value";
     public static final String KEY_ANALYTICS_VARIABLE = "variable";
 

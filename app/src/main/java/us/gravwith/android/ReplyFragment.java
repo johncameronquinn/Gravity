@@ -9,7 +9,6 @@ import android.content.Intent;
 import android.content.Loader;
 import android.database.Cursor;
 import android.graphics.drawable.TransitionDrawable;
-import android.os.Build;
 import android.os.Bundle;
 import android.app.Fragment;
 import android.os.Message;
@@ -38,7 +37,7 @@ import java.net.HttpURLConnection;
  * A simple {@link Fragment} subclass. factory method to
  * create an instance of this fragment.
  */
-public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor>,
+public class ReplyFragment extends BaseFragment implements LoaderManager.LoaderCallbacks<Cursor>,
         FloatingActionMenu.OnMenuToggleListener {
 
     public static final int REPLY_LOADER_ID = 3;
@@ -271,7 +270,7 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
         View view = getView();
         if(view != null) {
             view.findViewById(R.id.button_reply_refresh).setOnClickListener(null);
-            view.findViewById(R.id.button_send_reply).setOnClickListener(null);
+            view.findViewById(R.id.button_reply_send).setOnClickListener(null);
             //view.findViewById(R.id.button_reply_capture).setOnClickListener(null);
         }
         mListView = null;
@@ -304,7 +303,7 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
         mListView.addHeaderView(opHeaderView);
 
         textingFooterView
-                .findViewById(R.id.button_send_reply)
+                .findViewById(R.id.button_reply_send)
                 .setOnClickListener(replyButtonListener);
 
         view.findViewById(R.id.button_reply_refresh).setOnClickListener(replyButtonListener);
@@ -327,7 +326,7 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
 
         if(view != null) {
             view.findViewById(R.id.button_reply_refresh).setOnClickListener(replyButtonListener);
-            view.findViewById(R.id.button_send_reply).setOnClickListener(replyButtonListener);
+            view.findViewById(R.id.button_reply_send).setOnClickListener(replyButtonListener);
             //view.findViewById(R.id.button_reply_test).setOnClickListener(replyButtonListener);
             //view.findViewById(R.id.button_reply_capture).setOnClickListener(replyButtonListener);
             resetDisplay();
@@ -425,29 +424,25 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
                 Log.v(TAG, "OnClickRegistered..." + v.toString());
             }
 
+            mListener.getAnalyticsReporter().ReportClickEvent(v);
+
             EditText commentText;
 
             MainActivity activity = (MainActivity)getActivity();
-
-            Bundle b = new Bundle();
-            b.putString(Constants.KEY_ANALYTICS_CATEGORY,Constants.ANALYTICS_CATEGORY_REPLY);
 
             switch (v.getId()) {
 
                 case R.id.button_reply_refresh:
                     getActivity()
                             .getContentResolver()
-                            .delete(FireFlyContentProvider.CONTENT_URI_REPLY_LIST,null,null);
+                            .delete(FireFlyContentProvider.CONTENT_URI_REPLY_LIST, null,null);
 
                     triggerReplyRefresh();
-                    b.putString(Constants.KEY_ANALYTICS_ACTION,"refresh");
-                    b.putString(Constants.KEY_ANALYTICS_LABEL,"current thread");
-                    b.putString(Constants.KEY_ANALYTICS_VALUE,mListener.getCurrentThread());
 
                     resetDisplay();
                     break;
 
-                case R.id.button_send_reply:
+                case R.id.button_reply_send:
 
                     if (isAdded()) {
                         commentText   = ((EditText) activity.findViewById(R.id.editText_reply_comment));
@@ -466,10 +461,6 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
                         imm.hideSoftInputFromWindow(layout.getWindowToken(), 0);
 
                         commentText.setText("");
-
-                        b.putString(Constants.KEY_ANALYTICS_ACTION, "send reply");
-                        b.putString(Constants.KEY_ANALYTICS_LABEL, "current thread");
-                        b.putString(Constants.KEY_ANALYTICS_VALUE, mListener.getCurrentThread());
                     }
 
                     break;
@@ -491,8 +482,6 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
                         imm.hideSoftInputFromWindow(layout.getWindowToken(), 0);
 
                         commentText.setText("");
-
-                        b.putString(Constants.KEY_ANALYTICS_ACTION,"take picture");
                     }
                     break;
 
@@ -519,7 +508,12 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
 
                         @Override
                         public void onDialogClosed(boolean didTheyHitYes) {
-
+                            mListener.getAnalyticsReporter().ReportBehaviorEvent(
+                                    AnalyticsReporter.ANALYTICS_ACTION_BUTTON_PRESS,
+                                    mListener.getAnalyticsReporter()
+                                            .getButtonResourceID(R.id.button_reply_report),
+                                    (didTheyHitYes) ? "yes":"no"
+                            );
                         }
                     });
 
@@ -559,8 +553,6 @@ public class ReplyFragment extends Fragment implements LoaderManager.LoaderCallb
                     break;*/
 
             }
-
-            mListener.sendMsgReportAnalyticsEvent(b);
         }
 
     }

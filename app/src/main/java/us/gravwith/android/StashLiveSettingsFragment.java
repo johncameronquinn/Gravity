@@ -105,7 +105,7 @@ public class StashLiveSettingsFragment extends Fragment implements TextView.OnEd
             mListener = (OnFragmentInteractionListener) activity;
         } catch (ClassCastException e) {
             throw new ClassCastException(activity.toString()
-                    + " must implement OnFragmentInteractionListener");
+                    + " must implement BaseFragmentInterface");
         }
     }
 

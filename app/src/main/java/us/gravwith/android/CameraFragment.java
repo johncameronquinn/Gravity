@@ -18,9 +18,6 @@ import android.view.MotionEvent;
 import android.view.TextureView;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.WindowManager;
-import android.view.animation.Animation;
-import android.view.animation.AnimationUtils;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.CheckBox;
@@ -29,7 +26,6 @@ import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.Toast;
 
 import com.github.clans.fab.FloatingActionButton;
 
@@ -48,7 +44,7 @@ import java.lang.ref.WeakReference;
  * create an instance of this fragment.
  *
  */
-public class CameraFragment extends Fragment implements Camera.AutoFocusCallback,
+public class CameraFragment extends BaseFragment implements Camera.AutoFocusCallback,
         ValueAnimator.AnimatorUpdateListener, MessageHandler.CameraListener {
     private static final boolean VERBOSE = false;
     private static final String TAG = "CameraFragment";
@@ -325,7 +321,7 @@ n  */
                     isComment = false;
                     commentText.setVisibility(View.INVISIBLE);
                     commentText.setText("");
-                    hideSoftKeyboard(commentText);
+                    mListener.hideSoftKeyboard();
                 } else { //is not in commenting mode, start
                     isComment = true;
                     commentText.setVisibility(View.VISIBLE);
@@ -377,9 +373,9 @@ n  */
         Log.d(TAG, "setting surface texture listener to cameraHandler");
 
         if (number_of_cameras == 1) {
-            (container.findViewById(R.id.switch_camera)).setVisibility(View.GONE);
+            (container.findViewById(R.id.button_camera_switch)).setVisibility(View.GONE);
         } else {
-            CheckBox switchButton = (CheckBox) view.findViewById(R.id.switch_camera);
+            CheckBox switchButton = (CheckBox) view.findViewById(R.id.button_camera_switch);
             switchButton.setOnClickListener(cameraButtonInstance);
         }
 
@@ -390,7 +386,7 @@ n  */
         Log.d(TAG, "created view is: " + view.toString());
 
 
-        ImageButton captureButton = (ImageButton) view.findViewById(R.id.button_capture);
+        ImageButton captureButton = (ImageButton) view.findViewById(R.id.button_camera_capture);
         captureButton.setOnClickListener(cameraButtonInstance);
         captureButton.bringToFront();
 
@@ -398,7 +394,7 @@ n  */
         commentText.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                showSoftKeyboard(commentText);
+                mListener.showSoftKeyboard();
             }
         });
 
@@ -473,53 +469,53 @@ n  */
         @Override
         public void onClick(View v) {
 
-            Bundle b = new Bundle();
-            b.putString(Constants.KEY_ANALYTICS_CATEGORY,Constants.ANALYTICS_CATEGORY_CAMERA);
-
+            String resource = mListener.getAnalyticsReporter().getButtonResourceID(v.getId());
+            String action = AnalyticsReporter.ANALYTICS_ACTION_BUTTON_PRESS;
+            String value = "";
 
             switch (v.getId()) {
-                case R.id.button_capture:
-                    b.putString(Constants.KEY_ANALYTICS_ACTION,"camera capture");
+                case R.id.button_camera_capture:
 
                     Activity mActivity = getActivity();
                     //initialize the buttons while the picture is being taken
                     switch (currentCameraMode) {
                         case CAMERA_DEFAULT_MODE:
                         case CAMERA_LIVE_MODE:
+                            value = AnalyticsReporter.VALUE_CAPTURE_LIVE;
+
                         case CAMERA_REPLY_MODE:
                             if (Constants.LOGD) Log.d(TAG,"Taking a picture in default mode...");
+                            if (value.equals("")) value = AnalyticsReporter.VALUE_CAPTURE_REPLY;
+
                             captureButton = (ImageButton) v;
-                            switchButton = (Button) mActivity.findViewById(R.id.switch_camera);
-                            flashButton = (Button) mActivity.findViewById(R.id.button_flash);
-                            liveButton = (FloatingActionButton) mActivity.findViewById(R.id.button_live);
+                            switchButton = (Button) mActivity.findViewById(R.id.button_camera_switch);
+                            flashButton = (Button) mActivity.findViewById(R.id.button_camera_flash);
+                            liveButton = (FloatingActionButton) mActivity.findViewById(R.id.button_camera_live);
                             sendLayout = (LinearLayout)mActivity.findViewById(R.id.layout_camera_send);
                             //localButton = (Button) mActivity.findViewById(R.id.button_local);
-                            cancelButton = (ImageButton) mActivity.findViewById(R.id.button_cancel);
+                            cancelButton = (ImageButton) mActivity.findViewById(R.id.button_camera_cancel);
                             mListener.sendMsgTakePicture();
                             v.setPressed(true);
                             v.setClickable(false);
-
-                            b.putString(Constants.KEY_ANALYTICS_LABEL,"default mode");
-
 
                             break;
 
                         case CAMERA_MESSAGE_MODE:
                             if (Constants.LOGD) Log.d(TAG,"Taking a picture in message mode...");
+                            value = AnalyticsReporter.VALUE_CAPTURE_MESSAGE;
+
                             captureButton = (ImageButton) v;
                             cancelMessageButton = (ImageButton) mActivity.
                                     findViewById(R.id.button_cancel_message);
                             if (number_of_cameras > 1) {
-                                switchButton = (Button) mActivity.findViewById(R.id.switch_camera);
+                                switchButton = (Button) mActivity.findViewById(R.id.button_camera_switch);
                             }
-                            flashButton = (Button) mActivity.findViewById(R.id.button_flash);
+                            flashButton = (Button) mActivity.findViewById(R.id.button_camera_flash);
                             sendMessageButton = (Button)mActivity.
                                     findViewById(R.id.button_send_message);
                             mListener.sendMsgTakePicture();
                             v.setPressed(true);
                             v.setClickable(false);
-
-                            b.putString(Constants.KEY_ANALYTICS_LABEL, "message mode");
 
                             break;
 
@@ -536,7 +532,7 @@ n  */
                             v.setPressed(true);
                             v.setClickable(false);
 
-                            b.putString(Constants.KEY_ANALYTICS_LABEL, "live mode");
+                            b.putString(Constants.KEY_ANALYTICS_RESOURCE, "live mode");
 
                             break;*/
 
@@ -558,16 +554,15 @@ n  */
                             v.setPressed(true);
                             v.setClickable(false);
 
-                            b.putString(Constants.KEY_ANALYTICS_LABEL, "reply mode");
+                            b.putString(Constants.KEY_ANALYTICS_RESOURCE, "reply mode");
                             break;*/
                     }
                     break;
 
-                case R.id.switch_camera:
+                case R.id.button_camera_switch:
                     if (number_of_cameras > 1) {
                         mListener.sendMsgSwitchCamera();
                     }
-                    b.putString(Constants.KEY_ANALYTICS_ACTION, "switch camera");
                     break;
 
                 /*case R.id.button_local:
@@ -577,7 +572,7 @@ n  */
                     b.putString(Constants.KEY_ANALYTICS_ACTION, "save to local");
                     break;*/
 
-                case R.id.button_live:
+                case R.id.button_camera_live:
 
                     switch (currentCameraMode) {
 
@@ -590,12 +585,11 @@ n  */
 
                             mListener.sendMsgSaveImage(commentText, CAMERA_LIVE_MODE); //save the image
                             ((MainActivity) getActivity())
-                                    .setLiveCreateThreadInfo("", commentText.getText().toString());
+                                    .setLiveCreateThreadInfo(commentText.getText().toString(),
+                                            commentText.getText().toString());
 
                             resetCameraUI();
                             stopReplyMode();
-
-                            b.putString(Constants.KEY_ANALYTICS_ACTION, "save to live");
                             break;
 
                         case CAMERA_REPLY_MODE:
@@ -608,26 +602,16 @@ n  */
 
                             resetCameraUI();
                             stopReplyMode();
-
-                            b.putString(Constants.KEY_ANALYTICS_LABEL, "reply");
                             break;
                     }
                     //startLiveMode();
                     break;
 
-                case R.id.button_cancel:
-
-                    b.putString(Constants.KEY_ANALYTICS_ACTION, "cancel");
-                    b.putString(Constants.KEY_ANALYTICS_LABEL, "current camera");
-                    b.putString(Constants.KEY_ANALYTICS_VALUE, String.valueOf(currentCameraMode));
-
+                case R.id.button_camera_cancel:
                     resetCameraUI();
                 break;
 
                 case R.id.button_send_message:
-
-                    b.putString(Constants.KEY_ANALYTICS_ACTION,"camera send to");
-
                     switch(currentCameraMode) {
                         case CAMERA_REPLY_MODE:
 
@@ -641,7 +625,6 @@ n  */
                             resetCameraUI();
                             stopReplyMode();
 
-                            b.putString(Constants.KEY_ANALYTICS_LABEL, "reply");
                             break;
                         case CAMERA_MESSAGE_MODE:
 
@@ -649,15 +632,12 @@ n  */
                             resetCameraUI();
                             stopMessageMode();
 
-                            b.putString(Constants.KEY_ANALYTICS_LABEL,"message");
                             break;
                     }
 
                     mListener.enableScrolling();
                     break;
                 case R.id.button_cancel_message:
-
-                    b.putString(Constants.KEY_ANALYTICS_ACTION, "camera cancel send");
 
                     if(sendMessageButton != null) { //this means a picture has been taken, resetUI
                         resetCameraUI();
@@ -673,7 +653,7 @@ n  */
 
             }
 
-            mListener.sendMsgReportAnalyticsEvent(b);
+            mListener.getAnalyticsReporter().ReportBehaviorEvent(action,resource,value);
 
         }
 
@@ -842,7 +822,7 @@ n  */
                     break;
 
             }
-            hideSoftKeyboard(commentText);
+            mListener.hideSoftKeyboard();
             captureButton.setPressed(false);
             captureButton.setClickable(true);
             currentCameraMode = CAMERA_DEFAULT_MODE;
@@ -1154,7 +1134,7 @@ n  */
         activity.disableScrolling();
         LayoutInflater inflater = (LayoutInflater)activity.getSystemService
                 (Context.LAYOUT_INFLATER_SERVICE);
-        FrameLayout root = (FrameLayout)activity.findViewById(R.id.camera_root);
+        FrameLayout root = (FrameLayout)activity.findViewById(R.id.layout_camera_root);
         View v = inflater.inflate(R.layout.camera_live_mode,
                 root,
                 false);
@@ -1167,7 +1147,7 @@ n  */
                 .setOnClickListener(getLiveModeButtonListener(this));
         v.findViewById(R.id.button_camera_live_mode_confirm)
                 .setOnClickListener(getLiveModeButtonListener(this));
-        root.addView(v,root.getChildCount());
+        root.addView(v, root.getChildCount());
 
         if (VERBOSE) {
             Log.v(TAG,"exiting startNewThreadInputMode...");
@@ -1245,19 +1225,6 @@ n  */
 
     }
 
-    private void hideSoftKeyboard(EditText input) {
-        input.clearFocus();
-        Log.e(TAG, "hiding the view with focus...");
-        input.setInputType(0);
-        InputMethodManager imm = (InputMethodManager) getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
-        imm.hideSoftInputFromWindow(getView().getWindowToken(), 0);
-    }
-
-    private void showSoftKeyboard(EditText input) {
-        InputMethodManager imm = (InputMethodManager)getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
-        imm.showSoftInput(input, InputMethodManager.SHOW_IMPLICIT);
-    }
-
     public void stopLiveMode() {
        currentCameraMode = CAMERA_DEFAULT_MODE;
    }
@@ -1283,7 +1250,7 @@ n  */
      * currently, this method passed the file path to a function in the MainActivity
      * that loads the bitmap
      */
-    public interface OnCameraFragmentInteractionListener {
+    public interface OnCameraFragmentInteractionListener extends BaseFragmentInterface {
         void enableScrolling();
         void toggleScrolling();
         void sendMsgStartPreview();
@@ -1293,8 +1260,6 @@ n  */
         void sendMsgSaveImage(EditText comment, int postWhere, String messageTarget);
         void sendMsgSwitchCamera();
         int sendMsgAutoFocus(MotionEvent event);
-        void sendMsgReportAnalyticsEvent(Bundle b);
-        void showSoftKeyboard();
         String getCurrentThread();
         String getCurrentTopicARN();
     }

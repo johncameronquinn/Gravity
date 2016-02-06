@@ -233,6 +233,11 @@ public class StashActivity extends Activity implements StashGalleryFragment.OnFr
     }
 
     @Override
+    public AnalyticsReporter getAnalyticsReporter() {
+        return null;
+    }
+
+    @Override
     public void dismissPreview(PhotoFragment me) {
         getFragmentManager().beginTransaction().remove(me).commit();
     }

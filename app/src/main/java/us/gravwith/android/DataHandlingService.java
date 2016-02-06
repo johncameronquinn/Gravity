@@ -16,7 +16,6 @@ import com.amazonaws.mobile.AWSMobileClient;
 import com.amazonaws.mobile.content.ContentItem;
 import com.amazonaws.mobile.content.ContentManager;
 import com.amazonaws.mobile.content.ContentProgressListener;
-import com.amazonaws.mobile.push.SnsTopic;
 import com.amazonaws.mobile.user.IdentityManager;
 import com.amazonaws.mobile.user.signin.SignInManager;
 import com.amazonaws.mobileconnectors.amazonmobileanalytics.AnalyticsEvent;
@@ -27,17 +26,12 @@ import com.amazonaws.mobileconnectors.s3.transferutility.TransferObserver;
 import com.amazonaws.mobileconnectors.s3.transferutility.TransferState;
 import com.amazonaws.mobileconnectors.s3.transferutility.TransferUtility;
 import com.amazonaws.services.s3.AmazonS3Client;
-import com.amazonaws.services.sns.model.AuthorizationErrorException;
-import com.amazonaws.services.sns.model.EndpointDisabledException;
-import com.amazonaws.services.sns.model.InternalErrorException;
-import com.amazonaws.services.sns.model.NotFoundException;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 import java.io.File;
-import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -631,7 +625,7 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
 
                 case MSG_REPORT_ANALYTIC_SCREEN:
                     if (Constants.LOGD) Log.d(TAG, "Received a message to set the current screen");
-                    reportAnalyticsScreen(data);
+                    setAnalyticsFragment(data);
                     break;
 
                 case MSG_REPORT_CONTENT:
@@ -1047,15 +1041,22 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
             LogUtils.printBundle(data, TAG);
         }
 
-        AnalyticsEvent event = mTracker.getEventClient().createEvent(data.getString(Constants.KEY_ANALYTICS_CATEGORY));
-        event.withAttribute(Constants.KEY_ANALYTICS_ACTION, data.getString(Constants.KEY_ANALYTICS_ACTION));
+        AnalyticsEvent event = mTracker.getEventClient()
+                .createEvent(data.getString(Constants.KEY_ANALYTICS_CATEGORY));
 
-        if (data.containsKey(Constants.KEY_ANALYTICS_LABEL)) {
-            event.withAttribute(Constants.KEY_ANALYTICS_LABEL,data.getString(Constants.KEY_ANALYTICS_LABEL));
+        event.withAttribute(Constants.KEY_ANALYTICS_ACTION,
+                data.getString(Constants.KEY_ANALYTICS_ACTION));
+
+        if (data.containsKey(Constants.KEY_ANALYTICS_RESOURCE)) {
+            event.withAttribute(Constants.KEY_ANALYTICS_RESOURCE,
+                    data.getString(Constants.KEY_ANALYTICS_RESOURCE)
+            );
         }
 
         if (data.containsKey(Constants.KEY_ANALYTICS_VALUE)) {
-            event.withAttribute(Constants.KEY_ANALYTICS_VALUE, data.getString(Constants.KEY_ANALYTICS_VALUE));
+            event.withAttribute(Constants.KEY_ANALYTICS_VALUE,
+                    data.getString(Constants.KEY_ANALYTICS_VALUE)
+            );
         }
 
         mTracker.getEventClient().recordEvent(event);
@@ -1118,7 +1119,7 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
         if (VERBOSE) Log.v(TAG, "exiting reportAnalyticsError");
     }
 
-    public void reportAnalyticsScreen(Bundle data) {
+    public void setAnalyticsFragment(Bundle data) {
         if (VERBOSE) {
             Log.v(TAG, "entering reportAnalyticsScreen");
             LogUtils.printBundle(data, TAG);

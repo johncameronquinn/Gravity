@@ -549,7 +549,6 @@ public class MessageFragment extends Fragment implements
      * interface 'onLocalFragmentInteractionListener'
      *
      */
-    public interface onMessageFragmentInteractionListener {
-        void saveToStash(PhotoView view);
+    public interface onMessageFragmentInteractionListener extends BaseFragment.BaseFragmentInterface{
     }
 }

@@ -35,7 +35,7 @@ import fr.castorflex.android.verticalviewpager.VerticalViewPager;
  *
  * //todo use a disk cache for storing thread topics
  */
-public class LiveFragment extends Fragment implements
+public class LiveFragment extends BaseFragment implements
         LoaderManager.LoaderCallbacks<Cursor>, ViewPager.OnPageChangeListener {
     public static final boolean VERBOSE = false;
     private static final String TAG = "LiveFragment";
@@ -352,6 +352,8 @@ public class LiveFragment extends Fragment implements
                 Log.v(TAG,"OnClickRegistered..." + v.toString());
             }
 
+            mListener.getAnalyticsReporter().ReportClickEvent(v);
+
             switch (v.getId()) {
 
                 case R.id.button_live_refresh:
@@ -386,7 +388,12 @@ public class LiveFragment extends Fragment implements
 
                         @Override
                         public void onDialogClosed(boolean didTheyHitYes) {
-
+                            mListener.getAnalyticsReporter().ReportBehaviorEvent(
+                                    AnalyticsReporter.ANALYTICS_ACTION_BUTTON_PRESS,
+                                    mListener.getAnalyticsReporter()
+                                            .getButtonResourceID(R.id.button_live_report),
+                                    (didTheyHitYes) ? "yes":"no"
+                            );
                         }
                     });
 
@@ -493,8 +500,8 @@ public class LiveFragment extends Fragment implements
 
         //report thread view to analytics service
         if (mListener != null) {
-            //mListener.setAnalyticsScreenName( "Thread-Position: " + position);
         }
+
         if (VERBOSE) Log.v(TAG, "exiting onPageSelected...");
     }
 
@@ -696,9 +703,8 @@ public class LiveFragment extends Fragment implements
         if (VERBOSE) Log.v(TAG,"exit onLoaderReset...");
     }
 
-    public interface onLiveFragmentInteractionListener {
-        void sendMsgReportAnalyticsEvent(Bundle b);
-        //void setAnalyticsScreenName(String name);
+    public interface onLiveFragmentInteractionListener extends BaseFragmentInterface {
+        //void setAnalyticsFragment(String name);
         void sendMsgRequestLiveThreads();
         void sendMsgRequestReplies(int threadID);
         void setCurrentThread(String threadID,String topicARN, String desc, String imageKey,String repliesCount, String time);
@@ -711,7 +717,6 @@ public class LiveFragment extends Fragment implements
         void updateReplyViews();
         void updateCurrentReplies(int count);
         void updateLiveReplyCount();
-
         void swapTopics(String newTopic);
         String getCurrentRepliesCount();
     }

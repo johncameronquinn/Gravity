@@ -135,10 +135,10 @@ public class DeveloperFragment extends Fragment implements View.OnClickListener,
     public void onAttach(Activity activity) {
         super.onAttach(activity);
         try {
-//            mListener = (OnFragmentInteractionListener) activity;
+//            mListener = (BaseFragmentInterface) activity;
         } catch (ClassCastException e) {
             throw new ClassCastException(activity.toString()
-                    + " must implement OnFragmentInteractionListener");
+                    + " must implement BaseFragmentInterface");
         }
     }
 

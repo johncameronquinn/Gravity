@@ -30,7 +30,7 @@ import java.net.HttpURLConnection;
  * This Fragment represents the "local" UI.
  *
  */
-public class LocalFragment extends Fragment implements
+public class LocalFragment extends BaseFragment implements
         LoaderManager.LoaderCallbacks<Cursor>, View.OnClickListener {
     private final String TAG = "LocalFragment";
     private final boolean VERBOSE = true;
@@ -71,7 +71,7 @@ public class LocalFragment extends Fragment implements
             mListener = (onLocalFragmentInteractionListener) activity;
         } catch (ClassCastException e) {
             throw new ClassCastException(activity.toString()
-                    + " must implement OnFragmentInteractionListener");
+                    + " must implement BaseFragmentInterface");
         }
 
 
@@ -90,7 +90,7 @@ public class LocalFragment extends Fragment implements
             mListener = (onLocalFragmentInteractionListener) activity;
         } catch (ClassCastException e) {
             throw new ClassCastException(activity.toString()
-                    + " must implement OnFragmentInteractionListener");
+                    + " must implement BaseFragmentInterface");
         }
 
     }
@@ -414,8 +414,7 @@ public class LocalFragment extends Fragment implements
      *
      */
     public interface onLocalFragmentInteractionListener {
-        //void setAnalyticsScreenName(String name);
-        void sendMsgReportAnalyticsEvent(Bundle b);
+        //void setAnalyticsFragment(String name);
         void sendMsgDownloadImage(String s3Directroy, String s3Key);
         void saveToStash(PhotoView imageToSave);
     }

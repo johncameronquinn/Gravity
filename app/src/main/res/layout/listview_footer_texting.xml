@@ -34,14 +34,14 @@
         android:gravity="center_horizontal"
         android:layout_marginBottom="5dp"
         android:layout_marginRight="5dp"
-        android:layout_toLeftOf="@+id/button_send_reply"
+        android:layout_toLeftOf="@+id/button_reply_send"
         android:layout_toEndOf="@+id/button_reply_capture" />
 
 
     <com.github.clans.fab.FloatingActionButton
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:id="@+id/button_send_reply"
+        android:id="@+id/button_reply_send"
         android:scaleType="fitXY"
         android:layout_alignParentEnd="true"
         android:layout_alignParentBottom="false"

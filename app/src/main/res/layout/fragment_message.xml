@@ -2,7 +2,8 @@
     xmlns:expandable="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/jpallete_main_grey">
+    android:background="@color/jpallete_main_grey"
+    android:id="@+id/layout_message_root">
 
     <us.gravwith.android.view.ImageCursorAdapterView
         android:layout_width="match_parent"

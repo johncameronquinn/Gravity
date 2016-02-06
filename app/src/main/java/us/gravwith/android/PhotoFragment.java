@@ -29,7 +29,6 @@ package us.gravwith.android;
         import android.content.Intent;
         import android.os.Bundle;
         import android.app.Fragment;
-        import android.support.v4.app.ShareCompat;
         import android.support.v4.content.LocalBroadcastManager;
         import android.util.Log;
         import android.view.LayoutInflater;
@@ -91,6 +90,8 @@ public class PhotoFragment extends Fragment implements View.OnClickListener {
     @Override
     public void onClick(View v) {
         if (Constants.LOGV) Log.v(TAG,"entering onClick with view: " + v.toString());
+         //report to analytics
+        mListener.getAnalyticsReporter().ReportClickEvent(v);
 
         switch (v.getId()) {
             case R.id.button_camera_live_mode_cancel:
@@ -135,7 +136,7 @@ public class PhotoFragment extends Fragment implements View.OnClickListener {
                 mListener.dismissPreview(this);
                 break;
 
-            case R.id.button_send_reply:
+            case R.id.button_reply_send:
 
                 FrameLayout layout2 = (FrameLayout) v.getParent();
 
@@ -150,11 +151,9 @@ public class PhotoFragment extends Fragment implements View.OnClickListener {
                 break;
 
             default:
-                // Sends a broadcast intent to zoom the image
-                if (Constants.LOGV) Log.v(TAG,"sending broadcast to zoom the image");
+                if (Constants.LOGV) Log.v(TAG,"sending broadcast to remove the image");
                 Intent localIntent = new Intent(Constants.ACTION_REMOVE_IMAGE);
                 LocalBroadcastManager.getInstance(getActivity()).sendBroadcast(localIntent);
-
 
         }
         if (Constants.LOGV) Log.v(TAG,"exiting onClick...");
@@ -194,7 +193,7 @@ public class PhotoFragment extends Fragment implements View.OnClickListener {
                 localView = inflater.inflate(R.layout.photo_preview_reply, viewGroup, false);
 
                 localView.findViewById(R.id.button_cancel_reply).setOnClickListener(this);
-                localView.findViewById(R.id.button_send_reply).setOnClickListener(this);
+                localView.findViewById(R.id.button_reply_send).setOnClickListener(this);
             } else {
                 Log.wtf(TAG,"wtf you doin son. You tryna upload to local or sumthin cause" +
                         "that's not allowed.");
@@ -323,5 +322,6 @@ public class PhotoFragment extends Fragment implements View.OnClickListener {
         void addCommentToNewReply(String description);
         void hideSoftKeyboard();
         void clearReplyInfo();
+        AnalyticsReporter getAnalyticsReporter();
     }
 }

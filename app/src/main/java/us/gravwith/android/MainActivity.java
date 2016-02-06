@@ -1,6 +1,5 @@
 package us.gravwith.android;
 
-import android.*;
 import android.Manifest;
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -25,24 +24,20 @@ import android.graphics.RectF;
 import android.graphics.SurfaceTexture;
 import android.graphics.drawable.BitmapDrawable;
 import android.hardware.Camera;
-import android.location.LocationManager;
 import android.media.ThumbnailUtils;
 import android.net.Uri;
 import android.os.*;
 import android.os.Process;
 import android.preference.PreferenceManager;
 import android.provider.MediaStore;
-import android.provider.Settings;
 import android.app.Fragment;
 import android.support.v13.app.FragmentStatePagerAdapter;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.content.LocalBroadcastManager;
-import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.util.AttributeSet;
 import android.util.Log;
-import android.util.SparseArray;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.MotionEvent;
@@ -50,7 +45,6 @@ import android.view.TextureView;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
-import android.widget.AdapterView;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.FrameLayout;
@@ -64,19 +58,16 @@ import com.amazonaws.mobile.AWSMobileClient;
 import com.amazonaws.mobile.user.IdentityManager;
 
 //import us.gravwith.android.dev.ContentDeliveryDemoFragment;
-import org.xml.sax.ErrorHandler;
 
 import us.gravwith.android.dev.DeveloperFragment;
 import us.gravwith.android.util.ImageUtils;
 import us.gravwith.android.util.LogUtils;
-import us.gravwith.android.view.BaseFragment;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.lang.ref.WeakReference;
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -94,7 +85,8 @@ import java.util.UUID;
 public class MainActivity extends Activity implements CameraFragment.OnCameraFragmentInteractionListener,
 LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInteractionListener,
         ViewPager.OnPageChangeListener, PhotoFragment.onPreviewInteractionListener,
-        ErrorReceiver.SecurityErrorListener, MessageHandler.LivePostListener {
+        ErrorReceiver.SecurityErrorListener, MessageHandler.LivePostListener, AnalyticsReporter.AnalyticsReportingCallbacks {
+
     private static String TAG = "MainActivity";
     private static final boolean VERBOSE = false;
 
@@ -152,7 +144,9 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
      */
     private IdentityManager identityManager;
 
-
+    /** ANALYTICS REPORTING
+     */
+    private final AnalyticsReporter reporter = new AnalyticsReporter(this);
 
     /**IMAGE FULLSCREEN*/
 
@@ -555,13 +549,6 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
         LocalBroadcastManager.getInstance(this).registerReceiver(notificationReceiver,
                 new IntentFilter(PushListenerService.ACTION_SNS_NOTIFICATION));
 
-        // pause/resume Mobile Analytics collection
-        awsMobileClient.handleOnResume();
-
-        // register notification receiver
-        LocalBroadcastManager.getInstance(this).registerReceiver(notificationReceiver,
-                new IntentFilter(PushListenerService.ACTION_SNS_NOTIFICATION));
-
 
         if (VERBOSE) Log.d(TAG, "exit onResume...");
     }
@@ -630,7 +617,7 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
         Bundle b = new Bundle();
         b.putString(Constants.KEY_ANALYTICS_CATEGORY, Constants.ANALYTICS_CATEGORY_LIFECYCLE);
         b.putString(Constants.KEY_ANALYTICS_ACTION, "destroyed");
-        b.putString(Constants.KEY_ANALYTICS_LABEL, "Last open fragment");
+        b.putString(Constants.KEY_ANALYTICS_RESOURCE, "Last open fragment");
         b.putString(Constants.KEY_ANALYTICS_VALUE, String.valueOf(mAdapter.getPageTitle(mPager.getCurrentItem())));
 
         try {
@@ -703,34 +690,40 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
             Toast.makeText(this,"Message pressed: " + arn,Toast.LENGTH_LONG).show();
         }
 
-        Bundle b = new Bundle();
+        throw new RuntimeException("Not yet implemented...");
+
+        /*Bundle b = new Bundle();
         b.putString(Constants.KEY_ANALYTICS_CATEGORY,Constants.ANALYTICS_CATEGORY_LOCAL);
         b.putString(Constants.KEY_ANALYTICS_ACTION,"message");
-        b.putString(Constants.KEY_ANALYTICS_LABEL,(String)arn);
-        sendMsgReportAnalyticsEvent(b);
+        b.putString(Constants.KEY_ANALYTICS_RESOURCE, (String) arn);
+        sendMsgReportBehaviorEvent(b);
+
+        getAnalyticsReporter().
 
         CameraFragment.setMessageTarget(arn);
         CameraFragReference.get().startMessageMode((String) arn);
         mPager.setCurrentItem(CAMERA_LIST_POSITION);
-        mPager.setPagingEnabled(false);
+        mPager.setPagingEnabled(false);*/
     }
 
     public void onMessageRefresh(View v) {
-        Bundle b = new Bundle();
-        b.putString(Constants.KEY_ANALYTICS_CATEGORY, Constants.ANALYTICS_CATEGORY_MESSAGE);
-        b.putString(Constants.KEY_ANALYTICS_ACTION, "refresh");
-        sendMsgReportAnalyticsEvent(b);
+        throw new RuntimeException("Not yet implemented...");
+        /*
+        getAnalyticsReporter().ReportBehaviorEvent(AnalyticsReporter.ANALYTICS_ACTION_REFRESH,
+                AnalyticsReporter.getResourceName(R.id.button_message_refresh)
+        );
 
-        sendMsgRequestLocalMessages();
+        sendMsgRequestLocalMessages();*/
     }
 
     public void onLocalRefresh(View v) {
-        Bundle b = new Bundle();
+        throw new RuntimeException("Not yet implemented...");
+        /*Bundle b = new Bundle();
         b.putString(Constants.KEY_ANALYTICS_CATEGORY,Constants.ANALYTICS_CATEGORY_LOCAL);
         b.putString(Constants.KEY_ANALYTICS_ACTION, "refresh");
-        sendMsgReportAnalyticsEvent(b);
+        sendMsgReportBehaviorEvent(b);
 
-        sendMsgRequestLocalPosts(3);
+        sendMsgRequestLocalPosts(3);*/
     }
 
     public static void hide_keyboard(Activity activity) {
@@ -1019,13 +1012,15 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
     public void onLocalBlockPressed(View view) {
         if (VERBOSE) Log.v(TAG,"Block button pressed.");
 
-        Toast.makeText(this,"Blocking user " + view.getTag(),Toast.LENGTH_SHORT).show();
+        throw new RuntimeException("Not yet implemented...");
+
+        /*Toast.makeText(this,"Blocking user " + view.getTag(),Toast.LENGTH_SHORT).show();
 
         Bundle b = new Bundle();
         b.putString(Constants.KEY_ANALYTICS_CATEGORY,Constants.ANALYTICS_CATEGORY_LOCAL);
         b.putString(Constants.KEY_ANALYTICS_ACTION,"block");
-        b.putString(Constants.KEY_ANALYTICS_LABEL, (String) view.getTag());
-        sendMsgReportAnalyticsEvent(b);
+        b.putString(Constants.KEY_ANALYTICS_RESOURCE, (String) view.getTag());
+        sendMsgReportBehaviorEvent(b);
 
         if (isBound) {
             if (VERBOSE) Log.v(TAG,"sending message to block ");
@@ -1039,7 +1034,7 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
             } catch (RemoteException e) {
                 Log.e(TAG,"error sending message to block user",e);
             }
-        }
+        }*/
     }
 
     @Override
@@ -1356,7 +1351,7 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
 
     @Override
     public void onPageSelected(int position) {
-        setAnalyticsScreenName();
+        setAnalyticsFragment();
 
         //View tabStrip = mPager.findViewById(R.id.pager_tab_strip);
         //View settingsDrawer = findViewById(R.id.drawer_settings);
@@ -1382,12 +1377,14 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
                 //tabStrip.setVisibility(View.VISIBLE);
                 //settingsDrawer.setVisibility(View.VISIBLE);
                 sendMsgUnsubscribeFromTopic(currentTopicARN);
+                reporter.ReportViewEvent(currentTopicImageKey);
                 break;
 
             case REPLY_LIST_POSITION:
                 //tabStrip.setVisibility(View.GONE);
                 //settingsDrawer.setVisibility(View.GONE);
                 sendMsgSubscribeToTopic(currentTopicARN);
+                reporter.ReportViewEvent(currentThread);
                 break;
         }
 
@@ -1514,6 +1511,8 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
                     // Commits the transaction
                     localFragmentTransaction2.commit();
 
+                    //report to analytics
+                    reporter.ReportViewEvent(urlString);
                 }
 
                 // If not in side-by-side mode, sets "full screen", so that no controls are visible
@@ -1570,6 +1569,7 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
                 if (VERBOSE) Log.v(TAG,"Remove intent received...");
                 if (VERBOSE) Log.v(TAG,"removing fullscreen fragment...");
                 getFragmentManager().popBackStackImmediate();
+
             }
         }
     }
@@ -2061,6 +2061,8 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
         if (ReplyFragReference.get() != null) {
             ReplyFragReference.get().resetDisplay();
         }
+
+        reporter.ReportViewEvent(threadID);
     }
 
     public void sendMsgSubscribeToTopic(String topicARN) {
@@ -2276,12 +2278,8 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
                             } catch (Exception e) {
                                 Log.e(TAG, "error setting preview texture to camera", e);
 
-                                Bundle b = new Bundle();
-                                b.putString(Constants.ANALYTICS_ERROR_MESSAGE,e.getMessage());
-                                b.putString(Constants.ANALYTICS_ERROR_METHOD,
-                                        "onSurfaceTextureAvailable(SurfaceTexture surface, " +
-                                                "int width, int height)");
-                                mWeakActivity.get().sendMsgReportError(b);
+                                AnalyticsReporter.getAnalyticsReporter(mWeakActivity.get())
+                                        .ReportErrorEvent(e);
                             }
                 } else {
                     Log.d(TAG, "camera was not available, saving surface...");
@@ -2414,11 +2412,8 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
                     } catch (Exception e) {
                         Log.e(TAG, "generic error setting and starting preview", e);
 
-                        Bundle b = new Bundle();
-                        b.putString(Constants.ANALYTICS_ERROR_MESSAGE,e.getMessage());
-                        b.putString(Constants.ANALYTICS_ERROR_METHOD,"msg_start_preview");
-                        mWeakActivity.get().sendMsgReportError(b);
-
+                        AnalyticsReporter.getAnalyticsReporter(mWeakActivity.get())
+                                .ReportErrorEvent(e);
                     }
                     break;
                 case MSG_STOP_PREVIEW: //3
@@ -2463,12 +2458,9 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
                             mCamera.setPreviewTexture(mSurface);
                         } catch (IOException e) {
                             Log.e(TAG, "error setting preview texture to camera", e);
-                            Bundle b = new Bundle();
-                            b.putString(Constants.ANALYTICS_ERROR_MESSAGE,e.getMessage());
-                            b.putString(Constants.ANALYTICS_ERROR_METHOD,"" +
-                                    "msg_switch_camera");
-                            mWeakActivity.get().sendMsgReportError(b);
 
+                            AnalyticsReporter.getAnalyticsReporter(mWeakActivity.get())
+                                    .ReportErrorEvent(e);
                         }
                         mCamera.startPreview();
                     } else {
@@ -2551,11 +2543,8 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
                         MessageHandler.ERROR_CAMERA_OPENING_FAILED,
                         0).sendToTarget();
 
-                Bundle b = new Bundle();
-                b.putString(Constants.ANALYTICS_ERROR_MESSAGE,e.getMessage());
-                b.putString(Constants.ANALYTICS_ERROR_METHOD,"" +
-                        "getCameraInstance(int whichCamera)");
-                mWeakActivity.get().sendMsgReportError(b);
+                AnalyticsReporter.getAnalyticsReporter(mWeakActivity.get())
+                        .ReportErrorEvent(e);
 
             }
 
@@ -2588,11 +2577,8 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
                     } catch (IOException e) {
                         Log.e(TAG, "error setting mSurface as surfacetexture", e);
 
-                        Bundle b = new Bundle();
-                        b.putString(Constants.ANALYTICS_ERROR_MESSAGE,e.getMessage());
-                        b.putString(Constants.ANALYTICS_ERROR_METHOD,"" +
-                                "getCameraInstance(int whichCamera)");
-                        mWeakActivity.get().sendMsgReportError(b);
+                        AnalyticsReporter.getAnalyticsReporter(mWeakActivity.get())
+                                .ReportErrorEvent(e);
                     }
            } else {
                Log.e(TAG,"The camera surface texture has yet to be created");
@@ -2708,12 +2694,8 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
             } catch (FileNotFoundException e) {
                 Log.e(TAG, "error compressing bitmap to filepath" + filePath, e);
 
-                Bundle b = new Bundle();
-                b.putString(Constants.ANALYTICS_ERROR_MESSAGE,e.getMessage());
-                b.putString(Constants.ANALYTICS_ERROR_METHOD,"saveImage(byte[] data, String" +
-                        " commentText, int height, int callBack)");
-                mWeakActivity.get().sendMsgReportError(b);
-
+                AnalyticsReporter.getAnalyticsReporter(mWeakActivity.get())
+                        .ReportErrorEvent(e);
             }
 
              Log.d(TAG, "The size of the image after: " + data.length);
@@ -2728,11 +2710,8 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
                 } catch (FileNotFoundException e) {
                     Log.e(TAG, "error compressing bitmap to filepath" + filePath, e);
 
-                    Bundle b = new Bundle();
-                    b.putString(Constants.ANALYTICS_ERROR_MESSAGE,e.getMessage());
-                    b.putString(Constants.ANALYTICS_ERROR_METHOD, "saveImage(byte[] data, String" +
-                            " commentText, int height, int callBack)");
-                    mWeakActivity.get().sendMsgReportError(b);
+                    AnalyticsReporter.getAnalyticsReporter(mWeakActivity.get())
+                            .ReportErrorEvent(e);
                 }
             }
 
@@ -2796,10 +2775,8 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
                 } catch (RuntimeException e) {
                     Log.e(TAG, "Failed to set camera parameters...", e);
 
-                    Bundle b = new Bundle();
-                    b.putString(Constants.ANALYTICS_ERROR_MESSAGE,e.getMessage());
-                    b.putString(Constants.ANALYTICS_ERROR_METHOD,"focusOnTouch(float x, float y)");
-                    mWeakActivity.get().sendMsgReportError(b);
+                    AnalyticsReporter.getAnalyticsReporter(mWeakActivity.get())
+                            .ReportErrorEvent(e);
 
                     ((CameraFragment) mAdapter.getItem(CAMERA_LIST_POSITION)).onAutoFocus(false, mCamera);
                 }
@@ -3159,65 +3136,11 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
  **/
 
     /**
-     * method 'reportAnalyticsEvent'
-     *
-     * reports an event to Google analytics.
-     *
-     * {@link LiveFragment.onLiveFragmentInteractionListener}
-     * {@link LocalFragment.onLocalFragmentInteractionListener}
-     * Called by these linked interface callbacks.
-     **/
-    public void sendMsgReportAnalyticsEvent(Bundle b) {
-        if (VERBOSE) Log.d(TAG,"sending message to report analytics event");
-        if (isBound) {
-            try {
-                Message msg = Message.obtain(null, DataHandlingService.MSG_REPORT_ANALYTICS);
-                msg.setData(b);
-                mService.send(msg);
-            } catch (RemoteException e) {
-                Log.e(TAG, "error send message to report analytics",e);
-            }
-        } else {
-            Log.e(TAG,"failed to report analyitcs event, service was not bound...");
-        }
-    }
-
-    public void sendMsgReportTimingEvent(Bundle b) {
-        if (VERBOSE) Log.d(TAG,"sending message to report timing event");
-        if (isBound) {
-            try {
-                Message msg = Message.obtain(null, DataHandlingService.MSG_REPORT_ANALYTIC_TIMING);
-                msg.setData(b);
-                mService.send(msg);
-            } catch (RemoteException e) {
-                Log.e(TAG, "error send message to report analytics",e);
-            }
-        } else {
-            Log.e(TAG,"failed to report analytics event, service was not bound...");
-        }
-    }
-
-    public void sendMsgReportError(Bundle b) {
-        if (VERBOSE) Log.d(TAG, "sending message to report timing event");
-        if (isBound) {
-            try {
-                Message msg = Message.obtain(null, DataHandlingService.MSG_REPORT_ANALYTIC_ERROR);
-                msg.setData(b);
-                mService.send(msg);
-            } catch (RemoteException e) {
-                Log.e(TAG, "error send message to report analytics",e);
-            }
-        } else {
-            Log.e(TAG,"failed to report analytics event, service was not bound...");
-        }
-    }
-
-    /**
      * method 'sendScreenName'
      * <p/>
      * reports a screen view event the background process
      */
-    public void setAnalyticsScreenName() {
+    public void setAnalyticsFragment() {
         if (VERBOSE) Log.v(TAG, "Sending screen event for screen name");
 
         if (isBound) {
@@ -3234,13 +3157,30 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
                 Log.e(TAG, "error send message to report analytics",e);
             }
         } else {
-            Log.e(TAG,"failed to report analytics event, service was not bound...");
+            Log.e(TAG, "failed to report analytics event, service was not bound...");
         }
     }
 
     public void onDeveloperInteraction(int request, Uri resource) {
         Log.i(TAG, "entering onDeveloperInteraction with request- " + request + " and resource - "
                 + resource.toString());
+    }
+
+    public boolean sendMessage(Message msg) {
+
+        boolean out = false;
+
+        if (isBound) {
+            try {
+                mService.send(msg);
+                out = true;
+            } catch (RemoteException e) {
+                Log.e(TAG,"RemoteException sending message",e);
+            }
+
+        }
+
+        return out;
     }
 
 /***************************************************************************************************
@@ -3294,5 +3234,13 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
 
     public void updateCurrentReplies(int count) {
         currentTopicReplies = String.valueOf(count);
+    }
+
+    /**************************************************************************************************
+     *  ACCESSORS
+      */
+
+    public AnalyticsReporter getAnalyticsReporter() {
+        return reporter;
     }
 }
