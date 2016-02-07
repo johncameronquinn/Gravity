@@ -126,6 +126,30 @@ public class PhotoView extends ImageView {
             // If the weak reference actually contains something, set the visibility
             if (localView != null)
                 localView.setVisibility(visState);
+        } else {
+            if (VERBOSE) Log.e(TAG,"underlying imageView was null!");
+
+            //attempt to regrab view
+
+            // If the sibling View is set and the parent of the ImageView is itself a View
+            /*if ((this.mHideShowResId != -1) && ((getParent() instanceof View))) {
+
+                // Gets a handle to the sibling View
+                View localView = ((View) getParent()).findViewById(this.mHideShowResId);
+
+                // If the sibling View contains something, make it the weak reference for this View
+                if (localView != null) {
+                    this.mThisView = new WeakReference<>(localView);
+                    localView.setVisibility(visState);
+
+                    if (VERBOSE) Log.d(TAG,"successful reference recover");
+                } else {
+                    if (VERBOSE) Log.e(TAG,"unable to recover reference");
+                }
+            } else {
+                Log.e(TAG,"parent of this view : " + getParent().toString());
+            }*/
+
         }
 
         if (VERBOSE) Log.v(TAG,"exiting showView...: " + mImageKey);

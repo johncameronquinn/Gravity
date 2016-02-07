@@ -340,7 +340,7 @@ public class PhotoManager {
                                 final View loadingView = ((ViewGroup)localView.getParent())
                                         .findViewById(R.id.photoProgress);
 
-                                localView.setAlpha(0f);
+                                localView.setAlpha(.1f);
                                 localView.setVisibility(View.VISIBLE);
 
                                 //now set the bitmap

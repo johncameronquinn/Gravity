@@ -5,12 +5,6 @@
     android:background="@color/jpallete_main_grey"
     android:id="@+id/layout_live_thread_root">
 
-    <us.gravwith.android.PhotoView
-        android:id="@+id/photoView"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:scaleType="fitXY"
-        android:adjustViewBounds="true" />
     <ProgressBar
         style="?android:attr/progressBarStyleLarge"
         android:layout_width="wrap_content"
@@ -19,6 +13,11 @@
         android:layout_alignBottom="@+id/photoView"
         android:layout_centerHorizontal="true"
         android:layout_marginBottom="220dp"/>
+    <us.gravwith.android.PhotoView
+        android:id="@+id/photoView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scaleType="fitXY" />
 
 
 
