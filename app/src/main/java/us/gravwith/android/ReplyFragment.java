@@ -225,6 +225,8 @@ public class ReplyFragment extends BaseFragment implements LoaderManager.LoaderC
         textingParentView = (RelativeLayout)v.findViewById(R.id.layout_reply_texting);
         textingParentView.findViewById(R.id.button_reply_capture)
                 .setOnClickListener(replyButtonListener);
+        textingParentView.findViewById(R.id.button_reply_send)
+                .setOnClickListener(replyButtonListener);
 
         updateSmartFooter();
 
@@ -347,7 +349,7 @@ public class ReplyFragment extends BaseFragment implements LoaderManager.LoaderC
                     getResources().getInteger(R.integer.radical_background_transition_duration)
             );
         } else {
-            ((TransitionDrawable)radicalMenuView.getBackground()).reverseTransition(
+            ((TransitionDrawable) radicalMenuView.getBackground()).reverseTransition(
                     getResources().getInteger(R.integer.radical_background_transition_duration)
             );
         }

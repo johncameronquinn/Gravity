@@ -88,7 +88,7 @@ public class Utility {
                 if (out > 23) {
                     out = TimeUnit.MILLISECONDS.toDays(timePassed);
                 } else {
-                    unitchar = "m";
+                    unitchar = "h";
                 }
             } else {
                 unitchar = "m";
