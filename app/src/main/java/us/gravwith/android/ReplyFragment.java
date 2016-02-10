@@ -11,6 +11,7 @@ import android.database.Cursor;
 import android.graphics.drawable.TransitionDrawable;
 import android.os.Bundle;
 import android.app.Fragment;
+import android.os.Looper;
 import android.os.Message;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
@@ -28,6 +29,8 @@ import android.widget.Toast;
 import com.github.clans.fab.FloatingActionMenu;
 
 import java.net.HttpURLConnection;
+
+import us.gravwith.android.util.Utility;
 
 
 /**
@@ -219,7 +222,9 @@ public class ReplyFragment extends BaseFragment implements LoaderManager.LoaderC
         textingFooterView = (RelativeLayout)
                 inflater.inflate(R.layout.listview_footer_texting, mListView, false);
 
-        //textingParentView = (RelativeLayout)v.findViewById(R.id.layout_reply_texting);
+        textingParentView = (RelativeLayout)v.findViewById(R.id.layout_reply_texting);
+
+        updateSmartFooter();
 
         opHeaderView = (RelativeLayout)
                 inflater.inflate(R.layout.fragment_reply_detail_row, mListView, false);
@@ -408,7 +413,16 @@ public class ReplyFragment extends BaseFragment implements LoaderManager.LoaderC
                 null
         );
 
+        Utility.clearTextAndFocus(((EditText)textingFooterView
+                .findViewById(R.id.editText_reply_comment)));
+        Utility.clearTextAndFocus((EditText)textingParentView
+                .findViewById(R.id.editText_reply_comment));
+
         if (VERBOSE) Log.v(TAG, "exiting setOpInfo...");
+    }
+
+    public void closeRadical() {
+        radicalMenuView.close(false);
     }
 
     /**
@@ -586,11 +600,11 @@ public class ReplyFragment extends BaseFragment implements LoaderManager.LoaderC
         if (VERBOSE) Log.v(TAG,"entering onLoadFinished...");
 
           /* only set the action buttons to visible if there is content */
-        if (data == null) {
+        /*if (data == null) {
             Log.e(TAG, "why was the returned cursor null?");
             mAdapter.swapCursor(null);
             return;
-        }
+        }*/
 
      /*   Log.e(TAG,"cursor row count : " + data.getCount());
         if (data.getCount() > 0) {
@@ -617,7 +631,14 @@ public class ReplyFragment extends BaseFragment implements LoaderManager.LoaderC
 
             mListener.updateCurrentReplies(data.getCount() + 1);
             mListener.updateLiveReplyCount();
+
+            if (Looper.myLooper().getThread() != Looper.getMainLooper().getThread()) {
+                Log.e(TAG,"I AM NOT ON MAIN THREAD");
+            }
+            updateSmartFooter();
         }
+
+
 
         if (VERBOSE) Log.v(TAG,"exiting onLoadFinished...");
     }
@@ -632,7 +653,7 @@ public class ReplyFragment extends BaseFragment implements LoaderManager.LoaderC
                         mListView.getFirstVisiblePosition();
                 if (mAdapter.getCount() > numItemsVisible)
                 {
-                    Toast.makeText(getActivity(),"adding to listView...",Toast.LENGTH_SHORT).show();
+                    //Toast.makeText(getActivity(),"adding to listView...",Toast.LENGTH_SHORT).show();
                     //hide parent view
                     textingParentView.setVisibility(View.GONE);
 
@@ -640,7 +661,7 @@ public class ReplyFragment extends BaseFragment implements LoaderManager.LoaderC
                     mListView.addFooterView(textingFooterView);
                 } else
                 {
-                    Toast.makeText(getActivity(),"adding to parent...",Toast.LENGTH_SHORT).show();
+                    //Toast.makeText(getActivity(),"adding to parent...",Toast.LENGTH_SHORT).show();
                     //remove view from listView
                     mListView.removeFooterView(textingFooterView);
 

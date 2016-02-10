@@ -31,10 +31,10 @@
         fab:menu_labels_colorRipple="@color/panel_background"
         android:layout_alignParentEnd="true">
 
-        <com.github.clans.fab.FloatingActionButton
+        <!--com.github.clans.fab.FloatingActionButton
             style="@style/FabMini"
             android:id="@+id/button_live_hide"
-            fab:fab_label="Hide Topic"/>
+            fab:fab_label="Hide Topic"/-->
 
         <com.github.clans.fab.FloatingActionButton
             style="@style/FabMini"

@@ -202,7 +202,7 @@ public class LiveThreadFragment extends Fragment implements View.OnClickListener
          * The click listener becomes this class (PhotoFragment). The onClick() method in this
          * class is invoked when users click a photo.
          */
-        mPhotoView.setOnClickListener(this);
+        //mPhotoView.setOnClickListener(this);
         //textView.setOnClickListener(this);
 
         mPhotoView.setImageKey(Constants.KEY_S3_LIVE_DIRECTORY,mImageKey,true,mEmptyDrawable);

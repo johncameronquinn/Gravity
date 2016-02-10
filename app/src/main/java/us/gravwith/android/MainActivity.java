@@ -1378,6 +1378,10 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
                 //settingsDrawer.setVisibility(View.VISIBLE);
                 sendMsgUnsubscribeFromTopic(currentTopicARN);
                 reporter.ReportViewEvent(currentTopicImageKey);
+
+                if (ReplyFragReference.get()!=null) {
+                    ReplyFragReference.get().closeRadical();
+                }
                 break;
 
             case REPLY_LIST_POSITION:
@@ -1385,6 +1389,10 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
                 //settingsDrawer.setVisibility(View.GONE);
                 sendMsgSubscribeToTopic(currentTopicARN);
                 reporter.ReportViewEvent(currentThread);
+
+                if (LiveFragReference.get()!=null) {
+                    LiveFragReference.get().closeRadical();
+                }
                 break;
         }
 
@@ -3046,6 +3054,8 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
                 Log.e(TAG,"error sending message to save image");
             }
         }
+
+        reporter.ReportClickEvent(view);
 
         if (VERBOSE) Log.v(TAG, "exiting setFlash...");
     }

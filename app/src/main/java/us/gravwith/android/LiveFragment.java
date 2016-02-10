@@ -20,6 +20,8 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.github.clans.fab.FloatingActionMenu;
+
 import java.io.FileNotFoundException;
 import java.lang.ref.WeakReference;
 
@@ -237,7 +239,7 @@ public class LiveFragment extends BaseFragment implements
         rootView.findViewById(R.id.button_live_refresh).setOnClickListener(getButtonListener(this));
         //rootView.findViewById(R.id.button_new_thread).setOnClickListener(getButtonListener(this));
         rootView.findViewById(R.id.button_live_report).setOnClickListener(getButtonListener(this));
-        rootView.findViewById(R.id.button_live_hide).setOnClickListener(getButtonListener(this));
+       // rootView.findViewById(R.id.button_live_hide).setOnClickListener(getButtonListener(this));
 
         titleView = (TextView)rootView.findViewById(R.id.textView_title);
         uniqueView = (TextView)rootView.findViewById(R.id.textView_unique_posters);
@@ -339,6 +341,12 @@ public class LiveFragment extends BaseFragment implements
         if (VERBOSE) Log.v(TAG,"exiting resetLiveAdapter...");
     }
 
+
+    public void closeRadical() {
+        ((FloatingActionMenu)getActivity().findViewById(R.id.live_radical_menu)).close(true);
+    }
+
+
     /**
      * class 'liveButtonListener
      *
@@ -421,7 +429,7 @@ public class LiveFragment extends BaseFragment implements
                     }
                     break;*/
 
-                case R.id.button_live_hide:
+               /* case R.id.button_live_hide:
 
                     Toast.makeText(getActivity(),"not yet working...",Toast.LENGTH_SHORT).show();
                     // STOPSHIP: 1/18/16 Hide must be working
@@ -440,7 +448,7 @@ public class LiveFragment extends BaseFragment implements
                             selectionArgs
                     );*/
 
-                    break;
+                    //break;
 
             }
         }

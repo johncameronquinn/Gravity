@@ -52,9 +52,9 @@ public class AnalyticsReporter {
                 out = "6";
                 break;
 
-            case R.id.button_live_hide:
+        /*    case R.id.button_live_hide:
                 out = "7";
-                break;
+                break;*/
 
             case R.id.button_reply_capture:
                 out = "8";

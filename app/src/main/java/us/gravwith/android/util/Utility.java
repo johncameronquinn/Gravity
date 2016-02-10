@@ -10,6 +10,7 @@ import android.provider.Settings;
 import android.util.Log;
 import android.util.TimeUtils;
 import android.view.View;
+import android.widget.TextView;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 
@@ -177,5 +178,10 @@ public class Utility {
             dialog.show();
 
         }
+    }
+
+    public static void clearTextAndFocus(TextView tv) {
+        tv.setText("");
+        tv.clearFocus();
     }
 }

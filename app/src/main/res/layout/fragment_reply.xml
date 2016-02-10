@@ -92,6 +92,65 @@
 
     </com.github.clans.fab.FloatingActionMenu>
 
+    <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:fab="http://schemas.android.com/apk/res-auto"
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:background="@drawable/rectangle"
+        android:paddingTop="@dimen/reply_footer_padding_top"
+        android:paddingBottom="@dimen/reply_footer_padding_bottom"
+        android:layout_alignParentBottom="true"
+        android:id="@+id/layout_reply_texting"
+        android:layout_height="wrap_content">
 
+        <com.github.clans.fab.FloatingActionButton
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:scaleType="fitXY"
+            android:layout_alignParentStart="true"
+            android:enabled="false"
+            fab:fab_size="mini"
+            fab:fab_showShadow="false"
+            fab:fab_colorDisabled="@color/cyber_grey"
+            fab:fab_colorNormal="@color/cyber_background"
+            fab:fab_colorPressed="@color/cyber_grey"
+            fab:fab_colorRipple="@color/cyber_black"
+            android:src="@drawable/panel"
+            android:id="@+id/button_reply_capture"/>
+
+        <EditText
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/editText_reply_comment"
+            android:layout_marginLeft="5dp"
+            android:hint="comment"
+            android:textColorHint="@android:color/darker_gray"
+            android:textColor="@android:color/white"
+            android:gravity="center_horizontal"
+            android:layout_marginBottom="5dp"
+            android:layout_marginRight="5dp"
+            android:layout_toLeftOf="@+id/button_reply_send"
+            android:layout_toEndOf="@+id/button_reply_capture" />
+
+
+        <com.github.clans.fab.FloatingActionButton
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/button_reply_send"
+            android:scaleType="fitXY"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentBottom="false"
+            android:layout_alignParentStart="false"
+            android:enabled="false"
+            fab:fab_size="mini"
+            fab:fab_showShadow="false"
+            fab:fab_colorDisabled="@color/cyber_grey"
+            fab:fab_colorNormal="@color/cyber_background"
+            fab:fab_colorPressed="@color/cyber_grey"
+            fab:fab_colorRipple="@color/cyber_black"
+            android:src="@drawable/ic_right_arrow" />
+
+
+    </RelativeLayout>
 
 </RelativeLayout>
