@@ -223,6 +223,8 @@ public class ReplyFragment extends BaseFragment implements LoaderManager.LoaderC
                 inflater.inflate(R.layout.listview_footer_texting, mListView, false);
 
         textingParentView = (RelativeLayout)v.findViewById(R.id.layout_reply_texting);
+        textingParentView.findViewById(R.id.button_reply_capture)
+                .setOnClickListener(replyButtonListener);
 
         updateSmartFooter();
 
