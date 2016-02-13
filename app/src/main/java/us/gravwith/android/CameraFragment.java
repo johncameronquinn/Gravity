@@ -10,6 +10,8 @@ import android.hardware.Camera;
 import android.os.Bundle;
 import android.app.Fragment;
 import android.support.v4.content.LocalBroadcastManager;
+import android.support.v4.view.PagerAdapter;
+import android.support.v4.view.ViewPager;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.GestureDetector;
@@ -75,6 +77,8 @@ public class CameraFragment extends BaseFragment implements Camera.AutoFocusCall
     TextureView mPreview;
 
     View container;
+
+    ViewPager overlaySwipePager;
 
     private OnCameraFragmentInteractionListener mListener;
 
@@ -427,6 +431,39 @@ n  */
         }
         super.onDestroyView();
     }
+
+
+/*    class OverlaySwipePagerAdapter extends PagerAdapter {
+
+        public Object instantiateItem(ViewGroup collection, int position) {
+
+            int resId = 0;
+            switch (position) {
+                case 0:
+                    resId = R.id.page_one;
+                    break;
+                case 1:
+                    resId = R.id.page_two;
+                    break;
+
+                case 3:
+                    resId = R.id.page_three;
+                    break;
+            }
+            return getActivity().findViewById(resId);
+        }
+
+        @Override
+        public int getCount() {
+            return 3;
+        }
+
+        @Override
+        public boolean isViewFromObject(View arg0, Object arg1) {
+            return arg0 == ((View) arg1);
+        }
+    }*/
+
     /***********************************************************************************************
      *
      * USER INTERACTION
@@ -466,6 +503,9 @@ n  */
 
         private LinearLayout sendLayout;
 
+        private View overlaySwipeView;
+        private ViewGroup cameraRoot;
+
         @Override
         public void onClick(View v) {
 
@@ -477,6 +517,17 @@ n  */
                 case R.id.button_camera_capture:
 
                     Activity mActivity = getActivity();
+
+                    overlaySwipeView = mActivity.getLayoutInflater().inflate(R.layout.overlay_swipe,
+                            (ViewGroup) mActivity.findViewById(R.id.layout_camera_root),
+                            false);
+
+                    overlaySwipePager = (ViewPager)overlaySwipeView.findViewById(R.id.pager);
+                    cameraRoot = (ViewGroup)mActivity.findViewById(R.id.layout_camera_root);
+                    cameraRoot.addView(overlaySwipeView);
+
+                    Log.v(TAG, "testing thing");
+
                     //initialize the buttons while the picture is being taken
                     switch (currentCameraMode) {
                         case CAMERA_DEFAULT_MODE:
@@ -573,6 +624,8 @@ n  */
                     break;*/
 
                 case R.id.button_camera_live:
+
+                    overlaySwipePager.setCurrentItem(1);
 
                     switch (currentCameraMode) {
 
@@ -762,6 +815,7 @@ n  */
          * resets the camera UI back to capture mode
          */
         public void resetCameraUI() {
+
             switch (currentCameraMode) {
 
             /*    case CAMERA_REPLY_MODE:
@@ -831,6 +885,8 @@ n  */
             ImageView view = (ImageView)container.findViewById(R.id.camera_image_view);
             view.setImageBitmap(null);
             view.setVisibility(View.GONE);
+
+            cameraRoot.removeView(overlaySwipeView);
         }
     }
 

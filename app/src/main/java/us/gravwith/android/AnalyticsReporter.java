@@ -20,6 +20,8 @@ public class AnalyticsReporter {
     static final String VALUE_CAPTURE_LIVE = "capture_image_for_live";
     static final String VALUE_CAPTURE_MESSAGE = "capture_image_for_message";
 
+    private boolean reportAnalytics;
+
     public String getButtonResourceID(int viewID) {
         String out;
 
@@ -134,6 +136,13 @@ public class AnalyticsReporter {
 
     public AnalyticsReporter(AnalyticsReportingCallbacks methods) {
         mListener = methods;
+        if (BuildConfig.DEBUG) {
+            Log.i(TAG,"Application is in debug mode, disabling analytics reporting.");
+            reportAnalytics = false;
+        } else {
+            Log.i(TAG,"Application is in release mode, enabling analytics reporting.");
+            reportAnalytics = true;
+        }
     }
 
     public static AnalyticsReporter getAnalyticsReporter(MainActivity activity) {
@@ -215,26 +224,32 @@ public class AnalyticsReporter {
  */
 
     private void sendMsgReportBehaviorEvent(Bundle b) {
-        if (Constants.ANALYTICSV) Log.d(TAG,"sending message to report analytics event");
-        Message msg = Message.obtain(null, DataHandlingService.MSG_REPORT_ANALYTICS);
-        msg.setData(b);
+        if(reportAnalytics) {
+            if (Constants.ANALYTICSV) Log.d(TAG, "sending message to report analytics event");
+            Message msg = Message.obtain(null, DataHandlingService.MSG_REPORT_ANALYTICS);
+            msg.setData(b);
 
-        mListener.sendMessage(msg);
+            mListener.sendMessage(msg);
+        }
     }
 
     private void sendMsgReportTimingEvent(Bundle b) {
-        if (Constants.ANALYTICSV) Log.d(TAG, "sending message to report timing event");
-        Message msg = Message.obtain(null, DataHandlingService.MSG_REPORT_ANALYTIC_TIMING);
-        msg.setData(b);
+        if(reportAnalytics) {
+            if (Constants.ANALYTICSV) Log.d(TAG, "sending message to report timing event");
+            Message msg = Message.obtain(null, DataHandlingService.MSG_REPORT_ANALYTIC_TIMING);
+            msg.setData(b);
 
-        mListener.sendMessage(msg);
+            mListener.sendMessage(msg);
+        }
     }
 
     private void sendMsgReportError(Bundle b) {
-        if (Constants.ANALYTICSV) Log.d(TAG, "sending message to report timing event");
-        Message msg = Message.obtain(null, DataHandlingService.MSG_REPORT_ANALYTIC_ERROR);
-        msg.setData(b);
+        if(reportAnalytics) {
+            if (Constants.ANALYTICSV) Log.d(TAG, "sending message to report timing event");
+            Message msg = Message.obtain(null, DataHandlingService.MSG_REPORT_ANALYTIC_ERROR);
+            msg.setData(b);
 
-        mListener.sendMessage(msg);
+            mListener.sendMessage(msg);
+        }
     }
 }
