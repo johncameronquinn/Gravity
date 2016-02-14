@@ -96,7 +96,7 @@
             fab:fab_colorPressed="@color/panel_background"
             fab:fab_colorRipple="@color/panel_background"
             fab:fab_showShadow="false"
-            android:src="@drawable/ic_right_arrow"
+            android:src="@drawable/ic_left_arrow"
             android:layout_weight="0"
             fab:fab_size="mini"
             android:layout_marginRight="@dimen/activity_horizontal_margin"

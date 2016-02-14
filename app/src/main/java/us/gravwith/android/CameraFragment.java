@@ -52,7 +52,6 @@ public class CameraFragment extends BaseFragment implements Camera.AutoFocusCall
     private static final String TAG = "CameraFragment";
     private GestureDetector gestureDetector;
     private static boolean isPreview = true;
-    private static boolean isComment = false;
     private EditText commentText = null;
     private static String messageTarget = null;
     private FrameLayout captureLayout;
@@ -212,8 +211,9 @@ n  */
         if (VERBOSE) {
             Log.v(TAG, "enter onStop...");
         }
-        if (commentText != null && commentText.getVisibility() == View.VISIBLE) {
-            commentText.setVisibility(View.INVISIBLE);
+        if (commentText != null){
+            //commentText.setVisibility(View.INVISIBLE);
+            commentText.setText("");
             messageTarget = null;
         }
         if (VERBOSE) {
@@ -320,17 +320,9 @@ n  */
 
                 if (VERBOSE) Log.v(TAG,"exiting onSingleTapConfirmed...");
                 return true;
-            } else { //its not in preview mode,  toggle comment
-                if (isComment) {  //is in commenting mode, stop
-                    isComment = false;
-                    commentText.setVisibility(View.INVISIBLE);
-                    commentText.setText("");
-                    mListener.hideSoftKeyboard();
-                } else { //is not in commenting mode, start
-                    isComment = true;
-                    commentText.setVisibility(View.VISIBLE);
-                }
             }
+
+
             if (VERBOSE) Log.v(TAG,"exiting onSingleTapConfirmed...");
             return true;
         }
@@ -486,7 +478,8 @@ n  */
      * class 'CameraButtonManager'
      *
      */
-    private class CameraButtonManager implements View.OnClickListener {
+    private class CameraButtonManager implements View.OnClickListener,
+            ViewPager.OnPageChangeListener {
 
         private ImageButton captureButton;
         private FrameLayout captureLayout;
@@ -523,6 +516,7 @@ n  */
                             false);
 
                     overlaySwipePager = (ViewPager)overlaySwipeView.findViewById(R.id.pager);
+                    overlaySwipePager.addOnPageChangeListener(this);
                     cameraRoot = (ViewGroup)mActivity.findViewById(R.id.layout_camera_root);
                     cameraRoot.addView(overlaySwipeView);
 
@@ -627,7 +621,7 @@ n  */
 
                     overlaySwipePager.setCurrentItem(1);
 
-                    switch (currentCameraMode) {
+/*                    switch (currentCameraMode) {
 
                         case CAMERA_DEFAULT_MODE:
                             if (commentText.getText().toString().equals("")) {
@@ -657,7 +651,7 @@ n  */
                             stopReplyMode();
                             break;
                     }
-                    //startLiveMode();
+                    //startLiveMode();*/
                     break;
 
                 case R.id.button_camera_cancel:
@@ -887,6 +881,60 @@ n  */
             view.setVisibility(View.GONE);
 
             cameraRoot.removeView(overlaySwipeView);
+        }
+
+
+        @Override
+        public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
+
+        }
+
+        @Override
+        public void onPageScrollStateChanged(int state) {
+
+        }
+
+        @Override
+        public void onPageSelected(int position) {
+            switch (position) {
+                case 0:
+                    Log.v(TAG,"cancel posting");
+                    break;
+
+                case 1:
+                    switch (currentCameraMode) {
+
+                        case CAMERA_DEFAULT_MODE:
+                            if (commentText.getText().toString().equals("")) {
+                                if (VERBOSE) Log.v(TAG,"no text was provided...");
+                                mListener.showSoftKeyboard();
+                                break;
+                            }
+
+                            mListener.sendMsgSaveImage(commentText, CAMERA_LIVE_MODE); //save the image
+                            ((MainActivity) getActivity())
+                                    .setLiveCreateThreadInfo(commentText.getText().toString(),
+                                            commentText.getText().toString());
+
+                            resetCameraUI();
+                            stopReplyMode();
+                            break;
+
+                        case CAMERA_REPLY_MODE:
+
+                            mListener.sendMsgSaveImage(commentText, CAMERA_REPLY_MODE);
+                            ((MainActivity) getActivity()).setLiveCreateReplyInfo(
+                                    commentText.getText().toString(),
+                                    Integer.parseInt(mListener.getCurrentThread()),
+                                    mListener.getCurrentTopicARN());
+
+                            resetCameraUI();
+                            stopReplyMode();
+                            break;
+                    }
+                    break;
+            }
+
         }
     }
 
@@ -1195,7 +1243,7 @@ n  */
                 root,
                 false);
         ((EditText)v.findViewById(R.id.editText_live_mode_title)).setText(commentText.getText());
-        commentText.setVisibility(View.INVISIBLE);
+        //commentText.setVisibility(View.INVISIBLE);
         commentText.setText("");
 
         getLiveModeButtonListener(this).setCreateView(v);
@@ -1286,7 +1334,7 @@ n  */
    }
 
    public void startReplyMode() {
-       Log.i(TAG,"Camera is entering reply mode...");
+       Log.i(TAG, "Camera is entering reply mode...");
        /*ImageButton cancel;
        cancel = (ImageButton)getView().findViewById(R.id.button_cancel_message);
        cancel.setVisibility(View.VISIBLE);
@@ -1297,6 +1345,7 @@ n  */
    public void stopReplyMode() {
        currentCameraMode = CAMERA_DEFAULT_MODE;
    }
+
 
     /**
      * Communication back to the activity
@@ -1340,4 +1389,5 @@ n  */
             onPictureTaken(success);
         }
     }
+
 }

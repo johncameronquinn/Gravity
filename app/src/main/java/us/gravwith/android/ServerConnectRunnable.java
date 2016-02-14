@@ -73,6 +73,9 @@ public class ServerConnectRunnable implements Runnable {
 
     private final int BASE_RE_ATTEMPT_DELAY = 1000;
 
+    private static final String SERVER_URL = "gravitybackend.ddns.net";
+    private static final String SERVER_URL_SANDBOX = "dev-gravity.ddns.net";
+
     public ServerConnectRunnable (ServerConnectMethods methods){
         mTask = methods;
     }
@@ -160,12 +163,23 @@ public class ServerConnectRunnable implements Runnable {
                 URL url;
 
                 try {
-                    url  = new URL(
-                            CONNECTION_PROTOCOL,
-                            Constants.SERVER_URL,
-                            SERVER_SOCKET,
-                            mTask.getURLPath()
-                    );
+
+                    if (BuildConfig.DEBUG) {
+                        Log.i(TAG,"Connecting to Sandbox Server...");
+                        url = new URL(
+                                CONNECTION_PROTOCOL,
+                                SERVER_URL_SANDBOX,
+                                SERVER_SOCKET,
+                                mTask.getURLPath()
+                        );
+                    } else {
+                        url = new URL(
+                                CONNECTION_PROTOCOL,
+                                SERVER_URL,
+                                SERVER_SOCKET,
+                                mTask.getURLPath()
+                        );
+                    }
 
                 } catch (MalformedURLException e) {
                     Log.e(TAG, "MalformedURL provided...", e);
