@@ -39,7 +39,7 @@ public class ServerConnectRunnable implements Runnable {
 
         Bundle getDataBundle();
 
-        UUID getUserID();
+        String getSessionToken();
 
         String getURLPath();
 
@@ -202,7 +202,6 @@ public class ServerConnectRunnable implements Runnable {
 
                         conn = (HttpsURLConnection) url.openConnection();
 
-
                         //todo remove this, renable host verification
                         conn.setHostnameVerifier(DO_NOT_VERIFY);
 
@@ -215,15 +214,7 @@ public class ServerConnectRunnable implements Runnable {
                         conn.setRequestProperty("Accept", "application/json");
                         conn.setRequestProperty("Content-Type", "application/json");
                         conn.setInstanceFollowRedirects(false);
-
-                        UUID userID = mTask.getUserID();
-                        if (userID == null) {
-                            conn.setRequestProperty("X-Client-UserID", "");
-                        } else {
-                            conn.setRequestProperty("X-Client-UserID", userID.toString());
-                            conn.setRequestProperty("X-Client-SessionToken","");
-                        }
-
+                        conn.setRequestProperty("X-Client-Session Token",mTask.getSessionToken());
                         conn.setUseCaches(false);
 
                         //set custom TrustManager to trust our CA

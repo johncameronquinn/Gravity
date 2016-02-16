@@ -1,6 +1,7 @@
 package us.gravwith.android;
 
 import android.content.ContentValues;
+import android.content.Context;
 import android.net.Uri;
 import android.os.Bundle;
 
@@ -83,7 +84,6 @@ public abstract class ServerTask implements ServerConnectRunnable.ServerConnectM
         this.dataBundle = dataBundle;
         this.sessionToken = sessionToken;
     }
-
 
     public void initializeTask(DataHandlingService mService, Bundle dataBundle, String token,
                                int resp) {

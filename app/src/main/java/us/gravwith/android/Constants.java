@@ -164,6 +164,7 @@ public final class Constants {
     public static final String ANALYTICS_CATEGORY_SCREEN ="screen";
     public static final String ANALYTICS_ATTRIBUTE_USER_ID="userID";
     public static final String ANALYTICS_ATTRIBUTE_DEVICE_ID="androidID";
+    public static final String ANALYTICS_ATTRIBUTE_SESSION_TOKEN="sessionToken";
 
     public static final String SCREEN_TITLE = "Screen Title";
 

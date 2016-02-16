@@ -48,6 +48,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
+import us.gravwith.android.user.AccessToken;
 import us.gravwith.android.user.LoginManager;
 import us.gravwith.android.util.LogUtils;
 import us.gravwith.android.SQLiteDbContract.StashEntry;
@@ -92,6 +93,11 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
     private static final int OLDEST_ALLOWED_IMAGE = 3600 * 1000; // two hours
 
     /**
+     * SECURITY
+     */
+    private static String sessionToken;
+
+    /**
      *  AWS (AMAZON WEB SERVICE S3)
      */
     static TransferUtility transferUtility;
@@ -100,7 +106,6 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
 
     private final String BUCKET_NAME = "launch-zone";
     private MobileAnalyticsManager mTracker;
-    private static UUID userID;
     private String androidId;
     private ContentManager contentManager;
 
@@ -189,21 +194,16 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
 
         if (isFirstRun) {
             Log.i(TAG, "the app is opening for the first time");
+            androidId = Settings.Secure.getString(getContentResolver(),Settings.Secure.ANDROID_ID);
+
             SharedPreferences.Editor editor = settings.edit();
             editor.putBoolean(ISFIRSTRUN_KEY, false);
+            editor.putString(ANDROID_ID, androidId);
             editor.apply();
-            androidId = Settings.Secure.getString(getContentResolver(),Settings.Secure.ANDROID_ID);
+
         } else {
-            Log.d(TAG, "loading userID from storage...");
-
-            String out = settings.getString(UUID_KEY, null);
-            if (out != null) {
-                userID = UUID.fromString(out);
-            } else {
-
-            }
+            Log.d(TAG, "loading androidID from storage...");
             androidId = settings.getString(ANDROID_ID, null);
-            sendSignOnEvent(userID.toString(),androidId);
         }
 
         if (!ALLOW_DUPLICATES) {
@@ -634,8 +634,8 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
                     super.handleMessage(msg);
             }
 
-            if (task != null) {
-                task.initializeTask(irs.get(), data, userID, msg.what);
+            if (task != null && sessionToken != null) {
+                task.initializeTask(irs.get(), data, sessionToken, msg.what);
                 mConnectionThreadPool.execute(task.getServerConnectRunnable());
             }
 
@@ -755,19 +755,6 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
                 //now run the http request, which is stored in otherRunnable in this case
                 mRequestThreadPool.execute(task.getOtherRunnable());
                 break;
-
-
-            case INITIALIZE_TASK_COMPLETED:
-                userID = (task).getUserID();
-
-                Log.i(TAG,"saving userID to SharedPreferences..." + userID);
-                SharedPreferences settings = getSharedPreferences(TAG, MODE_PRIVATE);
-                SharedPreferences.Editor editor = settings.edit();
-                editor.putString(UUID_KEY, userID.toString());
-                editor.putBoolean(ISFIRSTRUN_KEY, false);
-                editor.apply();
-
-                sendSignOnEvent(userID.toString(),androidId);
 
             case TASK_COMPLETED:
 
@@ -962,18 +949,15 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
     /***************************************************************************************************
      * ANALYTICS
      */
-    private void sendSignOnEvent(String userID,String deviceID) {
-        Log.i(TAG, "sending login event for user: " + userID.toString() + " and device ID " + deviceID);
-        mTracker.getEventClient()
-                .recordEvent(mTracker
-                        .getEventClient()
-                        .createEvent(Constants.ANALYTICS_CATEGORY_LIFECYCLE)
-                        .withAttribute(Constants.ANALYTICS_CATEGORY_MESSAGE, userID
-                        ));
+    private void recordSignOn(Bundle dataBundle) {
+        String androidID = dataBundle.getString(Constants.ANALYTICS_ATTRIBUTE_DEVICE_ID);
+        String userID = dataBundle.getString(Constants.ANALYTICS_ATTRIBUTE_USER_ID);
+        String token = dataBundle.getString(Constants.ANALYTICS_ATTRIBUTE_SESSION_TOKEN);
+        Log.i(TAG, "recording userID " + userID + " : deviceID" + androidID + " : token " + token);
+
         mTracker.getEventClient().addGlobalAttribute(Constants.ANALYTICS_ATTRIBUTE_USER_ID, userID);
-        mTracker.getEventClient().addGlobalAttribute(Constants.ANALYTICS_ATTRIBUTE_DEVICE_ID, deviceID);
-
-
+        mTracker.getEventClient().addGlobalAttribute(Constants.ANALYTICS_ATTRIBUTE_DEVICE_ID, androidID);
+        mTracker.getEventClient().addGlobalAttribute(Constants.ANALYTICS_ATTRIBUTE_SESSION_TOKEN, token);
     }
 
 
@@ -1346,8 +1330,8 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
 
                 }
 
-                if (task != null) {
-                    task.initializeTask(this,data,userID,requestType);
+                if (task != null && sessionToken != null) {
+                    task.initializeTask(this,data,sessionToken,requestType);
                     mConnectionThreadPool.execute(task.getServerConnectRunnable());
                 }
                 pendingMap.remove(id);

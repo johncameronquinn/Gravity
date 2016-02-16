@@ -142,7 +142,6 @@ public class SplashActivity extends Activity {
         Intent intent = new Intent(this, DataHandlingService.class);
         bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
 
-
         final Thread thread = new Thread(new Runnable() {
             public void run() {
                 final SignInProvider provider = signInManager.getPreviouslySignedInProvider();
