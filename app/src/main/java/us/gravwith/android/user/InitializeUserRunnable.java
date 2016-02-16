@@ -1,14 +1,29 @@
 package us.gravwith.android.user;
 
-import android.util.Log;
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import android.util.Log;
+
+import us.gravwith.android.BuildConfig;
 import us.gravwith.android.util.LogUtils;
+import us.gravwith.android.util.Utility;
+
 import java.io.InputStream;
 import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
 import java.util.Map;
 import java.util.UUID;
+
+import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSession;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
 
 /**
  * Created by John C. Quinn on 11/9/15.
@@ -27,13 +42,22 @@ public class InitializeUserRunnable implements Runnable {
 
     private String TAG = InitializeUserRunnable.class.getSimpleName();
 
+    private final int SERVER_SOCKET = 443; //does not change
+    private final String CONNECTION_PROTOCOL = "https";
+    private final int READ_TIMEOUT = 10000;
+    private final int CONNECT_TIMEOUT = 20000;
+
+    private static final String SERVER_URL = "gravitybackend.ddns.net";
+    private static final String SERVER_URL_SANDBOX = "dev-gravity.ddns.net";
+
+
     static final int GET_UUID_FAILED = -1;
     static final int GET_UUID_STARTED = 0;
     static final int GET_UUID_SUCCESS = 1;
 
     public interface InitializeUserMethods {
 
-        HttpURLConnection getURLConnection();
+        String getInitializeUrlPath();
 
         void handleInitializeState(int state);
 
@@ -57,19 +81,64 @@ public class InitializeUserRunnable implements Runnable {
         }
 
         mService.setTaskThread(Thread.currentThread());
-        android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_BACKGROUND);
+//        android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_BACKGROUND);
 
         if (Thread.interrupted()) {
             return;
         }
 
+        HttpsURLConnection conn;
+
         mService.handleInitializeState(GET_UUID_STARTED);
-        HttpURLConnection conn;
-        conn = mService.getURLConnection();
+        Log.w(TAG, "removing CA checking from host");
+        trustAllHosts();
+
+        if (VERBOSE) Log.v(TAG, "creating to " + mService.getInitializeUrlPath());
+        URL url;
+
+        try {
+
+            if (BuildConfig.DEBUG) {
+                Log.i(TAG,"Connecting to Sandbox Server...");
+                url = new URL(
+                        CONNECTION_PROTOCOL,
+                        SERVER_URL_SANDBOX,
+                        SERVER_SOCKET,
+                        mService.getInitializeUrlPath()
+                );
+            } else {
+                url = new URL(
+                        CONNECTION_PROTOCOL,
+                        SERVER_URL,
+                        SERVER_SOCKET,
+                        mService.getInitializeUrlPath()
+                );
+            }
+
+        } catch (MalformedURLException e) {
+            Log.e(TAG, "MalformedURL provided...", e);
+            mService.handleInitializeState(GET_UUID_FAILED);
+            return;
+        }
 
         UUID userID = null;
 
         try {
+            conn = (HttpsURLConnection) url.openConnection();
+
+            //todo remove this, renable host verification
+            conn.setHostnameVerifier(DO_NOT_VERIFY);
+
+            //set client parameters
+            conn.setReadTimeout(READ_TIMEOUT);
+            conn.setConnectTimeout(CONNECT_TIMEOUT);
+            conn.setRequestMethod("POST");
+            conn.setDoInput(true);
+            conn.setDoOutput(true);
+            conn.setRequestProperty("Accept", "application/json");
+            conn.setRequestProperty("Content-Type", "application/json");
+            conn.setInstanceFollowRedirects(false);
+            conn.setUseCaches(false);
 
             JsonFactory jsonFactory = new JsonFactory();
             JsonGenerator jGen = jsonFactory.createGenerator(conn.getOutputStream());
@@ -86,7 +155,7 @@ public class InitializeUserRunnable implements Runnable {
 
             ObjectMapper objectMapper = new ObjectMapper();
             Map<String, Object> asMap = objectMapper.readValue(conn.getInputStream(), Map.class);
-            userID = UUID.fromString(String.valueOf(asMap.get("id")));
+            userID = Utility.getUUIDfromStringWithoutHyphens(String.valueOf(asMap.get("id")));
 
             if (VERBOSE) {
                 LogUtils.printMapToVerbose(asMap, TAG);
@@ -110,6 +179,44 @@ public class InitializeUserRunnable implements Runnable {
         Thread.interrupted();
         if (VERBOSE) {
             Log.v(TAG, "exiting InitializeUser...");
+        }
+    }
+
+
+    // always verify the host - dont check for certificate
+    final static HostnameVerifier DO_NOT_VERIFY = new HostnameVerifier() {
+        public boolean verify(String hostname, SSLSession session) {
+            return true;
+        }
+    };
+
+    /**
+     * Trust every server - dont check for any certificate
+     */
+    private static void trustAllHosts() {
+        // Create a trust manager that does not validate certificate chains
+        TrustManager[] trustAllCerts = new TrustManager[] { new X509TrustManager() {
+            public java.security.cert.X509Certificate[] getAcceptedIssuers() {
+                return new java.security.cert.X509Certificate[] {};
+            }
+
+            public void checkClientTrusted(X509Certificate[] chain,
+                                           String authType) throws CertificateException {
+            }
+
+            public void checkServerTrusted(X509Certificate[] chain,
+                                           String authType) throws CertificateException {
+            }
+        } };
+
+        // Install the all-trusting trust manager
+        try {
+            SSLContext sc = SSLContext.getInstance("TLS");
+            sc.init(null, trustAllCerts, new java.security.SecureRandom());
+            HttpsURLConnection
+                    .setDefaultSSLSocketFactory(sc.getSocketFactory());
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 

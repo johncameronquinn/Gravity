@@ -25,6 +25,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.TimeZone;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 import us.gravwith.android.R;
@@ -183,5 +184,17 @@ public class Utility {
     public static void clearTextAndFocus(TextView tv) {
         tv.setText("");
         tv.clearFocus();
+    }
+
+    public static UUID getUUIDfromStringWithoutHyphens(String instring) {
+        // -----|  Without Hyphens  |----------------------
+        String hexStringWithoutHyphens = instring;
+        // Use regex to format the hex string by inserting hyphens in the canonical format: 8-4-4-4-12
+        String hexStringWithInsertedHyphens = hexStringWithoutHyphens.replaceFirst("([0-9a-fA-F]{8})([0-9a-fA-F]{4})([0-9a-fA-F]{4})([0-9a-fA-F]{4})([0-9a-fA-F]+)", "$1-$2-$3-$4-$5");
+        return java.util.UUID.fromString(hexStringWithInsertedHyphens);
+    }
+
+    public static String dehyphenUUID(UUID uuid) {
+        return uuid.toString().replaceAll("-","");
     }
 }

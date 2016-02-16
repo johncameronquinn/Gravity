@@ -93,7 +93,7 @@ class RequestRepliesRunnable implements Runnable {
             }
 
             jGen.writeStartObject();
-            jGen.writeNumberField(DataHandlingService.THREAD_ID, b.getInt("threadID"));
+            jGen.writeNumberField("threadID", b.getInt("threadID"));
             jGen.writeEndObject();
             jGen.flush();
             jGen.close();

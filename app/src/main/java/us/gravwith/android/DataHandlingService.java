@@ -18,7 +18,6 @@ import com.amazonaws.mobile.content.ContentItem;
 import com.amazonaws.mobile.content.ContentManager;
 import com.amazonaws.mobile.content.ContentProgressListener;
 import com.amazonaws.mobile.user.IdentityManager;
-import com.amazonaws.mobile.user.signin.SignInManager;
 import com.amazonaws.mobileconnectors.amazonmobileanalytics.AnalyticsEvent;
 import com.amazonaws.mobileconnectors.amazonmobileanalytics.EventClient;
 import com.amazonaws.mobileconnectors.amazonmobileanalytics.MobileAnalyticsManager;
@@ -34,8 +33,6 @@ import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 import java.io.File;
 import java.lang.ref.WeakReference;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.nio.channels.NotYetConnectedException;
 import java.security.InvalidParameterException;
 import java.util.ArrayList;
@@ -51,6 +48,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
+import us.gravwith.android.user.LoginManager;
 import us.gravwith.android.util.LogUtils;
 import us.gravwith.android.SQLiteDbContract.StashEntry;
 
@@ -76,36 +74,11 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
     private static final String TAG = "DataHandlingService";
     private static final boolean VERBOSE = false;
     private static final boolean ALLOW_DUPLICATES = false;
-    private boolean isLocalRequesting = false;
-    private SignInManager signInManager;
 
     /**
      * NETWORK COMMUNICATION
      */
     private static GoogleApiClient mGoogleApiClient;
-
-    /*
-     * S3 INFO
-     */
-    private final String BUCKET_NAME = "launch-zone";
-
-    private MobileAnalyticsManager mTracker;
-
-    private static String serverAddress = "gravitybackend.ddns.net"; //changes when resolved
-    private static UUID userID;
-    private String androidId;
-
-    private ContentManager contentManager;
-
-    /**
-     * JSON TAGS
-     */
-    private final String FROM_USER = "from";
-    private final String USER_ID = "id";
-    static final String THREAD_ID = "threadID";
-    private final String TITLE = "title";
-    private final String TEXT = "text";
-    private final String NAME = "name";
 
     /**
      * DATA HANDLING
@@ -124,6 +97,12 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
     static TransferUtility transferUtility;
     HashMap<Integer,Bundle> pendingMap = new HashMap<>();
     private final String REQUEST_TYPE = "what";
+
+    private final String BUCKET_NAME = "launch-zone";
+    private MobileAnalyticsManager mTracker;
+    private static UUID userID;
+    private String androidId;
+    private ContentManager contentManager;
 
     /**
      * Thread management
@@ -197,10 +176,6 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
     public void onCreate() {
         if (VERBOSE) Log.v(TAG, "entering onCreate...");
 
-        /*buildGoogleApiClient();
-        if (mGoogleApiClient != null) {
-            mGoogleApiClient.connect();
-        }*/
         AWSMobileClient.initializeMobileClientIfNecessary(this);
 
         AWSMobileClient
@@ -209,52 +184,36 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
                 .addSignInStateChangeListener(this);
 
         mTracker = AWSMobileClient.defaultMobileClient().getMobileAnalyticsManager();
-        //((AnalyticsApplication) getApplication()).getAnalyticsManager();
-
         SharedPreferences settings = getSharedPreferences(TAG, MODE_PRIVATE);
         boolean isFirstRun = settings.getBoolean(ISFIRSTRUN_KEY, true);
 
         if (isFirstRun) {
-            Log.d(TAG, "the app is opening for the first time, generating a user ID");
-          /*  SharedPreferences.Editor editor = settings.edit();
-            editor.putString(UUID_KEY, userID.toString());
+            Log.i(TAG, "the app is opening for the first time");
+            SharedPreferences.Editor editor = settings.edit();
             editor.putBoolean(ISFIRSTRUN_KEY, false);
-            editor.apply();*/
-            InitializeUserTask task = new InitializeUserTask();
-            task.initializeTask(this,null,userID);
-            mConnectionThreadPool.execute(task.getServerConnectRunnable());
+            editor.apply();
             androidId = Settings.Secure.getString(getContentResolver(),Settings.Secure.ANDROID_ID);
-
         } else {
             Log.d(TAG, "loading userID from storage...");
-            userID = UUID.fromString(settings.getString(UUID_KEY, null));
+
+            String out = settings.getString(UUID_KEY, null);
+            if (out != null) {
+                userID = UUID.fromString(out);
+            } else {
+
+            }
             androidId = settings.getString(ANDROID_ID, null);
             sendSignOnEvent(userID.toString(),androidId);
         }
 
         if (!ALLOW_DUPLICATES) {
-
             if (VERBOSE) Log.v(TAG, "Duplicates are not allowed, loading imagesSeen");
-
             Set<String> loaded = settings.getStringSet(IMAGESSEEN_KEY, null);
-
             if (loaded == null) {
-                Log.d(TAG, "loaded set was null, exiting onCreate...");
-                return;
+                imagesSeen = new ArrayList<>();
+            } else {
+                imagesSeen = new ArrayList<>(loaded);
             }
-
-            imagesSeen = new ArrayList<>(loaded);
-
-            if (VERBOSE) {
-                Log.v(TAG, "imagesSeen array loaded from SharedPreferences, printing...");
-                for (String i : imagesSeen) { //print all sharedpreferences entry
-                    Log.v(TAG, i);
-                }
-            }
-
-            //todo this should use a more secure system involving amazon cognito
-
-
         } else {
             if (VERBOSE) Log.v(TAG, "Duplicates are allowed, not loaded imagesSeen");
             imagesSeen = new ArrayList<>();
@@ -295,7 +254,6 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
         if (VERBOSE) Log.v(TAG,"exiting initializeTransferUtility...");
     }
 
-
     public List<String> getImagesSeen() {
         return imagesSeen;
     }
@@ -308,19 +266,21 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
         getContentResolver().delete(uri,null,null);
     }
 
+    public void submitToConnectionPool(Runnable r) {
+        mConnectionThreadPool.execute(r);
+    }
+
     /***************************************************************************************************
  * SECURITY
  **/
     @Override
     public void onUserSignedIn() {
         Log.i(TAG,"entering onUserSignedIn...");
-
     }
 
     @Override
     public void onUserSignedOut() {
         Log.i(TAG,"entering onUserSignedOut...");
-
     }
 
     /***********************************************************************************************
@@ -504,22 +464,6 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
 
                     break;
 
-                case MSG_RESOLVE_HOST:
-                    Log.d(TAG, "request to resolve host received");
-                    String address = msg.getData().getString("hostname");
-                    if (VERBOSE) {
-                        Log.v(TAG, "attempting to resolve: " + address);
-                    }
-                    try {
-                        InetAddress addr = InetAddress.getByName(address);
-                        serverAddress = address;
-                        Log.i(TAG, "Resolved address is: " + addr.getHostAddress());
-                    } catch (UnknownHostException e) {
-                        Log.e(TAG, "DNS resolution failed", e);
-                    }
-
-                    break;
-
                 case MSG_DELETE_IMAGE:
                     Log.d(TAG, "received a message to delete image from database");
                     throw new NotYetConnectedException();
@@ -640,9 +584,11 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
 
                 case MSG_AUTHORIZE_USER:
                     if (Constants.LOGD) Log.d(TAG, "Received a message to initialize a user.");
-                    task = new InitializeUserTask();
+
+                    Log.w(TAG,"users are no longer authorized using this method!");
+                    /*task = new InitializeUserTask();
                     task.initializeTask(irs.get(), null, userID);
-                    mConnectionThreadPool.execute(task.getServerConnectRunnable());
+                    mConnectionThreadPool.execute(task.getServerConnectRunnable());*/
                     Log.d(TAG, "exit handleMessage...");
                     return;
 
@@ -765,7 +711,7 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
                 if (Constants.LOGD) Log.d(TAG, "Request failed...");
 
                 responseCode = task.getResponseCode();
-                if (VERBOSE) Log.v(TAG,"Task failed, grabbed responseCode is: " + responseCode);
+                Log.i(TAG,"Task failed, grabbed responseCode is: " + responseCode);
 
                 responseMessage = Message.obtain(null, task.getResponseWhat(), state, responseCode);
 
@@ -1138,10 +1084,9 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
         if (VERBOSE) Log.v(TAG, "exiting reportAnalyticsScreen");
     }
 
-
-    /***************************************************************************************************
-     * AWS INTEGRATION
-     */
+/***************************************************************************************************
+  * AWS INTEGRATION
+  */
 
     public void uploadImageToS3(Bundle b) {
         if (VERBOSE) {
@@ -1215,8 +1160,6 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
             LogUtils.printBundle(b, TAG);
         }
 
-
-
         String directory = b.getString(Constants.KEY_S3_DIRECTORY, "");
         String key = b.getString(Constants.KEY_S3_KEY,"");
 
@@ -1239,16 +1182,6 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
         } else {
             contentManager.getContent(key,this);
         }
-
-
-        //TransferObserver observer = transferUtility.download(
-//                BUCKET_NAME,     /* The bucket to upload to */
-//                key,/* The key for the uploaded object */
-//                file /* The file where the data to upload exists */
- //       );
-
-   //     pendingMap.put(observer.getId(), b);
-//        observer.setTransferListener(this);
 
         if (VERBOSE) {
             Log.v(TAG,"exiting downloadImageFromS3...");
@@ -1508,13 +1441,28 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
         sendBroadcast(intent);
     }
 
-    private void sendErrorBroadcast(int responseCode, String message, Bundle dataBundle) {
+    private void sendErrorBroadcast(int responseCode, Bundle dataBundle) {
 
         Intent intent = new Intent(Constants.ACTION_SERVER_ERROR);
         intent.putExtra(Constants.RESPONSE_CODE,responseCode);
-        intent.putExtra(Constants.RESPONSE_MESSAGE,message);
         intent.putExtra(Constants.RESPONSE_BUNDLE,dataBundle);
         sendBroadcast(intent);
 
     }
+
+  /*  @Override
+    public void onLoginSuccess(UUID userID) {
+        Log.i(TAG,"Successful login with : " + userID);
+        this.userID = userID;
+    }
+
+    @Override
+    public void onLoginStarted() {
+
+    }
+
+    @Override
+    public void onLoginFailed() {
+
+    }*/
 }

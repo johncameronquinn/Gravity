@@ -58,7 +58,7 @@ public abstract class ServerTask implements ServerConnectRunnable.ServerConnectM
     private DataHandlingService mService;
     private Bundle dataBundle;
     private Thread mThread;
-    private UUID userID;
+    private String sessionToken;
     private HttpsURLConnection mConnection;
     private int responseWhat;
     private int responseCode;
@@ -78,18 +78,18 @@ public abstract class ServerTask implements ServerConnectRunnable.ServerConnectM
 
     public abstract String getURLPath();
 
-    public void initializeTask(DataHandlingService mService, Bundle dataBundle, UUID userID) {
+    public void initializeTask(DataHandlingService mService, Bundle dataBundle, String sessionToken) {
         this.mService = mService;
         this.dataBundle = dataBundle;
-        this.userID = userID;
+        this.sessionToken = sessionToken;
     }
 
 
-    public void initializeTask(DataHandlingService mService, Bundle dataBundle, UUID userID,
+    public void initializeTask(DataHandlingService mService, Bundle dataBundle, String token,
                                int resp) {
         this.mService = mService;
         this.dataBundle = dataBundle;
-        this.userID = userID;
+        this.sessionToken = token;
 
         responseWhat = resp;
     }
@@ -110,12 +110,8 @@ public abstract class ServerTask implements ServerConnectRunnable.ServerConnectM
         return dataBundle;
     }
 
-    public UUID getUserID() {
-        return userID;
-    }
-
-    public void setUserID(UUID userID) {
-        this.userID = userID;
+    public String getSessionToken() {
+        return sessionToken;
     }
 
     public void setTaskThread(Thread thread) {
