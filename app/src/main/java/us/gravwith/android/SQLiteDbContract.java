@@ -25,7 +25,7 @@ public final class SQLiteDbContract {
         public static final String COLUMN_NAME_LONGITUDE = "longitude";
         public static final String COLUMN_NAME_TEXT = "text";
         public static final String COLUMN_NAME_RESPONSE_ARN = "arn";
-        public static final String COLUMN_NAME_FILEPATH = "url";
+        public static final String COLUMN_NAME_FILEPATH = "key";
     }
 
     public static abstract class MessageEntry implements BaseColumns {
@@ -35,7 +35,7 @@ public final class SQLiteDbContract {
         public static final String COLUMN_FROM_USER = "fromUser";
         public static final String COLUMN_RESPONSE_ARN = "arn";
         public static final String COLUMN_NAME_TEXT = "text";
-        public static final String COLUMN_NAME_FILEPATH = "url";
+        public static final String COLUMN_NAME_FILEPATH = "key";
     }
 
     public static abstract class LiveEntry implements BaseColumns {
@@ -60,7 +60,7 @@ public final class SQLiteDbContract {
         public static final String COLUMN_NAME_TIME = "time";
         public static final String COLUMN_NAME_NAME = "name";
         public static final String COLUMN_NAME_DESCRIPTION = "text";
-        public static final String COLUMN_NAME_FILEPATH = "url";
+        public static final String COLUMN_NAME_FILEPATH = "key";
         public static final String COLUMN_NAME_FROM_ARN = "arn";
     }
 
