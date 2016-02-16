@@ -33,47 +33,56 @@ public class AuthenticationManager implements IdentityManager.IdentityHandler {
         mService = executionService;
         callbackManager = new AuthenticationCallbackManager(this);
 
-        AuthenticationCallbackManager
-                .addAuthenticationStatusListener(new AuthenticationCallbackManager
-                        .authenticationStatusListener() {
+        callbackManager.setAuthenticationStatusListener(new AuthenticationCallbackManager
+                .authenticationStatusListener() {
 
-                    @Override
-                    public void onInitializeFailed() {
+            @Override
+            public void onInitializeFailed() {
 
-                    }
+                for (LoginListener listener : loginListeners) {
+                    listener.onLoginFailed();
+                }
+            }
 
-                    @Override
-                    public void onInitializeStarted() {
+            @Override
+            public void onInitializeStarted() {
 
-                    }
+            }
 
-                    @Override
-                    public void onInitializeSuccess(UUID id) {
-                        userID = id;
+            @Override
+            public void onInitializeSuccess(UUID id) {
+                userID = id;
 
-                        Log.i(TAG, "saving new id : " + id.toString() + " in sharedPreferences");
-                        SharedPreferences p = executionService.getApplicationContext()
-                                .getSharedPreferences(Constants.SHARED_PREFERENCES_NAME,
-                                        Context.MODE_PRIVATE);
-                        p.edit().putString(Constants.KEY_USER_ID, id.toString()).apply();
-                    }
+                Log.i(TAG, "saving new id : " + id.toString() + " in sharedPreferences");
+                SharedPreferences p = executionService.getApplicationContext()
+                        .getSharedPreferences(Constants.SHARED_PREFERENCES_NAME,
+                                Context.MODE_PRIVATE);
+                p.edit().putString(Constants.KEY_USER_ID, id.toString()).apply();
+            }
 
-                    @Override
-                    public void onLoginFailed() {
+            @Override
+            public void onLoginFailed() {
 
-                    }
+                for (LoginListener listener : loginListeners) {
+                    listener.onLoginFailed();
+                }
+            }
 
-                    @Override
-                    public void onLoginStarted() {
+            @Override
+            public void onLoginStarted() {
 
-                    }
+            }
 
-                    @Override
-                    public void onLoginSuccess(String userToken) {
-                        Log.i(TAG, "successfully retrieved token : " + userToken);
-                        token = userToken;
-                    }
-                });
+            @Override
+            public void onLoginSuccess(String userToken) {
+                Log.i(TAG, "successfully retrieved token : " + userToken);
+                token = userToken;
+
+                for (LoginListener listener : loginListeners) {
+                    listener.onLoginSuccess();
+                }
+            }
+        });
     }
 
     public boolean loadUserID(Context c) {
@@ -124,4 +133,22 @@ public class AuthenticationManager implements IdentityManager.IdentityHandler {
     public void handleError(Exception exception) {
         Log.e(TAG,"Error getting cognito identiy ID",exception);
     }
+
+    public interface LoginListener {
+        void onLoginFailed();
+        void onLoginSuccess();
+    }
+
+    private static List<LoginListener> loginListeners = new LinkedList<>();
+
+
+    public static void addLoginStatusListener(LoginListener listener) {
+        loginListeners.add(listener);
+    }
+
+    public static void clearAuthenticationStatusListeners() {
+        loginListeners.clear();
+    }
+
+
 }

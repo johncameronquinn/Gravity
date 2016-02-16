@@ -71,7 +71,7 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
         ContentProgressListener,
         IdentityManager.SignInStateChangeListener {
     private static final String TAG = "DataHandlingService";
-    private static final boolean VERBOSE = false;
+    private static final boolean VERBOSE = true;
     private static final boolean ALLOW_DUPLICATES = false;
 
     /**
@@ -136,6 +136,8 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
 
     // Sets the maximum threadpool size to 8
     private static final int MAXIMUM_POOL_SIZE = 8;
+
+    private final ServiceHandlerThread serviceThread = new ServiceHandlerThread(this);
 
     public DataHandlingService() {
 
@@ -369,8 +371,10 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
      * <p/>
      * references the parent service (weakly) in order to prevent memory leaks
      */
-    class IncomingHandler extends Handler {
+    class IncomingHandler extends Handler implements AuthenticationManager.LoginListener {
         WeakReference<DataHandlingService> irs;
+
+        private boolean isAuthenticated = false;
 
         public IncomingHandler setParent(DataHandlingService parent) {
             irs = new WeakReference<>(parent);
@@ -388,262 +392,300 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
             if (BuildConfig.FLAVOR.equals("sales") || Constants.client_only_mode) {
                 Log.v(TAG,"Flavor outputted is : " + BuildConfig.FLAVOR);
                 Log.w(TAG,"client only mode is enabled, discarding request...");
+
+                super.handleMessage(msg);
                 return;
             }
 
-            ServerTask task = null;
+            /* only receive and handle messages IF the service has authenticated */
+            if (isAuthenticated) {
 
-            Bundle data = msg.getData();
-            data.putInt(REQUEST_TYPE, msg.what);
+                ServerTask task = null;
 
-            switch (msg.what) {
-                case MSG_BUILD_CLIENT:
-                    Log.d(TAG, "Received a message to request to build the client.");
-                    Log.w(TAG, "Not implemented...");
-                    //irs.get().buildGoogleApiClient();
-                    break;
+                Bundle data = msg.getData();
+                data.putInt(REQUEST_TYPE, msg.what);
 
-                case MSG_CONNECT_CLIENT:
-                    Log.d(TAG, "Received a message to request to connect the client.");
-                    Log.w(TAG, "Not implemented...");
+                switch (msg.what) {
+                    case MSG_BUILD_CLIENT:
+                        Log.d(TAG, "Received a message to request to build the client.");
+                        Log.w(TAG, "Not implemented...");
+                        //irs.get().buildGoogleApiClient();
+                        break;
+
+                    case MSG_CONNECT_CLIENT:
+                        Log.d(TAG, "Received a message to request to connect the client.");
+                        Log.w(TAG, "Not implemented...");
                     /*if (mGoogleApiClient == null) {
                         irs.get().buildGoogleApiClient();
                     }
                     mGoogleApiClient.connect();*/
-                    break;
+                        break;
 
-                case MSG_DISCONNECT_CLIENT:
-                    Log.d(TAG, "Received a message to request to disconnect the client.");
-                    Log.w(TAG,"Not implemented...");
-                    //mGoogleApiClient.disconnect();
-                    break;
+                    case MSG_DISCONNECT_CLIENT:
+                        Log.d(TAG, "Received a message to request to disconnect the client.");
+                        Log.w(TAG, "Not implemented...");
+                        //mGoogleApiClient.disconnect();
+                        break;
 
-                case MSG_REQUEST_CONSTANT_UPDATES:
-                    Log.d(TAG, "Received a message to request constant location updates.");
-                    Log.w(TAG,"Not implemented...");
-                    //irs.get().createLocationRequest(msg.arg1, msg.arg2);
-                    break;
+                    case MSG_REQUEST_CONSTANT_UPDATES:
+                        Log.d(TAG, "Received a message to request constant location updates.");
+                        Log.w(TAG, "Not implemented...");
+                        //irs.get().createLocationRequest(msg.arg1, msg.arg2);
+                        break;
 
-                case MSG_SEND_IMAGE:
-                    Log.d(TAG, "request to send an image received");
+                    case MSG_SEND_IMAGE:
+                        Log.d(TAG, "request to send an image received");
 
-                    String messageTarget = data.getString(Constants.MESSAGE_TARGET);
-                    if (messageTarget == null) {
-                        Log.d(TAG, "posting to local...");
-                        data.putInt(REQUEST_TYPE, MSG_SEND_IMAGE);
-                        data.putString(Constants.KEY_S3_DIRECTORY, Constants.KEY_S3_LOCAL_DIRECTORY);
-                    } else {
-                        Log.d(TAG, "sending Message to user: " + messageTarget);
-                        data.putInt(REQUEST_TYPE, MSG_SEND_MESSAGE);
-                        data.putString(Constants.KEY_S3_DIRECTORY, Constants.KEY_S3_MESSAGE_DIRECTORY);
-                    }
+                        String messageTarget = data.getString(Constants.MESSAGE_TARGET);
+                        if (messageTarget == null) {
+                            Log.d(TAG, "posting to local...");
+                            data.putInt(REQUEST_TYPE, MSG_SEND_IMAGE);
+                            data.putString(Constants.KEY_S3_DIRECTORY, Constants.KEY_S3_LOCAL_DIRECTORY);
+                        } else {
+                            Log.d(TAG, "sending Message to user: " + messageTarget);
+                            data.putInt(REQUEST_TYPE, MSG_SEND_MESSAGE);
+                            data.putString(Constants.KEY_S3_DIRECTORY, Constants.KEY_S3_MESSAGE_DIRECTORY);
+                        }
 
-                    uploadImageToS3(data);
-                    break;
+                        uploadImageToS3(data);
+                        break;
 
-                case MSG_CREATE_THREAD:
-                    Log.d(TAG, "received a message to create a thread");
+                    case MSG_CREATE_THREAD:
+                        Log.d(TAG, "received a message to create a thread");
                     /*data.putInt(REQUEST_TYPE, MSG_CREATE_THREAD);
                     data.putString(Constants.KEY_S3_DIRECTORY, Constants.KEY_S3_LIVE_DIRECTORY);
                     uploadImageToS3(data);*/
 
-                    data.putInt(REQUEST_TYPE, MSG_CREATE_THREAD);
+                        data.putInt(REQUEST_TYPE, MSG_CREATE_THREAD);
 
-                    if (data.getString(Constants.KEY_S3_KEY,"").equals("")){
-                        if (Constants.LOGD) Log.d(TAG,"no image filepath was provided," +
-                                " this must be a text post, so uploading straight to the server.");
-                        task = new SendLivePostTask();
-                    } else {
-                        if (Constants.LOGD) Log.d(TAG,"contained an image filepath, uploading " +
-                                "the image there to s3 first...");
-
-                        data.putString(Constants.KEY_S3_DIRECTORY, Constants.KEY_S3_LIVE_DIRECTORY);
-                        uploadImageToS3(data);
-                    }
-
-                    break;
-
-                case MSG_DELETE_IMAGE:
-                    Log.d(TAG, "received a message to delete image from database");
-                    throw new NotYetConnectedException();
-
-                case MSG_BLOCK_USER:
-                    Log.d(TAG, "received a message to block a user");
-                    task = new SendLocalBlockTask();
-                    break;
-
-                case MSG_REPLY_TO_THREAD:
-                    Log.d(TAG, "received a message to reply to a thread");
-
-                    data.putInt(REQUEST_TYPE, MSG_REPLY_TO_THREAD);
-                    data.putString(Constants.KEY_S3_DIRECTORY, Constants.KEY_S3_REPLIES_DIRECTORY);
-
-                    if (data.getString(Constants.KEY_S3_KEY,"").equals("")){
-                        if (Constants.LOGD) Log.d(TAG,"no image filepath was provided," +
-                                " this must be a text reply, so uploading straight to the server.");
-
-                        if (Constants.LOGD) Log.d(TAG,"publishing first to GCM");
-                        boolean success = true;
-                        try {
-                            //publish first to GCM
-                            AWSMobileClient.defaultMobileClient().getPushManager().publishToTopic(data);
-                        } catch (Exception e) {
-                            Log.e(TAG,"Error in publishing reply to topic...",e);
-                            success = false;
-                        }
-
-                        if (success) {
-                            if (Constants.LOGD) Log.d(TAG,"now creating HTTP task");
-                            //publishing reply to http
-                            task = new SendReplyTask();
+                        if (data.getString(Constants.KEY_S3_KEY, "").equals("")) {
+                            if (Constants.LOGD) Log.d(TAG, "no image filepath was provided," +
+                                    " this must be a text post, so uploading straight to the server.");
+                            task = new SendLivePostTask();
                         } else {
-                            //todo give user feedback on failed post
-                            if (Constants.LOGD) Log.d(TAG,"sending text reply to server anyway");
-                            task = new SendReplyTask();
+                            if (Constants.LOGD)
+                                Log.d(TAG, "contained an image filepath, uploading " +
+                                        "the image there to s3 first...");
+
+                            data.putString(Constants.KEY_S3_DIRECTORY, Constants.KEY_S3_LIVE_DIRECTORY);
+                            uploadImageToS3(data);
                         }
 
-                    } else {
-                        if (Constants.LOGD) Log.d(TAG,"contained an image filepath, uploading " +
-                                "the image there to s3 first...");
+                        break;
 
+                    case MSG_DELETE_IMAGE:
+                        Log.d(TAG, "received a message to delete image from database");
+                        throw new NotYetConnectedException();
+
+                    case MSG_BLOCK_USER:
+                        Log.d(TAG, "received a message to block a user");
+                        task = new SendLocalBlockTask();
+                        break;
+
+                    case MSG_REPLY_TO_THREAD:
+                        Log.d(TAG, "received a message to reply to a thread");
+
+                        data.putInt(REQUEST_TYPE, MSG_REPLY_TO_THREAD);
                         data.putString(Constants.KEY_S3_DIRECTORY, Constants.KEY_S3_REPLIES_DIRECTORY);
+
+                        if (data.getString(Constants.KEY_S3_KEY, "").equals("")) {
+                            if (Constants.LOGD) Log.d(TAG, "no image filepath was provided," +
+                                    " this must be a text reply, so uploading straight to the server.");
+
+                            if (Constants.LOGD) Log.d(TAG, "publishing first to GCM");
+                            boolean success = true;
+                            try {
+                                //publish first to GCM
+                                AWSMobileClient.defaultMobileClient().getPushManager().publishToTopic(data);
+                            } catch (Exception e) {
+                                Log.e(TAG, "Error in publishing reply to topic...", e);
+                                success = false;
+                            }
+
+                            if (success) {
+                                if (Constants.LOGD) Log.d(TAG, "now creating HTTP task");
+                                //publishing reply to http
+                                task = new SendReplyTask();
+                            } else {
+                                //todo give user feedback on failed post
+                                if (Constants.LOGD)
+                                    Log.d(TAG, "sending text reply to server anyway");
+                                task = new SendReplyTask();
+                            }
+
+                        } else {
+                            if (Constants.LOGD)
+                                Log.d(TAG, "contained an image filepath, uploading " +
+                                        "the image there to s3 first...");
+
+                            data.putString(Constants.KEY_S3_DIRECTORY, Constants.KEY_S3_REPLIES_DIRECTORY);
+                            uploadImageToS3(data);
+                        }
+                        break;
+
+                    case MSG_REQUEST_LOCAL_POSTS:
+                        if (Constants.LOGD) Log.d(TAG, "received a message to request local posts");
+                        task = new RequestLocalTask();
+                        if (mLocation != null) {
+                            data.putDouble(SQLiteDbContract.LocalEntry.COLUMN_NAME_LONGITUDE,
+                                    mLocation.getLongitude());
+                            data.putDouble(SQLiteDbContract.LocalEntry.COLUMN_NAME_LATITUDE,
+                                    mLocation.getLatitude());
+                        }
+                        break;
+
+                    case MSG_REQUEST_MESSAGES:
+                        Log.d(TAG, "received a message to message a user");
+
+                        task = new RequestMessageTask();
+                        break;
+
+                    case MSG_REQUEST_LIVE_THREADS:
+                        Log.d(TAG, "received a message to request the thread list");
+                        task = new RequestLiveTask();
+                        break;
+
+                    case MSG_REQUEST_REPLIES:
+                        Log.d(TAG, "received a message to request replies.");
+                        data.putInt("threadID", msg.arg1);
+                        task = new RequestRepliesTask();
+                        break;
+
+                    case MSG_SET_CALLBACK_MESSENGER:
+                        Log.d(TAG, "setting callback messenger...");
+                        irs.get().setReplyMessenger(msg.replyTo);
+                        break;
+
+                    case MSG_DOWNLOAD_IMAGE:
+                        Log.d(TAG, "received a message to download an image...");
+                        imageResponseMessenger = msg.replyTo;
+                        downloadImageFromS3(data);
+                        break;
+
+                    case MSG_UPLOAD_IMAGE:
+                        Log.d(TAG, "received a message to upload an image...");
+                        imageResponseMessenger = msg.replyTo;
                         uploadImageToS3(data);
-                    }
-                    break;
+                        break;
 
-                case MSG_REQUEST_LOCAL_POSTS:
-                    if (Constants.LOGD) Log.d(TAG, "received a message to request local posts");
-                    task = new RequestLocalTask();
-                    if (mLocation!=null) {
-                        data.putDouble(SQLiteDbContract.LocalEntry.COLUMN_NAME_LONGITUDE,
-                                mLocation.getLongitude());
-                        data.putDouble(SQLiteDbContract.LocalEntry.COLUMN_NAME_LATITUDE,
-                                mLocation.getLatitude());
-                    }
-                    break;
+                    case MSG_REPORT_ANALYTICS:
+                        if (Constants.LOGD)
+                            Log.d(TAG, "Received a message to report analytics events");
+                        reportAnalyticsEvent(msg.getData());
+                        break;
 
-                case MSG_REQUEST_MESSAGES:
-                    Log.d(TAG, "received a message to message a user");
+                    case MSG_REPORT_ANALYTIC_TIMING:
+                        if (Constants.LOGD)
+                            Log.d(TAG, "Received a message to report timing events");
+                        reportAnalyticsTimingEvent(msg.getData());
+                        break;
 
-                    task = new RequestMessageTask();
-                    break;
+                    case MSG_REPORT_ANALYTIC_ERROR:
+                        if (Constants.LOGD) Log.d(TAG, "Received a message to report an error");
+                        reportAnalyticsError(data);
+                        break;
 
-                case MSG_REQUEST_LIVE_THREADS:
-                    Log.d(TAG, "received a message to request the thread list");
-                    task = new RequestLiveTask();
-                    break;
+                    case MSG_REPORT_ANALYTIC_SCREEN:
+                        if (Constants.LOGD)
+                            Log.d(TAG, "Received a message to set the current screen");
+                        setAnalyticsFragment(data);
+                        break;
 
-                case MSG_REQUEST_REPLIES:
-                    Log.d(TAG, "received a message to request replies.");
-                    data.putInt("threadID", msg.arg1);
-                    task = new RequestRepliesTask();
-                    break;
+                    case MSG_REPORT_CONTENT:
+                        if (Constants.LOGD) Log.d(TAG, "Received a message to report content.");
+                        task = new ReportContentTask(msg.replyTo);
+                        break;
 
-                case MSG_SET_CALLBACK_MESSENGER:
-                    Log.d(TAG, "setting callback messenger...");
-                    irs.get().setReplyMessenger(msg.replyTo);
-                    break;
+                    case MSG_AUTHORIZE_USER:
+                        if (Constants.LOGD) Log.d(TAG, "Received a message to initialize a user.");
 
-                case MSG_DOWNLOAD_IMAGE:
-                    Log.d(TAG, "received a message to download an image...");
-                    imageResponseMessenger = msg.replyTo;
-                    downloadImageFromS3(data);
-                    break;
-
-                case MSG_UPLOAD_IMAGE:
-                    Log.d(TAG, "received a message to upload an image...");
-                    imageResponseMessenger = msg.replyTo;
-                    uploadImageToS3(data);
-                    break;
-
-                case MSG_REPORT_ANALYTICS:
-                    if (Constants.LOGD) Log.d(TAG, "Received a message to report analytics events");
-                    reportAnalyticsEvent(msg.getData());
-                    break;
-
-                case MSG_REPORT_ANALYTIC_TIMING:
-                    if (Constants.LOGD) Log.d(TAG, "Received a message to report timing events");
-                    reportAnalyticsTimingEvent(msg.getData());
-                    break;
-
-                case MSG_REPORT_ANALYTIC_ERROR:
-                    if (Constants.LOGD) Log.d(TAG, "Received a message to report an error");
-                    reportAnalyticsError(data);
-                    break;
-
-                case MSG_REPORT_ANALYTIC_SCREEN:
-                    if (Constants.LOGD) Log.d(TAG, "Received a message to set the current screen");
-                    setAnalyticsFragment(data);
-                    break;
-
-                case MSG_REPORT_CONTENT:
-                    if (Constants.LOGD) Log.d(TAG, "Received a message to report content.");
-                    task = new ReportContentTask(msg.replyTo);
-                    break;
-
-                case MSG_AUTHORIZE_USER:
-                    if (Constants.LOGD) Log.d(TAG, "Received a message to initialize a user.");
-
-                    Log.w(TAG,"users are no longer authorized using this method!");
+                        Log.w(TAG, "users are no longer authorized using this method!");
                     /*task = new InitializeUserTask();
                     task.initializeTask(irs.get(), null, userID);
                     mConnectionThreadPool.execute(task.getServerConnectRunnable());*/
-                    Log.d(TAG, "exit handleMessage...");
-                    return;
+                        Log.d(TAG, "exit handleMessage...");
+                        return;
 
-                case MSG_SUBSCRIBE_TO_TOPIC:
-                    if (Constants.LOGD) Log.d(TAG, "Received a message to subscribe to a topic.");
+                    case MSG_SUBSCRIBE_TO_TOPIC:
+                        if (Constants.LOGD)
+                            Log.d(TAG, "Received a message to subscribe to a topic.");
 
-                    try {
-                        AWSMobileClient.defaultMobileClient()
-                                .getPushManager()
-                                .subscribeToTopicByArn(
-                                        data.getString(
-                                                SQLiteDbContract.LiveEntry.COLUMN_NAME_TOPIC_ARN
-                                        )
-                                );
-                    } catch (InvalidParameterException e) {
-                        Log.e(TAG,"error subscribing to topic...",e);
-                    } catch (AmazonClientException e) {
-                        Log.e(TAG, "error subscribing to topic...", e);
-                    }
-                    return;
+                        try {
+                            AWSMobileClient.defaultMobileClient()
+                                    .getPushManager()
+                                    .subscribeToTopicByArn(
+                                            data.getString(
+                                                    SQLiteDbContract.LiveEntry.COLUMN_NAME_TOPIC_ARN
+                                            )
+                                    );
+                        } catch (InvalidParameterException e) {
+                            Log.e(TAG, "error subscribing to topic...", e);
+                        } catch (AmazonClientException e) {
+                            Log.e(TAG, "error subscribing to topic...", e);
+                        }
+                        return;
 
-                case MSG_UNSUBSCRIBE_FROM_TOPIC:
-                    if (Constants.LOGD) Log.d(TAG, "Received a message to unsubscribe from a topic.");
+                    case MSG_UNSUBSCRIBE_FROM_TOPIC:
+                        if (Constants.LOGD)
+                            Log.d(TAG, "Received a message to unsubscribe from a topic.");
 
-                    try {
-                        AWSMobileClient.defaultMobileClient()
-                                .getPushManager()
-                                .unsubscribeFromTopicByTopicARN(
-                                        data.getString(
-                                                SQLiteDbContract.LiveEntry
-                                                        .COLUMN_NAME_TOPIC_ARN
-                                        )
-                                );
-                    } catch (InvalidParameterException e) {
-                        Log.e(TAG,"error unsubscribing from topic...",e);
-                    } catch (AmazonClientException e) {
-                        Log.e(TAG,"error unsubscribing from topic...",e);
-                    }
+                        try {
+                            AWSMobileClient.defaultMobileClient()
+                                    .getPushManager()
+                                    .unsubscribeFromTopicByTopicARN(
+                                            data.getString(
+                                                    SQLiteDbContract.LiveEntry
+                                                            .COLUMN_NAME_TOPIC_ARN
+                                            )
+                                    );
+                        } catch (InvalidParameterException e) {
+                            Log.e(TAG, "error unsubscribing from topic...", e);
+                        } catch (AmazonClientException e) {
+                            Log.e(TAG, "error unsubscribing from topic...", e);
+                        }
 
-                    break;
+                        break;
 
-                default:
-                    super.handleMessage(msg);
-            }
+                    default:
+                        super.handleMessage(msg);
+                }
 
-            if (task != null && AuthenticationManager.getCurrentAccessToken() != null) {
-                task.initializeTask(irs.get(), data, AuthenticationManager.getCurrentAccessToken(), msg.what);
-                mConnectionThreadPool.execute(task.getServerConnectRunnable());
+                if (task != null && AuthenticationManager.getCurrentAccessToken() != null) {
+                    task.initializeTask(irs.get(), data, AuthenticationManager.getCurrentAccessToken(), msg.what);
+                    mConnectionThreadPool.execute(task.getServerConnectRunnable());
+                }
+            } else {
+                Log.v(TAG,"client was not authenticated!");
             }
 
 
             Log.d(TAG, "exit handleMessage...");
         }
+
+        @Override
+        public void onLoginFailed() {
+            if (VERBOSE) Log.v(TAG,"Login failed.");
+            isAuthenticated = false;
+        }
+
+        @Override
+        public void onLoginSuccess() {
+            if (VERBOSE) Log.v(TAG,"successful login, now requesting live threads.");
+
+            isAuthenticated = true;
+
+            ServerTask task = new RequestLiveTask();
+            task.initializeTask(irs.get(),
+                    new Bundle(),
+                    AuthenticationManager.getCurrentAccessToken(),
+                    MSG_REQUEST_LIVE_THREADS
+            );
+
+            mConnectionThreadPool.execute(task.getServerConnectRunnable());
+        }
     }
 
-    final Messenger mMessenger = new Messenger(new ServiceHandlerThread(this).getIncomingHandler());
+    final Messenger mMessenger = new Messenger(serviceThread.getIncomingHandler());
 
     @Override
     public IBinder onBind(Intent intent) {
@@ -651,6 +693,7 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
 
         initializeTransferUtility();
 
+        AuthenticationManager.addLoginStatusListener(serviceThread.getIncomingHandler());
         AuthenticationManager.createNewUser(authenticationManager);
 
         return mMessenger.getBinder();
@@ -659,7 +702,6 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
     @Override
     public boolean onUnbind(Intent intent) {
         Log.i(TAG, "client is unbinding from the Service");
-        replyMessenger = null;
         return super.onUnbind(intent);
     }
 
@@ -1334,7 +1376,7 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
                 }
 
                 if (task != null && AuthenticationManager.getCurrentAccessToken() != null) {
-                    task.initializeTask(this,data, AuthenticationManager.getCurrentAccessToken(),requestType);
+                    task.initializeTask(this, data, AuthenticationManager.getCurrentAccessToken(), requestType);
                     mConnectionThreadPool.execute(task.getServerConnectRunnable());
                 }
                 pendingMap.remove(id);

@@ -243,6 +243,12 @@ public class SplashActivity extends Activity {
     @Override
     protected void onStart() {
         super.onStart();
+
+        if (!isBound) {
+            Log.d(LOG_TAG, "binding the service to this class, creating if necessary");
+            Intent intent = new Intent(this, DataHandlingService.class);
+            bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
+        }
     }
 
     @Override

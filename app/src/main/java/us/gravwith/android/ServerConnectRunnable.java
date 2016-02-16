@@ -82,14 +82,11 @@ public class ServerConnectRunnable implements Runnable {
 
     @Override
     public void run() {
-
-
         mTask.setTaskThread(Thread.currentThread());
         android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_BACKGROUND);
         HttpsURLConnection conn = null;
 
         SSLContext sslContext = null;
-
 
        /* try {
 

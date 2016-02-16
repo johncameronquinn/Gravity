@@ -37,17 +37,12 @@ public class AuthenticationCallbackManager implements LoginRunnable.LoginUserMet
         void onLoginSuccess(String userToken);
     }
 
-    private static List<authenticationStatusListener> loginListeners = new LinkedList<>();
+    private static authenticationStatusListener authListener;
 
 
-    public static void addAuthenticationStatusListener(authenticationStatusListener listener) {
-        loginListeners.add(listener);
+    public void setAuthenticationStatusListener(authenticationStatusListener listener) {
+        authListener = listener;
     }
-
-    public static void clearAuthenticationStatusListeners() {
-        loginListeners.clear();
-    }
-
 
     @Override
     public String getLoginUrlPath() {
@@ -149,57 +144,36 @@ public class AuthenticationCallbackManager implements LoginRunnable.LoginUserMet
     private final int INITIALIZE_SUCCESS = 5;
 
 
-    private int notifyListenersOfAuthStatus(int status) {
+    private void notifyListenersOfAuthStatus(int status) {
 
         //determine which method to call
-        int numOfListeners = 0;
 
         switch (status) {
 
             case INITIALIZE_FAILED:
-                for (authenticationStatusListener listener : loginListeners){
-                    listener.onInitializeFailed();
-                    numOfListeners++;
-                }
+                authListener.onInitializeFailed();
                 break;
 
             case INITIALIZE_STARTED:
-                for (authenticationStatusListener listener : loginListeners){
-                    listener.onInitializeStarted();
-                    numOfListeners++;
-                }
+                authListener.onInitializeStarted();
                 break;
 
             case INITIALIZE_SUCCESS:
-                for (authenticationStatusListener listener : loginListeners){
-                    listener.onInitializeSuccess(userID);
-                    numOfListeners++;
-                }
+                authListener.onInitializeSuccess(userID);
                 break;
 
             case LOGIN_FAILED:
-                for (authenticationStatusListener listener : loginListeners){
-                    listener.onLoginFailed();
-                    numOfListeners++;
-                }
+                authListener.onLoginFailed();
                 break;
 
             case LOGIN_STARTED:
-                for (authenticationStatusListener listener : loginListeners){
-                    listener.onLoginStarted();
-                    numOfListeners++;
-                }
+                authListener.onLoginStarted();
                 break;
 
             case LOGIN_SUCCESS:
-                for (authenticationStatusListener listener : loginListeners){
-                    listener.onLoginSuccess(token);
-                    numOfListeners++;
-                }
+                authListener.onLoginSuccess(token);
                 break;
         }
-
-        return numOfListeners;
     }
 
     public void sendError(int code, Class mRunnable) {

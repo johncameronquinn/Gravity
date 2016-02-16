@@ -125,7 +125,6 @@ public class ReplyFragment extends BaseFragment implements LoaderManager.LoaderC
     public void onResume() {
         if (VERBOSE) Log.v(TAG, "entering onResume...");
         super.onResume();
-        triggerReplyRefresh();
 
         if (mListView != null) {
             mListView.setAdapter(mAdapter);

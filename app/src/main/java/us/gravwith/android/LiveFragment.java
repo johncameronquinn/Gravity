@@ -140,35 +140,21 @@ public class LiveFragment extends BaseFragment implements
     @Override
     public void onStart() {
         super.onStart();
-
-        if (!hasRefreshed) {
-        /* go ahead and get the latest list */
-            triggerLiveRefresh();
-        }
     }
 
     @Override
     public void onResume() {
         super.onResume();
-
-        if (!hasRefreshed) {
-        /* go ahead and get the latest list */
-            triggerLiveRefresh();
-        }
     }
 
     @Override
     public void onPause() {
         super.onPause();
-
-        hasRefreshed = false;
     }
 
     @Override
     public void onStop() {
         super.onStop();
-
-        hasRefreshed = false;
     }
 
     @Override
@@ -177,8 +163,6 @@ public class LiveFragment extends BaseFragment implements
 
         if (VERBOSE) Log.v(TAG,"destroying loader at id " + LIVE_LOADER_ID);
         getLoaderManager().destroyLoader(LIVE_LOADER_ID);
-
-        hasRefreshed = false;
 
         PhotoManager.cancelDirectory(Constants.KEY_S3_LIVE_DIRECTORY);
         if (VERBOSE) Log.v(TAG,"exiting onDestroy...");
@@ -189,11 +173,6 @@ public class LiveFragment extends BaseFragment implements
     public void onAttach(Context context) {
         super.onAttach(context);
         mListener = (onLiveFragmentInteractionListener)context;
-
-        if (!hasRefreshed) {
-        /* go ahead and get the latest list */
-            triggerLiveRefresh();
-        }
 
         String[] projection = {
                 SQLiteDbContract.LiveEntry.COLUMN_ID,
@@ -213,7 +192,6 @@ public class LiveFragment extends BaseFragment implements
         super.onAttach(context);
 
         mListener = (onLiveFragmentInteractionListener)context;
-        mListener.sendMsgRequestLiveThreads();
     }
 
     @Override
