@@ -113,7 +113,7 @@ public class RequestLiveThreadsRunnable implements Runnable {
             responseCode = conn.getResponseCode();
 
         } catch (IOException e) {
-            Log.e(TAG, "IOException when retrieving replies...", e);
+            Log.e(TAG, "IOException when retrieving live threads...", e);
             success = false;
 
             /*get the response code if it hasn't already been gotten*/

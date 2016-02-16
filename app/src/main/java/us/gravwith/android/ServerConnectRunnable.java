@@ -214,7 +214,7 @@ public class ServerConnectRunnable implements Runnable {
                         conn.setRequestProperty("Accept", "application/json");
                         conn.setRequestProperty("Content-Type", "application/json");
                         conn.setInstanceFollowRedirects(false);
-                        conn.setRequestProperty("X-Client-Session Token",mTask.getSessionToken());
+                        conn.setRequestProperty("X-Client-SessionToken",mTask.getSessionToken());
                         conn.setUseCaches(false);
 
                         //set custom TrustManager to trust our CA

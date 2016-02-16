@@ -95,7 +95,7 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
     /**
      * SECURITY
      */
-    private static String sessionToken;
+    private final LoginManager loginManager = new LoginManager(this);
 
     /**
      *  AWS (AMAZON WEB SERVICE S3)
@@ -634,8 +634,8 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
                     super.handleMessage(msg);
             }
 
-            if (task != null && sessionToken != null) {
-                task.initializeTask(irs.get(), data, sessionToken, msg.what);
+            if (task != null && LoginManager.getCurrentSessionToken() != null) {
+                task.initializeTask(irs.get(), data, LoginManager.getCurrentSessionToken(), msg.what);
                 mConnectionThreadPool.execute(task.getServerConnectRunnable());
             }
 
@@ -649,7 +649,11 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
     @Override
     public IBinder onBind(Intent intent) {
         Log.i(TAG, "client is binding to the Service");
+
         initializeTransferUtility();
+
+        LoginManager.createNewUser(loginManager);
+
         return mMessenger.getBinder();
     }
 
@@ -1330,8 +1334,8 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
 
                 }
 
-                if (task != null && sessionToken != null) {
-                    task.initializeTask(this,data,sessionToken,requestType);
+                if (task != null && LoginManager.getCurrentSessionToken() != null) {
+                    task.initializeTask(this,data,LoginManager.getCurrentSessionToken(),requestType);
                     mConnectionThreadPool.execute(task.getServerConnectRunnable());
                 }
                 pendingMap.remove(id);

@@ -27,12 +27,71 @@ public class LoginManager implements IdentityManager.IdentityHandler, LoginRunna
 
     private Thread mLoginThread;
 
-    private String token;
-    private UUID userID;
+    private static String token;
+    private static UUID userID;
+    private Runnable mCurrentRunnable;
 
     public LoginManager(DataHandlingService executionService) {
         mService = executionService;
     }
+
+    public static void createNewUser(LoginManager manager) {
+        manager.mService.submitToConnectionPool(new InitializeUserRunnable(manager));
+    }
+
+    public static void loginUser(LoginManager manager) {
+        manager.mService.submitToConnectionPool(new LoginRunnable(manager));
+    }
+
+    @Override
+    public String getLoginUrlPath() {
+        return "/security/login/";
+    }
+
+    @Override
+    public String getInitializeUrlPath() {
+        return "/security/create/";
+    }
+
+    @Override
+    public void setTaskThread(Thread thread) {
+        mLoginThread = thread;
+    }
+
+    @Override
+    public void setUserToken(String returnedToken) {
+        Log.i(TAG,"setting token to : " + returnedToken);
+        token = returnedToken;
+    }
+
+    @Override
+    public void setUserID(UUID userID) {
+        Log.i(TAG,"setting token to : " + userID.toString());
+        this.userID = userID;
+    }
+
+    @Override
+    public UUID getUserID() {
+        return userID;
+    }
+
+    public String getToken() {
+        return token;
+    }
+
+    public static String getCurrentSessionToken() {
+        Log.v("LoginManager","returning token : " + token);
+        return token;
+    }
+
+    public LoginRunnable getLoginRunnable(){
+        return new LoginRunnable(this);
+    }
+
+    public InitializeUserRunnable getInitRunnable(){
+        return new InitializeUserRunnable(this);
+    }
+
 
     private static List<authenticationStatusListener> loginListeners = new LinkedList<>();
 
@@ -92,6 +151,7 @@ public class LoginManager implements IdentityManager.IdentityHandler, LoginRunna
             case InitializeUserRunnable.GET_UUID_SUCCESS:
                 Log.d(TAG, "initialize user success...");
                 outState = INITIALIZE_SUCCESS;
+                LoginManager.loginUser(this);
                 break;
 
             default :
@@ -162,62 +222,6 @@ public class LoginManager implements IdentityManager.IdentityHandler, LoginRunna
         }
 
         return numOfListeners;
-    }
-
-    @Override
-    public String getLoginUrlPath() {
-        return "/security/login/";
-    }
-
-    @Override
-    public String getInitializeUrlPath() {
-        return "/security/create/";
-    }
-
-    @Override
-    public void setTaskThread(Thread thread) {
-        mLoginThread = thread;
-    }
-
-    @Override
-    public void setUserToken(String returnedToken) {
-        Log.i(TAG,"setting token to : " + returnedToken);
-        token = returnedToken;
-    }
-
-    @Override
-    public void setUserID(UUID userID) {
-        Log.i(TAG,"setting token to : " + userID.toString());
-        this.userID = userID;
-    }
-
-    @Override
-    public UUID getUserID() {
-        return userID;
-    }
-
-    public String getToken() {
-        return token;
-    }
-
-    public void tryLogin(ExecutorService executor) {
-        executor.execute(new LoginRunnable(this));
-    }
-
-    public void tryInitialize(ExecutorService executor) {
-        executor.execute(new InitializeUserRunnable(this));
-    }
-
-    public LoginRunnable getLoginRunnable(){
-        return new LoginRunnable(this);
-    }
-
-    public InitializeUserRunnable getInitRunnable(){
-        return new InitializeUserRunnable(this);
-    }
-
-    public static void SignIn() {
-
     }
 
     @Override

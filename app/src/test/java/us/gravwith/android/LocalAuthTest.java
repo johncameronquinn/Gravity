@@ -14,6 +14,7 @@ import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 
+import us.gravwith.android.SendLivePostTask;
 import us.gravwith.android.user.LoginManager;
 
 /**
@@ -71,5 +72,15 @@ public class LocalAuthTest {
         manager.getLoginRunnable().run();
 
         assert(manager.getToken() != null);
+
+        SendLivePostTask task = new SendLivePostTask();
+
+
+        Bundle b = new Bundle();
+
+        task.initializeTask(null, b, manager.getToken(), 0);
+        task.getServerConnectRunnable().run();
+        task.getRequestRunnable().run();
+        task.getResponseRunnable().run();
     }
 }
