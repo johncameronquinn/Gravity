@@ -2,46 +2,52 @@ package us.gravwith.android.user;
 
 import android.util.Log;
 
-import com.amazonaws.mobile.user.IdentityManager;
-
-import java.lang.reflect.Method;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.UUID;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.ThreadPoolExecutor;
-
-import us.gravwith.android.DataHandlingService;
+import java.util.logging.Logger;
 
 /**
- * Created by John C. Quinn on 1/4/16.
+ * Created by John C. Quinn on 2/16/16.
  *
- *
+ * This class handles all the callbacks from the authentication process.
  */
-public class LoginManager implements IdentityManager.IdentityHandler, LoginRunnable.LoginUserMethods,
+public class AuthenticationCallbackManager implements LoginRunnable.LoginUserMethods,
         InitializeUserRunnable.InitializeUserMethods {
 
-    private final String TAG = LoginManager.class.getSimpleName();
-
-    private DataHandlingService mService;
-
     private Thread mLoginThread;
-
+    private AuthenticationManager manager;
     private static String token;
     private static UUID userID;
-    private Runnable mCurrentRunnable;
+    private int initResposeCode;
+    private int loginResposeCode;
 
-    public LoginManager(DataHandlingService executionService) {
-        mService = executionService;
+    public AuthenticationCallbackManager(AuthenticationManager manager) {
+        this.manager = manager;
     }
 
-    public static void createNewUser(LoginManager manager) {
-        manager.mService.submitToConnectionPool(new InitializeUserRunnable(manager));
+    private final String TAG = AuthenticationCallbackManager.class.getSimpleName();
+
+    public interface authenticationStatusListener {
+        void onInitializeFailed();
+        void onInitializeStarted();
+        void onInitializeSuccess(UUID userID);
+        void onLoginFailed();
+        void onLoginStarted();
+        void onLoginSuccess(String userToken);
     }
 
-    public static void loginUser(LoginManager manager) {
-        manager.mService.submitToConnectionPool(new LoginRunnable(manager));
+    private static List<authenticationStatusListener> loginListeners = new LinkedList<>();
+
+
+    public static void addAuthenticationStatusListener(authenticationStatusListener listener) {
+        loginListeners.add(listener);
     }
+
+    public static void clearAuthenticationStatusListeners() {
+        loginListeners.clear();
+    }
+
 
     @Override
     public String getLoginUrlPath() {
@@ -51,6 +57,14 @@ public class LoginManager implements IdentityManager.IdentityHandler, LoginRunna
     @Override
     public String getInitializeUrlPath() {
         return "/security/create/";
+    }
+    @Override
+    public UUID getUserID() {
+        return userID;
+    }
+
+    public String getToken() {
+        return token;
     }
 
     @Override
@@ -71,48 +85,14 @@ public class LoginManager implements IdentityManager.IdentityHandler, LoginRunna
     }
 
     @Override
-    public UUID getUserID() {
-        return userID;
+    public void setInitResponseCode(int code) {
+        initResposeCode = code;
     }
 
-    public String getToken() {
-        return token;
+    @Override
+    public void setLoginResponseCode(int code) {
+        loginResposeCode = code;
     }
-
-    public static String getCurrentSessionToken() {
-        Log.v("LoginManager","returning token : " + token);
-        return token;
-    }
-
-    public LoginRunnable getLoginRunnable(){
-        return new LoginRunnable(this);
-    }
-
-    public InitializeUserRunnable getInitRunnable(){
-        return new InitializeUserRunnable(this);
-    }
-
-
-    private static List<authenticationStatusListener> loginListeners = new LinkedList<>();
-
-    public interface authenticationStatusListener {
-        void onInitializeFailed();
-        void onInitializeStarted();
-        void onInitializeSuccess(UUID userID);
-        void onLoginFailed();
-        void onLoginStarted();
-        void onLoginSuccess(String userToken);
-    }
-
-    public static void addAuthenticationStatusListener(authenticationStatusListener listener) {
-        loginListeners.add(listener);
-    }
-
-    public static void clearAuthenticationStatusListeners() {
-        loginListeners.clear();
-    }
-
-    public static int INVALID_STATE_RETURNED = 1337;
 
     @Override
     public void handleLoginState(int state) {
@@ -144,14 +124,14 @@ public class LoginManager implements IdentityManager.IdentityHandler, LoginRunna
                 break;
 
             case InitializeUserRunnable.GET_UUID_STARTED:
-                Log.d(TAG,"initialize user started...");
+                Log.d(TAG, "initialize user started...");
                 outState = INITIALIZE_STARTED;
                 break;
 
             case InitializeUserRunnable.GET_UUID_SUCCESS:
                 Log.d(TAG, "initialize user success...");
                 outState = INITIALIZE_SUCCESS;
-                LoginManager.loginUser(this);
+                AuthenticationManager.loginUser(manager);
                 break;
 
             default :
@@ -160,8 +140,6 @@ public class LoginManager implements IdentityManager.IdentityHandler, LoginRunna
 
         notifyListenersOfAuthStatus(outState);
     }
-
-
 
     private final int LOGIN_STARTED = 0;
     private final int LOGIN_FAILED =  1;
@@ -224,13 +202,7 @@ public class LoginManager implements IdentityManager.IdentityHandler, LoginRunna
         return numOfListeners;
     }
 
-    @Override
-    public void handleIdentityID(String identityId) {
-        Log.i(TAG,"setting userID to : " + identityId);
-    }
-
-    @Override
-    public void handleError(Exception exception) {
-        Log.e(TAG,"Error getting cognito identiy ID",exception);
+    public void sendError(int code, Class mRunnable) {
+        Log.v(TAG,"sending error for code " + code);
     }
 }

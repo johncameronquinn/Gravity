@@ -1,21 +1,12 @@
 package us.gravwith.android;
 
-import android.os.Handler;
-import android.os.Looper;
-import android.os.PowerManager;
-import android.test.mock.MockApplication;
-import android.test.mock.MockResources;
 import android.test.suitebuilder.annotation.SmallTest;
-import android.util.Log;
 
 import org.junit.Test;
 
 import java.util.UUID;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.ScheduledThreadPoolExecutor;
 
-import us.gravwith.android.SendLivePostTask;
-import us.gravwith.android.user.LoginManager;
+import us.gravwith.android.user.AuthenticationManager;
 
 /**
  * Created by John C. Quinn on 2/15/16.
@@ -31,9 +22,9 @@ public class LocalAuthTest {
     @Test
     public void testAuthentication() {
 
-        final LoginManager manager = new LoginManager(null);
+        final AuthenticationManager manager = new AuthenticationManager(null);
 
-        LoginManager.addAuthenticationStatusListener(new LoginManager.authenticationStatusListener() {
+        AuthenticationManager.addAuthenticationStatusListener(new AuthenticationManager.authenticationStatusListener() {
             @Override
             public void onLoginFailed() {
                 System.out.println("login failed");

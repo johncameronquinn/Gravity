@@ -42,14 +42,12 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Queue;
 import java.util.Set;
-import java.util.UUID;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-import us.gravwith.android.user.AccessToken;
-import us.gravwith.android.user.LoginManager;
+import us.gravwith.android.user.AuthenticationManager;
 import us.gravwith.android.util.LogUtils;
 import us.gravwith.android.SQLiteDbContract.StashEntry;
 
@@ -95,7 +93,7 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
     /**
      * SECURITY
      */
-    private final LoginManager loginManager = new LoginManager(this);
+    private final AuthenticationManager authenticationManager = new AuthenticationManager(this);
 
     /**
      *  AWS (AMAZON WEB SERVICE S3)
@@ -205,6 +203,7 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
             Log.d(TAG, "loading androidID from storage...");
             androidId = settings.getString(ANDROID_ID, null);
         }
+        authenticationManager.loadUserID(this);
 
         if (!ALLOW_DUPLICATES) {
             if (VERBOSE) Log.v(TAG, "Duplicates are not allowed, loading imagesSeen");
@@ -634,8 +633,8 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
                     super.handleMessage(msg);
             }
 
-            if (task != null && LoginManager.getCurrentSessionToken() != null) {
-                task.initializeTask(irs.get(), data, LoginManager.getCurrentSessionToken(), msg.what);
+            if (task != null && AuthenticationManager.getCurrentAccessToken() != null) {
+                task.initializeTask(irs.get(), data, AuthenticationManager.getCurrentAccessToken(), msg.what);
                 mConnectionThreadPool.execute(task.getServerConnectRunnable());
             }
 
@@ -652,7 +651,7 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
 
         initializeTransferUtility();
 
-        LoginManager.createNewUser(loginManager);
+        AuthenticationManager.createNewUser(authenticationManager);
 
         return mMessenger.getBinder();
     }
@@ -1334,8 +1333,8 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
 
                 }
 
-                if (task != null && LoginManager.getCurrentSessionToken() != null) {
-                    task.initializeTask(this,data,LoginManager.getCurrentSessionToken(),requestType);
+                if (task != null && AuthenticationManager.getCurrentAccessToken() != null) {
+                    task.initializeTask(this,data, AuthenticationManager.getCurrentAccessToken(),requestType);
                     mConnectionThreadPool.execute(task.getServerConnectRunnable());
                 }
                 pendingMap.remove(id);

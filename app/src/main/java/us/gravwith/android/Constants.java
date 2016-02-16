@@ -50,6 +50,8 @@ public final class Constants {
 
     public static final boolean ANALYTICSV = false;
 
+    public static final boolean AUTHENTICATIONV = false;
+
     // Custom actions
 
     public static final String ACTION_VIEW_IMAGE = "us.gravwith.android.ACTION_VIEW_IMAGE";

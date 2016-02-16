@@ -7,6 +7,7 @@ import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ser.std.UUIDSerializer;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -23,6 +24,7 @@ import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 
 import us.gravwith.android.BuildConfig;
+import us.gravwith.android.Constants;
 import us.gravwith.android.util.LogUtils;
 import us.gravwith.android.util.Utility;
 
@@ -38,8 +40,6 @@ import us.gravwith.android.util.Utility;
  * passes the state, success or fail, back to its caller
  */
 public class LoginRunnable implements Runnable {
-
-    private boolean VERBOSE = true;
 
     private String TAG = LoginRunnable.class.getSimpleName();
 
@@ -68,6 +68,8 @@ public class LoginRunnable implements Runnable {
         void setUserToken(String returnedToken);
 
         void setTaskThread(Thread thread);
+
+        void setLoginResponseCode(int responseCode);
     }
 
     final LoginUserMethods mService;
@@ -78,7 +80,7 @@ public class LoginRunnable implements Runnable {
 
     @Override
     public void run() {
-        if (VERBOSE) {
+        if (Constants.AUTHENTICATIONV) {
             Log.v(TAG, "enter LoginRunnable...");
         }
 
@@ -93,9 +95,10 @@ public class LoginRunnable implements Runnable {
         trustAllHosts();
 
         mService.handleLoginState(LOGIN_STARTED);
-        HttpsURLConnection conn;
+        HttpsURLConnection conn = null;
+        int responseCode = -1;
 
-        if (VERBOSE) Log.v(TAG, "creating to " + mService.getLoginUrlPath());
+        if (Constants.AUTHENTICATIONV) Log.v(TAG, "creating to " + mService.getLoginUrlPath());
         URL url;
 
         try {
@@ -162,13 +165,23 @@ public class LoginRunnable implements Runnable {
             Map<String, Object> asMap = objectMapper.readValue(conn.getInputStream(), Map.class);
             sessionToken = String.valueOf(asMap.get("token"));
 
-            if (VERBOSE) {
+            if (Constants.AUTHENTICATIONV) {
                 LogUtils.printMapToVerbose(asMap, TAG);
             }
         } catch (Exception e) {
             Log.e(TAG, "Error executing initialize user...", e);
             //Toast.makeText(getApplicationContext(),"Error initializing new user with the server...",Toast.LENGTH_SHORT).show();
         }
+
+
+        if (conn != null) {
+            try {
+                responseCode = conn.getResponseCode();
+            } catch (IOException e) {
+                Log.e(TAG,"error reading responseCode from object",e);
+            }
+        }
+        mService.setLoginResponseCode(responseCode);
 
         if (sessionToken == null) {
             Log.e(TAG, "userID was not successfully retrieved...");
@@ -181,7 +194,7 @@ public class LoginRunnable implements Runnable {
 
         mService.setTaskThread(null);
         Thread.interrupted();
-        if (VERBOSE) {
+        if (Constants.AUTHENTICATIONV) {
             Log.v(TAG, "exiting LoginRunnable...");
         }
     }

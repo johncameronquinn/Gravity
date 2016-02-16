@@ -94,7 +94,7 @@ public class GravitySignInProvider implements SignInProvider {
         /*
          * This will send a login request to /security/login/ and wait for a response
          */
-        /*LoginManager.getInstance().registerCallback(facebookCallbackManager, new FacebookCallback<LoginResult>() {
+        /*AuthenticationManager.getInstance().registerCallback(facebookCallbackManager, new FacebookCallback<LoginResult>() {
             @Override
             public void onSuccess(LoginResult loginResult) {
                 Log.d(LOG_TAG, "Facebook provider sign-in succeeded.");
@@ -117,7 +117,7 @@ public class GravitySignInProvider implements SignInProvider {
         buttonView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                LoginManager.getInstance().logInWithReadPermissions(signInActivity,
+                AuthenticationManager.getInstance().logInWithReadPermissions(signInActivity,
                         Arrays.asList("public_profile"));
             }
         });*/
@@ -155,7 +155,7 @@ public class GravitySignInProvider implements SignInProvider {
     @Override
     public void signOut() {
         clearUserInfo();
-        //LoginManager.getInstance().logOut();
+        //AuthenticationManager.getInstance().logOut();
     }
 
     private void clearUserInfo() {
