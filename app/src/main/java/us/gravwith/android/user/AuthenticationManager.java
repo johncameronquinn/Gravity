@@ -27,13 +27,13 @@ public class AuthenticationManager implements IdentityManager.IdentityHandler {
     private static String token;
     private static UUID userID;
 
-    private final AuthenticationCallbackManager callbackManager;
+    private final GravityAuthCallbackManager callbackManager;
 
     public AuthenticationManager(final DataHandlingService executionService) {
         mService = executionService;
-        callbackManager = new AuthenticationCallbackManager(this);
+        callbackManager = new GravityAuthCallbackManager(this);
 
-        callbackManager.setAuthenticationStatusListener(new AuthenticationCallbackManager
+        callbackManager.setAuthenticationStatusListener(new GravityAuthCallbackManager
                 .authenticationStatusListener() {
 
             @Override

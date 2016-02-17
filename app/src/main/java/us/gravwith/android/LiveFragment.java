@@ -24,6 +24,7 @@ import com.github.clans.fab.FloatingActionMenu;
 
 import java.io.FileNotFoundException;
 import java.lang.ref.WeakReference;
+import java.util.UUID;
 
 import fr.castorflex.android.verticalviewpager.VerticalViewPager;
 
@@ -50,7 +51,6 @@ public class LiveFragment extends BaseFragment implements
 
     private final int LIVE_LOADER_ID = 1;
     private final int LIVE_OFFSCREEN_LIMIT = 3;
-    private int currentThread;
 
     private boolean hasRefreshed = false;
 
@@ -118,9 +118,7 @@ public class LiveFragment extends BaseFragment implements
 
         if (savedInstanceState != null) {
             Log.d(TAG,"restoring live state...");
-            currentThread = savedInstanceState.getInt(CURRENT_THREAD_KEY);
-        } else {
-            currentThread = NO_LIVE_THREADS_ID;
+            UUID currentThread = UUID.fromString(savedInstanceState.getString(CURRENT_THREAD_KEY));
         }
 
         if (getArguments() != null) {
@@ -198,7 +196,7 @@ public class LiveFragment extends BaseFragment implements
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
         if (VERBOSE) Log.v(TAG,"entering onSaveInstanceState...");
-        outState.putInt(CURRENT_THREAD_KEY, currentThread);
+        //outState.putString(CURRENT_THREAD_KEY, currentThread.toString());
     //    outState.putInt(THREAD_PAGER_KEY, threadPager.getCurrentItem());
         /*View v = threadPager.getChildAt(threadPager.getCurrentItem());
         SparseArray<Parcelable> viewsave = new SparseArray<>();
@@ -383,11 +381,10 @@ public class LiveFragment extends BaseFragment implements
                         }
                     });
 
-                    manager.setItemIDAndShow(Integer
-                            .parseInt(mAdapter
+                    manager.setItemIDAndShow(mAdapter
                             .getCurrentFragment()
                             .getThreadID()
-                    ));
+                    );
 
                     break;
 
@@ -462,7 +459,7 @@ public class LiveFragment extends BaseFragment implements
     public void onPageSelected(int position) {
         if (VERBOSE) Log.v(TAG, "entering onPageSelected... page " + position + " selected.");
 
-        currentThread = getCurrentThreadID();
+        UUID currentThread = getCurrentThreadID();
         mListener.sendMsgRequestReplies(currentThread);
 
         if (VERBOSE) Log.v(TAG,"initializing loader at id " + ReplyFragment.REPLY_LOADER_ID);
@@ -471,7 +468,7 @@ public class LiveFragment extends BaseFragment implements
         args.putString(CURRENT_THREAD_KEY, String.valueOf(currentThread));
 
         mListener.setCurrentThread(
-                String.valueOf(currentThread),
+                currentThread,
                 getCurrentTopicARN(),
                 getCurrentRepliesCount(),
                 getCurrentDescription(),
@@ -551,18 +548,11 @@ public class LiveFragment extends BaseFragment implements
         //sort by column ID
     }
 
-    private int getCurrentThreadID() {
-        int out;
+    private UUID getCurrentThreadID() {
+        UUID out = null;
         LiveThreadFragment f = (LiveThreadFragment)mAdapter.getItem(threadPager.getCurrentItem());
         if (f != null) {
-            String s = f.getThreadID();
-            if (s == null) {
-                out = 0;
-            } else {
-                out = Integer.parseInt(s);
-            }
-        } else {
-            out = 0;
+            out = f.getThreadID();
         }
         return out;
     }
@@ -654,7 +644,7 @@ public class LiveFragment extends BaseFragment implements
             mAdapter.swapCursor(data);
 
             mListener.setCurrentThread(
-                    String.valueOf(getCurrentThreadID()),
+                    getCurrentThreadID(),
                     getCurrentTopicARN(),
                     getCurrentRepliesCount(),
                     getCurrentDescription(),
@@ -692,11 +682,11 @@ public class LiveFragment extends BaseFragment implements
     public interface onLiveFragmentInteractionListener extends BaseFragmentInterface {
         //void setAnalyticsFragment(String name);
         void sendMsgRequestLiveThreads();
-        void sendMsgRequestReplies(int threadID);
-        void setCurrentThread(String threadID,String topicARN, String desc, String imageKey,String repliesCount, String time);
+        void sendMsgRequestReplies(UUID threadID);
+        void setCurrentThread(UUID threadID,String topicARN, String desc, String imageKey,String repliesCount, String time);
         void takeLivePicture();
         void saveToStash(PhotoView imageToSave);
-        String getCurrentThread();
+        UUID getCurrentThread();
         String getCurrentTopicARN();
         String getCurrentDescription();
         String getCurrentImageKey();

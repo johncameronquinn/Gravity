@@ -2,17 +2,14 @@ package us.gravwith.android.user;
 
 import android.util.Log;
 
-import java.util.LinkedList;
-import java.util.List;
 import java.util.UUID;
-import java.util.logging.Logger;
 
 /**
  * Created by John C. Quinn on 2/16/16.
  *
  * This class handles all the callbacks from the authentication process.
  */
-public class AuthenticationCallbackManager implements LoginRunnable.LoginUserMethods,
+public class GravityAuthCallbackManager implements LoginRunnable.LoginUserMethods,
         InitializeUserRunnable.InitializeUserMethods {
 
     private Thread mLoginThread;
@@ -22,11 +19,11 @@ public class AuthenticationCallbackManager implements LoginRunnable.LoginUserMet
     private int initResposeCode;
     private int loginResposeCode;
 
-    public AuthenticationCallbackManager(AuthenticationManager manager) {
+    public GravityAuthCallbackManager(AuthenticationManager manager) {
         this.manager = manager;
     }
 
-    private final String TAG = AuthenticationCallbackManager.class.getSimpleName();
+    private final String TAG = GravityAuthCallbackManager.class.getSimpleName();
 
     public interface authenticationStatusListener {
         void onInitializeFailed();

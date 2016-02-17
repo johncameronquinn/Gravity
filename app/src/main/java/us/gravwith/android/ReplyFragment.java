@@ -29,6 +29,7 @@ import android.widget.Toast;
 import com.github.clans.fab.FloatingActionMenu;
 
 import java.net.HttpURLConnection;
+import java.util.UUID;
 
 import us.gravwith.android.util.Utility;
 
@@ -355,11 +356,11 @@ public class ReplyFragment extends BaseFragment implements LoaderManager.LoaderC
     }
 
     public void resetDisplay() {
-        if (isAdded()) {
+        if (isAdded() && mListener.getCurrentThread() != null) {
             Log.d(TAG, "restarting loader...");
             Bundle b = new Bundle();
             b.putString(SQLiteDbContract.LiveReplies.COLUMN_NAME_THREAD_ID,
-                    mListener.getCurrentThread());
+                    mListener.getCurrentThread().toString());
             getLoaderManager().restartLoader(REPLY_LOADER_ID, b, this);
             replyCountView.setText(mListener.getCurrentRepliesCount());
         }
@@ -370,7 +371,7 @@ public class ReplyFragment extends BaseFragment implements LoaderManager.LoaderC
         if (mListView != null) {
             mListView.setAdapter(null);
         }
-        mListener.sendMsgRequestReplies(Integer.parseInt(mListener.getCurrentThread()));
+        mListener.sendMsgRequestReplies(mListener.getCurrentThread());
     }
 
 
@@ -396,7 +397,7 @@ public class ReplyFragment extends BaseFragment implements LoaderManager.LoaderC
         }
     }
 
-    public void setOpInfo(String threadID, String mImageKey, String descriptionText, String currentTime) {
+    public void setOpInfo(UUID threadID, String mImageKey, String descriptionText, String currentTime) {
         if (VERBOSE) Log.v(TAG, "entering setOpInfo... with " + mImageKey + " and " + descriptionText);
 
         /* updates displayed text*/
@@ -469,7 +470,7 @@ public class ReplyFragment extends BaseFragment implements LoaderManager.LoaderC
                         //activity.setLiveFilePath("");
                         //activity.setLiveCreateThreadInfo("", commentText.getText().toString());
                         activity.setLiveCreateReplyInfo(commentText.getText().toString(),
-                                Integer.parseInt(mListener.getCurrentThread()),
+                                mListener.getCurrentThread(),
                                 mListener.getCurrentTopicARN());
                         //triggerReplyRefresh();
 
@@ -490,7 +491,7 @@ public class ReplyFragment extends BaseFragment implements LoaderManager.LoaderC
                         RelativeLayout layout = (RelativeLayout) commentText.getParent();
                         activity.takeReplyPicture();
                         activity.setLiveCreateReplyInfo(commentText.getText().toString(),
-                                Integer.parseInt(mListener.getCurrentThread()),
+                                mListener.getCurrentThread(),
                                 mListener.getCurrentTopicARN());
                         //activity.setLiveCreateThreadInfo("","",commentText.getText().toString());
 

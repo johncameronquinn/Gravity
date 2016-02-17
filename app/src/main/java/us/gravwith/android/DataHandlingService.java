@@ -4,6 +4,7 @@ import android.app.Service;
 import android.content.ContentValues;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.database.Cursor;
 import android.location.Location;
 import android.net.Uri;
 import android.os.*;
@@ -1209,7 +1210,7 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
             Log.v(TAG, "ContentManager was null...");
             //initializeTransferUtility();
         } else {
-            contentManager.getContent(key,this);
+            contentManager.getContent(key, this);
         }
 
         if (VERBOSE) {
@@ -1479,19 +1480,26 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
 
     }
 
-  /*  @Override
-    public void onLoginSuccess(UUID userID) {
-        Log.i(TAG,"Successful login with : " + userID);
-        this.userID = userID;
+    private void requestRepliesforFirstThread() {
+        if (VERBOSE) Log.v(TAG,"entering requestRepliesForFirstThread");
+
+        String[] projection = {SQLiteDbContract.LiveEntry.COLUMN_NAME_THREAD_ID};
+        String selection =  "? = 0";
+        String[] selectionArgs = {SQLiteDbContract.LiveEntry.COLUMN_ID};
+
+        Cursor c = getContentResolver().query(FireFlyContentProvider.CONTENT_URI_LIVE,
+                projection,
+                selection,
+                selectionArgs,
+                null);
+
+        c.moveToFirst();
+
+        String s = c.getString(0);
+
+        Log.i(TAG,"returned threadID for first thread : " + s);
+
+        if (VERBOSE) Log.v(TAG,"exiting requestRepliesForFirstThread");
     }
 
-    @Override
-    public void onLoginStarted() {
-
-    }
-
-    @Override
-    public void onLoginFailed() {
-
-    }*/
 }

@@ -32,6 +32,9 @@ import android.widget.LinearLayout;
 import com.github.clans.fab.FloatingActionButton;
 
 import java.lang.ref.WeakReference;
+import java.util.UUID;
+
+import us.gravwith.android.util.Utility;
 
 /**
  * Author/Copyright John C. Quinn All Rights Reserved
@@ -666,7 +669,7 @@ n  */
                             //((MainActivity) getActivity()).setLiveCreateThreadInfo("", commentText.getText().toString());
                             ((MainActivity) getActivity()).setLiveCreateReplyInfo(
                                     commentText.getText().toString(),
-                                    Integer.parseInt(mListener.getCurrentThread()),
+                                    mListener.getCurrentThread(),
                                     mListener.getCurrentTopicARN());
 
                             resetCameraUI();
@@ -840,7 +843,7 @@ n  */
                     mListener.sendMsgStartPreview();
                     mListener.enableScrolling();
 
-                    commentText.setText("");
+                    Utility.clearTextAndFocus(commentText);
                     //commentText.setVisibility(View.INVISIBLE);
                     //captureButton.setVisibility(View.VISIBLE);
                     captureLayout.setVisibility(View.VISIBLE);
@@ -870,7 +873,6 @@ n  */
                     break;
 
             }
-            mListener.hideSoftKeyboard();
             captureButton.setPressed(false);
             captureButton.setClickable(true);
             currentCameraMode = CAMERA_DEFAULT_MODE;
@@ -925,7 +927,7 @@ n  */
                             mListener.sendMsgSaveImage(commentText, CAMERA_REPLY_MODE);
                             ((MainActivity) getActivity()).setLiveCreateReplyInfo(
                                     commentText.getText().toString(),
-                                    Integer.parseInt(mListener.getCurrentThread()),
+                                    mListener.getCurrentThread(),
                                     mListener.getCurrentTopicARN());
 
                             resetCameraUI();
@@ -1313,7 +1315,7 @@ n  */
                     String description = ((EditText)layout
                             .findViewById(R.id.editText_reply_mode_comment)).getText().toString();
                     activity.setLiveCreateReplyInfo(description,
-                            Integer.parseInt(mListener.getCurrentThread()),
+                            mListener.getCurrentThread(),
                             mListener.getCurrentTopicARN());
 
                     layout.removeView((View) v.getParent());
@@ -1365,7 +1367,7 @@ n  */
         void sendMsgSaveImage(EditText comment, int postWhere, String messageTarget);
         void sendMsgSwitchCamera();
         int sendMsgAutoFocus(MotionEvent event);
-        String getCurrentThread();
+        UUID getCurrentThread();
         String getCurrentTopicARN();
     }
 

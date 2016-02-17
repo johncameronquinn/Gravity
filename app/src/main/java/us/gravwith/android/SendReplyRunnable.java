@@ -90,12 +90,9 @@ public class SendReplyRunnable implements Runnable{
             JsonGenerator jGen = jsonFactory.
                     createGenerator(conn.getOutputStream()); //tcp connection to server
             jGen.writeStartObject();
-            jGen.writeNumberField(LiveReplies.COLUMN_NAME_THREAD_ID,
-                    b.getInt(LiveReplies.COLUMN_NAME_THREAD_ID,1)
+            jGen.writeStringField(LiveReplies.COLUMN_NAME_THREAD_ID,
+                    b.getString(LiveReplies.COLUMN_NAME_THREAD_ID,"")
             );
-            /*jGen.writeStringField(LiveReplies.COLUMN_NAME_NAME,
-                    b.getString(LiveReplies.COLUMN_NAME_NAME, "")
-            );*/
             jGen.writeStringField(LiveReplies.COLUMN_NAME_DESCRIPTION,
                     b.getString(LiveReplies.COLUMN_NAME_DESCRIPTION, "")
             );

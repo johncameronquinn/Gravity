@@ -1056,12 +1056,18 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
         }
     }
 
-    public void sendMsgRequestReplies(int threadNumber) {
-        Log.i(TAG, "refreshing replies for thread: " + threadNumber);
+    public void sendMsgRequestReplies(UUID threadNumber) {
+        Log.i(TAG, "refreshing replies for thread: " + threadNumber.toString());
 
         if (isBound) {
+
+            Message msg = Message.obtain(null,DataHandlingService.MSG_REQUEST_REPLIES);
+
+            Bundle b = new Bundle();
+            b.putString(Constants.KEY_S3_KEY,threadNumber.toString());
+            msg.setData(b);
             try {
-                mService.send(Message.obtain(null,DataHandlingService.MSG_REQUEST_REPLIES, threadNumber, 0));
+                mService.send(msg);
             } catch (RemoteException e) {
                 Log.e(TAG, "error sending message to background service...", e);
             }
@@ -1651,12 +1657,12 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
      *
      * sends a message to the service to report the item
      */
-    public void sendMsgSendReportToServer(int contentID, Messenger replyMessenger) {
+    public void sendMsgSendReportToServer(UUID contentID, Messenger replyMessenger) {
         if (isBound) {
             Log.d(TAG, "sending message to report to the server");
             Message msg = Message.obtain(null, DataHandlingService.MSG_REPORT_CONTENT);
             Bundle data = new Bundle();
-            data.putInt(Constants.KEY_CONTENT_ID,contentID);
+            data.putString(Constants.KEY_CONTENT_ID,contentID.toString());
             msg.setData(data);
             msg.replyTo = replyMessenger;
             try {
@@ -1744,9 +1750,9 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
             values.put(SQLiteDbContract.LiveReplies.COLUMN_NAME_DESCRIPTION,
                     replyData.getString("description", ""));
             values.put(SQLiteDbContract.LiveReplies.COLUMN_NAME_THREAD_ID,
-                    replyData.getInt("threadID"));
+                    replyData.getString("threadID"));
             values.put(SQLiteDbContract.LiveReplies.COLUMN_NAME_THREAD_ID,
-                    replyData.getInt("topicARN"));
+                    replyData.getString("topicARN"));
 
                     getContentResolver()
                             .insert(FireFlyContentProvider
@@ -1815,15 +1821,15 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
 
         String name = getSharedPreferences(Constants.SHARED_PREFERENCES_NAME, MODE_PRIVATE).
                 getString(StashLiveSettingsFragment.LIVE_NAME_KEY, "jester");
-        setLiveCreateReplyInfo(name, comment, replyData.
-                        getInt(SQLiteDbContract.LiveReplies.COLUMN_NAME_THREAD_ID),
+        setLiveCreateReplyInfo(name, comment,
+                UUID.fromString(replyData.getString(SQLiteDbContract.LiveReplies.COLUMN_NAME_THREAD_ID)),
                 replyData.getString(SQLiteDbContract.LiveEntry.COLUMN_NAME_TOPIC_ARN, ""));
 
 
         if (VERBOSE) Log.v(TAG,"exiting setLiveCreateReplyInfo");
     }
 
-    public void setLiveCreateReplyInfo(String comment, int threadID, String topicARN) {
+    public void setLiveCreateReplyInfo(String comment, UUID threadID, String topicARN) {
         if (VERBOSE) Log.v(TAG,"enter setLiveCreateReplyInfo with " + comment + ", " + threadID
                 + ", " + topicARN);
 
@@ -1835,7 +1841,7 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
                 getString(StashLiveSettingsFragment.LIVE_NAME_KEY,"jester");
         replyData.putString(SQLiteDbContract.LiveReplies.COLUMN_NAME_NAME, name);
         replyData.putString(SQLiteDbContract.LiveReplies.COLUMN_NAME_DESCRIPTION, comment);
-        replyData.putInt(SQLiteDbContract.LiveReplies.COLUMN_NAME_THREAD_ID, threadID);
+        replyData.putString(SQLiteDbContract.LiveReplies.COLUMN_NAME_THREAD_ID, threadID.toString());
         replyData.putString(SQLiteDbContract.LiveEntry.COLUMN_NAME_TOPIC_ARN, topicARN);
 
         if (replyData.size() >= 5) {
@@ -1847,7 +1853,7 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
     }
 
 
-    public void setLiveCreateReplyInfo(String name, String comment, int threadID, String topicARN) {
+    public void setLiveCreateReplyInfo(String name, String comment, UUID threadID, String topicARN) {
         if (VERBOSE) Log.v(TAG,"enter setLiveCreateReplyInfo with " + name + ", " + comment + ", " + threadID);
 
         if (replyData == null) {
@@ -1856,7 +1862,7 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
 
         replyData.putString(SQLiteDbContract.LiveReplies.COLUMN_NAME_NAME, name);
         replyData.putString(SQLiteDbContract.LiveReplies.COLUMN_NAME_DESCRIPTION, comment);
-        replyData.putInt(SQLiteDbContract.LiveReplies.COLUMN_NAME_THREAD_ID, threadID);
+        replyData.putString(SQLiteDbContract.LiveReplies.COLUMN_NAME_THREAD_ID, threadID.toString());
         replyData.putString(SQLiteDbContract.LiveEntry.COLUMN_NAME_TOPIC_ARN, topicARN);
 
         if (replyData.size() >= 5) {
@@ -2049,14 +2055,14 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
         if (VERBOSE) Log.v(TAG, "exiting setReplyFilepath" + filePath);
     }
 
-    private String currentThread = "0";
+    private UUID currentThread = null;
     private String currentTopicARN = "";
     private String currentTopicReplies = "";
     private String currentTopicDescription = "";
     private String currentTopicImageKey = "";
     private String currentTopicTime = "";
 
-    public void setCurrentThread(String threadID,String topicARN,String currentReplies,String desc, String imagekey, String currentTime) {
+    public void setCurrentThread(UUID threadID,String topicARN,String currentReplies,String desc, String imagekey, String currentTime) {
         if (VERBOSE) Log.v(TAG, "setting current thread to id :" + threadID + ", and arn : " + topicARN);
 
         currentThread = threadID;
@@ -2110,7 +2116,7 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
         sendMsgSubscribeToTopic(newTopic);
     }
 
-    public String getCurrentThread() {
+    public UUID getCurrentThread() {
         return currentThread;
     }
 

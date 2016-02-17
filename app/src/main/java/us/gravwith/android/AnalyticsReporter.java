@@ -5,6 +5,8 @@ import android.os.Message;
 import android.util.Log;
 import android.view.View;
 
+import java.util.UUID;
+
 /**
  * Created by John C. Quinn on 2/6/16.
  */
@@ -185,11 +187,15 @@ public class AnalyticsReporter {
     }
 
     public void ReportViewEvent(LiveThreadFragment f) {
-        ReportBehaviorEvent(ANALYTICS_ACTION_VIEW, f.getThreadID());
+        ReportBehaviorEvent(ANALYTICS_ACTION_VIEW, f.getThreadID().toString());
     }
 
     public void ReportViewEvent(String photoKey) {
         ReportBehaviorEvent(ANALYTICS_ACTION_VIEW, photoKey);
+    }
+
+    public void ReportViewEvent(UUID photoKey) {
+        ReportBehaviorEvent(ANALYTICS_ACTION_VIEW, photoKey.toString());
     }
 
     public void ReportHideEvent(String photoKey) {

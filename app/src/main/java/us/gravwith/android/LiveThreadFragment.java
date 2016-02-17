@@ -13,6 +13,8 @@ import android.view.ViewGroup;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
+import java.util.UUID;
+
 import us.gravwith.android.util.Utility;
 
 /**
@@ -83,8 +85,8 @@ public class LiveThreadFragment extends Fragment implements View.OnClickListener
     public LiveThreadFragment() {
     }
 
-    public String getThreadID(){
-        return threadID;
+    public UUID getThreadID(){
+        return Utility.getUUIDfromStringWithoutHyphens(threadID);
     }
 
     public String getTopicARN(){
@@ -153,7 +155,7 @@ public class LiveThreadFragment extends Fragment implements View.OnClickListener
             threadName = args.getString(SQLiteDbContract.LiveEntry.COLUMN_NAME_NAME);
             threadTitle = args.getString(SQLiteDbContract.LiveEntry.COLUMN_NAME_TITLE);
             threadText = args.getString(SQLiteDbContract.LiveEntry.COLUMN_NAME_DESCRIPTION);
-            threadID = args.getString(SQLiteDbContract.LiveEntry.COLUMN_NAME_THREAD_ID,"0");
+            threadID = args.getString(SQLiteDbContract.LiveEntry.COLUMN_NAME_THREAD_ID);
             unique = args.getString(SQLiteDbContract.LiveEntry.COLUMN_NAME_UNIQUE);
             replies = args.getString(SQLiteDbContract.LiveEntry.COLUMN_NAME_REPLIES);
             topicARN = args.getString(SQLiteDbContract.LiveEntry.COLUMN_NAME_TOPIC_ARN);

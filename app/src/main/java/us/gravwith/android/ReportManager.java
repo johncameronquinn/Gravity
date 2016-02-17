@@ -11,6 +11,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 
+import java.util.UUID;
+
 /**
  * Created by John C. Quinn on 1/6/16.
  *
@@ -39,7 +41,7 @@ public class ReportManager implements AdapterView.OnItemClickListener {
 
     private ReportStatusListener mListener;
 
-    private int selectedContentID;
+    private UUID selectedContentID;
 
     /**
      * @param activity the mainactivity which contains this object
@@ -69,7 +71,7 @@ public class ReportManager implements AdapterView.OnItemClickListener {
             Log.v(LOG_TAG,"view is not found...");
         } else {
             Log.v(LOG_TAG,"view clicked which is in provided container...");
-            selectedContentID = (int)v.getTag(R.integer.content_id_key);
+            selectedContentID = (UUID)v.getTag(R.integer.content_id_key);
 
             endReportSelectionMode();
 
@@ -100,7 +102,7 @@ public class ReportManager implements AdapterView.OnItemClickListener {
         if (VERBOSE) Log.v(LOG_TAG,"exiting onItemClick...");
     }
 
-    public void setItemIDAndShow(int id) {
+    public void setItemIDAndShow(UUID id) {
         if (VERBOSE) Log.v(LOG_TAG,"entering setItemIDAndShow...");
         selectedContentID = id;
 
@@ -167,7 +169,7 @@ public class ReportManager implements AdapterView.OnItemClickListener {
     private void sendReport() {
         if (VERBOSE) Log.v(LOG_TAG,"entering sendReport...");
 
-        if (selectedContentID == 0) {
+        if (selectedContentID == null) {
             throw new RuntimeException("no contentID was selected.");
         }
         mainActivity.sendMsgSendReportToServer(selectedContentID,reportStatusMessenger);

@@ -35,7 +35,6 @@ public class ReportContentRunnable implements Runnable{
     static final int REQUEST_STARTED = 0;
     static final int REQUEST_SUCCESS = 1;
 
-
     private final boolean VERBOSE = true;
 
     private final String TAG = "ReportContentRunnable";
@@ -53,7 +52,7 @@ public class ReportContentRunnable implements Runnable{
 
         mTask.setTaskThread(Thread.currentThread());
 
-        String contentID = String.valueOf(mTask.getDataBundle().getInt(Constants.KEY_CONTENT_ID));
+        String contentID = mTask.getDataBundle().getString(Constants.KEY_CONTENT_ID);
 
         if (!"".equals(contentID)) {
             Log.d(TAG,"reporting content with ID : " + contentID);
