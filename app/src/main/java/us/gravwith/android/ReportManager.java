@@ -106,7 +106,6 @@ public class ReportManager implements AdapterView.OnItemClickListener {
         if (VERBOSE) Log.v(LOG_TAG,"entering setItemIDAndShow...");
         selectedContentID = id;
 
-
         new AlertDialog.Builder(mainActivity)
                 .setIcon(android.R.drawable.ic_dialog_alert)
                 .setTitle(R.string.report_dialog_title)

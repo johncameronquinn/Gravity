@@ -398,41 +398,51 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
                 return;
             }
 
-            /* only receive and handle messages IF the service has authenticated */
-            if (isAuthenticated) {
+            ServerTask task = null;
 
-                ServerTask task = null;
+            Bundle data = msg.getData();
+            data.putInt(REQUEST_TYPE, msg.what);
 
-                Bundle data = msg.getData();
-                data.putInt(REQUEST_TYPE, msg.what);
 
-                switch (msg.what) {
-                    case MSG_BUILD_CLIENT:
-                        Log.d(TAG, "Received a message to request to build the client.");
-                        Log.w(TAG, "Not implemented...");
-                        //irs.get().buildGoogleApiClient();
-                        break;
+            switch (msg.what) {
+                case MSG_BUILD_CLIENT:
+                    Log.d(TAG, "Received a message to request to build the client.");
+                    Log.w(TAG, "Not implemented...");
+                    //irs.get().buildGoogleApiClient();
+                    break;
 
-                    case MSG_CONNECT_CLIENT:
-                        Log.d(TAG, "Received a message to request to connect the client.");
-                        Log.w(TAG, "Not implemented...");
+                case MSG_CONNECT_CLIENT:
+                    Log.d(TAG, "Received a message to request to connect the client.");
+                    Log.w(TAG, "Not implemented...");
                     /*if (mGoogleApiClient == null) {
                         irs.get().buildGoogleApiClient();
                     }
                     mGoogleApiClient.connect();*/
-                        break;
+                    break;
 
-                    case MSG_DISCONNECT_CLIENT:
-                        Log.d(TAG, "Received a message to request to disconnect the client.");
-                        Log.w(TAG, "Not implemented...");
-                        //mGoogleApiClient.disconnect();
-                        break;
+                case MSG_DISCONNECT_CLIENT:
+                    Log.d(TAG, "Received a message to request to disconnect the client.");
+                    Log.w(TAG, "Not implemented...");
+                    //mGoogleApiClient.disconnect();
+                    break;
 
-                    case MSG_REQUEST_CONSTANT_UPDATES:
-                        Log.d(TAG, "Received a message to request constant location updates.");
-                        Log.w(TAG, "Not implemented...");
-                        //irs.get().createLocationRequest(msg.arg1, msg.arg2);
-                        break;
+                case MSG_REQUEST_CONSTANT_UPDATES:
+                    Log.d(TAG, "Received a message to request constant location updates.");
+                    Log.w(TAG, "Not implemented...");
+                    //irs.get().createLocationRequest(msg.arg1, msg.arg2);
+                    break;
+
+                case MSG_SET_CALLBACK_MESSENGER:
+                    Log.d(TAG, "setting callback messenger...");
+                    irs.get().setReplyMessenger(msg.replyTo);
+                    break;
+            }
+
+
+            /* only receive and handle messages IF the service has authenticated */
+            if (isAuthenticated) {
+
+                switch (msg.what) {
 
                     case MSG_SEND_IMAGE:
                         Log.d(TAG, "request to send an image received");
@@ -548,13 +558,7 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
 
                     case MSG_REQUEST_REPLIES:
                         Log.d(TAG, "received a message to request replies.");
-                        data.putInt("threadID", msg.arg1);
                         task = new RequestRepliesTask();
-                        break;
-
-                    case MSG_SET_CALLBACK_MESSENGER:
-                        Log.d(TAG, "setting callback messenger...");
-                        irs.get().setReplyMessenger(msg.replyTo);
                         break;
 
                     case MSG_DOWNLOAD_IMAGE:

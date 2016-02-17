@@ -77,12 +77,9 @@ public class ReplyFragment extends BaseFragment implements LoaderManager.LoaderC
 
     HybridCursorAdapter mAdapter;
 
-    public static ReplyFragment newInstance(int currentThread) {
-        Bundle args = new Bundle();
-        args.putInt(SQLiteDbContract.LiveReplies.COLUMN_NAME_THREAD_ID, currentThread);
+    public static ReplyFragment newInstance() {
 
         ReplyFragment fragment = new ReplyFragment();
-        fragment.setArguments(args);
         return fragment;
     }
 
@@ -360,7 +357,7 @@ public class ReplyFragment extends BaseFragment implements LoaderManager.LoaderC
             Log.d(TAG, "restarting loader...");
             Bundle b = new Bundle();
             b.putString(SQLiteDbContract.LiveReplies.COLUMN_NAME_THREAD_ID,
-                    mListener.getCurrentThread().toString());
+                    Utility.dehyphenUUID(mListener.getCurrentThread()));
             getLoaderManager().restartLoader(REPLY_LOADER_ID, b, this);
             replyCountView.setText(mListener.getCurrentRepliesCount());
         }

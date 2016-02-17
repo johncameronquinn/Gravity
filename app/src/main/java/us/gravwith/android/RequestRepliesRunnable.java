@@ -9,6 +9,8 @@ import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import us.gravwith.android.util.LogUtils;
+import us.gravwith.android.util.Utility;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -78,7 +80,14 @@ class RequestRepliesRunnable implements Runnable {
 
             conn = mService.getURLConnection();
 
-            if (Thread.interrupted()) {
+            if (Thread.currentThread().isInterrupted()) {
+                return;
+            }
+
+            String threadID = b.getString(SQLiteDbContract.LiveEntry.COLUMN_NAME_THREAD_ID);
+
+            if (threadID == null) {
+                mService.handleRepliesRequestState(REQUEST_REPLIES_FAILED);
                 return;
             }
 
@@ -88,12 +97,11 @@ class RequestRepliesRunnable implements Runnable {
             JsonGenerator jGen = jsonFactory.
                     createGenerator(conn.getOutputStream());
             if (VERBOSE) {
-                Log.v(TAG, "thread id: " +
-                        b.getInt("threadID"));
+                Log.v(TAG, "thread id: " + threadID);
             }
 
             jGen.writeStartObject();
-            jGen.writeNumberField("threadID", b.getInt("threadID"));
+            jGen.writeStringField(SQLiteDbContract.LiveEntry.COLUMN_NAME_THREAD_ID,threadID);
             jGen.writeEndObject();
             jGen.flush();
             jGen.close();
@@ -119,7 +127,7 @@ class RequestRepliesRunnable implements Runnable {
                 for (int i = 0; i < jsonArray.size(); i++) {
                     map = jsonArray.get(i);
                     map.put(SQLiteDbContract.LiveReplies.COLUMN_ID, map.remove("id"));
-                    map.put(SQLiteDbContract.LiveReplies.COLUMN_NAME_THREAD_ID, b.getInt("threadID"));
+                    map.put(SQLiteDbContract.LiveReplies.COLUMN_NAME_THREAD_ID, b.getString("threadID"));
                     android.os.Parcel myParcel = android.os.Parcel.obtain();
                     myParcel.writeMap(map);
                     myParcel.setDataPosition(0);

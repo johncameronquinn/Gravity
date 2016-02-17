@@ -55,14 +55,15 @@ public class GravitySignInProvider implements SignInProvider {
      * @return the Facebook AccessToken when signed-in with a non-expired token.
      */
     private AccessToken getSignedInToken() {
-        final AccessToken accessToken = AccessToken.getCurrentAccessToken();
+        /*final AccessToken accessToken = AccessToken.getCurrentAccessToken();
 
         if (accessToken != null && !accessToken.isExpired()) {
             Log.d(LOG_TAG, "Facebook Access Token is OK");
             return accessToken;
         }
 
-        Log.d(LOG_TAG,"Facebook Access Token is null or expired.");
+        Log.d(LOG_TAG,"Facebook Access Token is null or expired.");*/
+
         return null;
     }
 

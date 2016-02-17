@@ -412,7 +412,7 @@ public class PushManager implements GCMTokenHelper.GCMTokenUpdateObserver {
         String directory = data.getString(Constants.KEY_S3_DIRECTORY);
         String url = data.getString(LiveReplies.COLUMN_NAME_FILEPATH);
         String text = data.getString(LiveReplies.COLUMN_NAME_DESCRIPTION);
-        int threadID = data.getInt(LiveReplies.COLUMN_NAME_THREAD_ID);
+        String threadID = data.getString(LiveReplies.COLUMN_NAME_THREAD_ID);
 
         Log.d(LOG_TAG,"Topic arn: " + arn);
 
@@ -423,7 +423,7 @@ public class PushManager implements GCMTokenHelper.GCMTokenUpdateObserver {
         dataMap.put(LiveReplies.COLUMN_NAME_FILEPATH,url);
         dataMap.put(LiveReplies.COLUMN_NAME_TIME,String.valueOf(System.currentTimeMillis()/1000));
         dataMap.put(LiveReplies.COLUMN_NAME_DESCRIPTION, text);
-        dataMap.put(LiveReplies.COLUMN_NAME_THREAD_ID,String.valueOf(threadID));
+        dataMap.put(LiveReplies.COLUMN_NAME_THREAD_ID,threadID);
         dataMap.put(LiveReplies.COLUMN_NAME_FROM_ARN,arn);
 
         JSONObject dataObject = new JSONObject(dataMap);

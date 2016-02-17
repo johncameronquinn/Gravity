@@ -62,6 +62,7 @@ import com.amazonaws.mobile.user.IdentityManager;
 import us.gravwith.android.dev.DeveloperFragment;
 import us.gravwith.android.util.ImageUtils;
 import us.gravwith.android.util.LogUtils;
+import us.gravwith.android.util.Utility;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -1056,15 +1057,15 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
         }
     }
 
-    public void sendMsgRequestReplies(UUID threadNumber) {
-        Log.i(TAG, "refreshing replies for thread: " + threadNumber.toString());
+    public void sendMsgRequestReplies(UUID threadID) {
+        Log.i(TAG, "refreshing replies for thread: " + threadID.toString());
 
         if (isBound) {
 
             Message msg = Message.obtain(null,DataHandlingService.MSG_REQUEST_REPLIES);
 
             Bundle b = new Bundle();
-            b.putString(Constants.KEY_S3_KEY,threadNumber.toString());
+            b.putString(SQLiteDbContract.LiveEntry.COLUMN_NAME_THREAD_ID,Utility.dehyphenUUID(threadID));
             msg.setData(b);
             try {
                 mService.send(msg);
@@ -1287,7 +1288,7 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
                 case REPLY_LIST_POSITION:
                     if (ReplyFragReference.get() == null) {
 
-                        ReplyFragment f = ReplyFragment.newInstance(0);
+                        ReplyFragment f = ReplyFragment.newInstance();
                         ReplyFragReference = new WeakReference<>(f);
                         out = f;
 
@@ -1841,7 +1842,7 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
                 getString(StashLiveSettingsFragment.LIVE_NAME_KEY,"jester");
         replyData.putString(SQLiteDbContract.LiveReplies.COLUMN_NAME_NAME, name);
         replyData.putString(SQLiteDbContract.LiveReplies.COLUMN_NAME_DESCRIPTION, comment);
-        replyData.putString(SQLiteDbContract.LiveReplies.COLUMN_NAME_THREAD_ID, threadID.toString());
+        replyData.putString(SQLiteDbContract.LiveReplies.COLUMN_NAME_THREAD_ID, Utility.dehyphenUUID(threadID));
         replyData.putString(SQLiteDbContract.LiveEntry.COLUMN_NAME_TOPIC_ARN, topicARN);
 
         if (replyData.size() >= 5) {
@@ -1862,7 +1863,8 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
 
         replyData.putString(SQLiteDbContract.LiveReplies.COLUMN_NAME_NAME, name);
         replyData.putString(SQLiteDbContract.LiveReplies.COLUMN_NAME_DESCRIPTION, comment);
-        replyData.putString(SQLiteDbContract.LiveReplies.COLUMN_NAME_THREAD_ID, threadID.toString());
+        replyData.putString(SQLiteDbContract.LiveReplies.COLUMN_NAME_THREAD_ID,
+                Utility.dehyphenUUID(threadID));
         replyData.putString(SQLiteDbContract.LiveEntry.COLUMN_NAME_TOPIC_ARN, topicARN);
 
         if (replyData.size() >= 5) {

@@ -27,6 +27,7 @@ import java.util.Map;
 
 import us.gravwith.android.SQLiteDbContract.MessageEntry;
 import us.gravwith.android.SQLiteDbContract.LiveReplies;
+import us.gravwith.android.util.Utility;
 
 /**
  * A service that listens to GCM notifications.
@@ -215,8 +216,7 @@ public class PushListenerService extends GcmListenerService {
                     values.put(LiveReplies.COLUMN_ID, jsonMap.get(LiveReplies.COLUMN_ID));
                     values.put(LiveReplies.COLUMN_NAME_DESCRIPTION,
                             jsonMap.get(LiveReplies.COLUMN_NAME_DESCRIPTION));
-                    values.put(LiveReplies.COLUMN_NAME_THREAD_ID,
-                            Integer.parseInt(jsonMap.get(LiveReplies.COLUMN_NAME_THREAD_ID)));
+                    values.put(LiveReplies.COLUMN_NAME_THREAD_ID, jsonMap.get(LiveReplies.COLUMN_NAME_THREAD_ID));
                     values.put(LiveReplies.COLUMN_NAME_TIME,
                             jsonMap.get(LiveReplies.COLUMN_NAME_TIME));
                     values.put(LiveReplies.COLUMN_NAME_NAME,
