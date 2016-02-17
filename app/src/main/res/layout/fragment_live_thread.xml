@@ -2,7 +2,7 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:image="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent" android:layout_height="match_parent"
-    android:background="@color/jpallete_main_grey"
+    android:background="@android:color/background_dark"
     android:id="@+id/layout_live_thread_root">
 
     <ProgressBar

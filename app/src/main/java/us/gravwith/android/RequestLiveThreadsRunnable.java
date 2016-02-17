@@ -25,7 +25,7 @@ import us.gravwith.android.util.ThreadUtils;
  */
 public class RequestLiveThreadsRunnable implements Runnable {
 
-    private final boolean VERBOSE = true;
+    private final boolean VERBOSE = false;
     private final String TAG = "RequestThreadsRunnable";
     private final ThreadRequestMethods mService;
 

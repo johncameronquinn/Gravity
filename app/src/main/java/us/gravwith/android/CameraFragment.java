@@ -894,47 +894,54 @@ n  */
         @Override
         public void onPageScrollStateChanged(int state) {
 
+            switch (state) {
+                case ViewPager.SCROLL_STATE_IDLE:
+                    switch (overlaySwipePager.getCurrentItem()) {
+                        case 0:
+                            Log.v(TAG,"cancel posting");
+                            break;
+
+                        case 1:
+                            switch (currentCameraMode) {
+
+                                case CAMERA_DEFAULT_MODE:
+                                    if (commentText.getText().toString().equals("")) {
+                                        if (VERBOSE) Log.v(TAG,"no text was provided...");
+                                        mListener.showSoftKeyboard();
+                                        break;
+                                    }
+
+                                    mListener.sendMsgSaveImage(commentText, CAMERA_LIVE_MODE); //save the image
+                                    ((MainActivity) getActivity())
+                                            .setLiveCreateThreadInfo(commentText.getText().toString(),
+                                                    commentText.getText().toString());
+
+                                    resetCameraUI();
+                                    stopReplyMode();
+                                    break;
+
+                                case CAMERA_REPLY_MODE:
+
+                                    mListener.sendMsgSaveImage(commentText, CAMERA_REPLY_MODE);
+                                    ((MainActivity) getActivity()).setLiveCreateReplyInfo(
+                                            commentText.getText().toString(),
+                                            mListener.getCurrentThread(),
+                                            mListener.getCurrentTopicARN());
+
+                                    resetCameraUI();
+                                    stopReplyMode();
+                                    break;
+                            }
+                            break;
+                    }
+                break;
+            }
         }
 
         @Override
         public void onPageSelected(int position) {
             switch (position) {
-                case 0:
-                    Log.v(TAG,"cancel posting");
-                    break;
 
-                case 1:
-                    switch (currentCameraMode) {
-
-                        case CAMERA_DEFAULT_MODE:
-                            if (commentText.getText().toString().equals("")) {
-                                if (VERBOSE) Log.v(TAG,"no text was provided...");
-                                mListener.showSoftKeyboard();
-                                break;
-                            }
-
-                            mListener.sendMsgSaveImage(commentText, CAMERA_LIVE_MODE); //save the image
-                            ((MainActivity) getActivity())
-                                    .setLiveCreateThreadInfo(commentText.getText().toString(),
-                                            commentText.getText().toString());
-
-                            resetCameraUI();
-                            stopReplyMode();
-                            break;
-
-                        case CAMERA_REPLY_MODE:
-
-                            mListener.sendMsgSaveImage(commentText, CAMERA_REPLY_MODE);
-                            ((MainActivity) getActivity()).setLiveCreateReplyInfo(
-                                    commentText.getText().toString(),
-                                    mListener.getCurrentThread(),
-                                    mListener.getCurrentTopicARN());
-
-                            resetCameraUI();
-                            stopReplyMode();
-                            break;
-                    }
-                    break;
             }
 
         }

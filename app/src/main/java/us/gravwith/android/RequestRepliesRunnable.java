@@ -33,7 +33,7 @@ import javax.net.ssl.HttpsURLConnection;
  */
 class RequestRepliesRunnable implements Runnable {
 
-    private boolean VERBOSE = true;
+    private boolean VERBOSE = false;
 
     private String TAG = "RequestRepliesRunnable";
 
