@@ -813,6 +813,13 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
 
                 responseMessage = Message.obtain(null, task.getResponseWhat(), state, responseCode);
                 recycleTask(task);
+
+                if (task instanceof RequestLiveTask) {
+                    if (Constants.LOGD) Log.d(TAG, "Completed live refresh task, " +
+                            "now requesting replies for the thread at position 0");
+                    requestRepliesforFirstThread();
+                }
+
                 if (Constants.LOGD) Log.d(TAG, "Task completed... by name: " + task.toString());
                 break;
 
@@ -1488,20 +1495,44 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
         if (VERBOSE) Log.v(TAG,"entering requestRepliesForFirstThread");
 
         String[] projection = {SQLiteDbContract.LiveEntry.COLUMN_NAME_THREAD_ID};
-        String selection =  "? = 0";
-        String[] selectionArgs = {SQLiteDbContract.LiveEntry.COLUMN_ID};
+
+        /* String selection =  "0 LIKE ?";
+        String[] selectionArgs = {SQLiteDbContract.LiveEntry.COLUMN_ID};*/
 
         Cursor c = getContentResolver().query(FireFlyContentProvider.CONTENT_URI_LIVE,
                 projection,
-                selection,
-                selectionArgs,
-                null);
+                null,
+                null,
+                SQLiteDbContract.LiveEntry.COLUMN_ID);
 
-        c.moveToFirst();
 
-        String s = c.getString(0);
+        if (c!=null && c.getCount() != 0) {
+            c.moveToFirst();
 
-        Log.i(TAG,"returned threadID for first thread : " + s);
+            String s = c.getString(
+                    c.getColumnIndexOrThrow(
+                            SQLiteDbContract.LiveEntry.COLUMN_NAME_THREAD_ID
+                    )
+            );
+
+            Log.i(TAG, "now requesting replies for thread : " + s);
+
+            c.close();
+
+            Bundle b = new Bundle();
+            b.putString(SQLiteDbContract.LiveEntry.COLUMN_NAME_THREAD_ID,s);
+
+            ServerTask task = new RequestRepliesTask();
+            task.initializeTask(this,
+                    b,
+                    AuthenticationManager.getCurrentAccessToken(),
+                    MSG_REQUEST_REPLIES
+            );
+            mConnectionThreadPool.execute(task.getServerConnectRunnable());
+
+        } else {
+            Log.e(TAG,"no threads returned, is the server down?"); //todo disable replies
+        }
 
         if (VERBOSE) Log.v(TAG,"exiting requestRepliesForFirstThread");
     }
