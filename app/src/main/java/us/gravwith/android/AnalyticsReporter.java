@@ -80,6 +80,14 @@ public class AnalyticsReporter {
                 out = "12";
                 break;
 
+            case R.id.button_camera_retake:
+                out = "13";
+                break;
+
+            case R.id.button_camera_cancel_two:
+                out = "14";
+                break;
+
             default:
                 throw new RuntimeException("Invalid View ID");
         }

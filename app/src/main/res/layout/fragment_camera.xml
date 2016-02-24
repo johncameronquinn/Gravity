@@ -129,6 +129,30 @@
         android:layout_marginTop="@dimen/activity_horizontal_margin"
         android:layout_margin="@dimen/activity_horizontal_margin" />
 
+    <ImageButton
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/ic_cancel"
+        android:id="@+id/button_camera_cancel_two"
+        android:visibility="invisible"
+        android:background="@android:color/transparent"
+        android:padding="10dp"
+        android:layout_gravity="right"
+        android:layout_marginTop="@dimen/activity_horizontal_margin"
+        android:layout_margin="@dimen/activity_horizontal_margin" />
+
+
+    <ImageButton
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@android:drawable/ic_menu_rotate"
+        android:id="@+id/button_camera_retake"
+        android:visibility="invisible"
+        android:background="@android:color/transparent"
+        android:padding="10dp"
+        android:layout_marginTop="@dimen/activity_horizontal_margin"
+        android:layout_margin="@dimen/activity_horizontal_margin" />
+
     <!--Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"

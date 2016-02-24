@@ -497,6 +497,9 @@ n  */
         private Button liveCaptureButton;
         private ImageButton cancelMessageButton;
 
+        private ImageButton cancelReplyButton;
+        private ImageButton retryReplyCaptureButton;
+
         private LinearLayout sendLayout;
 
         private View overlaySwipeView;
@@ -542,6 +545,8 @@ n  */
                             sendLayout = (LinearLayout)mActivity.findViewById(R.id.layout_camera_send);
                             //localButton = (Button) mActivity.findViewById(R.id.button_local);
                             cancelButton = (ImageButton) mActivity.findViewById(R.id.button_camera_cancel);
+                            retryReplyCaptureButton = (ImageButton) mActivity.findViewById(R.id.button_camera_retake);
+                            cancelReplyButton = (ImageButton) mActivity.findViewById(R.id.button_camera_cancel_two);
                             mListener.sendMsgTakePicture();
                             v.setPressed(true);
                             v.setClickable(false);
@@ -621,44 +626,16 @@ n  */
                     break;*/
 
                 case R.id.button_camera_live:
-
                     overlaySwipePager.setCurrentItem(1);
-
-/*                    switch (currentCameraMode) {
-
-                        case CAMERA_DEFAULT_MODE:
-                            if (commentText.getText().toString().equals("")) {
-                                if (VERBOSE) Log.v(TAG,"no text was provided...");
-                                mListener.showSoftKeyboard();
-                                break;
-                            }
-
-                            mListener.sendMsgSaveImage(commentText, CAMERA_LIVE_MODE); //save the image
-                            ((MainActivity) getActivity())
-                                    .setLiveCreateThreadInfo(commentText.getText().toString(),
-                                            commentText.getText().toString());
-
-                            resetCameraUI();
-                            stopReplyMode();
-                            break;
-
-                        case CAMERA_REPLY_MODE:
-
-                            mListener.sendMsgSaveImage(commentText, CAMERA_REPLY_MODE);
-                            ((MainActivity) getActivity()).setLiveCreateReplyInfo(
-                                    commentText.getText().toString(),
-                                    Integer.parseInt(mListener.getCurrentThread()),
-                                    mListener.getCurrentTopicARN());
-
-                            resetCameraUI();
-                            stopReplyMode();
-                            break;
-                    }
-                    //startLiveMode();*/
                     break;
 
+                case R.id.button_camera_retake:
+                    resetCameraUI(true);
+                    break;
+
+                case R.id.button_camera_cancel_two:
                 case R.id.button_camera_cancel:
-                    resetCameraUI();
+                    resetCameraUI(false);
                 break;
 
                 case R.id.button_send_message:
@@ -672,14 +649,14 @@ n  */
                                     mListener.getCurrentThread(),
                                     mListener.getCurrentTopicARN());
 
-                            resetCameraUI();
+                            resetCameraUI(false);
                             stopReplyMode();
 
                             break;
                         case CAMERA_MESSAGE_MODE:
 
                             mListener.sendMsgSaveImage(commentText, CAMERA_MESSAGE_MODE, messageTarget);
-                            resetCameraUI();
+                            resetCameraUI(false);
                             stopMessageMode();
 
                             break;
@@ -690,7 +667,7 @@ n  */
                 case R.id.button_cancel_message:
 
                     if(sendMessageButton != null) { //this means a picture has been taken, resetUI
-                        resetCameraUI();
+                        resetCameraUI(false);
                     }
                     cancelMessageButton = (ImageButton)getActivity().
                             findViewById(R.id.button_cancel_message);
@@ -729,7 +706,29 @@ n  */
             commentText.setHint("caption");
             switch (mode) {
                 case CAMERA_REPLY_MODE:
+                    Log.i(TAG,"Image captured in reply mode");
+                    isPreview = false;
+
+                    captureLayout.setVisibility(View.INVISIBLE);
+                    switchButton.setVisibility(View.INVISIBLE);
+                    flashButton.setVisibility(View.INVISIBLE);
+
+                    captureButton.setPressed(false);
+                    captureButton.setClickable(true);
+
                     commentText.setHint("reply");
+                    cancelReplyButton.setVisibility(View.VISIBLE);
+                    retryReplyCaptureButton.setVisibility(View.VISIBLE);
+                    sendLayout.setVisibility(View.VISIBLE);
+
+                    cancelReplyButton.setOnClickListener(this);
+                    retryReplyCaptureButton.setOnClickListener(this);
+
+                    cancelReplyButton.bringToFront();
+                    retryReplyCaptureButton.bringToFront();
+                    sendLayout.bringToFront();
+                    break;
+
                 case CAMERA_LIVE_MODE:
                 case CAMERA_DEFAULT_MODE:
                     if (VERBOSE) Log.v(TAG,"Image captured in default mode");
@@ -811,7 +810,7 @@ n  */
          *
          * resets the camera UI back to capture mode
          */
-        public void resetCameraUI() {
+        public void resetCameraUI(boolean retryInPreviousMode) {
 
             switch (currentCameraMode) {
 
@@ -837,7 +836,6 @@ n  */
                     break;*/
 
                 case CAMERA_DEFAULT_MODE:
-                case CAMERA_REPLY_MODE:
                     isPreview = true;
 
                     mListener.sendMsgStartPreview();
@@ -858,6 +856,27 @@ n  */
 
                     break;
 
+
+                case CAMERA_REPLY_MODE:
+                    isPreview = true;
+
+                    mListener.sendMsgStartPreview();
+                    mListener.enableScrolling();
+
+                    Utility.clearTextAndFocus(commentText);
+                    //commentText.setVisibility(View.INVISIBLE);
+                    //captureButton.setVisibility(View.VISIBLE);
+                    captureLayout.setVisibility(View.VISIBLE);
+                    if (number_of_cameras > 1) {
+                        switchButton.setVisibility(View.VISIBLE);
+                    }
+                    flashButton.setVisibility(View.VISIBLE);
+                    cancelReplyButton.setVisibility(View.INVISIBLE);
+                    retryReplyCaptureButton.setVisibility(View.INVISIBLE);
+                    //localButton.setVisibility(View.INVISIBLE);
+                    sendLayout.setVisibility(View.INVISIBLE);
+                    break;
+
                 case CAMERA_LIVE_MODE:
                     isPreview = true;
 
@@ -875,7 +894,10 @@ n  */
             }
             captureButton.setPressed(false);
             captureButton.setClickable(true);
-            currentCameraMode = CAMERA_DEFAULT_MODE;
+
+            if (!retryInPreviousMode) {
+                currentCameraMode = CAMERA_DEFAULT_MODE;
+            }
 
             //set disable image preview
             ImageView view = (ImageView)container.findViewById(R.id.camera_image_view);
@@ -919,7 +941,7 @@ n  */
                                             .setLiveCreateThreadInfo(commentText.getText().toString(),
                                                     commentText.getText().toString());
 
-                                    resetCameraUI();
+                                    resetCameraUI(false);
                                     stopReplyMode();
                                     break;
 
@@ -931,7 +953,7 @@ n  */
                                             mListener.getCurrentThread(),
                                             mListener.getCurrentTopicARN());
 
-                                    resetCameraUI();
+                                    resetCameraUI(false);
                                     stopReplyMode();
                                     break;
                             }
@@ -1215,7 +1237,7 @@ n  */
                     imm.hideSoftInputFromWindow(createThreadView.getWindowToken(), 0);
                     activity.enableScrolling();
 
-                    cameraButtonInstance.resetCameraUI();
+                    cameraButtonInstance.resetCameraUI(false);
                     buttonPostListenerReference = null;
                     break;
 
@@ -1230,7 +1252,7 @@ n  */
                     imm.hideSoftInputFromWindow(createThreadView.getWindowToken(), 0);
                     activity.enableScrolling();
 
-                    cameraButtonInstance.resetCameraUI();
+                    cameraButtonInstance.resetCameraUI(false);
                     buttonPostListenerReference = null;
                     break;
             }
@@ -1317,7 +1339,7 @@ n  */
                     imm.hideSoftInputFromWindow(createReplyView.getWindowToken(), 0);
                     activity.enableScrolling();
 
-                    cameraButtonInstance.resetCameraUI();
+                    cameraButtonInstance.resetCameraUI(false);
                     buttonReplyListenerReference = null;
                     break;
                 case R.id.button_camera_live_mode_confirm:
@@ -1333,7 +1355,7 @@ n  */
 
                     activity.enableScrolling();
 
-                    cameraButtonInstance.resetCameraUI();
+                    cameraButtonInstance.resetCameraUI(false);
                     buttonReplyListenerReference = null;
                     break;
             }
