@@ -975,6 +975,10 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
         mPager.setCurrentItem(REPLY_LIST_POSITION);
     }
 
+    public void onLiveMessageCountClick(View buttonView) {
+        sendToReply();
+    }
+
     public void onMessageReplyPressed(View view) {
         if (VERBOSE) {
             Toast.makeText(this,"Message pressed: " + view.getTag(),Toast.LENGTH_LONG).show();

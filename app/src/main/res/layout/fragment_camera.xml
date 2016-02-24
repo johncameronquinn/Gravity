@@ -96,14 +96,12 @@
             fab:fab_colorPressed="@color/panel_background"
             fab:fab_colorRipple="@color/panel_background"
             fab:fab_showShadow="false"
-            android:src="@drawable/ic_left_arrow"
+            android:src="@drawable/ic_right_arrow"
             android:layout_weight="0"
             fab:fab_size="mini"
             android:layout_marginRight="@dimen/activity_horizontal_margin"
             android:layout_gravity="bottom"
             android:layout_marginBottom="10dp" />
-
-
 
     </LinearLayout>
 
@@ -125,18 +123,24 @@
         android:id="@+id/button_camera_cancel"
         android:visibility="invisible"
         android:background="@android:color/transparent"
-        android:padding="10dp"
+        android:paddingTop="10dp"
+        android:paddingStart="10dp"
+        android:paddingBottom="30dp"
+        android:paddingEnd="30dp"
         android:layout_marginTop="@dimen/activity_horizontal_margin"
         android:layout_margin="@dimen/activity_horizontal_margin" />
 
     <ImageButton
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:src="@drawable/ic_cancel"
+        android:src="@android:drawable/ic_menu_close_clear_cancel"
         android:id="@+id/button_camera_cancel_two"
         android:visibility="invisible"
         android:background="@android:color/transparent"
-        android:padding="10dp"
+        android:paddingTop="5dp"
+        android:paddingStart="20dp"
+        android:paddingBottom="20dp"
+        android:paddingEnd="5dp"
         android:layout_gravity="right"
         android:layout_marginTop="@dimen/activity_horizontal_margin"
         android:layout_margin="@dimen/activity_horizontal_margin" />
@@ -149,7 +153,10 @@
         android:id="@+id/button_camera_retake"
         android:visibility="invisible"
         android:background="@android:color/transparent"
-        android:padding="10dp"
+        android:paddingTop="5dp"
+        android:paddingStart="5dp"
+        android:paddingBottom="20dp"
+        android:paddingEnd="20dp"
         android:layout_marginTop="@dimen/activity_horizontal_margin"
         android:layout_margin="@dimen/activity_horizontal_margin" />
 
@@ -201,7 +208,6 @@
         android:src="@drawable/ic_capture"
         android:scaleX="0"
         android:scaleY="0"
-        android:tint="@color/cyber_light_blue"
         android:visibility="visible" />
 
 </FrameLayout>
