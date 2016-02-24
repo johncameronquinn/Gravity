@@ -460,7 +460,11 @@ public class ReplyFragment extends BaseFragment implements LoaderManager.LoaderC
                 case R.id.button_reply_send:
 
                     if (isAdded()) {
-                        commentText   = ((EditText) activity.findViewById(R.id.editText_reply_comment));
+                        if (textingParentView.getVisibility() == View.VISIBLE) {
+                            commentText = ((EditText) textingParentView.findViewById(R.id.editText_reply_comment));
+                        } else {
+                            commentText = ((EditText) textingFooterView.findViewById(R.id.editText_reply_comment));
+                        }
                         RelativeLayout layout = (RelativeLayout) commentText.getParent();
 
                         activity.setReplyFilePath("");
@@ -632,10 +636,6 @@ public class ReplyFragment extends BaseFragment implements LoaderManager.LoaderC
 
             mListener.updateCurrentReplies(data.getCount() + 1);
             mListener.updateLiveReplyCount();
-
-            if (Looper.myLooper().getThread() != Looper.getMainLooper().getThread()) {
-                Log.e(TAG,"I AM NOT ON MAIN THREAD");
-            }
             updateSmartFooter();
         }
 
@@ -645,34 +645,44 @@ public class ReplyFragment extends BaseFragment implements LoaderManager.LoaderC
     }
 
 
+    private static UpdateFooterRunnable updateFooterRunnable;
+
     public void updateSmartFooter() {
-        mListView.post(new Runnable()
-        {
-            public void run()
-            {
-                int numItemsVisible = mListView.getLastVisiblePosition() -
-                        mListView.getFirstVisiblePosition();
-                if (mAdapter.getCount() > numItemsVisible)
-                {
-                    //Toast.makeText(getActivity(),"adding to listView...",Toast.LENGTH_SHORT).show();
-                    //hide parent view
-                    textingParentView.setVisibility(View.GONE);
 
-                    //add view to listView
-                    mListView.addFooterView(textingFooterView);
-                } else
-                {
-                    //Toast.makeText(getActivity(),"adding to parent...",Toast.LENGTH_SHORT).show();
-                    //remove view from listView
-                    mListView.removeFooterView(textingFooterView);
+        if (updateFooterRunnable == null) {
+            updateFooterRunnable = new UpdateFooterRunnable();
+        }
 
-                    //add view to parent
-                    textingParentView.setVisibility(View.VISIBLE);
-
-                }
-            }
-        });
+        if (mListView.getHandler() != null) {
+            mListView.getHandler().removeCallbacks(updateFooterRunnable);
+            mListView.getHandler().postAtFrontOfQueue(updateFooterRunnable);
+        }
     }
+
+    class UpdateFooterRunnable implements Runnable {
+
+        public void run() {
+
+            int numvisibleitems = mListView.getFirstVisiblePosition() - mListView.getLastVisiblePosition();
+
+            if (mAdapter.getCount() > numvisibleitems) {
+                //hide parent view
+                textingParentView.setVisibility(View.GONE);
+
+                //show footer view
+                textingFooterView.setVisibility(View.VISIBLE);
+            } else {
+                //hide footer view
+                textingFooterView.setVisibility(View.GONE);
+
+                //show parent view
+                textingParentView.setVisibility(View.VISIBLE);
+
+            }
+        }
+
+    }
+
 
     @Override
     public void onLoaderReset(Loader<Cursor> loader) {

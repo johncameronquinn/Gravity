@@ -16,7 +16,8 @@
         android:stackFromBottom="false"
         android:layout_alignParentStart="true"
         android:layout_below="@+id/layout_reply_infobar"
-        android:footerDividersEnabled="true" />
+        android:footerDividersEnabled="false"
+        android:headerDividersEnabled="true" />
 
     <TextView
         android:layout_width="wrap_content"

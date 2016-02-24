@@ -41,6 +41,8 @@ public class MessageHandler extends Handler{
     interface LivePostListener {
         void onRefreshCompleted(int responseCode);
         void onCreateThreadCompleted(int responseCode);
+        void onCreateThreadStarted();
+        void onCreateThreadFailed();
     }
 
     interface ImageDownloadStatusListener {
@@ -132,6 +134,19 @@ public class MessageHandler extends Handler{
                             mLiveListener.onCreateThreadCompleted(msg.arg2);
                         }
 
+                        break;
+
+                    case DataHandlingService.REQUEST_STARTED:
+                        if (mLiveListener != null) {
+                            mLiveListener.onCreateThreadStarted();
+                        }
+                        break;
+
+
+                    case DataHandlingService.REQUEST_FAILED:
+                        if (mLiveListener != null) {
+                            mLiveListener.onCreateThreadFailed();
+                        }
                         break;
                 }
 

@@ -3203,6 +3203,17 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
     }
 
     @Override
+    public void onCreateThreadStarted() {
+
+    }
+
+    @Override
+    public void onCreateThreadFailed() {
+
+    }
+
+
+    @Override
     public void onRefreshCompleted(int responseCode) {
         if (LiveFragReference.get()!=null) {
             LiveFragReference.get().resetLiveAdapter();
