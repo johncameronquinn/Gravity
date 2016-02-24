@@ -632,9 +632,9 @@ public class ReplyFragment extends BaseFragment implements LoaderManager.LoaderC
         mListView.setSelection(0);
 
         if (replyCountView != null) {
-            replyCountView.setText(String.valueOf(data.getCount() + 1));
+            replyCountView.setText(String.valueOf(data.getCount()));
 
-            mListener.updateCurrentReplies(data.getCount() + 1);
+            mListener.updateCurrentReplies(data.getCount());
             mListener.updateLiveReplyCount();
             updateSmartFooter();
         }
@@ -643,7 +643,6 @@ public class ReplyFragment extends BaseFragment implements LoaderManager.LoaderC
 
         if (VERBOSE) Log.v(TAG,"exiting onLoadFinished...");
     }
-
 
     private static UpdateFooterRunnable updateFooterRunnable;
 
