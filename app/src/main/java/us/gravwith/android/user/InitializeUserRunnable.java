@@ -63,6 +63,8 @@ public class InitializeUserRunnable implements Runnable {
 
         void setUserID(UUID userID);
 
+        void setIdentityId(String identityID);
+
         void setTaskThread(Thread thread);
 
         void setInitResponseCode(int code);
@@ -124,6 +126,7 @@ public class InitializeUserRunnable implements Runnable {
         }
 
         UUID userID = null;
+        String identityId = null;
 
         try {
             conn = (HttpsURLConnection) url.openConnection();
@@ -158,6 +161,7 @@ public class InitializeUserRunnable implements Runnable {
             ObjectMapper objectMapper = new ObjectMapper();
             Map<String, Object> asMap = objectMapper.readValue(conn.getInputStream(), Map.class);
             userID = Utility.getUUIDfromStringWithoutHyphens(String.valueOf(asMap.get("id")));
+            identityId = String.valueOf(asMap.get("identityId"));
 
             if (Constants.AUTHENTICATIONV) {
                 LogUtils.printMapToVerbose(asMap, TAG);
@@ -184,6 +188,7 @@ public class InitializeUserRunnable implements Runnable {
             Log.i(TAG,"userID retrieved : " + userID.toString());
 
             mService.setUserID(userID);
+            mService.setIdentityId(identityId);
             mService.handleInitializeState(GET_UUID_SUCCESS);
         }
 

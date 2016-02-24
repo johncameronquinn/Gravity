@@ -24,6 +24,8 @@ import com.amazonaws.mobileconnectors.amazonmobileanalytics.MobileAnalyticsManag
 import com.amazonaws.mobileconnectors.amazonmobileanalytics.SessionClient;
 import com.amazonaws.regions.Regions;
 
+import us.gravwith.android.BuildConfig;
+
 /**
  * The AWS Mobile Client bootstraps the application to make calls to AWS 
  * services. It creates clients which can be used to call services backing the
@@ -208,14 +210,27 @@ public class AWSMobileClient {
             final ClientConfiguration clientConfiguration = new ClientConfiguration();
             clientConfiguration.setUserAgent(AWSConfiguration.AWS_MOBILEHUB_USER_AGENT);
             final IdentityManager identityManager = new IdentityManager(context, clientConfiguration);
-            final AWSMobileClient awsClient =
-                new Builder(context)
-                    .withCognitoRegion(AWSConfiguration.AMAZON_COGNITO_REGION)
-                    .withCognitoIdentityPoolID(AWSConfiguration.AMAZON_COGNITO_IDENTITY_POOL_ID)
-                    .withMobileAnalyticsAppID(AWSConfiguration.AMAZON_MOBILE_ANALYTICS_APP_ID)
-                    .withIdentityManager(identityManager)
-                    .withClientConfiguration(clientConfiguration)
-                    .build();
+            final AWSMobileClient awsClient;
+            if (BuildConfig.DEBUG) {
+                Log.d(LOG_TAG, "Using sandbox client.");
+                awsClient =
+                        new Builder(context)
+                                .withCognitoRegion(AWSConfiguration.AMAZON_COGNITO_REGION)
+                                .withCognitoIdentityPoolID(AWSConfiguration.AMAZON_COGNITO_SANDBOX_IDENTITY_POOL_ID)
+                                .withMobileAnalyticsAppID(AWSConfiguration.AMAZON_MOBILE_ANALYTICS_APP_ID)
+                                .withIdentityManager(identityManager)
+                                .withClientConfiguration(clientConfiguration)
+                                .build();
+            } else {
+                awsClient =
+                        new Builder(context)
+                        .withCognitoRegion(AWSConfiguration.AMAZON_COGNITO_REGION)
+                        .withCognitoIdentityPoolID(AWSConfiguration.AMAZON_COGNITO_IDENTITY_POOL_ID)
+                        .withMobileAnalyticsAppID(AWSConfiguration.AMAZON_MOBILE_ANALYTICS_APP_ID)
+                        .withIdentityManager(identityManager)
+                        .withClientConfiguration(clientConfiguration)
+                        .build();
+            }
 
             AWSMobileClient.setDefaultMobileClient(awsClient);
         }
@@ -295,13 +310,24 @@ public class AWSMobileClient {
      * @param resultHandler handles the resulting ContentManager instance
      */
     public void createCacheContentManager(final ContentManager.BuilderResultHandler resultHandler) {
-        new ContentManager.Builder()
-                .withContext(context)
-                .withIdentityManager(identityManager)
-                .withS3Bucket(AWSConfiguration.AMAZON_CONTENT_DELIVERY_S3_BUCKET)
-                .withLocalBasePath(context.getCacheDir().getAbsolutePath())
-                .withClientConfiguration(clientConfiguration)
-                .build(resultHandler);
+        if (BuildConfig.DEBUG) {
+            Log.i(LOG_TAG,"Creating sandbox content manager...");
+            new ContentManager.Builder()
+                    .withContext(context)
+                    .withIdentityManager(identityManager)
+                    .withS3Bucket(AWSConfiguration.AMAZON_CONTENT_DELIVERY_SANDBOX_S3_BUCKET)
+                    .withLocalBasePath(context.getCacheDir().getAbsolutePath())
+                    .withClientConfiguration(clientConfiguration)
+                    .build(resultHandler);
+        } else {
+            new ContentManager.Builder()
+                    .withContext(context)
+                    .withIdentityManager(identityManager)
+                    .withS3Bucket(AWSConfiguration.AMAZON_CONTENT_DELIVERY_S3_BUCKET)
+                    .withLocalBasePath(context.getCacheDir().getAbsolutePath())
+                    .withClientConfiguration(clientConfiguration)
+                    .build(resultHandler);
+        }
     }
 
 }

@@ -643,14 +643,17 @@ public class LiveFragment extends BaseFragment implements
             Log.i(TAG, "Live cursor finished loading data");
             mAdapter.swapCursor(data);
 
-            mListener.setCurrentThread(
-                    getCurrentThreadID(),
-                    getCurrentTopicARN(),
-                    getCurrentRepliesCount(),
-                    getCurrentDescription(),
-                    getCurrentImageKey(),
-                    getCurrentTime()
-            );
+            if (mAdapter.getCount() > 0) {
+                mListener.setCurrentThread(
+                        getCurrentThreadID(),
+                        getCurrentTopicARN(),
+                        getCurrentRepliesCount(),
+                        getCurrentDescription(),
+                        getCurrentImageKey(),
+                        getCurrentTime()
+                );
+            }
+
             threadPager.setAdapter(mAdapter);
             updateViews((LiveThreadFragment) mAdapter.getItem(threadPager.getCurrentItem()));
             mListener.updateReplyViews();

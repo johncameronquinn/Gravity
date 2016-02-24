@@ -7,7 +7,9 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 
+import com.amazonaws.mobile.AWSConfiguration;
 import com.amazonaws.mobile.user.IdentityManager;
+import com.amazonaws.mobile.user.IdentityProvider;
 import com.amazonaws.mobile.user.signin.SignInProvider;
 import com.amazonaws.mobile.user.signin.Utils;
 
@@ -15,17 +17,18 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.Arrays;
+import java.util.logging.Logger;
+
+import us.gravwith.android.util.LogUtils;
+import us.gravwith.android.util.Utility;
 
 /**
  * Created by John C. Quinn on 1/4/16.
  */
-public class GravitySignInProvider implements SignInProvider {
+public class GravitySignInProvider implements IdentityProvider {
 
     /** Log tag. */
-    private static final String LOG_TAG = GravitySignInProvider.class.getSimpleName();
-
-    /** The Cognito login key for Facebook to be used in the Cognito login Map. */
-    public static final String COGNITO_LOGIN_KEY_GRAVITY = "login.gravwith.us";
+    private static final String TAG = GravitySignInProvider.class.getSimpleName();
 
     /** Facebook's callback manager. */
     //private CallbackManager facebookCallbackManager;
@@ -51,79 +54,6 @@ public class GravitySignInProvider implements SignInProvider {
         }*/
     }
 
-    /**
-     * @return the Facebook AccessToken when signed-in with a non-expired token.
-     */
-    private AccessToken getSignedInToken() {
-        /*final AccessToken accessToken = AccessToken.getCurrentAccessToken();
-
-        if (accessToken != null && !accessToken.isExpired()) {
-            Log.d(LOG_TAG, "Facebook Access Token is OK");
-            return accessToken;
-        }
-
-        Log.d(LOG_TAG,"Facebook Access Token is null or expired.");*/
-
-        return null;
-    }
-
-    /** {@inheritDoc} */
-    @Override
-    public boolean isRequestCodeOurs(final int requestCode) {
-        //return FacebookSdk.isFacebookRequestCode(requestCode);
-        return true;
-    }
-
-    /** {@inheritDoc} */
-    @Override
-    public void handleActivityResult(final int requestCode, final int resultCode, final Intent data) {
-     //   facebookCallbackManager.onActivityResult(requestCode, resultCode, data);
-    }
-
-    /** {@inheritDoc} */
-    @Override
-    public void initializeSignInButton(final Activity signInActivity, final View buttonView,
-                                       final IdentityManager.SignInResultsHandler resultsHandler) {
-        //FacebookSdk.sdkInitialize(signInActivity);
-
-        if (buttonView == null) {
-            throw new IllegalArgumentException("Facebook login button view not passed in.");
-        }
-
-        //facebookCallbackManager = CallbackManager.Factory.create();
-
-        /*
-         * This will send a login request to /security/login/ and wait for a response
-         */
-        /*AuthenticationManager.getInstance().registerCallback(facebookCallbackManager, new FacebookCallback<LoginResult>() {
-            @Override
-            public void onSuccess(LoginResult loginResult) {
-                Log.d(LOG_TAG, "Facebook provider sign-in succeeded.");
-                resultsHandler.onSuccess(FacebookSignInProvider.this);
-            }
-
-            @Override
-            public void onCancel() {
-                Log.d(LOG_TAG, "Facebook provider sign-in canceled.");
-                resultsHandler.onCancel(FacebookSignInProvider.this);
-            }
-
-            @Override
-            public void onError(FacebookException exception) {
-                Log.e(LOG_TAG, "Facebook provider sign-in error: " + exception.getMessage());
-                resultsHandler.onError(FacebookSignInProvider.this, exception);
-            }
-        });
-
-        buttonView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                AuthenticationManager.getInstance().logInWithReadPermissions(signInActivity,
-                        Arrays.asList("public_profile"));
-            }
-        });*/
-    }
-
     /** {@inheritDoc} */
     @Override
     public String getDisplayName() {
@@ -133,30 +63,31 @@ public class GravitySignInProvider implements SignInProvider {
     /** {@inheritDoc} */
     @Override
     public String getCognitoLoginKey() {
-        return COGNITO_LOGIN_KEY_GRAVITY;
+        return AWSConfiguration.DEVELOPER_AUTHENTICATION_SANDBOX_PROVIDER_ID;
     }
 
     /** {@inheritDoc} */
     @Override
     public boolean isUserSignedIn() {
-        return getSignedInToken() != null;
+        return AuthenticationManager.getCurrentAccessToken() != null;
     }
 
     /** {@inheritDoc} */
     @Override
     public String getToken() {
-        AccessToken accessToken = getSignedInToken();
+        /*AccessToken accessToken = getSignedInToken();
         if (accessToken != null) {
             return accessToken.getToken();
         }
-        return null;
+        return null;*/
+
+        return AuthenticationManager.getCurrentAccessToken();
     }
 
     /** {@inheritDoc} */
     @Override
     public void signOut() {
         clearUserInfo();
-        //AuthenticationManager.getInstance().logOut();
     }
 
     private void clearUserInfo() {
@@ -182,7 +113,7 @@ public class GravitySignInProvider implements SignInProvider {
         if (!isUserSignedIn()) {
             return;
         }
-        Log.e(LOG_TAG,"not implemented at this moment...");
+        Log.e(TAG,"not implemented at this moment...");
     }
 
 }

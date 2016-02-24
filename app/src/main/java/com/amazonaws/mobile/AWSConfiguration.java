@@ -23,10 +23,19 @@ public class AWSConfiguration {
     public static final Regions AMAZON_COGNITO_REGION =
         Regions.US_EAST_1;
     public static final String  AMAZON_COGNITO_IDENTITY_POOL_ID =
-        "us-east-1:7e122fe9-aee8-4536-b675-f2f4e882b724";
+            "us-east-1:7e122fe9-aee8-4536-b675-f2f4e882b724";
+
+    public static final String  AMAZON_COGNITO_SANDBOX_IDENTITY_POOL_ID =
+            "us-east-1:e4eec1e3-1a67-4b78-ae14-26cf5e791a5a";
+
     // Custom Developer Provided Authentication ID
     public static final String DEVELOPER_AUTHENTICATION_PROVIDER_ID =
-        "gravity.johnquinn.com";
+            "dev-gravity.ddns.net";
+
+    public static final String DEVELOPER_AUTHENTICATION_SANDBOX_PROVIDER_ID =
+            "dev-gravity.ddns.net";
+
+
     // Developer Authentication - URL for Create New Account
     public static final String DEVELOPER_AUTHENTICATION_CREATE_ACCOUNT_URL =
         "aws.amazon.com";
@@ -36,10 +45,12 @@ public class AWSConfiguration {
     // Account ID
     public static final String DEVELOPER_AUTHENTICATION_ACCOUNT_ID =
         "581398785260";
+
     public static String DEVELOPER_AUTHENTICATION_DISPLAY_NAME = "Custom";
     // AMAZON MOBILE ANALYTICS
     public static final String  AMAZON_MOBILE_ANALYTICS_APP_ID =
         "e012c9fd5899442dbfe80b4bc0816405";
+
     // Amazon Mobile Analytics region
     public static final Regions AMAZON_MOBILE_ANALYTICS_REGION = Regions.US_EAST_1;
     // GOOGLE CLOUD MESSAGING API KEY
@@ -59,5 +70,7 @@ public class AWSConfiguration {
     public static final String[] AMAZON_SNS_TOPIC_ARNS =
         {};
     public static final String AMAZON_CONTENT_DELIVERY_S3_BUCKET = "launch-zone";
+
+    public static final String AMAZON_CONTENT_DELIVERY_SANDBOX_S3_BUCKET = "gravity-sandbox";
         //"gravity-contentdelivery-mobilehub-735100335";
 }

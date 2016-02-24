@@ -137,18 +137,13 @@ public class IdentityManager {
 
                     final String result = identityId;
 
-                    ThreadUtils.runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
 
-                            if (exception != null) {
-                                handler.handleError(exception);
-                                return;
-                            }
+                    if (exception != null) {
+                        handler.handleError(exception);
+                        return;
+                    }
 
-                            handler.handleIdentityID(result);
-                        }
-                    });
+                    handler.handleIdentityID(result);
                 }
             }
         }).start();

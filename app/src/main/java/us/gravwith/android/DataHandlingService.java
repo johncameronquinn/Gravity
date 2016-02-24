@@ -1205,8 +1205,9 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
         String key = b.getString(Constants.KEY_S3_KEY,"");
 
         if (key.equals("") || directory.equals("")){
-            Log.e(TAG,"invalid parameters provided...");
-            throw new RuntimeException("downloadImageFromS3 is missing parameters...");
+            Log.e(TAG,"missing required parameters...");
+            return;
+            //throw new RuntimeException("downloadImageFromS3 is missing parameters...");
         }
 
         File file = new File(getCacheDir(),key);

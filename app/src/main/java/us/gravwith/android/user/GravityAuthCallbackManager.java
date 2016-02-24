@@ -2,6 +2,8 @@ package us.gravwith.android.user;
 
 import android.util.Log;
 
+import com.amazonaws.mobile.user.signin.SignInManager;
+
 import java.util.UUID;
 
 /**
@@ -16,6 +18,7 @@ public class GravityAuthCallbackManager implements LoginRunnable.LoginUserMethod
     private AuthenticationManager manager;
     private static String token;
     private static UUID userID;
+    private static String identityId;
     private int initResposeCode;
     private int loginResposeCode;
 
@@ -28,7 +31,7 @@ public class GravityAuthCallbackManager implements LoginRunnable.LoginUserMethod
     public interface authenticationStatusListener {
         void onInitializeFailed();
         void onInitializeStarted();
-        void onInitializeSuccess(UUID userID);
+        void onInitializeSuccess(UUID userID, String identityId);
         void onLoginFailed();
         void onLoginStarted();
         void onLoginSuccess(String userToken);
@@ -50,10 +53,14 @@ public class GravityAuthCallbackManager implements LoginRunnable.LoginUserMethod
     public String getInitializeUrlPath() {
         return "/security/create/";
     }
+
     @Override
     public UUID getUserID() {
         return userID;
     }
+
+
+    public String getIdentityId() { return identityId; }
 
     public String getToken() {
         return token;
@@ -72,9 +79,17 @@ public class GravityAuthCallbackManager implements LoginRunnable.LoginUserMethod
 
     @Override
     public void setUserID(UUID userID) {
-        Log.i(TAG,"setting token to : " + userID.toString());
+        Log.i(TAG,"setting gravity id to : " + userID.toString());
         this.userID = userID;
     }
+
+
+    @Override
+    public void setIdentityId(String identityId) {
+        Log.i(TAG,"setting amazon id to : " + identityId);
+        this.identityId = identityId;
+    }
+
 
     @Override
     public void setInitResponseCode(int code) {
@@ -156,7 +171,7 @@ public class GravityAuthCallbackManager implements LoginRunnable.LoginUserMethod
                 break;
 
             case INITIALIZE_SUCCESS:
-                authListener.onInitializeSuccess(userID);
+                authListener.onInitializeSuccess(userID,identityId);
                 break;
 
             case LOGIN_FAILED:
