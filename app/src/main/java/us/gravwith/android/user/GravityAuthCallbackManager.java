@@ -2,7 +2,6 @@ package us.gravwith.android.user;
 
 import android.util.Log;
 
-import com.amazonaws.mobile.user.signin.SignInManager;
 
 import java.util.UUID;
 

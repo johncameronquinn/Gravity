@@ -58,8 +58,6 @@ import com.amazonaws.mobile.AWSMobileClient;
 import com.amazonaws.mobile.user.IdentityManager;
 
 //import us.gravwith.android.dev.ContentDeliveryDemoFragment;
-
-import us.gravwith.android.dev.DeveloperFragment;
 import us.gravwith.android.util.ImageUtils;
 import us.gravwith.android.util.LogUtils;
 import us.gravwith.android.util.Utility;
@@ -140,10 +138,6 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
 
     private final MessageHandler messageHandler = new MessageHandler();
     final Messenger messenger = new Messenger(messageHandler);
-
-    /** AWS CONNECTION
-     */
-    private IdentityManager identityManager;
 
     /** ANALYTICS REPORTING
      */
@@ -234,10 +228,6 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
            //Restore the camerafragment's instance
         }
 
-        // Obtain a reference to the mobile client. It is created in the Splash Activity.
-        AWSMobileClient.initializeMobileClientIfNecessary(this);
-        AWSMobileClient awsMobileClient = AWSMobileClient.defaultMobileClient();
-
         /*if (awsMobileClient == null) {
             // In the case that the activity is restarted by the OS after the application
             // is killed we must redirect to the splash activity to handle initialization.
@@ -311,7 +301,7 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
      * initializes the connection to AWS
      */
     private void initializeAWS() {
-        // Obtain a reference to the mobile client. It is created in the Splash Activity.
+      /*  // Obtain a reference to the mobile client. It is created in the Splash Activity.
         AWSMobileClient awsMobileClient = AWSMobileClient.defaultMobileClient();
         if (awsMobileClient == null) {
             // In the case that the activity is restarted by the OS after the application
@@ -320,10 +310,7 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
             intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
             startActivity(intent);
             return;
-        }
-
-        // Obtain a reference to the identity manager.
-        identityManager = awsMobileClient.getIdentityManager();
+        }*/
     }
 
     /**
@@ -1296,10 +1283,6 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
                         out = ReplyFragReference.get();
                     }
 
-                    break;
-
-                case DEV_LIST_POSITION:
-                    out = new DeveloperFragment();
                     break;
 
                 case 6:

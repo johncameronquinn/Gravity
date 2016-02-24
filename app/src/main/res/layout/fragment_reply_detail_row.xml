@@ -38,7 +38,9 @@
         android:layout_marginLeft="@dimen/listview_content_screen_margins"
         android:layout_below="@+id/reply_detail_row_time"
         android:layout_toEndOf="@+id/photoView"
-        android:layout_marginBottom="@dimen/listview_content_screen_margins">
+        android:layout_marginBottom="@dimen/listview_content_screen_margins"
+        android:textIsSelectable="true"
+        android:autoLink="all">
     </TextView>
 
     <TextView

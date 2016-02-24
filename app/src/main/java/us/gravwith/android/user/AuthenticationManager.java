@@ -17,8 +17,8 @@ import com.amazonaws.mobile.AWSConfiguration;
 import com.amazonaws.mobile.AWSMobileClient;
 import com.amazonaws.mobile.user.IdentityManager;
 import com.amazonaws.mobile.user.IdentityProvider;
-import com.amazonaws.mobile.user.signin.SignInManager;
 import com.amazonaws.mobile.user.signin.SignInProvider;
+import com.amazonaws.regions.Regions;
 import com.amazonaws.services.securitytoken.AWSSecurityTokenServiceClient;
 import com.amazonaws.services.securitytoken.model.AssumeRoleWithWebIdentityRequest;
 import com.amazonaws.services.securitytoken.model.AssumeRoleWithWebIdentityResult;
@@ -49,7 +49,7 @@ public class AuthenticationManager {
     private final GravityAuthCallbackManager callbackManager;
 
     private final GravityIdentityProvider gravityProvider;
-    private CognitoCachingCredentialsProvider cognitoCachingProvider;
+    private static CognitoCachingCredentialsProvider cognitoCachingProvider;
 
     private final String UNAUTH_ARN = "arn:aws:iam::581398785260:role/Cognito_gravity_sandbox_poolUnauth_Role";
     private final String AUTH_ARN = "arn:aws:iam::581398785260:role/gravity-user-role";
@@ -87,56 +87,61 @@ public class AuthenticationManager {
                 AWSConfiguration.AMAZON_COGNITO_IDENTITY_POOL_ID,
                 AWSConfiguration.AMAZON_COGNITO_REGION);
 
+        cognitoCachingProvider = new CognitoCachingCredentialsProvider(
+                executionService,
+                gravityProvider,
+                UNAUTH_ARN,
+                AUTH_ARN
+        );
+
         callbackManager.setAuthenticationStatusListener(
                 new GravityAuthCallbackManager.authenticationStatusListener() {
 
-            @Override
-            public void onInitializeFailed() {
-                for (LoginListener listener : loginListeners) {
-                    listener.onLoginFailed();
+                    @Override
+                    public void onInitializeFailed() {
+                        for (LoginListener listener : loginListeners) {
+                            listener.onLoginFailed();
+                        }
+                    }
+
+                    @Override
+                    public void onInitializeStarted() {
+                    }
+
+                    @Override
+                    public void onInitializeSuccess(UUID id, String identId) {
+                        userID = id;
+                        identityId = identId;
+
+                        Log.i(TAG, "saving new id : " + id.toString() + " in sharedPreferences");
+                        SharedPreferences p = executionService.getApplicationContext()
+                                .getSharedPreferences(Constants.SHARED_PREFERENCES_NAME,
+                                        Context.MODE_PRIVATE);
+                        p.edit().putString(Constants.KEY_USER_ID, id.toString()).apply();
+                        p.edit().putString(Constants.KEY_IDENTITY_ID, identityId).apply();
+                    }
+
+                    @Override
+                    public void onLoginFailed() {
+                        for (LoginListener listener : loginListeners) {
+                            listener.onLoginFailed();
+                        }
+                    }
+
+                    @Override
+                    public void onLoginStarted() {
+                    }
+
+                    @Override
+                    public void onLoginSuccess(String userToken) {
+                        Log.i(TAG, "successfully retrieved token : " + userToken);
+                        token = userToken;
+
+                        for (LoginListener listener : loginListeners) {
+                            listener.onLoginSuccess();
+                        }
+                    }
                 }
-            }
-
-            @Override
-            public void onInitializeStarted() {
-            }
-
-            @Override
-            public void onInitializeSuccess(UUID id, String identId) {
-                userID = id;
-                identityId = identId;
-
-                Log.i(TAG, "saving new id : " + id.toString() + " in sharedPreferences");
-                SharedPreferences p = executionService.getApplicationContext()
-                        .getSharedPreferences(Constants.SHARED_PREFERENCES_NAME,
-                                Context.MODE_PRIVATE);
-                p.edit().putString(Constants.KEY_USER_ID, id.toString()).apply();
-                p.edit().putString(Constants.KEY_IDENTITY_ID, identityId).apply();
-            }
-
-            @Override
-            public void onLoginFailed() {
-                for (LoginListener listener : loginListeners) {
-                    listener.onLoginFailed();
-                }
-            }
-
-            @Override
-            public void onLoginStarted() {
-            }
-
-            @Override
-            public void onLoginSuccess(String userToken) {
-                Log.i(TAG, "successfully retrieved token : " + userToken);
-                token = userToken;
-
-                for (LoginListener listener : loginListeners) {
-                    listener.onLoginSuccess();
-                }
-
-                loginWithAmazon();
-            }
-        }
         );
     }
 
@@ -156,12 +161,6 @@ public class AuthenticationManager {
             Log.i(TAG,"loaded userID : " + userID + " : from sharedPreferences");
         }
 
-        cognitoCachingProvider = new CognitoCachingCredentialsProvider(c,
-                gravityProvider,
-                UNAUTH_ARN,
-                AUTH_ARN
-        );
-
         return idFound;
     }
 
@@ -177,6 +176,13 @@ public class AuthenticationManager {
         return token;
     }
 
+    /**
+     * @return the Cognito credentials provider.
+     */
+    public static CognitoCachingCredentialsProvider getCredentialsProvider() {
+        return cognitoCachingProvider;
+    }
+
     public LoginRunnable getLoginRunnable(){
         return new LoginRunnable(callbackManager);
     }
@@ -184,6 +190,7 @@ public class AuthenticationManager {
     public InitializeUserRunnable getInitRunnable(){
         return new InitializeUserRunnable(callbackManager);
     }
+
 /***************************************************************************************************
  * DRIVERS
 **/
@@ -200,11 +207,11 @@ public class AuthenticationManager {
 
         Log.i(TAG, "now attempting to login with amazon");
 
-        /*AWSSecurityTokenServiceClient client;
+        AWSSecurityTokenServiceClient client;
 
-        client = new AWSSecurityTokenServiceClient(cognitoCachingProvider);*/
+        client = new AWSSecurityTokenServiceClient(cognitoCachingProvider);
 
-        /*AssumeRoleWithWebIdentityRequest request
+        AssumeRoleWithWebIdentityRequest request
                 = new AssumeRoleWithWebIdentityRequest();
 
         request.setProviderId(gravityProvider.getIdentityPoolId());
@@ -215,7 +222,7 @@ public class AuthenticationManager {
         AssumeRoleWithWebIdentityResult result = client.assumeRoleWithWebIdentity(request);
 
         Log.v(TAG,"assumed sessionToken");
-        Log.v(TAG,result.getCredentials().getSessionToken());*/
+        Log.v(TAG,result.getCredentials().getSessionToken());
 
     }
 

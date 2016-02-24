@@ -23,6 +23,8 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
+import us.gravwith.android.user.AuthenticationManager;
+
 /**
  * This class creates pools of background threads for downloading
  * Picasa images from the web, based on URLs retrieved from Picasa's featured images RSS feed.
@@ -151,12 +153,15 @@ public class PhotoManager {
         /*
          * Creates an amazon s3 client for allowing get requests from the server
          */
-        s3Client = new AmazonS3Client( //todo this is so bad security-wise
+        /*s3Client = new AmazonS3Client( //todo this is so bad security-wise
                 new BasicAWSCredentials(
                         "AKIAIZ42NH277ZC764XQ",
                         "pMYCGMq+boy6858OfITL4CTXWgdkVbVreyROHckG"
                 )
-        );
+        );*/
+
+        s3Client = new AmazonS3Client(AuthenticationManager.getCredentialsProvider());
+
 
         /*
          * Creates a list of waiting photoTasks that will hold all phototasks still

@@ -26,6 +26,8 @@ import com.amazonaws.mobileconnectors.amazonmobileanalytics.SessionClient;
 import com.amazonaws.regions.Regions;
 
 import us.gravwith.android.BuildConfig;
+import us.gravwith.android.DataHandlingService;
+import us.gravwith.android.user.AuthenticationManager;
 
 /**
  * The AWS Mobile Client bootstraps the application to make calls to AWS 
@@ -41,7 +43,7 @@ public class AWSMobileClient {
     private final Context context;
 
     private ClientConfiguration clientConfiguration;
-    private IdentityManager identityManager;
+    private AuthenticationManager authenticationManager;
     private GCMTokenHelper gcmTokenHelper;
     private PushManager pushManager;
     private MobileAnalyticsManager mobileAnalyticsManager;
@@ -57,6 +59,7 @@ public class AWSMobileClient {
         private String  mobileAnalyticsAppID;
         private ClientConfiguration clientConfiguration;
         private IdentityManager identityManager;
+        private AuthenticationManager authenticationManager;
 
 	/**
 	 * Constructor.
@@ -98,11 +101,16 @@ public class AWSMobileClient {
 
         /**
          * Provides the identity manager.
-	 * @param identityManager identity manager
-	 * @return builder
-	 */
+         * @param identityManager identity manager
+         * @return builder
+         */
         public Builder withIdentityManager(final IdentityManager identityManager) {
             this.identityManager = identityManager;
+            return this;
+        }
+
+        public Builder withAuthenticationManager(final AuthenticationManager manager) {
+            this.authenticationManager = manager;
             return this;
         }
 
@@ -126,7 +134,7 @@ public class AWSMobileClient {
                                     cognitoIdentityPoolID,
                                     cognitoRegion,
                                     mobileAnalyticsAppID,
-                                    identityManager,
+                                    authenticationManager,
                                     clientConfiguration);
         }
     }
@@ -135,11 +143,11 @@ public class AWSMobileClient {
                             final String  cognitoIdentityPoolID,
                             final Regions cognitoRegion,
                             final String mobileAnalyticsAppID,
-                            final IdentityManager identityManager,
+                            final AuthenticationManager manager,
                             final ClientConfiguration clientConfiguration) {
 
         this.context = context;
-        this.identityManager = identityManager;
+        this.authenticationManager = manager;
         this.clientConfiguration = clientConfiguration;
 
         try {
@@ -148,7 +156,7 @@ public class AWSMobileClient {
                     getOrCreateInstance(context,
                                         AWSConfiguration.AMAZON_MOBILE_ANALYTICS_APP_ID,
                                         AWSConfiguration.AMAZON_MOBILE_ANALYTICS_REGION,
-                                        identityManager.getCredentialsProvider(),
+                                        authenticationManager.getCredentialsProvider(),
                                         new AnalyticsConfig(clientConfiguration));
         }
         catch (final InitializationException ie) {
@@ -159,7 +167,7 @@ public class AWSMobileClient {
         this.pushManager =
             new PushManager(context,
                             gcmTokenHelper,
-                            identityManager.getCredentialsProvider(),
+                            authenticationManager.getCredentialsProvider(),
                             AWSConfiguration.AMAZON_SNS_PLATFORM_APPLICATION_ARN,
                             clientConfiguration,
                             AWSConfiguration.AMAZON_SNS_DEFAULT_TOPIC_ARN,
@@ -187,8 +195,8 @@ public class AWSMobileClient {
      * Gets the identity manager.
      * @return identity manager
      */
-    public IdentityManager getIdentityManager() {
-        return this.identityManager;
+    public AuthenticationManager getAuthenticationManager() {
+        return this.authenticationManager;
     }
 
     /**
@@ -225,18 +233,57 @@ public class AWSMobileClient {
             } else {
                 awsClient =
                         new Builder(context)
-                        .withCognitoRegion(AWSConfiguration.AMAZON_COGNITO_REGION)
-                        .withCognitoIdentityPoolID(AWSConfiguration.AMAZON_COGNITO_IDENTITY_POOL_ID)
-                        .withMobileAnalyticsAppID(AWSConfiguration.AMAZON_MOBILE_ANALYTICS_APP_ID)
-                        .withIdentityManager(identityManager)
-                        .withClientConfiguration(clientConfiguration)
-                        .build();
+                                .withCognitoRegion(AWSConfiguration.AMAZON_COGNITO_REGION)
+                                .withCognitoIdentityPoolID(AWSConfiguration.AMAZON_COGNITO_IDENTITY_POOL_ID)
+                                .withMobileAnalyticsAppID(AWSConfiguration.AMAZON_MOBILE_ANALYTICS_APP_ID)
+                                .withIdentityManager(identityManager)
+                                .withClientConfiguration(clientConfiguration)
+                                .build();
             }
 
             AWSMobileClient.setDefaultMobileClient(awsClient);
         }
         Log.d(LOG_TAG, "AWS Mobile Client is OK");
     }
+
+    /**
+     * Creates and initialize the default AWSMobileClient if it doesn't already
+     * exist using configuration constants from {@link AWSConfiguration}.
+     *
+     */
+    public static void initializeGravityMobileClientIfNecessary(final DataHandlingService dataHandlingService) {
+        if (AWSMobileClient.defaultMobileClient() == null) {
+            Log.d(LOG_TAG, "Initializing AWS Mobile Client...");
+            final ClientConfiguration clientConfiguration = new ClientConfiguration();
+            clientConfiguration.setUserAgent(AWSConfiguration.AWS_MOBILEHUB_USER_AGENT);
+            final AuthenticationManager manager = new AuthenticationManager(dataHandlingService);
+            final AWSMobileClient awsClient;
+            if (BuildConfig.DEBUG) {
+                Log.d(LOG_TAG, "Using sandbox client.");
+                awsClient =
+                        new Builder(dataHandlingService)
+                                .withCognitoRegion(AWSConfiguration.AMAZON_COGNITO_REGION)
+                                .withCognitoIdentityPoolID(AWSConfiguration.AMAZON_COGNITO_SANDBOX_IDENTITY_POOL_ID)
+                                .withMobileAnalyticsAppID(AWSConfiguration.AMAZON_MOBILE_ANALYTICS_APP_ID)
+                                .withAuthenticationManager(manager)
+                                .withClientConfiguration(clientConfiguration)
+                                .build();
+            } else {
+                awsClient =
+                        new Builder(dataHandlingService)
+                                .withCognitoRegion(AWSConfiguration.AMAZON_COGNITO_REGION)
+                                .withCognitoIdentityPoolID(AWSConfiguration.AMAZON_COGNITO_IDENTITY_POOL_ID)
+                                .withMobileAnalyticsAppID(AWSConfiguration.AMAZON_MOBILE_ANALYTICS_APP_ID)
+                                .withAuthenticationManager(manager)
+                                .withClientConfiguration(clientConfiguration)
+                                .build();
+            }
+
+            AWSMobileClient.setDefaultMobileClient(awsClient);
+        }
+        Log.d(LOG_TAG, "AWS Mobile Client is OK");
+    }
+
     /**
      * Gets the Amazon Mobile Analytics Manager, which allows you to submit
      * custom and monetization events to the Amazon Mobile Analytics system. It
@@ -297,7 +344,7 @@ public class AWSMobileClient {
     public void createDefaultContentManager(final ContentManager.BuilderResultHandler resultHandler) {
         new ContentManager.Builder()
                 .withContext(context)
-                .withCredentialsProvider(identityManager.getCredentialsProvider())
+                .withCredentialsProvider(authenticationManager.getCredentialsProvider())
                 .withS3Bucket(AWSConfiguration.AMAZON_CONTENT_DELIVERY_S3_BUCKET)
                 .withLocalBasePath(context.getFilesDir().getAbsolutePath())
                 .withClientConfiguration(clientConfiguration)
@@ -315,7 +362,7 @@ public class AWSMobileClient {
             Log.i(LOG_TAG,"Creating sandbox content manager...");
             new ContentManager.Builder()
                     .withContext(context)
-                    .withCredentialsProvider(identityManager.getCredentialsProvider())
+                    .withCredentialsProvider(authenticationManager.getCredentialsProvider())
                     .withS3Bucket(AWSConfiguration.AMAZON_CONTENT_DELIVERY_SANDBOX_S3_BUCKET)
                     .withLocalBasePath(context.getCacheDir().getAbsolutePath())
                     .withClientConfiguration(clientConfiguration)
@@ -323,7 +370,7 @@ public class AWSMobileClient {
         } else {
             new ContentManager.Builder()
                     .withContext(context)
-                    .withCredentialsProvider(identityManager.getCredentialsProvider())
+                    .withCredentialsProvider(authenticationManager.getCredentialsProvider())
                     .withS3Bucket(AWSConfiguration.AMAZON_CONTENT_DELIVERY_S3_BUCKET)
                     .withLocalBasePath(context.getCacheDir().getAbsolutePath())
                     .withClientConfiguration(clientConfiguration)
@@ -333,10 +380,10 @@ public class AWSMobileClient {
 
     public void createUserFileManager(final UserFileManager.BuilderResultHandler resultHandler) {
         if (BuildConfig.DEBUG) {
-            Log.i(LOG_TAG,"Creating sandbox content manager...");
+            Log.i(LOG_TAG, "Creating sandbox content manager...");
             new UserFileManager.Builder()
                     .withContext(context)
-                    .withCredentialsProvider(identityManager.getCredentialsProvider())
+                    .withCredentialsProvider(authenticationManager.getCredentialsProvider())
                     .withS3Bucket(AWSConfiguration.AMAZON_CONTENT_DELIVERY_SANDBOX_S3_BUCKET)
                     .withLocalBasePath(context.getCacheDir().getAbsolutePath())
                     .withClientConfiguration(clientConfiguration)
@@ -344,7 +391,7 @@ public class AWSMobileClient {
         } else {
             new UserFileManager.Builder()
                     .withContext(context)
-                    .withCredentialsProvider(identityManager.getCredentialsProvider())
+                    .withCredentialsProvider(authenticationManager.getCredentialsProvider())
                     .withS3Bucket(AWSConfiguration.AMAZON_CONTENT_DELIVERY_S3_BUCKET)
                     .withLocalBasePath(context.getCacheDir().getAbsolutePath())
                     .withClientConfiguration(clientConfiguration)

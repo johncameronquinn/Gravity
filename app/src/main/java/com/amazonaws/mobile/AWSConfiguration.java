@@ -30,26 +30,20 @@ public class AWSConfiguration {
 
     // Custom Developer Provided Authentication ID
     public static final String DEVELOPER_AUTHENTICATION_PROVIDER_ID =
-            "dev-gravity.ddns.net";
+            "gravity.johnquinn.com";
 
     public static final String DEVELOPER_AUTHENTICATION_SANDBOX_PROVIDER_ID =
             "dev-gravity.ddns.net";
 
-
-    // Developer Authentication - URL for Create New Account
-    public static final String DEVELOPER_AUTHENTICATION_CREATE_ACCOUNT_URL =
-        "aws.amazon.com";
-    // Developer Authentication - URL for Forgot Password
-    public static final String DEVELOPER_AUTHENTICATION_FORGOT_PASSWORD_URL =
-        "aws.amazon.com";
     // Account ID
     public static final String DEVELOPER_AUTHENTICATION_ACCOUNT_ID =
         "581398785260";
 
     public static String DEVELOPER_AUTHENTICATION_DISPLAY_NAME = "Custom";
+
     // AMAZON MOBILE ANALYTICS
     public static final String  AMAZON_MOBILE_ANALYTICS_APP_ID =
-        "e012c9fd5899442dbfe80b4bc0816405";
+            "e012c9fd5899442dbfe80b4bc0816405";
 
     // Amazon Mobile Analytics region
     public static final Regions AMAZON_MOBILE_ANALYTICS_REGION = Regions.US_EAST_1;

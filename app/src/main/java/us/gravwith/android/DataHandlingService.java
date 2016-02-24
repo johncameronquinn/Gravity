@@ -95,7 +95,7 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
     /**
      * SECURITY
      */
-    private final AuthenticationManager authenticationManager = new AuthenticationManager(this);
+    private AuthenticationManager authenticationManager;
 
     /**
      *  AWS (AMAZON WEB SERVICE S3)
@@ -182,14 +182,10 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
     public void onCreate() {
         if (VERBOSE) Log.v(TAG, "entering onCreate...");
 
-        AWSMobileClient.initializeMobileClientIfNecessary(this);
-
-        AWSMobileClient
-                .defaultMobileClient()
-                .getIdentityManager()
-                .addSignInStateChangeListener(this);
+        AWSMobileClient.initializeGravityMobileClientIfNecessary(this);
 
         mTracker = AWSMobileClient.defaultMobileClient().getMobileAnalyticsManager();
+        authenticationManager = AWSMobileClient.defaultMobileClient().getAuthenticationManager();
         SharedPreferences settings = getSharedPreferences(TAG, MODE_PRIVATE);
         boolean isFirstRun = settings.getBoolean(ISFIRSTRUN_KEY, true);
 
@@ -1138,12 +1134,9 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
         if (transferUtility == null) {
             transferUtility =
                     new TransferUtility(
-                            new AmazonS3Client(
-                                    new BasicAWSCredentials(
-                                            "AKIAIZ42NH277ZC764XQ",
-                                            "pMYCGMq+boy6858OfITL4CTXWgdkVbVreyROHckG"
-                                    )
-                            ),getApplicationContext()
+                            new AmazonS3Client(AuthenticationManager
+                                    .getCredentialsProvider()),
+                            this
                     );
         }
 

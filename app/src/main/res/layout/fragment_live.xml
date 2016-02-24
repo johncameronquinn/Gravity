@@ -74,7 +74,8 @@
             android:id="@+id/textView_title"
             android:layout_gravity="center"
             android:singleLine="true"
-            android:ellipsize="end" />
+            android:ellipsize="end"
+            android:autoLink="all" />
 
         <RelativeLayout
             android:orientation="horizontal"
