@@ -87,11 +87,17 @@ public class AuthenticationManager {
                 AWSConfiguration.AMAZON_COGNITO_IDENTITY_POOL_ID,
                 AWSConfiguration.AMAZON_COGNITO_REGION);
 
-        cognitoCachingProvider = new CognitoCachingCredentialsProvider(
+        /*cognitoCachingProvider = new CognitoCachingCredentialsProvider(
                 executionService,
                 gravityProvider,
                 UNAUTH_ARN,
                 AUTH_ARN
+        );*/
+
+        cognitoCachingProvider = new CognitoCachingCredentialsProvider(
+                executionService,
+                AWSConfiguration.AMAZON_COGNITO_IDENTITY_POOL_ID,
+                Regions.US_EAST_1
         );
 
         callbackManager.setAuthenticationStatusListener(

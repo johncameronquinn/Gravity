@@ -301,8 +301,6 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
 
     private Messenger replyMessenger;
 
-    private Messenger imageResponseMessenger;
-
     public void setReplyMessenger(Messenger messenger) {
         replyMessenger = messenger;
     }
@@ -559,13 +557,11 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
 
                     case MSG_DOWNLOAD_IMAGE:
                         Log.d(TAG, "received a message to download an image...");
-                        imageResponseMessenger = msg.replyTo;
                         downloadImageFromS3(data);
                         break;
 
                     case MSG_UPLOAD_IMAGE:
                         Log.d(TAG, "received a message to upload an image...");
-                        imageResponseMessenger = msg.replyTo;
                         uploadImageToS3(data);
                         break;
 
@@ -1135,9 +1131,7 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
             transferUtility =
                     new TransferUtility(
                             new AmazonS3Client(AuthenticationManager
-                                    .getCredentialsProvider()),
-                            this
-                    );
+                                    .getCredentialsProvider()), this);
         }
 
         String directory = b.getString(Constants.KEY_S3_DIRECTORY,"");
@@ -1253,7 +1247,7 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
                         msg.setData(data);
 
                         try {
-                            imageResponseMessenger.send(msg);
+                            replyMessenger.send(msg);
                         } catch (RemoteException e) {
                             Log.e(TAG,"error responding that an image has finished downloading...");
                         }
@@ -1358,9 +1352,9 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
                         Message msg = Message.obtain(null,PhotoManager.DOWNLOAD_COMPLETE);
                         msg.setData(data);
 
-                        if (imageResponseMessenger != null) {
+                        if (replyMessenger != null) {
                             try {
-                                imageResponseMessenger.send(msg);
+                                replyMessenger.send(msg);
                             } catch (RemoteException e) {
                                 Log.e(TAG, "error responding that an image has finished downloading...");
                             }
@@ -1426,9 +1420,9 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
         Message msg = Message.obtain(null,PhotoManager.REQUEST_FAILED);
         msg.setData(b);
 
-        if (imageResponseMessenger != null) {
+        if (replyMessenger != null) {
             try {
-                imageResponseMessenger.send(msg);
+                replyMessenger.send(msg);
             } catch (RemoteException e) {
                 Log.e(TAG, "error responding that an image that failed to download...");
             }
@@ -1443,15 +1437,16 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
     public void onSuccess(ContentItem contentItem) {
         Log.i(TAG, "success for filepath " + contentItem.getFile().getAbsolutePath());
 
+        Log.v(TAG, "successful path name " + contentItem.getFile().getName());
         Bundle b = new Bundle();
-        b.putString(Constants.KEY_S3_KEY, contentItem.getFilePath());
+        b.putString(Constants.KEY_S3_KEY, contentItem.getFile().getName());
         Message msg = Message.obtain(null,PhotoManager.REQUEST_COMPLETE);
         msg.setData(b);
 
-        if (imageResponseMessenger != null) {
+        if (replyMessenger != null) {
             try {
                 if (VERBOSE) Log.v(TAG, "Sending success message.");
-                imageResponseMessenger.send(msg);
+                replyMessenger.send(msg);
             } catch (RemoteException e) {
                 Log.e(TAG, "error responding that an image has finished downloading...");
             }

@@ -59,8 +59,6 @@ public class PhotoManager {
     static final int REQUEST_STARTED = 8;
     static final int REQUEST_COMPLETE = 9;
 
-    static final int AWS_DOWNLOAD_COMPLETE = 5;
-
     static final boolean VERBOSE = false;
 
 
@@ -153,15 +151,7 @@ public class PhotoManager {
         /*
          * Creates an amazon s3 client for allowing get requests from the server
          */
-        /*s3Client = new AmazonS3Client( //todo this is so bad security-wise
-                new BasicAWSCredentials(
-                        "AKIAIZ42NH277ZC764XQ",
-                        "pMYCGMq+boy6858OfITL4CTXWgdkVbVreyROHckG"
-                )
-        );*/
-
         s3Client = new AmazonS3Client(AuthenticationManager.getCredentialsProvider());
-
 
         /*
          * Creates a list of waiting photoTasks that will hold all phototasks still
@@ -235,6 +225,8 @@ public class PhotoManager {
                 PhotoTask photoTask = (PhotoTask) inputMessage.obj;
 
                 if (inputMessage.obj == null) {
+                    if (VERBOSE) Log.v(TAG,"trying to grab task with key : " + inputMessage.getData().getString(Constants.KEY_S3_KEY));
+
                     photoTask = mWaitingPhotoTasks.get(
                             inputMessage.getData().getString
                                     (Constants.KEY_S3_KEY)
@@ -363,7 +355,6 @@ public class PhotoManager {
                                         .alpha(1f)
                                         .setDuration(CROSSFADE_DURATION)
                                         .setListener(null);
-
 
                                 if (loadingView!= null) {
                                     loadingView.animate()
@@ -498,6 +489,8 @@ public class PhotoManager {
                 if (VERBOSE) Log.v(TAG,"image download request started... saving task");
 
                 //add it to waiting tasks map
+
+                if (VERBOSE) Log.v(TAG,"storing task by key : " + photoTask.getImageKey());
                 mWaitingPhotoTasks.put(photoTask.getImageKey(), photoTask);
 
                 mHandler.obtainMessage(state, photoTask).sendToTarget();

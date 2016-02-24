@@ -3,6 +3,8 @@ package us.gravwith.android;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
+import android.media.Image;
+import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
@@ -14,6 +16,7 @@ import android.widget.Toast;
 import java.lang.ref.WeakReference;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.UUID;
 
 /**
  * Created by caliamara on 1/8/16.
@@ -27,15 +30,9 @@ public class MessageHandler extends Handler{
 **/
     private static LivePostListener mLiveListener;
 
-    public static void setLivePostListener(LivePostListener livePostListener) {
-        mLiveListener = livePostListener;
-    }
-
-    public static void clearLivePostListener() {
-        mLiveListener = null;
-    }
-
     private static CameraListener cameraListener;
+
+    private static ImageDownloadStatusListener mImageDownloadListener;
 
     interface CameraListener {
         void onPictureTaken(int whichCamera);
@@ -44,6 +41,23 @@ public class MessageHandler extends Handler{
     interface LivePostListener {
         void onRefreshCompleted(int responseCode);
         void onCreateThreadCompleted(int responseCode);
+    }
+
+    interface ImageDownloadStatusListener {
+        void onImageDownloadCompleted(String imageKey);
+        void onImageDownloadFailed(String imageKey);
+    }
+
+    public static void setLivePostListener(LivePostListener livePostListener) {
+        mLiveListener = livePostListener;
+    }
+
+    public static void clearLivePostListener() {
+        mLiveListener = null;
+    }
+
+    public static void setImageDownloadStatusListener(ImageDownloadStatusListener listener) {
+        mImageDownloadListener = listener;
     }
 
 
@@ -85,15 +99,25 @@ public class MessageHandler extends Handler{
         if (Constants.LOGD) Log.d(LOG_TAG, "enter handleMessage");
         int respCode = msg.what;
 
+        Bundle data = msg.getData();
+
         switch (respCode) {
+
+            case PhotoManager.REQUEST_COMPLETE:
+            case PhotoManager.REQUEST_FAILED:
+            case PhotoManager.REQUEST_STARTED:
+                /* pass message to photoManager handler */
+
+                msg = Message.obtain(PhotoManager.getMainHandler(),respCode,msg.obj);
+                msg.setData(data);
+                msg.sendToTarget();
+
+                break;
 
             case DataHandlingService.MSG_REQUEST_REPLIES:
                 break;
 
             case DataHandlingService.MSG_REQUEST_LOCAL_POSTS:
-                break;
-
-            case DataHandlingService.MSG_REQUEST_MESSAGES:
                 break;
 
             case DataHandlingService.MSG_CREATE_THREAD:

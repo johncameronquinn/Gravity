@@ -154,7 +154,7 @@ class PhotoRequestDownloadRunnable implements Runnable {
 
             // If there's no cache buffer for this image
             if (null == byteBuffer) {
-                mPhotoTask.handleRequestState(REQUEST_STATE_STARTED);
+
                 Message msg = Message.obtain(null,DataHandlingService.MSG_DOWNLOAD_IMAGE);
                 msg.replyTo = mPhotoTask.getResponseMessenger();
 
@@ -170,6 +170,8 @@ class PhotoRequestDownloadRunnable implements Runnable {
                 LogUtils.printBundle(b, LOG_TAG);
 
                 if (Constants.LOGV) Log.v(LOG_TAG,"Message sent.");
+
+                mPhotoTask.handleRequestState(REQUEST_STATE_STARTED);
             }
 
             /*
