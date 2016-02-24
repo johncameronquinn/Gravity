@@ -882,6 +882,8 @@ n  */
             view.setImageBitmap(null);
             view.setVisibility(View.GONE);
 
+            mListener.hideSoftKeyboard();
+
             cameraRoot.removeView(overlaySwipeView);
         }
 
@@ -907,6 +909,7 @@ n  */
                                 case CAMERA_DEFAULT_MODE:
                                     if (commentText.getText().toString().equals("")) {
                                         if (VERBOSE) Log.v(TAG,"no text was provided...");
+                                        overlaySwipePager.setCurrentItem(0);
                                         mListener.showSoftKeyboard();
                                         break;
                                     }
