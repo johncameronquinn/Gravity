@@ -14,6 +14,7 @@ import android.util.Log;
 
 import com.amazonaws.ClientConfiguration;
 import com.amazonaws.mobile.content.ContentManager;
+import com.amazonaws.mobile.content.UserFileManager;
 import com.amazonaws.mobile.push.GCMTokenHelper;
 import com.amazonaws.mobile.push.PushManager;
 import com.amazonaws.mobile.user.IdentityManager;
@@ -296,7 +297,7 @@ public class AWSMobileClient {
     public void createDefaultContentManager(final ContentManager.BuilderResultHandler resultHandler) {
         new ContentManager.Builder()
                 .withContext(context)
-                .withIdentityManager(identityManager)
+                .withCredentialsProvider(identityManager.getCredentialsProvider())
                 .withS3Bucket(AWSConfiguration.AMAZON_CONTENT_DELIVERY_S3_BUCKET)
                 .withLocalBasePath(context.getFilesDir().getAbsolutePath())
                 .withClientConfiguration(clientConfiguration)
@@ -314,7 +315,7 @@ public class AWSMobileClient {
             Log.i(LOG_TAG,"Creating sandbox content manager...");
             new ContentManager.Builder()
                     .withContext(context)
-                    .withIdentityManager(identityManager)
+                    .withCredentialsProvider(identityManager.getCredentialsProvider())
                     .withS3Bucket(AWSConfiguration.AMAZON_CONTENT_DELIVERY_SANDBOX_S3_BUCKET)
                     .withLocalBasePath(context.getCacheDir().getAbsolutePath())
                     .withClientConfiguration(clientConfiguration)
@@ -322,7 +323,28 @@ public class AWSMobileClient {
         } else {
             new ContentManager.Builder()
                     .withContext(context)
-                    .withIdentityManager(identityManager)
+                    .withCredentialsProvider(identityManager.getCredentialsProvider())
+                    .withS3Bucket(AWSConfiguration.AMAZON_CONTENT_DELIVERY_S3_BUCKET)
+                    .withLocalBasePath(context.getCacheDir().getAbsolutePath())
+                    .withClientConfiguration(clientConfiguration)
+                    .build(resultHandler);
+        }
+    }
+
+    public void createUserFileManager(final UserFileManager.BuilderResultHandler resultHandler) {
+        if (BuildConfig.DEBUG) {
+            Log.i(LOG_TAG,"Creating sandbox content manager...");
+            new UserFileManager.Builder()
+                    .withContext(context)
+                    .withCredentialsProvider(identityManager.getCredentialsProvider())
+                    .withS3Bucket(AWSConfiguration.AMAZON_CONTENT_DELIVERY_SANDBOX_S3_BUCKET)
+                    .withLocalBasePath(context.getCacheDir().getAbsolutePath())
+                    .withClientConfiguration(clientConfiguration)
+                    .build(resultHandler);
+        } else {
+            new UserFileManager.Builder()
+                    .withContext(context)
+                    .withCredentialsProvider(identityManager.getCredentialsProvider())
                     .withS3Bucket(AWSConfiguration.AMAZON_CONTENT_DELIVERY_S3_BUCKET)
                     .withLocalBasePath(context.getCacheDir().getAbsolutePath())
                     .withClientConfiguration(clientConfiguration)

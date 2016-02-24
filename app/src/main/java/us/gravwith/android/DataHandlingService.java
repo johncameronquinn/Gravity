@@ -14,9 +14,10 @@ import android.widget.Toast;
 
 import com.amazonaws.AmazonClientException;
 import com.amazonaws.auth.BasicAWSCredentials;
+import com.amazonaws.mobile.AWSConfiguration;
 import com.amazonaws.mobile.AWSMobileClient;
 import com.amazonaws.mobile.content.ContentItem;
-import com.amazonaws.mobile.content.ContentManager;
+import com.amazonaws.mobile.content.UserFileManager;
 import com.amazonaws.mobile.content.ContentProgressListener;
 import com.amazonaws.mobile.user.IdentityManager;
 import com.amazonaws.mobileconnectors.amazonmobileanalytics.AnalyticsEvent;
@@ -103,10 +104,9 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
     HashMap<Integer,Bundle> pendingMap = new HashMap<>();
     private final String REQUEST_TYPE = "what";
 
-    private final String BUCKET_NAME = "launch-zone";
     private MobileAnalyticsManager mTracker;
     private String androidId;
-    private ContentManager contentManager;
+    private UserFileManager userFileManager;
 
     /**
      * Thread management
@@ -243,12 +243,12 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
 
         if (VERBOSE) Log.v(TAG, "creating initializeTransferUtility...");
         AWSMobileClient.defaultMobileClient().
-                createCacheContentManager(new ContentManager.BuilderResultHandler() {
+                createUserFileManager(new UserFileManager.BuilderResultHandler() {
                     @Override
-                    public void onComplete(final ContentManager contentManager) {
+                    public void onComplete(final UserFileManager userFileManager) {
                         Log.v(TAG, "ContentManager created!");
-                        DataHandlingService.this.contentManager = contentManager;
-                        contentManager.setContentCacheSize(1024*1024*20);
+                        DataHandlingService.this.userFileManager = userFileManager;
+                        userFileManager.setContentCacheSize(1024 * 1024 * 20);
                     }
                 });
 
@@ -1166,29 +1166,23 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
             Log.d(TAG,"uploading image to s3 with key: " + b.getString(Constants.KEY_S3_KEY));
         //Log.d(TAG, "uploading image from file" + file.getPath());
 
-        TransferObserver observer = transferUtility.upload(
-                BUCKET_NAME,     /* The bucket to upload to */
-                b.getString(Constants.KEY_S3_KEY), /* The key for the uploaded object */
-                file /* The file where the data to upload exists */
-        );
+        TransferObserver observer;
+        if (BuildConfig.DEBUG) {
+            observer = transferUtility.upload(
+                    AWSConfiguration.AMAZON_CONTENT_DELIVERY_SANDBOX_S3_BUCKET,     /* The bucket to upload to */
+                    b.getString(Constants.KEY_S3_KEY), /* The key for the uploaded object */
+                    file /* The file where the data to upload exists */
+            );
+        } else {
+            observer = transferUtility.upload(
+                    AWSConfiguration.AMAZON_CONTENT_DELIVERY_S3_BUCKET,     /* The bucket to upload to */
+                    b.getString(Constants.KEY_S3_KEY), /* The key for the uploaded object */
+                    file /* The file where the data to upload exists */
+            );
+        }
 
         pendingMap.put(observer.getId(), b);
         observer.setTransferListener(this);
-
-        if (directory.equals(Constants.KEY_S3_REPLIES_DIRECTORY)) {
-            Log.i(TAG, "now uploading reply thumbnail");
-            pendingMap.remove(observer.getId());
-            observer.cleanTransferListener();
-
-             observer = transferUtility.upload(
-                    BUCKET_NAME,     /* The bucket to upload to */
-                    b.getString(Constants.KEY_S3_KEY) + "s", /* The key for the uploaded object */
-                    new File(getCacheDir(),b.getString(Constants.KEY_S3_KEY)+"s") /* The file where the data to upload exists */
-            );
-            b.putInt(REQUEST_TYPE,MSG_REPLY_TO_THREAD);
-            pendingMap.put(observer.getId(), b);
-            observer.setTransferListener(this);
-        }
 
         if (VERBOSE) {
             Log.v(TAG,"exiting uploadImageToS3...");
@@ -1217,12 +1211,12 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
             Log.d(TAG, "storing downloaded imaged at: " + file.getPath());
         }
 
-        if (contentManager == null) {
+        if (userFileManager == null) {
 
             Log.v(TAG, "ContentManager was null...");
             //initializeTransferUtility();
         } else {
-            contentManager.getContent(key, this);
+            userFileManager.getContent(key, this);
         }
 
         if (VERBOSE) {

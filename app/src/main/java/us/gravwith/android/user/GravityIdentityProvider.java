@@ -4,6 +4,7 @@ import android.content.Context;
 import android.util.Log;
 
 import com.amazonaws.auth.AWSAbstractCognitoDeveloperIdentityProvider;
+import com.amazonaws.auth.AWSAbstractCognitoIdentityProvider;
 import com.amazonaws.mobile.AWSConfiguration;
 import com.amazonaws.mobile.AWSMobileClient;
 import com.amazonaws.mobile.user.IdentityProvider;
@@ -49,13 +50,14 @@ public class GravityIdentityProvider extends AWSAbstractCognitoDeveloperIdentity
 
         // Override the existing token
         //setToken(null);
+        setToken(AuthenticationManager.getCurrentAccessToken());
 
         // Get the identityId and token by making a call to your backend
         // (Call to your backend)
+        setIdentityId(AuthenticationManager.getCurrentIdentityId());
 
         // Call the update method with updated identityId and token to make sure
         // these are ready to be used from Credentials Provider.
-
         update(identityId, token);
         return token;
     }

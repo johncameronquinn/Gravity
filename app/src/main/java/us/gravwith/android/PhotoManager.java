@@ -12,6 +12,7 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.amazonaws.auth.BasicAWSCredentials;
+import com.amazonaws.mobile.AWSConfiguration;
 import com.amazonaws.services.s3.AmazonS3Client;
 
 import java.io.File;
@@ -63,7 +64,7 @@ public class PhotoManager {
 
     private static final String TAG = "PhotoManager";
 
-    static final String STORAGE_PREFIX = "/s3_launch-zone/content/";
+    static String STORAGE_PREFIX;
 
     // Sets the size of the storage that's used to cache images
     private static final int IMAGE_CACHE_SIZE = 1024 * 1024 * 10; //10MiB
@@ -140,6 +141,12 @@ public class PhotoManager {
      */
     private PhotoManager() {
         if (Constants.LOGV) Log.v(TAG,"entering PhotoManager constructor...");
+
+        if (BuildConfig.DEBUG) {
+            STORAGE_PREFIX = "/s3_" + AWSConfiguration.AMAZON_CONTENT_DELIVERY_SANDBOX_S3_BUCKET+ "/content/";
+        } else {
+            STORAGE_PREFIX = "/s3_" + AWSConfiguration.AMAZON_CONTENT_DELIVERY_S3_BUCKET+ "/content/";
+        }
 
         /*
          * Creates an amazon s3 client for allowing get requests from the server

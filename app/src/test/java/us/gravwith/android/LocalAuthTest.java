@@ -2,9 +2,13 @@ package us.gravwith.android;
 
 import android.test.suitebuilder.annotation.SmallTest;
 
+import com.amazonaws.http.AmazonHttpClient;
+
 import org.junit.Test;
 
 import java.util.UUID;
+
+import javax.net.ssl.HttpsURLConnection;
 
 import us.gravwith.android.user.AuthenticationManager;
 
@@ -56,22 +60,24 @@ public class LocalAuthTest {
             }
         });
 
+        //create a new user
         manager.getInitRunnable().run();
-
         assert(manager.getUserID() != null);
 
+        //log in with this user
         manager.getLoginRunnable().run();
-
         assert(manager.getToken() != null);
 
+        //test creating a thread
         SendLivePostTask task = new SendLivePostTask();
-
-
         Bundle b = new Bundle();
-
         task.initializeTask(null, b, manager.getToken(), 0);
         task.getServerConnectRunnable().run();
         task.getRequestRunnable().run();
         task.getResponseRunnable().run();
+        assert (task.getResponseCode() == HttpsURLConnection.HTTP_OK);
+
+        //test amazon login
+        manager.loginWithAmazon();
     }
 }

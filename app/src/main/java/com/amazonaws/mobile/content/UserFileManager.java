@@ -13,7 +13,7 @@ import android.util.Log;
 
 import com.amazonaws.AmazonClientException;
 import com.amazonaws.ClientConfiguration;
-import com.amazonaws.mobile.user.IdentityManager;
+import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.mobile.util.ThreadUtils;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 
@@ -50,7 +50,7 @@ public class UserFileManager extends ContentManager {
      */
     public static final class Builder {
         private Context context = null;
-        private IdentityManager identityManager = null;
+        private AWSCredentialsProvider credentialsProvider = null;
         private String bucket = null;
         private String s3ObjectDirPrefix = null;
         private String basePath = null;
@@ -66,16 +66,10 @@ public class UserFileManager extends ContentManager {
             return this;
         }
 
-        /**
-         * Provides the identity manager for bootstrapping service calls.
-         * @param identityManager identity manager
-         * @return builder
-         */
-        public Builder withIdentityManager(final IdentityManager identityManager) {
-            this.identityManager = identityManager;
+        public Builder withCredentialsProvider(final AWSCredentialsProvider provider) {
+            this.credentialsProvider = provider;
             return this;
         }
-
         /**
          * Provides the Amazon S3 bucket.
          * @param s3Bucket Amazon S3 bucket
@@ -129,7 +123,7 @@ public class UserFileManager extends ContentManager {
                 @Override
                 public void run() {
                     final UserFileManager userFileManager =
-                        new UserFileManager(context, identityManager, bucket, s3ObjectDirPrefix, null, basePath,
+                        new UserFileManager(context, credentialsProvider, bucket, s3ObjectDirPrefix, null, basePath,
                                 clientConfiguration);
                     ThreadUtils.runOnUiThread(new Runnable() {
                         @Override
@@ -146,7 +140,6 @@ public class UserFileManager extends ContentManager {
      * Constructs a user file manager.
      *
      * @param context an Android context.
-     * @param identityManager identity manager to use for credentials.
      * @param bucket the s3 bucket.
      * @param s3ObjectDirPrefix the directory within the bucket for which this content manager will
      * manage content. Should not contain a trailing '/'This may be null if the root directory of
@@ -159,11 +152,11 @@ public class UserFileManager extends ContentManager {
      * subdirectories 'content' and 'incoming' will be created to store the locally cached content
      * and incoming
      */
-    UserFileManager(final Context context, final IdentityManager identityManager,
+    UserFileManager(final Context context, final AWSCredentialsProvider credentialsProvider,
                     final String bucket, final String s3ObjectDirPrefix,
                     final String cloudFrontDomainName, final String basePath,
                     final ClientConfiguration clientConfiguration) {
-        super(context, identityManager, bucket, s3ObjectDirPrefix, cloudFrontDomainName, basePath,
+        super(context, credentialsProvider, bucket, s3ObjectDirPrefix, cloudFrontDomainName, basePath,
                 clientConfiguration);
     }
 

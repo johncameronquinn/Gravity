@@ -13,6 +13,7 @@ import android.util.Log;
 
 import com.amazonaws.AmazonServiceException;
 import com.amazonaws.ClientConfiguration;
+import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.mobile.AWSConfiguration;
 import com.amazonaws.mobile.user.IdentityManager;
 import com.amazonaws.mobile.util.StringFormatUtils;
@@ -109,7 +110,7 @@ public class ContentManager implements Iterable<ContentItem> {
     /** Builder for convenience of instantiation.  */
     public static final class Builder {
         private Context context = null;
-        private IdentityManager identityManager = null;
+        private AWSCredentialsProvider credentialsProvider;
         private String bucket = null;
         private String s3DirPrefix = null;
         private String cloudFrontDomainName = null;
@@ -120,8 +121,8 @@ public class ContentManager implements Iterable<ContentItem> {
             this.context = context;
             return this;
         }
-        public Builder withIdentityManager(final IdentityManager identityManager) {
-            this.identityManager = identityManager;
+        public Builder withCredentialsProvider(final AWSCredentialsProvider credentialsProvider) {
+            this.credentialsProvider = credentialsProvider;
             return this;
         }
         public Builder withS3Bucket(final String s3Bucket) {
@@ -158,7 +159,7 @@ public class ContentManager implements Iterable<ContentItem> {
                 @Override
                 public void run() {
                     final ContentManager contentManager =
-                        new ContentManager(context, identityManager, bucket, s3DirPrefix,
+                        new ContentManager(context, credentialsProvider, bucket, s3DirPrefix,
                             cloudFrontDomainName, basePath, clientConfiguration);
                     ThreadUtils.runOnUiThread(new Runnable() {
                         @Override
@@ -175,7 +176,6 @@ public class ContentManager implements Iterable<ContentItem> {
      * Constructs a content manager.
      *
      * @param context an Android context.
-     * @param identityManager identity manager to use for credentials.
      * @param bucket the s3 bucket.
      * @param s3DirPrefix The directory within the bucket for which this content manager will manage content.
      *                    This may be passed as null if the root directory of the bucket should be used. The
@@ -191,7 +191,7 @@ public class ContentManager implements Iterable<ContentItem> {
      * @param clientConfiguration The client configuration for AWS clients.
      */
     ContentManager(final Context context,
-		   final IdentityManager identityManager,
+		   final AWSCredentialsProvider credentialsProvider,
 		   final String bucket,
 		   final String s3DirPrefix,
 		   final String cloudFrontDomainName,
@@ -200,7 +200,7 @@ public class ContentManager implements Iterable<ContentItem> {
 
         this.context = context.getApplicationContext();
 
-        s3Client = new AmazonS3Client(identityManager.getCredentialsProvider(), clientConfiguration);
+        s3Client = new AmazonS3Client(credentialsProvider, clientConfiguration);
         s3Client.setRegion(Region.getRegion(AWSConfiguration.AMAZON_COGNITO_REGION));
 
         this.bucket = bucket;
