@@ -117,8 +117,7 @@ public class LiveFragment extends BaseFragment implements
         if (VERBOSE) Log.v(TAG,"entering onCreate...");
 
         if (savedInstanceState != null) {
-            Log.d(TAG,"restoring live state...");
-            UUID currentThread = UUID.fromString(savedInstanceState.getString(CURRENT_THREAD_KEY));
+            //Log.d(TAG,"restoring live state...");
         }
 
         if (getArguments() != null) {

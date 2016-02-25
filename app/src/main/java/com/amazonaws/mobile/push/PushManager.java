@@ -44,6 +44,7 @@ import us.gravwith.android.Constants;
 import us.gravwith.android.SQLiteDbContract;
 import us.gravwith.android.SQLiteDbContract.MessageEntry;
 import us.gravwith.android.SQLiteDbContract.LiveReplies;
+import us.gravwith.android.util.Validate;
 
 import org.json.JSONObject;
 
@@ -274,6 +275,11 @@ public class PushManager implements GCMTokenHelper.GCMTokenUpdateObserver {
     }
 
     public void subscribeToTopicByArn(final String topicArn) {
+        if (topicArn == null) {
+            Log.e(LOG_TAG, "subscribeToTopicByArn: topic arn is null");
+            return;
+        }
+
         SnsTopic topic = new SnsTopic(topicArn,null);
         subscribeToTopic(topic);
     }
@@ -300,6 +306,7 @@ public class PushManager implements GCMTokenHelper.GCMTokenUpdateObserver {
     }
 
     public void unsubscribeFromTopicByTopicARN(String topicArn) {
+
         String subscriptionARN = sharedPreferences.getString(topicArn,null);
 
         if (subscriptionARN == null) {
