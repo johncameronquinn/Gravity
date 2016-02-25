@@ -70,8 +70,7 @@ import us.gravwith.android.SQLiteDbContract.StashEntry;
  */
 public class DataHandlingService extends Service implements GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener, LocationListener, TransferListener,
-        ContentProgressListener,
-        IdentityManager.SignInStateChangeListener {
+        ContentProgressListener {
     private static final String TAG = "DataHandlingService";
     private static final boolean VERBOSE = true;
     private static final boolean ALLOW_DUPLICATES = false;
@@ -266,19 +265,6 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
 
     public void submitToConnectionPool(Runnable r) {
         mConnectionThreadPool.execute(r);
-    }
-
-    /***************************************************************************************************
- * SECURITY
- **/
-    @Override
-    public void onUserSignedIn() {
-        Log.i(TAG,"entering onUserSignedIn...");
-    }
-
-    @Override
-    public void onUserSignedOut() {
-        Log.i(TAG,"entering onUserSignedOut...");
     }
 
     /***********************************************************************************************

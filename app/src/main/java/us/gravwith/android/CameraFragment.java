@@ -31,8 +31,10 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
+import android.widget.Toast;
 
 import com.github.clans.fab.FloatingActionButton;
+import com.todddavies.components.progressbar.ProgressWheel;
 
 import java.lang.ref.WeakReference;
 import java.util.UUID;
@@ -83,7 +85,8 @@ public class CameraFragment extends BaseFragment implements Camera.AutoFocusCall
 
     View container;
 
-    ViewPager overlaySwipePager;
+    private ViewPager overlaySwipePager;
+    private ProgressWheel currentProgressWheel;
 
     private OnCameraFragmentInteractionListener mListener;
 
@@ -412,7 +415,6 @@ n  */
 
     }
 
-
     @Override
     public void onDestroyView() {
         if (VERBOSE) {
@@ -429,38 +431,6 @@ n  */
         }
         super.onDestroyView();
     }
-
-
-/*    class OverlaySwipePagerAdapter extends PagerAdapter {
-
-        public Object instantiateItem(ViewGroup collection, int position) {
-
-            int resId = 0;
-            switch (position) {
-                case 0:
-                    resId = R.id.page_one;
-                    break;
-                case 1:
-                    resId = R.id.page_two;
-                    break;
-
-                case 3:
-                    resId = R.id.page_three;
-                    break;
-            }
-            return getActivity().findViewById(resId);
-        }
-
-        @Override
-        public int getCount() {
-            return 3;
-        }
-
-        @Override
-        public boolean isViewFromObject(View arg0, Object arg1) {
-            return arg0 == ((View) arg1);
-        }
-    }*/
 
     /***********************************************************************************************
      *
@@ -519,6 +489,7 @@ n  */
                 case R.id.button_camera_capture:
 
                     Activity mActivity = getActivity();
+                    captureButton = (ImageButton) v;
 
                     overlaySwipeView = mActivity.getLayoutInflater().inflate(R.layout.overlay_swipe,
                             (ViewGroup) mActivity.findViewById(R.id.layout_camera_root),
@@ -540,6 +511,9 @@ n  */
                         case CAMERA_REPLY_MODE:
                             if (Constants.LOGD) Log.d(TAG,"Taking a picture in default mode...");
                             if (value.equals("")) value = AnalyticsReporter.VALUE_CAPTURE_REPLY;
+
+                            currentProgressWheel = (ProgressWheel)overlaySwipePager.getChildAt(1)
+                                    .findViewById(R.id.progressSpinner);
 
                             captureButton = (ImageButton) v;
                             switchButton = (Button) mActivity.findViewById(R.id.button_camera_switch);
@@ -935,6 +909,8 @@ n  */
                             switch (currentCameraMode) {
 
                                 case CAMERA_DEFAULT_MODE:
+                                case CAMERA_LIVE_MODE:
+                                    /* ensure live posts have a non-empty text field */
                                     if (commentText.getText().toString().equals("")) {
                                         if (VERBOSE) Log.v(TAG,"no text was provided...");
                                         overlaySwipePager.setCurrentItem(0);
@@ -946,21 +922,15 @@ n  */
                                     ((MainActivity) getActivity())
                                             .setLiveCreateThreadInfo(commentText.getText().toString(),
                                                     commentText.getText().toString());
-
-                                    resetCameraUI(false);
-                                    stopReplyMode();
                                     break;
 
                                 case CAMERA_REPLY_MODE:
-
                                     mListener.sendMsgSaveImage(commentText, CAMERA_REPLY_MODE);
                                     ((MainActivity) getActivity()).setLiveCreateReplyInfo(
                                             commentText.getText().toString(),
                                             mListener.getCurrentThread(),
                                             mListener.getCurrentTopicARN());
 
-                                    resetCameraUI(false);
-                                    stopReplyMode();
                                     break;
                             }
                             break;
@@ -1433,18 +1403,27 @@ n  */
     @Override
     public void onCreateThreadCompleted(int responseCode) {
         Log.v(TAG, "create thread success!");
-
+        cameraButtonInstance.resetCameraUI(false);
+        stopReplyMode();
         mListener.sendToLive();
+        currentProgressWheel.stopSpinning();
     }
 
     @Override
     public void onCreateThreadStarted() {
         Log.v(TAG, "create thread started!");
+        currentProgressWheel.startSpinning();
     }
 
     @Override
     public void onCreateThreadFailed() {
         Log.e(TAG,"create thread failed...");
+        cameraButtonInstance.resetCameraUI(true);
+        currentProgressWheel.stopSpinning();
+
+        Toast.makeText(getActivity().getApplicationContext(),
+                "retry function coming soon...",
+                Toast.LENGTH_LONG).show();
     }
 
     public static void hideKeyboardFrom(Context context, View view) {
