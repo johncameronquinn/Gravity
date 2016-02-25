@@ -6,6 +6,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.graphics.drawable.Drawable;
 import android.hardware.Camera;
 import android.os.Bundle;
 import android.app.Fragment;
@@ -20,6 +21,7 @@ import android.view.MotionEvent;
 import android.view.TextureView;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.Animation;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.CheckBox;
@@ -28,6 +30,7 @@ import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 
 import com.github.clans.fab.FloatingActionButton;
 
@@ -50,7 +53,7 @@ import us.gravwith.android.util.Utility;
  *
  */
 public class CameraFragment extends BaseFragment implements Camera.AutoFocusCallback,
-        ValueAnimator.AnimatorUpdateListener, MessageHandler.CameraListener {
+        ValueAnimator.AnimatorUpdateListener, MessageHandler.CameraListener, MessageHandler.LivePostListener {
     private static final boolean VERBOSE = false;
     private static final String TAG = "CameraFragment";
     private GestureDetector gestureDetector;
@@ -1380,7 +1383,6 @@ n  */
        currentCameraMode = CAMERA_DEFAULT_MODE;
    }
 
-
     /**
      * Communication back to the activity
      *
@@ -1424,4 +1426,19 @@ n  */
         }
     }
 
+    @Override
+    public void onCreateThreadCompleted(int responseCode) {
+        Log.v(TAG, "create thread success!");
+
+    }
+
+    @Override
+    public void onCreateThreadStarted() {
+        Log.v(TAG, "create thread started!");
+    }
+
+    @Override
+    public void onCreateThreadFailed() {
+        Log.e(TAG,"create thread failed...");
+    }
 }

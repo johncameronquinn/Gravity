@@ -29,6 +29,7 @@ public class MessageHandler extends Handler{
  * INTERFACES AND LISTENERS
 **/
     private static LivePostListener mLiveListener;
+    private static LiveRefreshListener mLiveRefreshListener;
 
     private static CameraListener cameraListener;
 
@@ -39,11 +40,15 @@ public class MessageHandler extends Handler{
     }
 
     interface LivePostListener {
-        void onRefreshCompleted(int responseCode);
         void onCreateThreadCompleted(int responseCode);
         void onCreateThreadStarted();
         void onCreateThreadFailed();
     }
+
+    interface LiveRefreshListener {
+        void onRefreshComplete(int responseCode);
+    }
+
 
     interface ImageDownloadStatusListener {
         void onImageDownloadCompleted(String imageKey);
@@ -52,6 +57,10 @@ public class MessageHandler extends Handler{
 
     public static void setLivePostListener(LivePostListener livePostListener) {
         mLiveListener = livePostListener;
+    }
+
+    public static void setLiveRefreshListener(LiveRefreshListener listener) {
+        mLiveRefreshListener = listener;
     }
 
     public static void clearLivePostListener() {
@@ -155,8 +164,8 @@ public class MessageHandler extends Handler{
             case DataHandlingService.MSG_REQUEST_LIVE_THREADS:
                 if (Constants.LOGV)Log.v(LOG_TAG, "entering msg_create_thread");
 
-                if (mLiveListener != null) {
-                    mLiveListener.onRefreshCompleted(msg.arg2);
+                if (mLiveRefreshListener != null) {
+                    mLiveRefreshListener.onRefreshComplete(msg.arg2);
                 }
                 break;
 

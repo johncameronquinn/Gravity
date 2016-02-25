@@ -84,7 +84,7 @@ import java.util.UUID;
 public class MainActivity extends Activity implements CameraFragment.OnCameraFragmentInteractionListener,
 LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInteractionListener,
         ViewPager.OnPageChangeListener, PhotoFragment.onPreviewInteractionListener,
-        ErrorReceiver.SecurityErrorListener, MessageHandler.LivePostListener, AnalyticsReporter.AnalyticsReportingCallbacks {
+        ErrorReceiver.SecurityErrorListener, AnalyticsReporter.AnalyticsReportingCallbacks, MessageHandler.LiveRefreshListener {
 
     private static String TAG = "MainActivity";
     private static final boolean VERBOSE = false;
@@ -242,7 +242,7 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
 
         messageHandler.setParent(this);
 
-        MessageHandler.setLivePostListener(this);
+        MessageHandler.setLiveRefreshListener(this);
 
         HandlerThread handlerThread = new HandlerThread("CameraHandlerThread",
                 Process.THREAD_PRIORITY_FOREGROUND);
@@ -507,7 +507,7 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
     protected void onRestart() {
         if (VERBOSE) Log.d(TAG, "entering onRestart...");
         super.onRestart();
-        MessageHandler.setLivePostListener(this);
+        MessageHandler.setLiveRefreshListener(this);
         if (VERBOSE) Log.d(TAG, "exiting onRestart...");
     }
 
@@ -1263,6 +1263,7 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
                     if (CameraFragReference.get() == null){
                         CameraFragReference = new WeakReference<>(CameraFragment.newInstance(0));
                         MessageHandler.setCameraListener(CameraFragReference.get());
+                        MessageHandler.setLivePostListener(CameraFragReference.get());
                     }
 
                     out = CameraFragReference.get();
@@ -3198,23 +3199,7 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
     }
 
     @Override
-    public void onCreateThreadCompleted(int responseCode) {
-        sendToLive();
-    }
-
-    @Override
-    public void onCreateThreadStarted() {
-
-    }
-
-    @Override
-    public void onCreateThreadFailed() {
-
-    }
-
-
-    @Override
-    public void onRefreshCompleted(int responseCode) {
+    public void onRefreshComplete(int responseCode) {
         if (LiveFragReference.get()!=null) {
             LiveFragReference.get().resetLiveAdapter();
         }
