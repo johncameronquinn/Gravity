@@ -2,14 +2,7 @@ apply plugin: 'com.android.application'
 apply plugin: 'com.google.gms.google-services'
 
 android {
-    signingConfigs {
-        config {
-            keyAlias 'Gravity-Android'
-            keyPassword 'NoHalfStepp1n'
-            storeFile file('/home/caliamara/gravity.keystore')
-            storePassword 'l9ybyp6md77'
-        }
-    }
+
     compileSdkVersion 23
     buildToolsVersion '23.0.1'
     defaultConfig {
@@ -19,7 +12,6 @@ android {
         versionCode 33
         versionName "6.0.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
-        signingConfig signingConfigs.config
     }
     buildTypes {
         release {
