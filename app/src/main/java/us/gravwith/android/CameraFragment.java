@@ -845,6 +845,7 @@ n  */
                     mListener.enableScrolling();
 
                     Utility.clearTextAndFocus(commentText);
+
                     //commentText.setVisibility(View.INVISIBLE);
                     //captureButton.setVisibility(View.VISIBLE);
                     captureLayout.setVisibility(View.VISIBLE);
@@ -885,6 +886,7 @@ n  */
 
                     mListener.sendMsgStartPreview();
                     mListener.enableScrolling();
+                    Utility.clearTextAndFocus(commentText);
 
                     //captureButton.setVisibility(View.VISIBLE);
                     captureLayout.setVisibility(View.VISIBLE);
@@ -907,7 +909,8 @@ n  */
             view.setImageBitmap(null);
             view.setVisibility(View.GONE);
 
-            mListener.hideSoftKeyboard();
+//            mListener.hideSoftKeyboard();
+            hideKeyboardFrom(getActivity(),commentText);
 
             cameraRoot.removeView(overlaySwipeView);
         }
@@ -1400,6 +1403,7 @@ n  */
         void sendMsgSaveImage(EditText comment, int postWhere);
         void sendMsgSaveImage(EditText comment, int postWhere, String messageTarget);
         void sendMsgSwitchCamera();
+        void sendToLive();
         int sendMsgAutoFocus(MotionEvent event);
         UUID getCurrentThread();
         String getCurrentTopicARN();
@@ -1430,6 +1434,7 @@ n  */
     public void onCreateThreadCompleted(int responseCode) {
         Log.v(TAG, "create thread success!");
 
+        mListener.sendToLive();
     }
 
     @Override
@@ -1440,5 +1445,10 @@ n  */
     @Override
     public void onCreateThreadFailed() {
         Log.e(TAG,"create thread failed...");
+    }
+
+    public static void hideKeyboardFrom(Context context, View view) {
+        InputMethodManager imm = (InputMethodManager) context.getSystemService(Activity.INPUT_METHOD_SERVICE);
+        imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
     }
 }

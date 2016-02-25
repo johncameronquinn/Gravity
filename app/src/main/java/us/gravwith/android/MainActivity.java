@@ -2005,18 +2005,19 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
      * @param filePath path to where the image is
      */
     public void setLiveFilePath(String filePath) {
-        if (cancelPost) { //true if the user aborted posting to live
+        /*if (cancelPost) { //true if the user aborted posting to live
             new File(filePath).delete();
             cancelPost = false;
             liveData.clear();
             return;
-        }
+        }*/
+
         if (liveData == null) {
             liveData = new Bundle(1);
         }
         liveData.putString(Constants.KEY_S3_KEY, filePath);
         liveData.putString(SQLiteDbContract.LiveEntry.COLUMN_NAME_FILEPATH, filePath);
-        if (liveData.size() >= 5) {
+        if (liveData.size() >= 4) {
             sendMsgCreateThread(liveData);
             liveData.clear();
         }

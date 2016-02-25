@@ -16,8 +16,8 @@ android {
         applicationId "us.gravwith.android"
         minSdkVersion 17
         targetSdkVersion 23
-        versionCode 32
-        versionName "5.7.0"
+        versionCode 33
+        versionName "6.0.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         signingConfig signingConfigs.config
     }
@@ -44,22 +44,22 @@ android {
             minSdkVersion 17
             applicationId 'us.gravwith.android'
             targetSdkVersion 23
-            versionCode 32
-            versionName "5.7.0-dev"
+            versionCode 33
+            versionName "6.0.0-dev"
         }
         sales {
             minSdkVersion 17
             applicationId 'us.gravwith.android'
             targetSdkVersion 23
-            versionCode 32
-            versionName "5.7.0-sales"
+            versionCode 33
+            versionName "6.0.0-sales"
         }
         user {
             minSdkVersion 17
             applicationId 'us.gravwith.android'
             targetSdkVersion 23
-            versionCode 32
-            versionName "5.7.0-user"
+            versionCode 33
+            versionName "6.0.0-user"
         }
     }
 }
