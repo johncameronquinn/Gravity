@@ -77,6 +77,10 @@ public abstract class ServerTask implements ServerConnectRunnable.ServerConnectM
         throw new RuntimeException("Child classes should override this method for use");
     }
 
+    public Runnable getUploadRunnable() {
+        return null;
+    }
+
     public abstract String getURLPath();
 
     public void initializeTask(DataHandlingService mService, Bundle dataBundle, String sessionToken) {

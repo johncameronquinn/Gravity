@@ -6,6 +6,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.hardware.Camera;
 import android.os.Bundle;
@@ -884,7 +885,7 @@ n  */
             view.setVisibility(View.GONE);
 
 //            mListener.hideSoftKeyboard();
-            hideKeyboardFrom(getActivity(),commentText);
+            Utility.hideKeyboardFrom(getActivity(),commentText);
 
             cameraRoot.removeView(overlaySwipeView);
         }
@@ -922,6 +923,8 @@ n  */
                                     ((MainActivity) getActivity())
                                             .setLiveCreateThreadInfo(commentText.getText().toString(),
                                                     commentText.getText().toString());
+
+                                    Utility.hideKeyboardFrom(getActivity(),commentText);
                                     break;
 
                                 case CAMERA_REPLY_MODE:
@@ -931,6 +934,7 @@ n  */
                                             mListener.getCurrentThread(),
                                             mListener.getCurrentTopicARN());
 
+                                    Utility.hideKeyboardFrom(getActivity(),commentText);
                                     break;
                             }
                             break;
@@ -1405,29 +1409,61 @@ n  */
         Log.v(TAG, "create thread success!");
         cameraButtonInstance.resetCameraUI(false);
         stopReplyMode();
-        mListener.sendToLive();
+
+        currentProgressWheel.setRimColor(R.color.cyber_dark_green);
+        currentProgressWheel.setText("Success!");
         currentProgressWheel.stopSpinning();
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    Thread.sleep(1000L);
+                } catch (InterruptedException e) {
+                    Log.e(TAG, "run: interrupted exception during sleep, ignore", e);
+                }
+                currentProgressWheel.post(new resetLoadingWheelRunnable());
+            }
+        }).start();
     }
 
     @Override
     public void onCreateThreadStarted() {
         Log.v(TAG, "create thread started!");
+        currentProgressWheel.setText("Creating Thread");
         currentProgressWheel.startSpinning();
     }
 
     @Override
     public void onCreateThreadFailed() {
         Log.e(TAG,"create thread failed...");
+        currentProgressWheel.setText("Creating Thread Failed.");
+        currentProgressWheel.setRimColor(Color.RED);
         cameraButtonInstance.resetCameraUI(true);
         currentProgressWheel.stopSpinning();
+
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    Thread.sleep(500L);
+                } catch (InterruptedException e) {
+                    Log.e(TAG, "run: interrupted exception during sleep, ignore", e);
+                }
+                currentProgressWheel.post(new resetLoadingWheelRunnable());
+            }
+        }).start();
 
         Toast.makeText(getActivity().getApplicationContext(),
                 "retry function coming soon...",
                 Toast.LENGTH_LONG).show();
     }
 
-    public static void hideKeyboardFrom(Context context, View view) {
-        InputMethodManager imm = (InputMethodManager) context.getSystemService(Activity.INPUT_METHOD_SERVICE);
-        imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
+    private class resetLoadingWheelRunnable implements Runnable {
+        @Override
+        public void run() {
+            currentProgressWheel.setText("");
+            currentProgressWheel.setRimColor(R.color.cyber_grey_alpha);
+            mListener.sendToLive();
+        }
     }
 }

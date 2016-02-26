@@ -138,20 +138,22 @@ public class MessageHandler extends Handler{
                             Toast.LENGTH_LONG)
                             .show();*/
                 switch (msg.arg1) {
+
                     case DataHandlingService.TASK_COMPLETED:
                         if (mLiveListener != null) {
                             mLiveListener.onCreateThreadCompleted(msg.arg2);
                         }
-
                         break;
 
-                    case DataHandlingService.REQUEST_STARTED:
+                    case DataHandlingService.IMAGE_UPLOAD_STARTED:
                         if (mLiveListener != null) {
                             mLiveListener.onCreateThreadStarted();
                         }
                         break;
 
-
+                    case DataHandlingService.TOPIC_CREATION_FAILED:
+                    case DataHandlingService.IMAGE_UPLOAD_FAILED:
+                    case DataHandlingService.CONNECTION_FAILED:
                     case DataHandlingService.REQUEST_FAILED:
                         if (mLiveListener != null) {
                             mLiveListener.onCreateThreadFailed();

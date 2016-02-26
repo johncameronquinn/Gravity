@@ -31,14 +31,14 @@
                 android:layout_width="200dp"
                 android:layout_height="200dp"
                 android:layout_gravity="center"
-                ProgressWheel:text="Posting..."
-                ProgressWheel:textColor="#222"
-                ProgressWheel:textSize="14sp"
-                ProgressWheel:rimColor="#330097D6"
-                ProgressWheel:barLength="60dp"
-                ProgressWheel:barColor="#0097D6"
-                ProgressWheel:barWidth="5dp"
-                ProgressWheel:rimWidth="2dp"  />
+                ProgressWheel:pwText=""
+                ProgressWheel:pwTextSize="20sp"
+                ProgressWheel:pwRimColor="@color/cyber_grey"
+                ProgressWheel:pwBarColor="@color/cyber_dark_blue"
+                ProgressWheel:pwTextColor="@android:color/white"
+                ProgressWheel:pwBarLength="60dp"
+                ProgressWheel:pwBarWidth="5dp"
+                ProgressWheel:pwRimWidth="2dp"  />
         </FrameLayout>
 
     </us.gravwith.android.view.StaticViewPager>

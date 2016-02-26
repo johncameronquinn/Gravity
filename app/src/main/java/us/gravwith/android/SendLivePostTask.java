@@ -1,6 +1,13 @@
 package us.gravwith.android;
 
+import android.os.Bundle;
 import android.util.Log;
+
+import com.amazonaws.mobile.content.ContentItem;
+import com.amazonaws.mobile.content.UserFileManager;
+
+import java.io.File;
+import java.lang.ref.WeakReference;
 
 /**
  * Created by John Quinn on 11/9/15.
@@ -8,12 +15,16 @@ import android.util.Log;
  * Attempts to send a particular thread to the server, and request
  */
 class SendLivePostTask extends ServerTask implements SendLivePostRunnable.LivePostMethods,
-    RequestLiveThreadsRunnable.ThreadRequestMethods, CreateGCMTopicRunnable.CreateGCMTopicMethods {
+    RequestLiveThreadsRunnable.ThreadRequestMethods, CreateGCMTopicRunnable.CreateGCMTopicMethods,
+        UploadImageRunnable.UploadImageMethods {
 
     private Runnable mRequestRunnable;
     private Runnable mResponseRunnable;
     private Runnable mOtherRunnable;
+    private Runnable mUploadRunnable;
     private String topicARN;
+    private File imageFile;
+    private WeakReference<UserFileManager> mFileManagerRef;
 
     private boolean VERBOSE = true;
     private final String TAG = "SendLivePostTask";
@@ -22,12 +33,30 @@ class SendLivePostTask extends ServerTask implements SendLivePostRunnable.LivePo
     public SendLivePostTask() {
         mServerConnectRunnable = new ServerConnectRunnable(this);
         mResponseRunnable = new RequestLiveThreadsRunnable(this);
-        mRequestRunnable = new CreateGCMTopicRunnable(this);
-        mOtherRunnable = new SendLivePostRunnable(this);
+        mRequestRunnable = new SendLivePostRunnable(this);
+        mOtherRunnable = new CreateGCMTopicRunnable(this);
+        mUploadRunnable = new UploadImageRunnable(this);
     }
 
     public void setTopicARN(String arn) {
         this.topicARN = arn;
+    }
+
+    public void setFileManager(UserFileManager fileUploader) {
+        mFileManagerRef = new WeakReference<>(fileUploader);
+    }
+
+    @Override
+    public UserFileManager getFileManager() {
+        return mFileManagerRef.get();
+    }
+
+    public void setImageFile(File fileToSend) {
+        imageFile = fileToSend;
+    }
+
+    public File getImageFile() {
+        return imageFile;
     }
 
     public String getTopicARN() {
@@ -52,6 +81,11 @@ class SendLivePostTask extends ServerTask implements SendLivePostRunnable.LivePo
     @Override
     public Runnable getOtherRunnable() {
         return mOtherRunnable;
+    }
+
+    @Override
+    public Runnable getUploadRunnable() {
+        return mUploadRunnable;
     }
 
     @Override
@@ -152,4 +186,31 @@ class SendLivePostTask extends ServerTask implements SendLivePostRunnable.LivePo
         handleDownloadState(outState,this);
     }
 
+    @Override
+    public void onSuccess(ContentItem contentItem) {
+        handleDownloadState(DataHandlingService.IMAGE_UPLOAD_COMPLETED,this);
+    }
+
+    @Override
+    public void onProgressUpdate(String filePath, boolean isWaiting, long bytesCurrent, long bytesTotal) {
+        //todo pass this
+    }
+
+    @Override
+    public void onError(String filePath, Exception ex) {
+        Log.e(TAG,"Error occurred for filepath " + filePath,ex);
+        handleDownloadState(DataHandlingService.IMAGE_UPLOAD_FAILED,this);
+    }
+
+    public void onUploadStarted() {
+        handleDownloadState(DataHandlingService.IMAGE_UPLOAD_STARTED,this);
+    }
+
+    public void recycle() {
+/*        if (mFileManagerRef != null) {
+            mFileManagerRef.clear();
+        }*/
+        imageFile = null;
+        super.recycle();
+    }
 }

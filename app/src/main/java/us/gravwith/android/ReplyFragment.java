@@ -423,7 +423,9 @@ public class ReplyFragment extends BaseFragment implements LoaderManager.LoaderC
     }
 
     public void closeRadical() {
-        radicalMenuView.close(false);
+        if (radicalMenuView != null) {
+            radicalMenuView.close(false);
+        }
     }
 
     /**

@@ -18,7 +18,7 @@ import javax.net.ssl.HttpsURLConnection;
  */
 public class SendBlankObjectRunnable implements Runnable {
 
-    private final boolean VERBOSE = true;
+    private final boolean VERBOSE = false;
     private final String TAG = SendBlankObjectRunnable.class.getSimpleName();
     private final BlankObjectMethods mService;
 

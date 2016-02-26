@@ -3222,7 +3222,7 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
     }
 
     public void updateReplyViews() {
-        if (ReplyFragReference.get() != null) {
+        if (ReplyFragReference.get() != null && ReplyFragReference.get().getView() != null) {
             ReplyFragReference.get().setOpInfo(currentThread,
                     currentTopicImageKey,currentTopicDescription, currentTopicTime);
         }

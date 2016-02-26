@@ -343,6 +343,7 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
 
     static final int MSG_UNSUBSCRIBE_FROM_TOPIC = 24;
 
+
     /**
      * class 'IncomingHandler'
      * <p/>
@@ -383,6 +384,8 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
             Bundle data = msg.getData();
             data.putInt(REQUEST_TYPE, msg.what);
 
+            String key;
+            File file;
 
             switch (msg.what) {
                 case MSG_BUILD_CLIENT:
@@ -447,21 +450,22 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
                     data.putString(Constants.KEY_S3_DIRECTORY, Constants.KEY_S3_LIVE_DIRECTORY);
                     uploadImageToS3(data);*/
 
-                        data.putInt(REQUEST_TYPE, MSG_CREATE_THREAD);
-
-                        if (data.getString(Constants.KEY_S3_KEY, "").equals("")) {
-                            if (Constants.LOGD) Log.d(TAG, "no image filepath was provided," +
-                                    " this must be a text post, so uploading straight to the server.");
-                            task = new SendLivePostTask();
+                        key = data.getString(Constants.KEY_S3_KEY);
+                        if (!key.contains("/")) {
+                            if (VERBOSE) Log.v(TAG,
+                                    "File does not contain a path separator, assuming cache directory...");
+                            file = new File(getCacheDir(), key);
                         } else {
-                            if (Constants.LOGD)
-                                Log.d(TAG, "contained an image filepath, uploading " +
-                                        "the image there to s3 first...");
-
-                            data.putString(Constants.KEY_S3_DIRECTORY, Constants.KEY_S3_LIVE_DIRECTORY);
-                            uploadImageToS3(data);
+                            if (VERBOSE) Log.v(TAG,
+                                    "file contains a path separator... uploading directly..");
+                            file = new File(key);
                         }
 
+                        data.putInt(REQUEST_TYPE, MSG_CREATE_THREAD);
+                        data.putString(Constants.KEY_S3_DIRECTORY, Constants.KEY_S3_LIVE_DIRECTORY);
+                        task = new SendLivePostTask();
+                        ((SendLivePostTask)task).setFileManager(userFileManager);
+                        ((SendLivePostTask)task).setImageFile(file);
                         break;
 
                     case MSG_DELETE_IMAGE:
@@ -635,7 +639,12 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
 
                 if (task != null && AuthenticationManager.getCurrentAccessToken() != null) {
                     task.initializeTask(irs.get(), data, AuthenticationManager.getCurrentAccessToken(), msg.what);
-                    mConnectionThreadPool.execute(task.getServerConnectRunnable());
+
+                    if (task.getUploadRunnable() != null) {
+                        mConnectionThreadPool.execute(task.getUploadRunnable());
+                    } else {
+                        mConnectionThreadPool.execute(task.getServerConnectRunnable());
+                    }
                 }
             } else {
                 Log.v(TAG,"client was not authenticated!");
@@ -705,6 +714,9 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
     static final int TOPIC_CREATION_FAILED = 8;
     static final int TOPIC_CREATED = 9;
     static final int INITIALIZE_TASK_COMPLETED = 10;
+    static final int IMAGE_UPLOAD_STARTED = 11;
+    static final int IMAGE_UPLOAD_COMPLETED = 12;
+    static final int IMAGE_UPLOAD_FAILED= 13;
 
     /**
      * method 'handleDownloadState'
@@ -718,6 +730,22 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
         Message responseMessage;
 
         switch (state) {
+            case IMAGE_UPLOAD_FAILED:
+                if (Constants.LOGD) Log.d(TAG, "Image Upload Failed...");
+                responseMessage = Message.obtain(null, task.getResponseWhat(), state, 0);
+                break;
+
+            case IMAGE_UPLOAD_STARTED:
+                if (Constants.LOGD) Log.d(TAG, "Image Upload Started...");
+                responseMessage = Message.obtain(null, task.getResponseWhat(), state, 0);
+                break;
+
+            case IMAGE_UPLOAD_COMPLETED:
+                if (Constants.LOGD) Log.d(TAG, "Image Upload Completed...");
+                responseMessage = Message.obtain(null, task.getResponseWhat(), state, 0);
+                mConnectionThreadPool.execute(task.getOtherRunnable());
+                break;
+
             case CONNECTION_FAILED:
                 if (Constants.LOGD) Log.d(TAG, "Connection failed...");
                 responseMessage = Message.obtain(null, task.getResponseWhat(), state, task.getResponseCode());
@@ -781,7 +809,7 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
                 responseMessage = Message.obtain(null, task.getResponseWhat(), state, 0);
 
                 //now run the http request, which is stored in otherRunnable in this case
-                mRequestThreadPool.execute(task.getOtherRunnable());
+                mConnectionThreadPool.execute(task.getServerConnectRunnable());
                 break;
 
             case TASK_COMPLETED:
@@ -801,18 +829,23 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
                 if (Constants.LOGD) Log.d(TAG, "Task completed... by name: " + task.toString());
                 break;
 
+
             default:
                 throw new RuntimeException("Invalid State received in DataHandlingService");
         }
 
+        if (responseMessage != null && replyMessenger != null) {
             try {
                 replyMessenger.send(responseMessage);
             } catch (RemoteException e) {
-                Log.e(TAG, "error responding to UI listeners...",e);
-            } catch (NullPointerException e) {
-                Log.e(TAG, "replyMessenger was null... this is bad. Handle this.",e);
-                //// FIXME: 11/29/15 this nullpointerexception should never, ever, occur
+                Log.e(TAG, "error responding to UI listeners...", e);
+            } catch (Exception e) {
             }
+                /* catch (NullPointerException e) {
+                Log.e(TAG, "replyMessenger was null... this is bad. Handle this.", e);
+                //// FIXME: 11/29/15 this nullpointerexception should never, ever, occur
+            }*/
+        }
 
     }
 
@@ -1283,10 +1316,6 @@ public class DataHandlingService extends Service implements GoogleApiClient.Conn
 
                     case MSG_SEND_MESSAGE:
                         task = new SendMessageTask();
-                        break;
-
-                    case MSG_CREATE_THREAD:
-                        task = new SendLivePostTask();
                         break;
 
                     case MSG_REPLY_TO_THREAD:

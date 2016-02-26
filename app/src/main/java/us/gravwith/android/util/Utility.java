@@ -1,5 +1,6 @@
 package us.gravwith.android.util;
 
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -10,6 +11,7 @@ import android.provider.Settings;
 import android.util.Log;
 import android.util.TimeUtils;
 import android.view.View;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.TextView;
 
 import com.fasterxml.jackson.core.JsonGenerator;
@@ -82,6 +84,12 @@ public class Utility {
         Long timePassed = System.currentTimeMillis() - inSeconds*1000L;
 
         out = TimeUnit.MILLISECONDS.toSeconds(timePassed);
+
+        //return now if the time is negative
+        if (out < 0) {
+            return "now";
+        }
+
         if (out > 59) {
             out = TimeUnit.MILLISECONDS.toMinutes(timePassed);
             if (out > 59) {
@@ -196,5 +204,11 @@ public class Utility {
 
     public static String dehyphenUUID(UUID uuid) {
         return uuid.toString().replaceAll("-","");
+    }
+
+
+    public static void hideKeyboardFrom(Context context, View view) {
+        InputMethodManager imm = (InputMethodManager) context.getSystemService(Activity.INPUT_METHOD_SERVICE);
+        imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
     }
 }
