@@ -73,8 +73,9 @@ public class ServerConnectRunnable implements Runnable {
 
     private final int BASE_RE_ATTEMPT_DELAY = 1000;
 
-    private static final String SERVER_URL = "gravitybackend.ddns.net";
-    private static final String SERVER_URL_SANDBOX = "dev-gravity.ddns.net";
+    public static final String SERVER_URL = "gravitybackend.ddns.net";
+    public static final String SERVER_URL_SANDBOX = "dev-gravity.ddns.net";
+    //public static final String SERVER_URL_SANDBOX = "ec2-52-90-8-233.compute-1.amazonaws.com";
 
     public ServerConnectRunnable (ServerConnectMethods methods){
         mTask = methods;

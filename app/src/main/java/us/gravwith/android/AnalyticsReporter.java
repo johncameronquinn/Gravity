@@ -7,6 +7,8 @@ import android.view.View;
 
 import java.util.UUID;
 
+import us.gravwith.android.util.Validate;
+
 /**
  * Created by John C. Quinn on 2/6/16.
  */
@@ -203,7 +205,9 @@ public class AnalyticsReporter {
     }
 
     public void ReportViewEvent(UUID photoKey) {
-        ReportBehaviorEvent(ANALYTICS_ACTION_VIEW, photoKey.toString());
+        if (photoKey!=null) {
+            ReportBehaviorEvent(ANALYTICS_ACTION_VIEW, photoKey.toString());
+        } //todo remove this
     }
 
     public void ReportHideEvent(String photoKey) {

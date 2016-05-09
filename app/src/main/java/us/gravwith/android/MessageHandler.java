@@ -163,8 +163,38 @@ public class MessageHandler extends Handler{
 
                 break;
 
+            case DataHandlingService.MSG_REPLY_TO_THREAD:
+                if (Constants.LOGV)Log.v(LOG_TAG, "entering msg_reply_to_thread");
+                 /*   Toast.makeText(activity.get(),
+                            "created live thread info received...",
+                            Toast.LENGTH_LONG)
+                            .show();*/
+                switch (msg.arg1) {
+
+                    case DataHandlingService.TASK_COMPLETED:
+                        if (mLiveListener != null) {
+                            mLiveListener.onCreateThreadCompleted(msg.arg2);
+                        }
+                        break;
+
+                    case DataHandlingService.CONNECTION_STARTED:
+                        if (mLiveListener != null) {
+                            mLiveListener.onCreateThreadStarted();
+                        }
+                        break;
+
+                    case DataHandlingService.CONNECTION_FAILED:
+                    case DataHandlingService.REQUEST_FAILED:
+                        if (mLiveListener != null) {
+                            mLiveListener.onCreateThreadFailed();
+                        }
+                        break;
+                }
+
+                break;
+
             case DataHandlingService.MSG_REQUEST_LIVE_THREADS:
-                if (Constants.LOGV)Log.v(LOG_TAG, "entering msg_create_thread");
+                if (Constants.LOGV)Log.v(LOG_TAG, "entering msg_request_live_threads");
 
                 if (mLiveRefreshListener != null) {
                     mLiveRefreshListener.onRefreshComplete(msg.arg2);

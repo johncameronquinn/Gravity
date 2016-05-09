@@ -1429,7 +1429,17 @@ n  */
     @Override
     public void onCreateThreadStarted() {
         Log.v(TAG, "create thread started!");
-        currentProgressWheel.setText("Creating Thread");
+
+        switch (currentCameraMode) {
+            case CAMERA_LIVE_MODE:
+            case CAMERA_DEFAULT_MODE:
+                currentProgressWheel.setText("Creating Thread");
+                break;
+
+            case CAMERA_REPLY_MODE:
+                currentProgressWheel.setText("Replying");
+                break;
+        }
         currentProgressWheel.startSpinning();
     }
 
