@@ -142,7 +142,7 @@ public class PhotoManager {
     private PhotoManager() {
         if (Constants.LOGV) Log.v(TAG,"entering PhotoManager constructor...");
 
-        if (BuildConfig.DEBUG) {
+        if (BuildConfig.DEBUG && Constants.SANDBOX_MODE) {
             STORAGE_PREFIX = "/s3_" + AWSConfiguration.AMAZON_CONTENT_DELIVERY_SANDBOX_S3_BUCKET+ "/content/";
         } else {
             STORAGE_PREFIX = "/s3_" + AWSConfiguration.AMAZON_CONTENT_DELIVERY_S3_BUCKET+ "/content/";

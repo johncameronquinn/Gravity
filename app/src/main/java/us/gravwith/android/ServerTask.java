@@ -149,7 +149,7 @@ public abstract class ServerTask implements ServerConnectRunnable.ServerConnectM
     }
 
     public InputStream getCAInput() {
-        return mService.getResources().openRawResource(R.raw.ca);
+        return null;
     }
 
     public void recycle() {

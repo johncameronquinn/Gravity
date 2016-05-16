@@ -1502,7 +1502,7 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
                     } else {
                         if (VERBOSE) Log.v(TAG,"side-by-side disabled, replacing display...");
                         localFragmentTransaction2.replace(
-                                R.id.fragmentHost,
+                                 R.id.fragmentHost,
                                 photoFragment,
                                 Constants.PHOTO_FRAGMENT_TAG);
 

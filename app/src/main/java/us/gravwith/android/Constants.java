@@ -8,8 +8,22 @@ import java.util.Locale;
  */
 
 public final class Constants {
-    //modes
+
+    /* these switches disable/enable functionality, and are for debugging ONLY */
+    /**
+     * this mode will instruct the client to loopback all posts to itself.
+     * any content creation will be immediately inserted into its own contentprovider
+     *
+     * the background process is still started, but all requests will be ignored
+     */
     public static boolean client_only_mode = false;
+
+    /**
+     * this mode will manually instruct the client not connect to the sandbox EC2 instance
+     *
+     * normally, every debug build is automatically sandboxed
+     */
+    public static boolean SANDBOX_MODE = false;
 
 
     // Defines a custom Intent action
