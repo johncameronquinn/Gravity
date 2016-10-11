@@ -23,21 +23,19 @@ package us.gravwith.android;
  */
 
 
+import android.app.Activity;
+import android.content.Context;
+import android.content.Intent;
+import android.os.Bundle;
+import android.support.v4.content.LocalBroadcastManager;
+import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.EditText;
+import android.widget.FrameLayout;
 
-        import android.app.Activity;
-        import android.content.Context;
-        import android.content.Intent;
-        import android.os.Bundle;
-        import android.app.Fragment;
-        import android.support.v4.content.LocalBroadcastManager;
-        import android.util.Log;
-        import android.view.LayoutInflater;
-        import android.view.View;
-        import android.view.ViewGroup;
-        import android.widget.EditText;
-        import android.widget.FrameLayout;
-
-public class PhotoFragment extends Fragment implements View.OnClickListener {
+public class PhotoFragment extends BaseFragment implements View.OnClickListener {
     // Constants
     private static final String LOG_TAG = "ImageDownloaderThread";
     private static final String PHOTO_URL_KEY = "us.gravwith.android.PHOTO_URL_KEY";

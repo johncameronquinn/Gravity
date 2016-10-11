@@ -2,6 +2,7 @@ package us.gravwith.android;
 
 
 import android.app.Activity;
+import android.app.Fragment;
 import android.app.LoaderManager;
 import android.content.Context;
 import android.content.CursorLoader;
@@ -10,8 +11,6 @@ import android.content.Loader;
 import android.database.Cursor;
 import android.graphics.drawable.TransitionDrawable;
 import android.os.Bundle;
-import android.app.Fragment;
-import android.os.Looper;
 import android.os.Message;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
@@ -24,7 +23,6 @@ import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.github.clans.fab.FloatingActionMenu;
 
@@ -46,12 +44,12 @@ public class ReplyFragment extends BaseFragment implements LoaderManager.LoaderC
 
     public static final int REPLY_LOADER_ID = 3;
 
-    private final boolean VERBOSE = false;
+    private final boolean VERBOSE = true;
     private final String TAG = ReplyFragment.class.getSimpleName();
 
     private LiveFragment.onLiveFragmentInteractionListener mListener;
     private ListView mListView;
-    private TextView replyErrorText;
+    private TextView mReplyEditText;
     private RelativeLayout textingFooterView;
     private RelativeLayout textingParentView;
 
@@ -81,6 +79,14 @@ public class ReplyFragment extends BaseFragment implements LoaderManager.LoaderC
 
         ReplyFragment fragment = new ReplyFragment();
         return fragment;
+    }
+
+
+
+    @Override
+    public void onActivityCreated(Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+
     }
 
     /**
@@ -235,7 +241,6 @@ public class ReplyFragment extends BaseFragment implements LoaderManager.LoaderC
 
         radicalMenuView = (FloatingActionMenu)v.findViewById(R.id.reply_radical_menu);
         //radicalMenuView.setOnMenuToggleListener(this);
-        replyErrorText = (TextView)v.findViewById(R.id.textView_reply_error);
         replyCountView = (TextView)v.findViewById(R.id.textView_reply_count);
 
         v.setOnTouchListener(new View.OnTouchListener() {
@@ -268,6 +273,20 @@ public class ReplyFragment extends BaseFragment implements LoaderManager.LoaderC
         return v;
     }
 
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+
+        if (VERBOSE) {Log.v(TAG, "entering onSaveInstanceState...");}
+
+            if (mReplyEditText!=null && mReplyEditText.getText().length()>0) {
+                if (VERBOSE) {Log.v(TAG, "Saving....: " + mReplyEditText.getText().toString());}
+                outState.putString(Constants.KEY_TEXT,mReplyEditText.getText().toString());
+            } else {
+                if (VERBOSE) {Log.v(TAG, "No text was available to save");}
+            }
+        if (VERBOSE) {Log.v(TAG, "exiting onSaveInstanceState...");}
+    }
 
     @Override
     public void onDestroyView() {
@@ -282,7 +301,7 @@ public class ReplyFragment extends BaseFragment implements LoaderManager.LoaderC
         mListView = null;
         radicalMenuView = null;
         textingFooterView = null;
-        replyErrorText = null;
+        mReplyEditText = null;
         replyCountView = null;
         opDescription = null;
         opPhoto = null;
@@ -326,6 +345,7 @@ public class ReplyFragment extends BaseFragment implements LoaderManager.LoaderC
 
     @Override
     public void onViewStateRestored(Bundle savedInstanceState) {
+        Log.v(TAG,"onViewStateRestored: entering...");
         super.onViewStateRestored(savedInstanceState);
 
         View view = getView();
@@ -337,6 +357,12 @@ public class ReplyFragment extends BaseFragment implements LoaderManager.LoaderC
             //view.findViewById(R.id.button_reply_capture).setOnClickListener(replyButtonListener);
             resetDisplay();
         }
+
+        if (savedInstanceState!=null){
+            Log.v(TAG,"onViewStateRestored: savestate is not null");
+        }
+
+        Log.v(TAG,"onViewStateRestored: exiting...");
     }
 
     @Override
@@ -672,13 +698,14 @@ public class ReplyFragment extends BaseFragment implements LoaderManager.LoaderC
 
                 //show footer view
                 textingFooterView.setVisibility(View.VISIBLE);
+                mReplyEditText = (EditText)textingFooterView.findViewById(R.id.editText_reply_comment);
             } else {
                 //hide footer view
                 textingFooterView.setVisibility(View.GONE);
 
                 //show parent view
                 textingParentView.setVisibility(View.VISIBLE);
-
+                mReplyEditText = (EditText)textingParentView.findViewById(R.id.editText_reply_comment);
             }
         }
 

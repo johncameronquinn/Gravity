@@ -3,6 +3,7 @@ package us.gravwith.android;
 import android.Manifest;
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.Fragment;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
 import android.content.BroadcastReceiver;
@@ -26,11 +27,18 @@ import android.graphics.drawable.BitmapDrawable;
 import android.hardware.Camera;
 import android.media.ThumbnailUtils;
 import android.net.Uri;
-import android.os.*;
+import android.os.Bundle;
+import android.os.Environment;
+import android.os.Handler;
+import android.os.HandlerThread;
+import android.os.IBinder;
+import android.os.Looper;
+import android.os.Message;
+import android.os.Messenger;
 import android.os.Process;
+import android.os.RemoteException;
 import android.preference.PreferenceManager;
 import android.provider.MediaStore;
-import android.app.Fragment;
 import android.support.v13.app.FragmentStatePagerAdapter;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
@@ -38,6 +46,7 @@ import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.view.ViewPager;
 import android.util.AttributeSet;
 import android.util.Log;
+import android.util.SparseArray;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.MotionEvent;
@@ -55,12 +64,6 @@ import android.widget.Toast;
 
 import com.amazonaws.AmazonClientException;
 import com.amazonaws.mobile.AWSMobileClient;
-import com.amazonaws.mobile.user.IdentityManager;
-
-//import us.gravwith.android.dev.ContentDeliveryDemoFragment;
-import us.gravwith.android.util.ImageUtils;
-import us.gravwith.android.util.LogUtils;
-import us.gravwith.android.util.Utility;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -71,6 +74,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 import java.util.UUID;
+
+import us.gravwith.android.util.ImageUtils;
+import us.gravwith.android.util.LogUtils;
+import us.gravwith.android.util.Utility;
+
+//import us.gravwith.android.dev.ContentDeliveryDemoFragment;
 
 /**
  * Author/Copyright John C. Quinn All Rights Reserved.
@@ -110,11 +119,9 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
     private static final String CAMERA_PAGER_TITLE = "Camera";
     private static final String REPLY_PAGER_TITLE = "Reply";
 
-    private static WeakReference<MessageFragment> MessageFragReference = new WeakReference<>(null);
-    private static WeakReference<CameraFragment> CameraFragReference = new WeakReference<>(null);
-    private static WeakReference<LiveFragment> LiveFragReference = new WeakReference<>(null);
-    private static WeakReference<ReplyFragment> ReplyFragReference = new WeakReference<>(null);
-    private static WeakReference<LocalFragment> LocalFragReference = new WeakReference<>(null);
+    private static final String LAST_FRAGMENT = "lastfrag";
+
+    private static SparseArray<BaseFragment> fragmentsArray;
 
     /** CAMERA MANAGEMENT
      */
@@ -141,7 +148,7 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
 
     /** ANALYTICS REPORTING
      */
-    private final AnalyticsReporter reporter = new AnalyticsReporter(this);
+    private final AnalyticsReporter analyticsReporter = new AnalyticsReporter(this);
 
     /**IMAGE FULLSCREEN*/
 
@@ -287,12 +294,14 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
             numberOfFragments =  getResources().getInteger(R.integer.number_of_fragments);
         }
         Log.d(TAG,"Number of fragments = " + numberOfFragments);
+        fragmentsArray=new SparseArray<>(numberOfFragments);
         mAdapter = new MainAdapter(getFragmentManager(),numberOfFragments);
         mPager = (CustomViewPager) findViewById(R.id.pager);
         mPager.setAdapter(mAdapter);
         mPager.setCurrentItem(CAMERA_LIST_POSITION);
         mPager.addOnPageChangeListener(this);
         mPager.setOffscreenPageLimit(2);
+
     }
 
     /**
@@ -673,6 +682,8 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
         super.onSaveInstanceState(outState);
         Log.d(TAG, "enter onSavedInstanceState...");
 
+        getFragmentManager().putFragment(outState,LAST_FRAGMENT,mAdapter.getItem(mPager.getCurrentItem()));
+
         Log.d(TAG, "exit onSavedInstanceState...");
     }
 
@@ -1005,8 +1016,8 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
      */
     public void sendToLive() {
         mPager.setCurrentItem(LIVE_LIST_POSITION);
-        if (LiveFragReference.get()!=null) {
-            LiveFragReference.get().resetLiveAdapter();
+        if(fragmentsArray.get(LIVE_LIST_POSITION)!=null){
+            ((LiveFragment)fragmentsArray.get(LIVE_LIST_POSITION)).resetLiveAdapter();
         }
     }
 
@@ -1081,15 +1092,17 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
 
     public void takeLivePicture() {
         mPager.setCurrentItem(CAMERA_LIST_POSITION);
-        if (CameraFragReference.get()!=null) {
-            CameraFragReference.get().startLiveMode();
+
+        if (fragmentsArray.get(CAMERA_LIST_POSITION)!=null){
+            ((CameraFragment)fragmentsArray.get(CAMERA_LIST_POSITION)).startLiveMode();
         }
     }
 
     public void takeReplyPicture() {
         mPager.setCurrentItem(CAMERA_LIST_POSITION);
-        if (CameraFragReference.get()!=null) {
-            CameraFragReference.get().startReplyMode();
+
+        if (fragmentsArray.get(CAMERA_LIST_POSITION)!=null){
+            ((CameraFragment)fragmentsArray.get(CAMERA_LIST_POSITION)).startReplyMode();
         }
     }
 
@@ -1285,63 +1298,41 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
                 Log.v(TAG,"getting item at position " + position);
             }
 
-            Fragment out;
+            BaseFragment out = fragmentsArray.get(position);
 
-            switch (position) {
-                case MESSAGE_LIST_POSITION:
-                    if (MessageFragReference.get() == null){
-                        MessageFragReference = new WeakReference<>(new MessageFragment());
-                    }
+            if (out == null) {
+                switch (position) {
+                    case MESSAGE_LIST_POSITION:
+                        out = new MessageFragment();
+                        break;
 
-                    out = MessageFragReference.get();
-                    break;
+                    case LOCAL_LIST_POSITION:
+                        out = new LocalFragment();
+                        break;
 
-                case LOCAL_LIST_POSITION:
-                    if (LocalFragReference.get() == null) {
-                        LocalFragReference = new WeakReference<>(new LocalFragment());
-                    }
+                    case CAMERA_LIST_POSITION:
+                        out = CameraFragment.newInstance(0);
+                        MessageHandler.setCameraListener(out);
+                        MessageHandler.setLivePostListener(out);
+                        break;
 
-                    out = LocalFragReference.get();
-                    break;
+                    case LIVE_LIST_POSITION:
+                        out = LiveFragment.newInstance("","");
+                        break;
 
-                case CAMERA_LIST_POSITION:
-                    if (CameraFragReference.get() == null){
-                        CameraFragReference = new WeakReference<>(CameraFragment.newInstance(0));
-                        MessageHandler.setCameraListener(CameraFragReference.get());
-                        MessageHandler.setLivePostListener(CameraFragReference.get());
-                    }
+                    case REPLY_LIST_POSITION:
+                        out = ReplyFragment.newInstance();
+                        break;
 
-                    out = CameraFragReference.get();
-                    break;
+                    case 6:
+                        out = new PhotoFragment();
+                        break;
 
-                case LIVE_LIST_POSITION:
-                    if (LiveFragReference.get() == null){
-                        LiveFragReference = new WeakReference<>(LiveFragment.newInstance("a","a"));
-                    }
+                    default:
+                        out = new PhotoFragment();
+                }
 
-                    out = LiveFragReference.get();
-                    break;
-
-                case REPLY_LIST_POSITION:
-                    if (ReplyFragReference.get() == null) {
-
-                        ReplyFragment f = ReplyFragment.newInstance();
-                        ReplyFragReference = new WeakReference<>(f);
-                        out = f;
-
-                    } else {
-                        out = ReplyFragReference.get();
-                    }
-
-                    break;
-
-                case 6:
-                    //out = new ContentDeliveryDemoFragment();
-                    out = new PhotoFragment();
-                    break;
-
-                default:
-                    out = new PhotoFragment();
+                fragmentsArray.put(position,out);
             }
 
             return out;
@@ -1417,10 +1408,10 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
                 //tabStrip.setVisibility(View.VISIBLE);
                 //settingsDrawer.setVisibility(View.VISIBLE);
                 sendMsgUnsubscribeFromTopic(currentTopicARN);
-                reporter.ReportViewEvent(currentTopicImageKey);
+                analyticsReporter.ReportViewEvent(currentTopicImageKey);
 
-                if (ReplyFragReference.get()!=null) {
-                    ReplyFragReference.get().closeRadical();
+                if(fragmentsArray.get(REPLY_LIST_POSITION)!=null) {
+                    ((ReplyFragment) fragmentsArray.get(REPLY_LIST_POSITION)).closeRadical();
                 }
                 break;
 
@@ -1428,10 +1419,10 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
                 //tabStrip.setVisibility(View.GONE);
                 //settingsDrawer.setVisibility(View.GONE);
                 sendMsgSubscribeToTopic(currentTopicARN);
-                reporter.ReportViewEvent(currentThread);
+                analyticsReporter.ReportViewEvent(currentThread);
 
-                if (LiveFragReference.get()!=null) {
-                    LiveFragReference.get().closeRadical();
+                if(fragmentsArray.get(LIVE_LIST_POSITION)!=null) {
+                    ((LiveFragment) fragmentsArray.get(LIVE_LIST_POSITION)).closeRadical();
                 }
                 break;
         }
@@ -1560,7 +1551,7 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
                     localFragmentTransaction2.commit();
 
                     //report to analytics
-                    reporter.ReportViewEvent(urlString);
+                    analyticsReporter.ReportViewEvent(urlString);
                 }
 
                 // If not in side-by-side mode, sets "full screen", so that no controls are visible
@@ -2108,11 +2099,11 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
         currentTopicImageKey = imagekey;
         currentTopicTime = currentTime;
 
-        if (ReplyFragReference.get() != null) {
-            ReplyFragReference.get().resetDisplay();
+        if (fragmentsArray.get(REPLY_LIST_POSITION)!=null){
+            ((ReplyFragment)fragmentsArray.get(REPLY_LIST_POSITION)).resetDisplay();
         }
 
-        reporter.ReportViewEvent(threadID);
+        analyticsReporter.ReportViewEvent(threadID);
     }
 
     public void sendMsgSubscribeToTopic(String topicARN) {
@@ -3097,7 +3088,7 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
             }
         }
 
-        reporter.ReportClickEvent(view);
+        analyticsReporter.ReportClickEvent(view);
 
         if (VERBOSE) Log.v(TAG, "exiting setFlash...");
     }
@@ -3246,8 +3237,9 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
 
     @Override
     public void onRefreshComplete(int responseCode) {
-        if (LiveFragReference.get()!=null) {
-            LiveFragReference.get().resetLiveAdapter();
+
+        if ((fragmentsArray.get(LIVE_LIST_POSITION) != null)) {
+            ((LiveFragment)fragmentsArray.get(LIVE_LIST_POSITION)).resetLiveAdapter();
         }
     }
 
@@ -3267,15 +3259,15 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
     }
 
     public void updateReplyViews() {
-        if (ReplyFragReference.get() != null && ReplyFragReference.get().getView() != null) {
-            ReplyFragReference.get().setOpInfo(currentThread,
+        if (fragmentsArray.get(REPLY_LIST_POSITION) != null && fragmentsArray.get(REPLY_LIST_POSITION).getView() != null) {
+            ((ReplyFragment)fragmentsArray.get(REPLY_LIST_POSITION)).setOpInfo(currentThread,
                     currentTopicImageKey,currentTopicDescription, currentTopicTime);
         }
     }
 
     public void updateLiveReplyCount() {
-        if (LiveFragReference.get() != null) {
-            LiveFragReference.get().updateReplyCount(currentTopicReplies);
+        if(fragmentsArray.get(LIVE_LIST_POSITION)!=null){
+            ((LiveFragment)fragmentsArray.get(LIVE_LIST_POSITION)).updateReplyCount(currentTopicReplies);
         }
     }
 
@@ -3288,6 +3280,6 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
       */
 
     public AnalyticsReporter getAnalyticsReporter() {
-        return reporter;
+        return analyticsReporter;
     }
 }

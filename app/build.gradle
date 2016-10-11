@@ -10,7 +10,7 @@ android {
         minSdkVersion 17
         targetSdkVersion 23
         versionCode 35
-        versionName "6.1.1"
+        versionName "6.1.2"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
@@ -37,21 +37,21 @@ android {
             applicationId 'us.gravwith.android'
             targetSdkVersion 23
             versionCode 35
-            versionName "6.1.1-dev"
+            versionName "6.1.2-dev"
         }
         sales {
             minSdkVersion 17
             applicationId 'us.gravwith.android'
             targetSdkVersion 23
             versionCode 35
-            versionName "6.1.1-sales"
+            versionName "6.1.2-sales"
         }
         user {
             minSdkVersion 17
             applicationId 'us.gravwith.android'
             targetSdkVersion 23
             versionCode 35
-            versionName "6.1.1-user"
+            versionName "6.1.2-user"
         }
     }
 }
