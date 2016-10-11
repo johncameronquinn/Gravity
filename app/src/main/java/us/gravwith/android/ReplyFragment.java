@@ -440,11 +440,6 @@ public class ReplyFragment extends BaseFragment implements LoaderManager.LoaderC
                 null
         );
 
-        Utility.clearTextAndFocus(((EditText)textingFooterView
-                .findViewById(R.id.editText_reply_comment)));
-        Utility.clearTextAndFocus((EditText)textingParentView
-                .findViewById(R.id.editText_reply_comment));
-
         if (VERBOSE) Log.v(TAG, "exiting setOpInfo...");
     }
 

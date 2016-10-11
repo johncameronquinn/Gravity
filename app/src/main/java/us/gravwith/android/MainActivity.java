@@ -119,9 +119,13 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
     private static final String CAMERA_PAGER_TITLE = "Camera";
     private static final String REPLY_PAGER_TITLE = "Reply";
 
-    private static final String LAST_FRAGMENT = "lastfrag";
+    /** STATE MANAGEMENT
+     */
 
-    private static SparseArray<BaseFragment> fragmentsArray;
+    private SparseArray<BaseFragment> fragmentsArray;
+    private static BaseFragment lastFragment;
+    private static final String LAST_FRAGMENT = "lastfrag";
+    private static final String LAST_FRAGMENT_POSITION = "lastfragpos";
 
     /** CAMERA MANAGEMENT
      */
@@ -233,6 +237,10 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
         Log.d(TAG, "enter onCreate...");
         if (savedInstanceState != null) {
            //Restore the camerafragment's instance
+            Log.d(TAG, "this activity has a saved state! Restoring...");
+
+            BaseFragment f = (BaseFragment)getFragmentManager().getFragment(savedInstanceState,LAST_FRAGMENT);
+            fragmentsArray.put(savedInstanceState.getInt(LAST_FRAGMENT_POSITION),f);
         }
 
         /*if (awsMobileClient == null) {
@@ -295,7 +303,7 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
         }
         Log.d(TAG,"Number of fragments = " + numberOfFragments);
         fragmentsArray=new SparseArray<>(numberOfFragments);
-        mAdapter = new MainAdapter(getFragmentManager(),numberOfFragments);
+        mAdapter = new MainAdapter(getFragmentManager(),numberOfFragments,fragmentsArray);
         mPager = (CustomViewPager) findViewById(R.id.pager);
         mPager.setAdapter(mAdapter);
         mPager.setCurrentItem(CAMERA_LIST_POSITION);
@@ -679,12 +687,26 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
 
     @Override
     protected void onSaveInstanceState(Bundle outState) {
-        super.onSaveInstanceState(outState);
         Log.d(TAG, "enter onSavedInstanceState...");
+        super.onSaveInstanceState(outState);
 
         getFragmentManager().putFragment(outState,LAST_FRAGMENT,mAdapter.getItem(mPager.getCurrentItem()));
+        outState.putInt(LAST_FRAGMENT_POSITION,mPager.getCurrentItem());
 
         Log.d(TAG, "exit onSavedInstanceState...");
+    }
+
+
+
+    @Override
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+        Log.d(TAG,"entering onRestoreInstanceState...");
+        super.onRestoreInstanceState(savedInstanceState);
+
+        BaseFragment f = (BaseFragment)getFragmentManager().getFragment(savedInstanceState,LAST_FRAGMENT);
+        fragmentsArray.put(savedInstanceState.getInt(LAST_FRAGMENT_POSITION),f);
+
+        Log.d(TAG,"exiting onRestoreInstanceState...");
     }
 
     /**
@@ -713,15 +735,6 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
     @Override
     public View onCreateView(String name, Context context, AttributeSet attrs) {
         return super.onCreateView(name, context, attrs);
-    }
-
-    @Override
-    protected void onRestoreInstanceState(Bundle savedInstanceState) {
-        if (VERBOSE) Log.v(TAG,"entering onRestoreInstanceState...");
-
-        super.onRestoreInstanceState(savedInstanceState);
-
-        if (VERBOSE) Log.v(TAG,"exiting onRestoreInstanceState...");
     }
 
 
@@ -1273,10 +1286,12 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
     public static class MainAdapter extends FragmentStatePagerAdapter {
 
         private int count;
+        private SparseArray<BaseFragment> fragmentContainer;
 
-        public MainAdapter(FragmentManager fm, int count) {
+        public MainAdapter(FragmentManager fm, int count, SparseArray<BaseFragment> container) {
             super(fm);
             this.count = count;
+            fragmentContainer=container;
         }
 
         @Override
@@ -1298,9 +1313,10 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
                 Log.v(TAG,"getting item at position " + position);
             }
 
-            BaseFragment out = fragmentsArray.get(position);
+            BaseFragment out = fragmentContainer.get(position);
 
             if (out == null) {
+                Log.v(TAG,"MainAdapter.getItem(): fragment not stored, creating new...");
                 switch (position) {
                     case MESSAGE_LIST_POSITION:
                         out = new MessageFragment();
@@ -1332,7 +1348,9 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
                         out = new PhotoFragment();
                 }
 
-                fragmentsArray.put(position,out);
+                fragmentContainer.put(position,out);
+            } else {
+                Log.v(TAG,"MainAdapter.getItem(): fragment was already stored, returning");
             }
 
             return out;
