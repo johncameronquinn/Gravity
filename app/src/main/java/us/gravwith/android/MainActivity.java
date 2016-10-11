@@ -87,7 +87,7 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
         ErrorReceiver.SecurityErrorListener, AnalyticsReporter.AnalyticsReportingCallbacks, MessageHandler.LiveRefreshListener {
 
     private static String TAG = "MainActivity";
-    private static final boolean VERBOSE = false;
+    private static final boolean VERBOSE = true;
 
     //UI
     private static CustomViewPager mPager;
@@ -337,6 +337,7 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
      * ensures the app has all necessary permissions. Asks user to grant any that are missing
      */
     public void performStartupChecks() {
+        Log.d(TAG, "performStartupChecks: entering");
 
         ArrayList<String> list = new ArrayList<>();
 
@@ -378,28 +379,40 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
                 // result of the request.
             }
 
-            if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_NETWORK_STATE)
+        }
+
+            if (ContextCompat.checkSelfPermission(
+                    this, Manifest.permission.ACCESS_NETWORK_STATE)
                     != PackageManager.PERMISSION_GRANTED) {
 
                 list.add(Manifest.permission.ACCESS_NETWORK_STATE);
             }
 
-            if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
+            if (ContextCompat.checkSelfPermission(this,
+                    Manifest.permission.CAMERA)
                     != PackageManager.PERMISSION_GRANTED) {
                 list.add(Manifest.permission.CAMERA);
             }
 
+
+        if (!list.isEmpty()) {
             // No explanation needed, we can request the permission.
-            ActivityCompat.requestPermissions(this, (String[])list.toArray(),
-                    REQUEST_INTERNET);
+            ActivityCompat.requestPermissions(this, list.toArray(new String[list.size()]),
+                    REQUEST_BULK);
+
         }
     }
 
     @Override
     public void onRequestPermissionsResult(int requestCode,
                                            String permissions[], int[] grantResults) {
+        Log.d(TAG, "onRequestPermissionsResult: " + requestCode);
+
         switch (requestCode) {
             case REQUEST_INTERNET: {
+
+                Log.v(TAG,"Result code is request_internet");
+
                 // If request is cancelled, the result arrays are empty.
                 if (grantResults.length > 0
                         && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
@@ -415,13 +428,41 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
                 return;
             }
 
+
             case REQUEST_BULK: {
+                Log.v(TAG,"Result code is request_bulk");
+
                 // If request is cancelled, the result arrays are empty.
+
                 if (grantResults.length > 0
                         && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
 
                     // permission was granted, yay! Do the
                     // contacts-related task you need to do.
+
+
+                    if (VERBOSE) Log.v(TAG," Printing results from security requests");
+                    for (int i = 0; i < grantResults.length; i++) {
+                        if (VERBOSE) Log.v(TAG, "Permission: " + permissions[i] + " result : " + grantResults[i]);
+
+                        switch(permissions[i]) {
+                            case Manifest.permission.CAMERA:
+
+                                if (grantResults[i] == 0) {
+                                    Log.v(TAG," Camera permission was granted, try to reload camera)");
+
+                                    try {
+                                        Message msg = Message.obtain(null, MSG_CONNECT_CAMERA, currentCamera, 0);
+                                        cameraMessenger.send(msg);
+                                    } catch (RemoteException e) {
+                                        Log.e(TAG,"error sending message to connect camera");
+                                    }
+
+                                }
+
+                            break;
+                        }
+                    }
 
                 } else {
 
@@ -431,6 +472,10 @@ LocalFragment.onLocalFragmentInteractionListener, LiveFragment.onLiveFragmentInt
                 }
                 return;
             }
+
+            default:
+
+                Log.e(TAG,"Unknown result code returned");
 
             // other 'case' lines to check for other
             // permissions this app might request

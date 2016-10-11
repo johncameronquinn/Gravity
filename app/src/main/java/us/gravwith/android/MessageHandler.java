@@ -308,6 +308,7 @@ public class MessageHandler extends Handler{
 
                 switch (msg.arg1) {
                     case ERROR_CAMERA_OPENING_FAILED:
+                        Log.d(LOG_TAG, "showing error dialog...");
                         new AlertDialog.Builder(activity.get()).setTitle("Camera Failed to Open")
                                 .setMessage("We couldn't connect to your Camera. Make sure no other " +
                                         "applications are currently using the Camera. You may need" +
@@ -320,6 +321,7 @@ public class MessageHandler extends Handler{
                                 });
 
                         break;
+
                 }
 
                 break;

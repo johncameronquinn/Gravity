@@ -84,13 +84,14 @@ dependencies {
     compile 'com.amazonaws:aws-android-sdk-cognito:2.2.6'
     compile 'com.amazonaws:aws-android-sdk-mobileanalytics:2.2.5'
     compile 'com.amazonaws:aws-android-sdk-sns:2.2.8'
-    compile 'com.google.android.gms:play-services-location:8.3.0'
-    compile 'com.google.android.gms:play-services-base:8.3.0'
-    compile 'com.google.android.gms:play-services-gcm:8.3.0'
+    compile 'com.google.android.gms:play-services-location:9.0.0'
+    compile 'com.google.android.gms:play-services-base:9.0.0'
+    compile 'com.google.android.gms:play-services-gcm:9.0.0'
     compile 'com.android.support:support-v4:23.2.0'
     compile 'com.android.support:support-v13:23.2.0'
+
     /* random repos found on the internet */
     compile 'com.github.castorflex.verticalviewpager:library:19.0.1'
     compile 'com.github.clans:fab:1.6.2'
-    compile 'com.github.Todd-Davies:ProgressWheel:721e620'
+    compile 'com.github.Todd-Davies:ProgressWheel:1.2'
 }

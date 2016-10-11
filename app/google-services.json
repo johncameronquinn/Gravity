@@ -1,42 +1,73 @@
 {
   "project_info": {
-    "project_id": "gravity-1149",
     "project_number": "625139449339",
-    "name": "Gravity"
+    "firebase_url": "https://gravity-1149.firebaseio.com",
+    "project_id": "gravity-1149",
+    "storage_bucket": "gravity-1149.appspot.com"
   },
   "client": [
     {
       "client_info": {
         "mobilesdk_app_id": "1:625139449339:android:5a00949d0d357d8e",
-        "client_id": "android:us.gravwith.android",
-        "client_type": 1,
         "android_client_info": {
           "package_name": "us.gravwith.android"
         }
       },
-      "oauth_client": [],
-      "api_key": [],
+      "oauth_client": [
+        {
+          "client_id": "625139449339-mescrmnjgco43jmino6dra5b2vg350k5.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBsb6Oj1V-Dvxo6m01QkjM9wJlbQF9_hpU"
+        }
+      ],
       "services": {
         "analytics_service": {
           "status": 1
-        },
-        "cloud_messaging_service": {
-          "status": 2,
-          "apns_config": []
         },
         "appinvite_service": {
           "status": 1,
           "other_platform_oauth_client": []
         },
-        "google_signin_service": {
+        "ads_service": {
+          "status": 2
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:625139449339:android:52407d266002453f",
+        "android_client_info": {
+          "package_name": "us.gravwith.android"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "625139449339-mescrmnjgco43jmino6dra5b2vg350k5.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBsb6Oj1V-Dvxo6m01QkjM9wJlbQF9_hpU"
+        }
+      ],
+      "services": {
+        "analytics_service": {
           "status": 1
         },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
         "ads_service": {
-          "status": 1
+          "status": 2
         }
       }
     }
   ],
-  "client_info": [],
-  "ARTIFACT_VERSION": "1"
+  "configuration_version": "1"
 }
