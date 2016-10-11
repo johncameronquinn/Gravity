@@ -3,20 +3,13 @@ package us.gravwith.android;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
-import android.media.Image;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
-import android.view.View;
-import android.widget.ProgressBar;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import java.lang.ref.WeakReference;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.UUID;
 
 /**
  * Created by caliamara on 1/8/16.
@@ -173,20 +166,20 @@ public class MessageHandler extends Handler{
 
                     case DataHandlingService.TASK_COMPLETED:
                         if (mLiveListener != null) {
-                            mLiveListener.onCreateThreadCompleted(msg.arg2);
+                         //   mLiveListener.onCreateThreadCompleted(msg.arg2);
                         }
                         break;
 
                     case DataHandlingService.CONNECTION_STARTED:
                         if (mLiveListener != null) {
-                            mLiveListener.onCreateThreadStarted();
+                          //  mLiveListener.onCreateThreadStarted();
                         }
                         break;
 
                     case DataHandlingService.CONNECTION_FAILED:
                     case DataHandlingService.REQUEST_FAILED:
                         if (mLiveListener != null) {
-                            mLiveListener.onCreateThreadFailed();
+                       //     mLiveListener.onCreateThreadFailed();
                         }
                         break;
                 }
