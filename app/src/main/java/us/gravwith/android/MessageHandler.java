@@ -3,20 +3,13 @@ package us.gravwith.android;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
-import android.media.Image;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
-import android.view.View;
-import android.widget.ProgressBar;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import java.lang.ref.WeakReference;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.UUID;
 
 /**
  * Created by caliamara on 1/8/16.
@@ -163,8 +156,38 @@ public class MessageHandler extends Handler{
 
                 break;
 
+            case DataHandlingService.MSG_REPLY_TO_THREAD:
+                if (Constants.LOGV)Log.v(LOG_TAG, "entering msg_reply_to_thread");
+                 /*   Toast.makeText(activity.get(),
+                            "created live thread info received...",
+                            Toast.LENGTH_LONG)
+                            .show();*/
+                switch (msg.arg1) {
+
+                    case DataHandlingService.TASK_COMPLETED:
+                        if (mLiveListener != null) {
+                         //   mLiveListener.onCreateThreadCompleted(msg.arg2);
+                        }
+                        break;
+
+                    case DataHandlingService.CONNECTION_STARTED:
+                        if (mLiveListener != null) {
+                          //  mLiveListener.onCreateThreadStarted();
+                        }
+                        break;
+
+                    case DataHandlingService.CONNECTION_FAILED:
+                    case DataHandlingService.REQUEST_FAILED:
+                        if (mLiveListener != null) {
+                       //     mLiveListener.onCreateThreadFailed();
+                        }
+                        break;
+                }
+
+                break;
+
             case DataHandlingService.MSG_REQUEST_LIVE_THREADS:
-                if (Constants.LOGV)Log.v(LOG_TAG, "entering msg_create_thread");
+                if (Constants.LOGV)Log.v(LOG_TAG, "entering msg_request_live_threads");
 
                 if (mLiveRefreshListener != null) {
                     mLiveRefreshListener.onRefreshComplete(msg.arg2);
@@ -278,6 +301,7 @@ public class MessageHandler extends Handler{
 
                 switch (msg.arg1) {
                     case ERROR_CAMERA_OPENING_FAILED:
+                        Log.d(LOG_TAG, "showing error dialog...");
                         new AlertDialog.Builder(activity.get()).setTitle("Camera Failed to Open")
                                 .setMessage("We couldn't connect to your Camera. Make sure no other " +
                                         "applications are currently using the Camera. You may need" +
@@ -290,6 +314,7 @@ public class MessageHandler extends Handler{
                                 });
 
                         break;
+
                 }
 
                 break;

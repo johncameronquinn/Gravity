@@ -7,6 +7,7 @@ import android.util.Log;
 
 import us.gravwith.android.BuildConfig;
 import us.gravwith.android.Constants;
+import us.gravwith.android.ServerConnectRunnable;
 import us.gravwith.android.util.LogUtils;
 import us.gravwith.android.util.Utility;
 
@@ -46,10 +47,6 @@ public class InitializeUserRunnable implements Runnable {
     private final String CONNECTION_PROTOCOL = "https";
     private final int READ_TIMEOUT = 10000;
     private final int CONNECT_TIMEOUT = 20000;
-
-    private static final String SERVER_URL = "gravitybackend.ddns.net";
-    private static final String SERVER_URL_SANDBOX = "dev-gravity.ddns.net";
-
 
     static final int GET_UUID_FAILED = -1;
     static final int GET_UUID_STARTED = 0;
@@ -102,18 +99,18 @@ public class InitializeUserRunnable implements Runnable {
 
         try {
 
-            if (BuildConfig.DEBUG) {
+            if (BuildConfig.DEBUG && Constants.SANDBOX_MODE) {
                 Log.i(TAG,"Connecting to Sandbox Server...");
                 url = new URL(
                         CONNECTION_PROTOCOL,
-                        SERVER_URL_SANDBOX,
+                        ServerConnectRunnable.SERVER_URL_SANDBOX,
                         SERVER_SOCKET,
                         mService.getInitializeUrlPath()
                 );
             } else {
                 url = new URL(
                         CONNECTION_PROTOCOL,
-                        SERVER_URL,
+                        ServerConnectRunnable.SERVER_URL,
                         SERVER_SOCKET,
                         mService.getInitializeUrlPath()
                 );

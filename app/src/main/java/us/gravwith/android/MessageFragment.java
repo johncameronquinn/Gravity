@@ -1,6 +1,7 @@
 package us.gravwith.android;
 
 import android.app.Activity;
+import android.app.Fragment;
 import android.app.LoaderManager;
 import android.content.Context;
 import android.content.CursorLoader;
@@ -8,8 +9,6 @@ import android.content.Loader;
 import android.database.Cursor;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
-
-import android.app.Fragment;
 import android.os.Message;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -20,12 +19,12 @@ import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.TextView;
 
-import us.gravwith.android.SQLiteDbContract.MessageEntry;
-
 import com.amazonaws.mobile.AWSMobileClient;
-import us.gravwith.android.view.ImageCursorAdapterView;
 
 import java.net.HttpURLConnection;
+
+import us.gravwith.android.SQLiteDbContract.MessageEntry;
+import us.gravwith.android.view.ImageCursorAdapterView;
 
 
 /**
@@ -33,7 +32,7 @@ import java.net.HttpURLConnection;
  * Activities that contain this fragment must implement the=
  * to handle interaction events.
  */
-public class MessageFragment extends Fragment implements
+public class MessageFragment extends BaseFragment implements
         LoaderManager.LoaderCallbacks<Cursor>, View.OnClickListener {
     private final String TAG = "MessageFragment";
     private final boolean VERBOSE = false;

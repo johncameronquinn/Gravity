@@ -2,8 +2,6 @@ package us.gravwith.android;
 
 import android.test.suitebuilder.annotation.SmallTest;
 
-import com.amazonaws.http.AmazonHttpClient;
-
 import org.junit.Test;
 
 import java.util.UUID;
@@ -28,7 +26,7 @@ public class LocalAuthTest {
 
         final AuthenticationManager manager = new AuthenticationManager(null);
 
-        AuthenticationManager.addAuthenticationStatusListener(new AuthenticationManager.authenticationStatusListener() {
+    /*    AuthenticationManager.addAuthenticationStatusListener(new AuthenticationManager.authenticationStatusListener() {
             @Override
             public void onLoginFailed() {
                 System.out.println("login failed");
@@ -78,6 +76,6 @@ public class LocalAuthTest {
         assert (task.getResponseCode() == HttpsURLConnection.HTTP_OK);
 
         //test amazon login
-        manager.loginWithAmazon();
+        manager.loginWithAmazon();*/
     }
 }

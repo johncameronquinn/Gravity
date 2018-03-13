@@ -2,16 +2,11 @@ package us.gravwith.android;
 
 import android.app.Fragment;
 import android.content.Context;
-import android.net.Uri;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
-
-import java.util.HashMap;
-import java.util.UUID;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -19,7 +14,7 @@ import java.util.UUID;
  * {@link BaseFragmentInterface} interface
  * to handle interaction events.
  */
-public abstract class BaseFragment extends Fragment {
+public abstract class BaseFragment extends Fragment implements MessageHandler.LivePostListener,MessageHandler.CameraListener{
 
     private BaseFragmentInterface mListener;
 
@@ -44,6 +39,26 @@ public abstract class BaseFragment extends Fragment {
             throw new RuntimeException(context.toString()
                     + " must implement BaseFragmentInterface");
         }
+    }
+
+    @Override
+    public void onPictureTaken(int whichCamera) {
+        throw new RuntimeException("subclasses must implement this method!");
+    }
+
+    @Override
+    public void onCreateThreadStarted() {
+        throw new RuntimeException("subclasses must implement this method!");
+    }
+
+    @Override
+    public void onCreateThreadFailed() {
+        throw new RuntimeException("subclasses must implement this method!");
+    }
+
+    @Override
+    public void onCreateThreadCompleted(int responseCode) {
+        throw new RuntimeException("subclasses must implement this method!");
     }
 
     @Override

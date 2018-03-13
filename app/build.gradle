@@ -3,14 +3,14 @@ apply plugin: 'com.google.gms.google-services'
 
 android {
 
-    compileSdkVersion 23
-    buildToolsVersion '23.0.2'
+    compileSdkVersion 27
+    buildToolsVersion '26.0.2'
     defaultConfig {
         applicationId "us.gravwith.android"
         minSdkVersion 17
-        targetSdkVersion 23
-        versionCode 34
-        versionName "6.1.0"
+        targetSdkVersion 27
+        versionCode 35
+        versionName "6.1.2"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
@@ -31,27 +31,33 @@ android {
         exclude 'META-INF/dependencies.txt'
         exclude 'META-INF/LGPL2.1'
     }
+    flavorDimensions 'use-case'
+
     productFlavors {
         dev {
+            dimension 'use-case'
             minSdkVersion 17
             applicationId 'us.gravwith.android'
             targetSdkVersion 23
-            versionCode 34
-            versionName "6.1.0-dev"
+            versionCode 35
+            versionName "6.1.2-dev"
         }
         sales {
+            dimension 'use-case'
             minSdkVersion 17
             applicationId 'us.gravwith.android'
             targetSdkVersion 23
-            versionCode 34
-            versionName "6.1.0-sales"
+            versionCode 35
+            versionName "6.1.2-sales"
         }
         user {
+            dimension 'use-case'
             minSdkVersion 17
             applicationId 'us.gravwith.android'
             targetSdkVersion 23
-            versionCode 34
-            versionName "6.1.0-user"
+            versionCode 35
+            versionName "6.1.2-user"
+
         }
     }
 }
@@ -67,30 +73,31 @@ dependencies {
     //testCompile 'org.mockito:mockito-core:1.10.19'
     /* these dependencies are only used during android instrumentation tests
                                              */
-    androidTestCompile 'com.android.support:support-annotations:23.2.0'
-    androidTestCompile 'com.android.support.test:runner:0.4.1'
-    androidTestCompile 'com.android.support.test:rules:0.4.1'
+    androidTestCompile 'com.android.support:support-annotations:27.1.0'
+    androidTestCompile 'com.android.support.test:runner:1.0.1'
+    androidTestCompile 'com.android.support.test:rules:1.0.1'
     // Optional -- Hamcrest library
     //androidTestCompile 'org.hamcrest:hamcrest-library:1.3'
     // Optional -- UI testing with Espresso
-    androidTestCompile 'com.android.support.test.espresso:espresso-core:2.2.1'
+    androidTestCompile 'com.android.support.test.espresso:espresso-core:3.0.1'
     // Optional -- UI testing with UI Automator
     //androidTestCompile 'com.android.support.test.uiautomator:uiautomator-v18:2.1.1'
     /* these dependencies are always compiled
                                              */
     compile 'com.fasterxml.jackson.core:jackson-databind:2.6.1'
     compile 'com.amazonaws:aws-android-sdk-s3:2.2.6'
-    compile 'com.amazonaws:aws-android-sdk-core:2.2.6'
+    compile 'com.amazonaws:aws-android-sdk-core:2.2.8'
     compile 'com.amazonaws:aws-android-sdk-cognito:2.2.6'
     compile 'com.amazonaws:aws-android-sdk-mobileanalytics:2.2.5'
     compile 'com.amazonaws:aws-android-sdk-sns:2.2.8'
-    compile 'com.google.android.gms:play-services-location:8.3.0'
-    compile 'com.google.android.gms:play-services-base:8.3.0'
-    compile 'com.google.android.gms:play-services-gcm:8.3.0'
-    compile 'com.android.support:support-v4:23.2.0'
-    compile 'com.android.support:support-v13:23.2.0'
+    compile 'com.google.android.gms:play-services-location:11.4.2'
+    compile 'com.google.android.gms:play-services-base:11.4.2'
+    compile 'com.google.android.gms:play-services-gcm:11.4.2'
+    compile 'com.android.support:support-v4:27.1.0'
+    compile 'com.android.support:support-v13:27.1.0'
+
     /* random repos found on the internet */
     compile 'com.github.castorflex.verticalviewpager:library:19.0.1'
     compile 'com.github.clans:fab:1.6.2'
-    compile 'com.github.Todd-Davies:ProgressWheel:721e620'
+    compile 'com.github.Todd-Davies:ProgressWheel:1.2'
 }

@@ -103,7 +103,7 @@ public class LoginRunnable implements Runnable {
 
         try {
 
-            if (BuildConfig.DEBUG) {
+            if (BuildConfig.DEBUG && Constants.SANDBOX_MODE) {
                 Log.i(TAG,"Connecting to Sandbox Server...");
                 url = new URL(
                         CONNECTION_PROTOCOL,

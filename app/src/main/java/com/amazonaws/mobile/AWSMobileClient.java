@@ -26,6 +26,7 @@ import com.amazonaws.mobileconnectors.amazonmobileanalytics.SessionClient;
 import com.amazonaws.regions.Regions;
 
 import us.gravwith.android.BuildConfig;
+import us.gravwith.android.Constants;
 import us.gravwith.android.DataHandlingService;
 import us.gravwith.android.user.AuthenticationManager;
 
@@ -258,7 +259,7 @@ public class AWSMobileClient {
             clientConfiguration.setUserAgent(AWSConfiguration.AWS_MOBILEHUB_USER_AGENT);
             final AuthenticationManager manager = new AuthenticationManager(dataHandlingService);
             final AWSMobileClient awsClient;
-            if (BuildConfig.DEBUG) {
+            if (BuildConfig.DEBUG && Constants.SANDBOX_MODE) {
                 Log.d(LOG_TAG, "Using sandbox client.");
                 awsClient =
                         new Builder(dataHandlingService)
@@ -379,7 +380,7 @@ public class AWSMobileClient {
     }
 
     public void createUserFileManager(final UserFileManager.BuilderResultHandler resultHandler) {
-        if (BuildConfig.DEBUG) {
+        if (BuildConfig.DEBUG && Constants.SANDBOX_MODE) {
             Log.i(LOG_TAG, "Creating sandbox content manager...");
             new UserFileManager.Builder()
                     .withContext(context)

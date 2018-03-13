@@ -29,7 +29,7 @@ public class AuthenticationTest {
     public void testAuthentication() {
         final AuthenticationManager manager = new AuthenticationManager(null);
 
-        AuthenticationManager.addAuthenticationStatusListener(new AuthenticationManager.authenticationStatusListener() {
+    /*    AuthenticationManager.addAuthenticationStatusListener(new AuthenticationManager.authenticationStatusListener() {
             @Override
             public void onLoginFailed() {
                 Log.i(TAG, "login failed...");
@@ -63,6 +63,6 @@ public class AuthenticationTest {
 
 
         ExecutorService service = new ScheduledThreadPoolExecutor(8);
-        manager.tryInitialize(service);
+        manager.tryInitialize(service);*/
     }
 }
