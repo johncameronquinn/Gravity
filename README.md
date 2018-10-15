@@ -6,7 +6,7 @@ Note that some of the feature and UX decisions were made in conjunction with oth
 
 ----
 
-Hello, and welcome to my work! I have my complaints about the project, looking back. I definitely bit off way, way more than I could chew. But, you live and learn right? Complaints, aside, I'm really proud of this repository. I am proud that I wasn't taught any android development, or indeed, any of the vast variety of skills that are needed to complete a project of this size, yet I still produced something that I believe is quite impressive. Shoutout to stack overflow and the wonderful android documentation that made self-teaching possible to the nth degree. 
+Hello, and welcome to my work! I have my complaints about the project, looking back. I definitely should've finished developing the business before developing the software. But, you live and learn right? Complaints aside, I'm really proud of this repository. I am proud that I wasn't taught any android development, or indeed, any of the vast variety of skills that are needed to complete a project of this size, yet I still produced something that I believe is quite impressive. Shoutout to stack overflow and the wonderful android documentation that made self-teaching possible to the nth degree. 
 
 As I've been progressing in my career a large amount since this project, I don't consider it a full representation of my skills. For one thing, I wasn't taking code style very seriously. That's definitely not the case anymore. However, I am proud of the scope and depth of this project. Here's a brief overview of the features of our application:
 
