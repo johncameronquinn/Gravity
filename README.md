@@ -21,6 +21,8 @@ As I've been progressing in my career a large amount since this project, I don't
 - Development, Staging, and Production Builds
 - Resiliency, intelligent error-handling, error-reporting (partially implemented) 
 
+It is important to note that it is in an unfinished state. The major features are there, but, there's a lot of resiliency work that needs to be done. Error-handling, broader testing on devices, etc. Towards the end we were running into issues on the marketing/UX fronts, so a good deal of the UI is unfinished. Plus, there's small UX features like pinch zoom, and whatnot, that weren't yet implemented because we wanted to be sure of the design first. I'd consider it in an alpha state, but of course, some people define that term differently. 
+
 ----
 
 I have recently updated the dependencies and enabled a "client-only-mode," where posted content loops back into the device storage, since our servers are no longer operational. However, this mode was depreciated in an earlier version so effort will need to be made to make it functional once more. Truthfully, so much of the application's function is a disabled without servers, that a client-only test is lacking in some ways. However, a full demonstration could be implemented on request.
