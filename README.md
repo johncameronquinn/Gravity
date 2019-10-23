@@ -4,6 +4,8 @@ Android client repository for the former company, Gravity. Designed and develope
 
 Note that some of the feature and UX decisions were made in conjunction with other members of the company.
 
+link to the corresponding application server code: Github.com/nwrobel/gravity-serve
+
 ----
 
 Hello, and welcome to my work! I have my complaints about the project, looking back. I definitely should've finished developing the business before developing the software. But, you live and learn right? Complaints aside, I'm really proud of this repository. I am proud that I wasn't taught any android development, or indeed, any of the vast variety of skills that are needed to complete a project of this size, yet I still produced something that I believe is quite impressive. Shoutout to stack overflow and the wonderful android documentation that made self-teaching possible to the nth degree. 
